@@ -36,7 +36,8 @@ to json file will be reflected to the running app without needing to re-compile 
 ```
 
 ## Supported & Unsupported styles
-- Unsupported
+
+#### Unsupported
 ```rust
 grid_template_rows: Vec<RepeatedGridTrack>
 grid_template_columns: Vec<RepeatedGridTrack>
@@ -46,7 +47,7 @@ grid_row: GridPlacement
 grid_column: GridPlacement
 ```
 
-- Supported
+#### Supported
 ```rust
 color: Color // can be used for fa_text & TextBundle only
 font_size: f32 // can be used for fa_text & TextBundle only
@@ -91,7 +92,7 @@ column_gap: Val
 grid_auto_flow: GridAutoFlow
 ```
 
-- Val struct support only
+#### Val struct support only
 ```rust
 Val {
     Auto,
@@ -102,7 +103,7 @@ Val {
 }
 ```
 
-- Color struct support only
+##### Color struct support only
 ```rust
 Color {
     Srgba(Srgba),
