@@ -92,7 +92,7 @@ column_gap: Val
 grid_auto_flow: GridAutoFlow
 ```
 
-#### Val struct support only
+#### Val enum support only
 ```rust
 Val {
     Auto,
@@ -103,7 +103,7 @@ Val {
 }
 ```
 
-##### Color struct support only
+##### Color enum support only
 ```rust
 Color {
     Srgba(Srgba),
