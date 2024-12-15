@@ -47,6 +47,15 @@ grid_column: GridPlacement
 ```
 - Supported
 ```rust
+color: Color // can be used for fa_text & TextBundle only
+font_size: f32 // can be used for fa_text & TextBundle only
+
+background_color: BackgroundColor
+border_color: BorderColor
+border_radius: BorderRadius
+visibility: Visibility
+z_index: ZIndex
+
 display: Display
 position_type: PositionType
 overflow: Overflow
