@@ -1,0 +1,8 @@
+[package]
+name = "simple_signup"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy = "0.14.2"
+famiq = { path = "../../../famiq" }

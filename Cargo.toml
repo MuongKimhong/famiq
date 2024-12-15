@@ -1,0 +1,15 @@
+[package]
+name = "famiq"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy = "0.14.2"
+serde = "1.0.215"
+serde_json = "1.0.133"
+smol_str = "0.2.2"
+thiserror = "2.0.3"
+
+[lib]
+name = "famiq"
+path = "src/lib.rs"
