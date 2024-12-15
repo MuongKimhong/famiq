@@ -45,6 +45,7 @@ grid_auto_columns: Vec<GridTrack>
 grid_row: GridPlacement
 grid_column: GridPlacement
 ```
+
 - Supported
 ```rust
 color: Color // can be used for fa_text & TextBundle only
@@ -89,6 +90,7 @@ row_gap: Val
 column_gap: Val
 grid_auto_flow: GridAutoFlow
 ```
+
 - Val struct support only
 ```rust
 Val {
@@ -99,6 +101,7 @@ Val {
     Vh
 }
 ```
+
 - Color struct support only
 ```rust
 Color {
