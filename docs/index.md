@@ -39,11 +39,6 @@ are reflected immediately in the running app, no need to re-compile.
 - [Selection - fa_selection](https://muongkimhong.github.io/famiq/widgets/selection)
 - [TextInput - fa_text_input](https://muongkimhong.github.io/famiq/widgets/textinput)
 
-## Versions
-| Bevy     | Famiq |
-|----------|----------|
-| 0.14.x   | 0.1.0    |
-
 ## Warning
 - Many useful features are missing.
 - currently support only **Bevy 0.14.x**.
