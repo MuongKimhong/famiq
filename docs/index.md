@@ -25,6 +25,41 @@ if you want to change background color to something else
 hot-reload can be enabled during development so that any changes made to the json file
 are reflected immediately in the running app, no need to re-compile.
 
+## Getting start
+```rust
+use famiq::prelude::*;
+
+fn main() {
+    App::new()
+        .add_plugins(DefaultPlugins)
+        .add_plugins(famiq_plugin) // add plugin
+        .add_systems(Startup, setup)
+        .run();
+}
+
+fn setup(
+    mut commands: Commands,
+    asset_server: ResMut<AssetServer>, // required
+    mut builder_resource: ResMut<FamiqWidgetBuilderResource>, // required
+) {
+    // create a widget builder
+    let mut builder = FamiqWidgetBuilder::new(
+        &mut commands,
+        &asset_server,
+        &mut builder_resource,
+        "assets/fonts/some_font.ttf", // should be inside assets folder & outside src folder
+        "assets/mystyles.json",       // should be inside assets folder & outside src folder
+        true,                         // hot_reload_styles, useful during development
+    );
+
+    // create widgets using the builder
+    let txt = builder.fa_text("#mytxt", "Hello Boss");
+    builder.fa_container("#mycontainer", &vec![txt]); // add txt to container
+}
+```
+if `hot_reload_styles` is true, famiq will read the json file, parse the styles and apply it to the widget(s)
+every single frame. Should be enabled only during development.
+
 ### Styling
 [How styling in json file works?](https://muongkimhong.github.io/famiq/styling)
 
