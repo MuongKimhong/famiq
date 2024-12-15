@@ -25,6 +25,12 @@ if you want to change background color to something else
 hot-reload can be enabled during development so that any changes made to the json file
 are reflected immediately in the running app, no need to re-compile.
 
+## Installation
+```toml
+[dependencies]
+famiq = { git = "https://github.com/muongkimhong/famiq", tag = "v0.1.0" }
+```
+
 ### Documentation
 - [See the docs](https://muongkimhong.github.io/famiq/)
 
