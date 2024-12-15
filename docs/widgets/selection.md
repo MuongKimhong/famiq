@@ -147,3 +147,12 @@ pub fn fa_selection(
 
 builder.fa_selection(..);
 ```
+### Getting selected item/choice
+The selected choice of a selection can be read from `SelectedItemsResource` within system.
+```rust
+fn my_system(selected_items: Res<SelectedItemsResource>) {
+    if let Some(selected_choice) = selected_items.items.get("#my-selection-id") {
+        println!("Choice: {:?}", selected_choice);
+    }
+}
+```

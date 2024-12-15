@@ -60,3 +60,13 @@ pub fn fa_text_input(
 
 let text_input = builder.fa_text_input(..);
 ```
+
+### Getting input data
+The input data can be read from `TextInputResource` within system.
+```rust
+fn my_system(input_resource: Res<TextInputResource>) {
+    if let Some(data) = input_resource.inputs.get("#my-text-input-id") {
+        println!("Data: {:?}", data);
+    }
+}
+```
