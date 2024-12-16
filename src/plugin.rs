@@ -2,6 +2,7 @@ use crate::event_handler;
 use crate::event_writer;
 use crate::widgets::{list_view::*, selection::*, text_input::*, *};
 
+use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 
@@ -66,7 +67,14 @@ fn fa_listview_systems(app: &mut App) {
     );
 }
 
+fn fa_fps_text_systems(app: &mut App) {
+    // run system every 10 millisecond, Update Scedule is too fast
+    app.insert_resource(Time::<Fixed>::from_seconds(0.10));
+    app.add_systems(FixedUpdate, fps::FaFpsText::update_fps_count_system);
+}
+
 pub fn famiq_plugin(app: &mut App) {
+    app.add_plugins(FrameTimeDiagnosticsPlugin::default());
     app.insert_resource(StylesKeyValueResource(StylesKeyValue::new()));
     app.insert_resource(style::ExternalStylesApplyState(false));
     app.insert_resource(CanBeScrolledListView { entity: None });
@@ -86,4 +94,5 @@ pub fn famiq_plugin(app: &mut App) {
     fa_selection_systems(app);
     fa_listview_systems(app);
     fa_text_input_systems(app);
+    fa_fps_text_systems(app);
 }
