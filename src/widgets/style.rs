@@ -306,21 +306,40 @@ pub fn apply_text_style_system(
     if builder_resource.hot_reload_styles || !apply_state.0 {
         for (mut text, widget_id, default) in text_q.iter_mut() {
             if let Some(text_style) = styles.get_style_by_id(&widget_id.0) {
-                text.sections[0].style = default.0.text.sections[0].style.clone();
+                // Update each text section individually
+                for (i, section) in text.sections.iter_mut().enumerate() {
+                    section.style = default.0.text.sections[i].style.clone();
 
-                // font size
-                if let Some(font_size) = &text_style.font_size {
-                    if let Ok(parsed_value) = font_size.trim().parse::<f32>() {
-                        text.sections[0].style.font_size = parsed_value;
+                    // font size
+                    if let Some(font_size) = &text_style.font_size {
+                        if let Ok(parsed_value) = font_size.trim().parse::<f32>() {
+                            section.style.font_size = parsed_value;
+                        }
+                    }
+
+                    // text color
+                    if let Some(color) = &text_style.color {
+                        if let Some(v) = parse_color(color) {
+                            section.style.color = v;
+                        }
                     }
                 }
 
-                // text color
-                if let Some(color) = &text_style.color {
-                    if let Some(v) = parse_color(color) {
-                        text.sections[0].style.color = v;
-                    }
-                }
+                // text.sections[0].style = default.0.text.sections[0].style.clone();
+
+                // // font size
+                // if let Some(font_size) = &text_style.font_size {
+                //     if let Ok(parsed_value) = font_size.trim().parse::<f32>() {
+                //         text.sections[0].style.font_size = parsed_value;
+                //     }
+                // }
+
+                // // text color
+                // if let Some(color) = &text_style.color {
+                //     if let Some(v) = parse_color(color) {
+                //         text.sections[0].style.color = v;
+                //     }
+                // }
             }
         }
     }

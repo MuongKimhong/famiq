@@ -1,6 +1,7 @@
 pub mod button;
 pub mod color;
 pub mod container;
+pub mod fps;
 pub mod list_view;
 pub mod selection;
 pub mod style;
@@ -238,6 +239,15 @@ impl<'a> FamiqWidgetBuilder<'a> {
             &self.font_path,
             None,
             None,
+        )
+    }
+
+    pub fn fa_fps(&mut self, id: &str) -> Entity {
+        fps::FaFpsText::new(
+            id,
+            &mut self.ui_root_node,
+            self.asset_server,
+            &self.font_path,
         )
     }
 
