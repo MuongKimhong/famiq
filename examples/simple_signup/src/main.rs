@@ -27,6 +27,9 @@ fn setup(
         true,                                 // hot-reload, useful during development
     );
 
+    // fa_fps
+    ui.fa_fps("#fps-text");
+
     // fa_text needs container
     let txt = ui.fa_text("#signup-txt", "SIGN UP");
     let txt_container = ui.fa_container("#signup-txt-container", &vec![txt]);

@@ -36,5 +36,8 @@
     "justify_content": "center",
     "align_items": "center"
   },
-  "#btn_btn_text": {}
+  "#fps-text": {
+    "color": "srgba 1.0, 0.984, 0.4, 0.922",
+    "font_size": "20.0"
+  }
 }
