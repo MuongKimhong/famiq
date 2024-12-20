@@ -12,6 +12,7 @@ pub mod text_input;
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 use bevy::ui::FocusPolicy;
+use button::{BtnSize, BtnVariant};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -38,12 +39,58 @@ pub struct StylesKeyValueResource(pub StylesKeyValue);
 pub struct FamiqWidgetId(pub String);
 
 #[derive(Component)]
-// use to store default bundle of each widget created by user
-pub struct DefaultWidgetBundle(pub FaWidgetBundle);
+pub struct DefaultWidgetEntity {
+    pub node: Node,
+    pub border_color: BorderColor,
+    pub border_radius: BorderRadius,
+    pub background_color: BackgroundColor,
+    pub z_index: ZIndex,
+    pub visibility: Visibility,
+}
+
+impl DefaultWidgetEntity {
+    pub fn new(
+        node: Node,
+        border_color: BorderColor,
+        border_radius: BorderRadius,
+        background_color: BackgroundColor,
+        z_index: ZIndex,
+        visibility: Visibility,
+    ) -> Self {
+        Self {
+            node,
+            border_color,
+            border_radius,
+            background_color,
+            z_index,
+            visibility,
+        }
+    }
+}
 
 #[derive(Component)]
-// use to store default text bundle of widget created by user
-pub struct DefaultTextBundle(pub TextBundle);
+pub struct DefaultTextEntity {
+    pub text: Text,
+    pub text_font: TextFont,
+    pub text_color: TextColor,
+    pub text_layout: TextLayout,
+}
+
+impl DefaultTextEntity {
+    pub fn new(
+        text: Text,
+        text_font: TextFont,
+        text_color: TextColor,
+        text_layout: TextLayout,
+    ) -> Self {
+        Self {
+            text,
+            text_font,
+            text_color,
+            text_layout,
+        }
+    }
+}
 
 #[derive(Resource)]
 pub struct FamiqWidgetBuilderResource {
@@ -67,48 +114,48 @@ impl Default for FamiqWidgetBuilderResource {
     }
 }
 
-impl StylesKeyValueResource {
-    pub fn get_style_by_id(&self, btn_id: &str) -> Option<&WidgetStyle> {
-        self.0.iter().flat_map(|map| map.get(btn_id)).next()
-    }
-}
+// impl StylesKeyValueResource {
+//     pub fn get_style_by_id(&self, btn_id: &str) -> Option<&WidgetStyle> {
+//         self.0.iter().flat_map(|map| map.get(btn_id)).next()
+//     }
+// }
 
-#[derive(Bundle, Clone, Debug)]
-pub struct FaWidgetBundle {
-    pub node: Node,
-    pub style: Style,
-    pub interaction: Interaction,
-    pub focus_policy: FocusPolicy,
-    pub border_color: BorderColor,
-    pub border_radius: BorderRadius,
-    pub background_color: BackgroundColor,
-    pub transform: Transform,
-    pub global_transform: GlobalTransform,
-    pub inherited_visibility: InheritedVisibility,
-    pub visibility: Visibility,
-    pub view_visibility: ViewVisibility,
-    pub z_index: ZIndex,
-}
+// #[derive(Bundle, Clone, Debug)]
+// pub struct FaWidgetBundle {
+//     pub node: Node,
+//     pub style: Style,
+//     pub interaction: Interaction,
+//     pub focus_policy: FocusPolicy,
+//     pub border_color: BorderColor,
+//     pub border_radius: BorderRadius,
+//     pub background_color: BackgroundColor,
+//     pub transform: Transform,
+//     pub global_transform: GlobalTransform,
+//     pub inherited_visibility: InheritedVisibility,
+//     pub visibility: Visibility,
+//     pub view_visibility: ViewVisibility,
+//     pub z_index: ZIndex,
+// }
 
-impl Default for FaWidgetBundle {
-    fn default() -> Self {
-        Self {
-            node: Default::default(),
-            style: Default::default(),
-            interaction: Default::default(),
-            focus_policy: FocusPolicy::Block,
-            border_color: Default::default(),
-            border_radius: Default::default(),
-            background_color: Default::default(),
-            transform: Default::default(),
-            global_transform: Default::default(),
-            inherited_visibility: Default::default(),
-            visibility: Default::default(),
-            view_visibility: Default::default(),
-            z_index: Default::default(),
-        }
-    }
-}
+// impl Default for FaWidgetBundle {
+//     fn default() -> Self {
+//         Self {
+//             node: Default::default(),
+//             style: Default::default(),
+//             interaction: Default::default(),
+//             focus_policy: FocusPolicy::Block,
+//             border_color: Default::default(),
+//             border_radius: Default::default(),
+//             background_color: Default::default(),
+//             transform: Default::default(),
+//             global_transform: Default::default(),
+//             inherited_visibility: Default::default(),
+//             visibility: Default::default(),
+//             view_visibility: Default::default(),
+//             z_index: Default::default(),
+//         }
+//     }
+// }
 
 #[derive(Component)]
 pub struct IsFaWidgetRoot;
@@ -192,15 +239,12 @@ impl<'a> FamiqWidgetBuilder<'a> {
 
     fn create_ui_root_node(commands: &'a mut Commands) -> EntityCommands<'a> {
         commands.spawn((
-            NodeBundle {
-                style: Style {
-                    width: Val::Percent(100.0),
-                    height: Val::Percent(100.0),
-                    flex_direction: FlexDirection::Column,
-                    justify_content: JustifyContent::FlexStart,
-                    align_items: AlignItems::Stretch,
-                    ..default()
-                },
+            Node {
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                flex_direction: FlexDirection::Column,
+                justify_content: JustifyContent::FlexStart,
+                align_items: AlignItems::Stretch,
                 ..default()
             },
             FamiqWidgetId("#fa_root".to_string()),
@@ -209,24 +253,37 @@ impl<'a> FamiqWidgetBuilder<'a> {
     }
 
     pub fn fa_container(&mut self, id: &str, children: &Vec<Entity>) -> Entity {
-        container::FaContainer::new(id, &mut self.ui_root_node, children, None)
+        container::FaContainer::new(id, &mut self.ui_root_node, children)
     }
 
-    pub fn fa_button(
-        &mut self,
-        id: &str,
-        text: &str,
-        variant: Option<button::BtnVariant>,
-        size: Option<button::BtnSize>,
-    ) -> Entity {
-        button::FaButton::normal_btn(
+    pub fn fa_button(&mut self, id: &str, text: &str, variant: &str, size: &str) -> Entity {
+        let use_variant;
+        let use_size;
+
+        match variant.trim().to_lowercase().as_str() {
+            "primary" => use_variant = BtnVariant::Primary,
+            "secondary" => use_variant = BtnVariant::Secondary,
+            "danger" => use_variant = BtnVariant::Danger,
+            "success" => use_variant = BtnVariant::Success,
+            "warning" => use_variant = BtnVariant::Warning,
+            "info" => use_variant = BtnVariant::Info,
+            _ => use_variant = BtnVariant::Default,
+        }
+
+        match size.trim().to_lowercase().as_str() {
+            "small" => use_size = BtnSize::Small,
+            "large" => use_size = BtnSize::Large,
+            _ => use_size = BtnSize::Normal,
+        }
+
+        button::FaButton::new(
             id,
             text,
             &mut self.ui_root_node,
             self.asset_server,
             &self.font_path,
-            variant,
-            size,
+            use_variant,
+            use_size,
         )
     }
 
@@ -237,72 +294,70 @@ impl<'a> FamiqWidgetBuilder<'a> {
             &mut self.ui_root_node,
             self.asset_server,
             &self.font_path,
-            None,
-            None,
         )
     }
 
-    pub fn fa_fps(&mut self, id: &str) -> Entity {
-        fps::FaFpsText::new(
-            id,
-            &mut self.ui_root_node,
-            self.asset_server,
-            &self.font_path,
-        )
-    }
+    // pub fn fa_fps(&mut self, id: &str) -> Entity {
+    //     fps::FaFpsText::new(
+    //         id,
+    //         &mut self.ui_root_node,
+    //         self.asset_server,
+    //         &self.font_path,
+    //     )
+    // }
 
-    pub fn fa_text_input(
-        &mut self,
-        id: &str,
-        placeholder: &str,
-        size: Option<text_input::TextInputSize>,
-        variant: Option<text_input::TextInputVariant>,
-    ) -> Entity {
-        let mut use_variant = text_input::TextInputVariant::Default;
+    // pub fn fa_text_input(
+    //     &mut self,
+    //     id: &str,
+    //     placeholder: &str,
+    //     size: Option<text_input::TextInputSize>,
+    //     variant: Option<text_input::TextInputVariant>,
+    // ) -> Entity {
+    //     let mut use_variant = text_input::TextInputVariant::Default;
 
-        if let Some(v) = variant {
-            use_variant = v;
-        }
-        text_input::FaTextInput::fa_text_input(
-            id,
-            placeholder,
-            &mut self.ui_root_node,
-            self.asset_server,
-            &self.font_path,
-            size,
-            use_variant,
-        )
-    }
+    //     if let Some(v) = variant {
+    //         use_variant = v;
+    //     }
+    //     text_input::FaTextInput::fa_text_input(
+    //         id,
+    //         placeholder,
+    //         &mut self.ui_root_node,
+    //         self.asset_server,
+    //         &self.font_path,
+    //         size,
+    //         use_variant,
+    //     )
+    // }
 
-    pub fn fa_list_view(&mut self, id: &str, items: &Vec<Entity>) -> Entity {
-        list_view::FaListView::new(id, &mut self.ui_root_node, items)
-    }
+    // pub fn fa_list_view(&mut self, id: &str, items: &Vec<Entity>) -> Entity {
+    //     list_view::FaListView::new(id, &mut self.ui_root_node, items)
+    // }
 
-    pub fn fa_selection(
-        &mut self,
-        id: &str,
-        placeholder: &str,
-        items: &Vec<String>,
-        label: Option<&str>,
-        size: Option<selection::SelectionSize>,
-        variant: Option<selection::SelectorVariant>,
-    ) -> Entity {
-        let mut use_variant = selection::SelectorVariant::Default;
+    // pub fn fa_selection(
+    //     &mut self,
+    //     id: &str,
+    //     placeholder: &str,
+    //     items: &Vec<String>,
+    //     label: Option<&str>,
+    //     size: Option<selection::SelectionSize>,
+    //     variant: Option<selection::SelectorVariant>,
+    // ) -> Entity {
+    //     let mut use_variant = selection::SelectorVariant::Default;
 
-        match variant {
-            Some(v) => use_variant = v,
-            None => (),
-        }
-        selection::FaSelection::build_selection(
-            id,
-            placeholder,
-            label,
-            &mut self.ui_root_node,
-            self.asset_server,
-            &self.font_path,
-            size,
-            items,
-            use_variant,
-        )
-    }
+    //     match variant {
+    //         Some(v) => use_variant = v,
+    //         None => (),
+    //     }
+    //     selection::FaSelection::build_selection(
+    //         id,
+    //         placeholder,
+    //         label,
+    //         &mut self.ui_root_node,
+    //         self.asset_server,
+    //         &self.font_path,
+    //         size,
+    //         items,
+    //         use_variant,
+    //     )
+    // }
 }

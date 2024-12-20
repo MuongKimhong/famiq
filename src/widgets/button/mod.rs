@@ -2,7 +2,7 @@ pub mod helper;
 
 use crate::utils;
 // use crate::widgets::{DefaultTextBundle, DefaultWidgetBundle, FamiqWidgetId};
-use crate::widgets::FamiqWidgetId;
+use crate::widgets::{DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId};
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 use helper::*;
@@ -42,32 +42,55 @@ impl<'a> FaButton {
         variant: BtnVariant,
         size: BtnSize,
     ) -> Entity {
+        let txt = Text::new(text);
+        let txt_font = TextFont {
+            font: asset_server.load(utils::strip_assets_prefix(font_path).unwrap()),
+            font_size: get_text_size(&size),
+            ..default()
+        };
+        let txt_color = TextColor(get_text_color(&variant));
+        let txt_layout = TextLayout::new_with_justify(JustifyText::Center);
+
         let txt_entity = root_node
             .commands()
             .spawn((
-                Text::new(text),
-                TextFont {
-                    font: asset_server.load(utils::strip_assets_prefix(font_path).unwrap()),
-                    font_size: get_text_size(&size),
-                    ..default()
-                },
-                TextColor(get_text_color(&variant)),
-                TextLayout::new_with_justify(JustifyText::Center),
+                txt.clone(),
+                txt_font.clone(),
+                txt_color.clone(),
+                txt_layout.clone(),
                 FamiqWidgetId(format!("{id}_btn_text")),
                 FaButtonText(text.to_string()),
+                DefaultTextEntity::new(txt, txt_font, txt_color, txt_layout),
             ))
             .id();
 
         let (height, border_width) = get_button_size(size);
+        let node = default_button_node(height, border_width);
+        let border_color = get_button_border_color(&variant);
+        let bg_color = get_button_background_color(&variant);
+        let border_radius = BorderRadius::all(Val::Px(5.0));
+        let z_index = ZIndex::default();
+        let visibility = Visibility::Visible;
+
         let btn_entity = root_node
             .commands()
             .spawn((
-                default_button_node(height, border_width),
-                get_button_border_color(&variant),
-                get_button_background_color(&variant),
+                node.clone(),
+                border_color.clone(),
+                bg_color.clone(),
+                border_radius.clone(),
+                z_index.clone(),
+                visibility.clone(),
                 FamiqWidgetId(id.to_string()),
                 IsFamiqButton,
-                BorderRadius::all(Val::Px(5.0)),
+                DefaultWidgetEntity::new(
+                    node,
+                    border_color,
+                    border_radius,
+                    bg_color,
+                    z_index,
+                    visibility,
+                ),
             ))
             .id();
 
