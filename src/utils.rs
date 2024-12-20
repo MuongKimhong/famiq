@@ -4,6 +4,7 @@ use std::fs::File;
 use std::io::Read;
 
 use crate::errors::StylesFileError;
+use crate::widgets::WidgetType;
 use crate::widgets::{StyleKeyValue, StylesKeyValue, WidgetStyle};
 
 pub fn read_styles_json_file(path: &str) -> Result<StylesKeyValue, StylesFileError> {
@@ -72,12 +73,12 @@ pub fn entity_add_child<'a>(root_node: &'a mut EntityCommands, child: Entity, pa
 }
 
 // add multiple entities as children to another entity
-pub fn entity_push_children<'a>(
+pub fn entity_add_children<'a>(
     root_node: &'a mut EntityCommands,
     children: &Vec<Entity>,
     parent: Entity,
 ) {
-    root_node.commands().entity(parent).push_children(children);
+    root_node.commands().entity(parent).add_children(children);
 }
 
 // by default, bevy's AssetServer expects assets to be inside
