@@ -1,18 +1,17 @@
-pub mod btn_text;
 pub mod helper;
 
 use crate::utils;
-use crate::widgets::{DefaultTextBundle, DefaultWidgetBundle, FamiqWidgetId};
+// use crate::widgets::{DefaultTextBundle, DefaultWidgetBundle, FamiqWidgetId};
+use crate::widgets::FamiqWidgetId;
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
-use btn_text::*;
 use helper::*;
 
 #[derive(Component)]
-pub struct ButtonText(pub String);
+pub struct IsFamiqButton;
 
 #[derive(Component)]
-pub struct IsFamiqButton;
+pub struct FaButtonText(pub String);
 
 pub enum BtnVariant {
     Default,
@@ -34,41 +33,41 @@ pub struct FaButton;
 
 // buttons need to be inside a container
 impl<'a> FaButton {
-    pub fn normal_btn(
+    pub fn new(
         id: &str,
         text: &str,
         root_node: &'a mut EntityCommands,
         asset_server: &'a ResMut<'a, AssetServer>,
         font_path: &String,
-        variant: Option<BtnVariant>,
-        size: Option<BtnSize>,
+        variant: BtnVariant,
+        size: BtnSize,
     ) -> Entity {
-        let text_bundle = create_button_text(text, &size, &variant, asset_server, font_path);
-        let button_bundle = create_default_button_bundle(&variant, &size, &text_bundle);
-
         let txt_entity = root_node
             .commands()
             .spawn((
-                text_bundle,
-                ButtonText(text.to_string()),
+                Text::new(text),
+                TextFont {
+                    font: asset_server.load(utils::strip_assets_prefix(font_path).unwrap()),
+                    font_size: get_text_size(&size),
+                    ..default()
+                },
+                TextColor(get_text_color(&variant)),
+                TextLayout::new_with_justify(JustifyText::Center),
                 FamiqWidgetId(format!("{id}_btn_text")),
-                DefaultTextBundle(create_button_text(
-                    text,
-                    &size,
-                    &variant,
-                    asset_server,
-                    font_path,
-                )),
+                FaButtonText(text.to_string()),
             ))
             .id();
 
+        let (height, border_width) = get_button_size(size);
         let btn_entity = root_node
             .commands()
             .spawn((
-                button_bundle.clone(),
+                default_button_node(height, border_width),
+                get_button_border_color(&variant),
+                get_button_background_color(&variant),
                 FamiqWidgetId(id.to_string()),
                 IsFamiqButton,
-                DefaultWidgetBundle(button_bundle),
+                BorderRadius::all(Val::Px(5.0)),
             ))
             .id();
 
