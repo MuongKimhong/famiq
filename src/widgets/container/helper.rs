@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
-pub fn get_default_container_style() -> Style {
-    Style {
+pub fn default_container_node() -> Node {
+    Node {
         width: Val::Percent(100.0),
         flex_direction: FlexDirection::Column,
         align_items: AlignItems::FlexStart,
