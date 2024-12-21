@@ -4,10 +4,10 @@ use bevy::prelude::*;
 pub struct IsFamiqSelectionContainer;
 
 #[derive(Component)]
-pub struct IsFamiqSelection;
+pub struct IsFamiqSelectionSelector;
 
 #[derive(Component)]
-pub struct IsFamiqSelectionItemsPanel;
+pub struct IsFamiqSelectionChoicesPanel;
 
 #[derive(Component)]
 pub struct ArrowIcon;
@@ -22,7 +22,7 @@ pub struct SelectorPlaceHolderEntity(pub Entity);
 pub struct SelectorArrowIconEntity(pub Entity);
 
 #[derive(Component)]
-pub struct SelectionItemsPanelEntity(pub Entity);
+pub struct SelectionChoicesPanelEntity(pub Entity);
 
 #[derive(Component, Debug)]
 pub struct Selection {
@@ -40,10 +40,10 @@ impl Selection {
 }
 
 #[derive(Component)]
-pub struct IsFamiqSelectionItem;
+pub struct IsFamiqSelectionChoice;
 
 #[derive(Component, Deref, Debug)]
-pub struct SelectionItemTextEntity(pub Entity);
+pub struct SelectionChoiceTextEntity(pub Entity);
 
 #[derive(Component)]
 pub struct IsFamiqSelectionLabel;

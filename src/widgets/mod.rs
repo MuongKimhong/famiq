@@ -13,6 +13,7 @@ use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 use bevy::ui::FocusPolicy;
 use button::{BtnSize, BtnVariant};
+use selection::{SelectionSize, SelectorVariant};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use text_input::{TextInputSize, TextInputVariant};
@@ -343,31 +344,46 @@ impl<'a> FamiqWidgetBuilder<'a> {
         list_view::FaListView::new(id, &mut self.ui_root_node, items)
     }
 
-    // pub fn fa_selection(
-    //     &mut self,
-    //     id: &str,
-    //     placeholder: &str,
-    //     items: &Vec<String>,
-    //     label: Option<&str>,
-    //     size: Option<selection::SelectionSize>,
-    //     variant: Option<selection::SelectorVariant>,
-    // ) -> Entity {
-    //     let mut use_variant = selection::SelectorVariant::Default;
+    pub fn fa_selection(
+        &mut self,
+        id: &str,
+        placeholder: &str,
+        choices: &Vec<String>,
+        label: &str,
+        variant: &str,
+        size: &str,
+    ) -> Entity {
+        let use_variant;
+        let use_size;
+        let use_label;
 
-    //     match variant {
-    //         Some(v) => use_variant = v,
-    //         None => (),
-    //     }
-    //     selection::FaSelection::build_selection(
-    //         id,
-    //         placeholder,
-    //         label,
-    //         &mut self.ui_root_node,
-    //         self.asset_server,
-    //         &self.font_path,
-    //         size,
-    //         items,
-    //         use_variant,
-    //     )
-    // }
+        match variant.trim().to_lowercase().as_str() {
+            "underlined" => use_variant = SelectorVariant::Underlined,
+            "outlined" => use_variant = SelectorVariant::Outlined,
+            _ => use_variant = SelectorVariant::Default
+        }
+        match size.trim().to_lowercase().as_str() {
+            "small" => use_size = SelectionSize::Small,
+            "large" => use_size = SelectionSize::Large,
+            _ => use_size = SelectionSize::Normal
+        }
+        if label.trim().is_empty() {
+            use_label = None;
+        }
+        else {
+            use_label = Some(label);
+        }
+
+        selection::FaSelection::new(
+            id,
+            placeholder,
+            use_label,
+            &mut self.ui_root_node,
+            self.asset_server,
+            &self.font_path,
+            use_variant,
+            use_size,
+            choices,
+        )
+    }
 }
