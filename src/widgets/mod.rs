@@ -15,6 +15,7 @@ use bevy::ui::FocusPolicy;
 use button::{BtnSize, BtnVariant};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use text_input::{TextInputSize, TextInputVariant};
 
 // key-value of "#widget-id" and all its styles in styles.json
 pub type StyleKeyValue = HashMap<String, WidgetStyle>;
@@ -297,41 +298,50 @@ impl<'a> FamiqWidgetBuilder<'a> {
         )
     }
 
-    // pub fn fa_fps(&mut self, id: &str) -> Entity {
-    //     fps::FaFpsText::new(
-    //         id,
-    //         &mut self.ui_root_node,
-    //         self.asset_server,
-    //         &self.font_path,
-    //     )
-    // }
+    pub fn fa_fps(&mut self, id: &str) -> Entity {
+        fps::FaFpsText::new(
+            id,
+            &mut self.ui_root_node,
+            self.asset_server,
+            &self.font_path,
+        )
+    }
 
-    // pub fn fa_text_input(
-    //     &mut self,
-    //     id: &str,
-    //     placeholder: &str,
-    //     size: Option<text_input::TextInputSize>,
-    //     variant: Option<text_input::TextInputVariant>,
-    // ) -> Entity {
-    //     let mut use_variant = text_input::TextInputVariant::Default;
+    pub fn fa_text_input(
+        &mut self,
+        id: &str,
+        placeholder: &str,
+        variant: &str,
+        size: &str,
+    ) -> Entity {
+        let use_variant;
+        let use_size;
 
-    //     if let Some(v) = variant {
-    //         use_variant = v;
-    //     }
-    //     text_input::FaTextInput::fa_text_input(
-    //         id,
-    //         placeholder,
-    //         &mut self.ui_root_node,
-    //         self.asset_server,
-    //         &self.font_path,
-    //         size,
-    //         use_variant,
-    //     )
-    // }
+        match variant.trim().to_lowercase().as_str() {
+            "underlined" => use_variant = TextInputVariant::Underlined,
+            "outlined" => use_variant = TextInputVariant::Outlined,
+            _ => use_variant = TextInputVariant::Default,
+        }
+        match size.trim().to_lowercase().as_str() {
+            "small" => use_size = TextInputSize::Small,
+            "large" => use_size = TextInputSize::Large,
+            _ => use_size = TextInputSize::Normal,
+        }
 
-    // pub fn fa_list_view(&mut self, id: &str, items: &Vec<Entity>) -> Entity {
-    //     list_view::FaListView::new(id, &mut self.ui_root_node, items)
-    // }
+        text_input::FaTextInput::new(
+            id,
+            placeholder,
+            &mut self.ui_root_node,
+            self.asset_server,
+            &self.font_path,
+            use_size,
+            use_variant,
+        )
+    }
+
+    pub fn fa_list_view(&mut self, id: &str, items: &Vec<Entity>) -> Entity {
+        list_view::FaListView::new(id, &mut self.ui_root_node, items)
+    }
 
     // pub fn fa_selection(
     //     &mut self,
