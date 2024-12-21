@@ -1,6 +1,6 @@
 use crate::utils;
 use crate::widgets::{
-    style_parse::*, DefaultTextBundle, DefaultWidgetBundle, FamiqWidgetBuilderResource,
+    style_parse::*, DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetBuilderResource,
     FamiqWidgetId, StylesKeyValueResource, WidgetStyle,
 };
 use bevy::prelude::*;
@@ -13,13 +13,13 @@ type WidgetStyleQuery<'a, 'w, 's> = Query<
     's,
     (
         &'a FamiqWidgetId,
-        &'a mut Style,
+        &'a mut Node,
         &'a mut BackgroundColor,
         &'a mut BorderColor,
         &'a mut BorderRadius,
         &'a mut ZIndex,
         &'a mut Visibility,
-        &'a DefaultWidgetBundle,
+        &'a DefaultWidgetEntity,
     ),
 >;
 
@@ -48,15 +48,23 @@ pub fn apply_widgets_styles_system(
     if builder_resource.hot_reload_styles || !apply_state.0 {
         for (
             widget_id,
-            mut style,
+            mut node,
             mut bg_color,
             mut border_color,
             mut border_radius,
             mut z_index,
             mut visibility,
-            default_widget_bundle,
+            default_widget_entity,
         ) in query.iter_mut()
         {
+            // assign default first before applying external style
+            *bg_color = default_widget_entity.background_color.clone();
+            *border_color = default_widget_entity.border_color.clone();
+            *border_radius = default_widget_entity.border_radius.clone();
+            *visibility = default_widget_entity.visibility.clone();
+            *z_index = default_widget_entity.z_index.clone();
+            *node = default_widget_entity.node.clone();
+
             if let Some(widget_style) = styles.get_style_by_id(&widget_id.0) {
                 apply_styles_from_external_json(
                     &mut bg_color,
@@ -64,9 +72,8 @@ pub fn apply_widgets_styles_system(
                     &mut border_radius,
                     &mut visibility,
                     &mut z_index,
-                    &mut style,
+                    &mut node,
                     &widget_style,
-                    &default_widget_bundle,
                 );
             }
         }
@@ -79,18 +86,9 @@ pub fn apply_styles_from_external_json(
     border_radius: &mut BorderRadius,
     visibility: &mut Visibility,
     z_index: &mut ZIndex,
-    style: &mut Style,
+    node: &mut Node,
     widget_style: &WidgetStyle,
-    default_widget_bundle: &DefaultWidgetBundle,
 ) {
-    // assign default first before applying external style
-    *bg_color = default_widget_bundle.0.background_color.clone();
-    *border_color = default_widget_bundle.0.border_color.clone();
-    *border_radius = default_widget_bundle.0.border_radius.clone();
-    *visibility = default_widget_bundle.0.visibility.clone();
-    *z_index = default_widget_bundle.0.z_index.clone();
-    *style = default_widget_bundle.0.style.clone();
-
     if let Some(bg_color_value) = &widget_style.background_color {
         if let Some(v) = parse_background_color(&bg_color_value) {
             *bg_color = v;
@@ -123,223 +121,211 @@ pub fn apply_styles_from_external_json(
 
     if let Some(display_value) = &widget_style.display {
         if let Some(v) = parse_display(&display_value) {
-            style.display = v;
+            node.display = v;
         }
     }
 
     if let Some(position_type_value) = &widget_style.position_type {
         if let Some(v) = parse_position_type(&position_type_value) {
-            style.position_type = v;
+            node.position_type = v;
         }
     }
 
     if let Some(overflow_x_value) = &widget_style.overflow_x {
         if let Some(v) = parse_overflow_x(&overflow_x_value) {
-            style.overflow.x = v;
+            node.overflow.x = v;
         }
     }
 
     if let Some(overflow_y_value) = &widget_style.overflow_y {
         if let Some(v) = parse_overflow_y(&overflow_y_value) {
-            style.overflow.y = v;
+            node.overflow.y = v;
         }
     }
 
     if let Some(left_value) = &widget_style.left {
         if let Some(v) = parse_val(&left_value) {
-            style.left = v;
+            node.left = v;
         }
     }
 
     if let Some(right_value) = &widget_style.right {
         if let Some(v) = parse_val(&right_value) {
-            style.right = v;
+            node.right = v;
         }
     }
 
     if let Some(top_value) = &widget_style.top {
         if let Some(v) = parse_val(&top_value) {
-            style.top = v;
+            node.top = v;
         }
     }
 
     if let Some(bottom_value) = &widget_style.bottom {
         if let Some(v) = parse_val(&bottom_value) {
-            style.bottom = v;
+            node.bottom = v;
         }
     }
 
     if let Some(width_value) = &widget_style.width {
         if let Some(v) = parse_val(&width_value) {
-            style.width = v;
+            node.width = v;
         }
     }
 
     if let Some(height_value) = &widget_style.height {
         if let Some(v) = parse_val(&height_value) {
-            style.height = v;
+            node.height = v;
         }
     }
 
     if let Some(min_width_value) = &widget_style.min_width {
         if let Some(v) = parse_val(&min_width_value) {
-            style.min_width = v;
+            node.min_width = v;
         }
     }
 
     if let Some(min_height_value) = &widget_style.min_height {
         if let Some(v) = parse_val(&min_height_value) {
-            style.min_height = v;
+            node.min_height = v;
         }
     }
 
     if let Some(max_width_value) = &widget_style.max_width {
         if let Some(v) = parse_val(&max_width_value) {
-            style.max_width = v;
+            node.max_width = v;
         }
     }
 
     if let Some(max_height_value) = &widget_style.max_height {
         if let Some(v) = parse_val(&max_height_value) {
-            style.max_height = v;
+            node.max_height = v;
         }
     }
 
     if let Some(align_items) = &widget_style.align_items {
         if let Some(v) = parse_align_items(&align_items) {
-            style.align_items = v;
+            node.align_items = v;
         }
     }
 
     if let Some(align_self) = &widget_style.align_self {
         if let Some(v) = parse_align_self(&align_self) {
-            style.align_self = v;
+            node.align_self = v;
         }
     }
 
     if let Some(justify_items) = &widget_style.justify_items {
         if let Some(v) = parse_justify_items(&justify_items) {
-            style.justify_items = v;
+            node.justify_items = v;
         }
     }
 
     if let Some(justify_content) = &widget_style.justify_content {
         if let Some(v) = parse_justify_content(&justify_content) {
-            style.justify_content = v;
+            node.justify_content = v;
         }
     }
 
     if let Some(padding) = &widget_style.padding {
         if let Some(v) = parse_ui_rect(&padding) {
-            style.padding = v;
+            node.padding = v;
         }
     }
 
     if let Some(margin) = &widget_style.margin {
         if let Some(v) = parse_ui_rect(&margin) {
-            style.margin = v;
+            node.margin = v;
         }
     }
 
     if let Some(border) = &widget_style.border {
         if let Some(v) = parse_ui_rect(&border) {
-            style.border = v;
+            node.border = v;
         }
     }
 
     if let Some(flex_direction) = &widget_style.flex_direction {
         if let Some(v) = parse_flex_direction(flex_direction) {
-            style.flex_direction = v;
+            node.flex_direction = v;
         }
     }
 
     if let Some(flex_wrap) = &widget_style.flex_wrap {
         if let Some(v) = parse_flex_wrap(flex_wrap) {
-            style.flex_wrap = v;
+            node.flex_wrap = v;
         }
     }
 
     if let Some(flex_grow) = &widget_style.flex_grow {
         if let Ok(parsed_value) = flex_grow.trim().parse::<f32>() {
-            style.flex_grow = parsed_value;
+            node.flex_grow = parsed_value;
         }
     }
 
     if let Some(flex_shrink) = &widget_style.flex_shrink {
         if let Ok(parsed_value) = flex_shrink.trim().parse::<f32>() {
-            style.flex_shrink = parsed_value;
+            node.flex_shrink = parsed_value;
         }
     }
 
     if let Some(flex_basis) = &widget_style.flex_basis {
         if let Some(v) = parse_val(flex_basis) {
-            style.flex_basis = v;
+            node.flex_basis = v;
         }
     }
 
     if let Some(row_gap) = &widget_style.row_gap {
         if let Some(v) = parse_val(row_gap) {
-            style.row_gap = v;
+            node.row_gap = v;
         }
     }
 
     if let Some(column_gap) = &widget_style.column_gap {
         if let Some(v) = parse_val(column_gap) {
-            style.column_gap = v;
+            node.column_gap = v;
         }
     }
 
     if let Some(grid_auto_flow) = &widget_style.grid_auto_flow {
         if let Some(v) = parse_grid_auto_flow(grid_auto_flow) {
-            style.grid_auto_flow = v;
+            node.grid_auto_flow = v;
         }
     }
 }
 
-// for fa_text & TextBundle only
+// for fa_text & Text only
 pub fn apply_text_style_system(
     styles: Res<StylesKeyValueResource>,
     apply_state: Res<ExternalStylesApplyState>,
     builder_resource: ResMut<FamiqWidgetBuilderResource>,
-    mut text_q: Query<(&mut Text, &FamiqWidgetId, &DefaultTextBundle)>,
+    mut text_q: Query<(
+        &mut TextFont,
+        &mut TextColor,
+        &FamiqWidgetId,
+        &DefaultTextEntity
+    )>,
 ) {
     if builder_resource.hot_reload_styles || !apply_state.0 {
-        for (mut text, widget_id, default) in text_q.iter_mut() {
+        for (mut text_font, mut text_color, widget_id, default_text) in text_q.iter_mut() {
+            // assign default values first
+            *text_font = default_text.text_font.clone();
+            *text_color = default_text.text_color.clone();
+
             if let Some(text_style) = styles.get_style_by_id(&widget_id.0) {
-                // Update each text section individually
-                for (i, section) in text.sections.iter_mut().enumerate() {
-                    section.style = default.0.text.sections[i].style.clone();
-
-                    // font size
-                    if let Some(font_size) = &text_style.font_size {
-                        if let Ok(parsed_value) = font_size.trim().parse::<f32>() {
-                            section.style.font_size = parsed_value;
-                        }
-                    }
-
-                    // text color
-                    if let Some(color) = &text_style.color {
-                        if let Some(v) = parse_color(color) {
-                            section.style.color = v;
-                        }
+                // font size
+                if let Some(font_size) = &text_style.font_size {
+                    if let Ok(parsed_value) = font_size.trim().parse::<f32>() {
+                        text_font.font_size = parsed_value;
                     }
                 }
 
-                // text.sections[0].style = default.0.text.sections[0].style.clone();
-
-                // // font size
-                // if let Some(font_size) = &text_style.font_size {
-                //     if let Ok(parsed_value) = font_size.trim().parse::<f32>() {
-                //         text.sections[0].style.font_size = parsed_value;
-                //     }
-                // }
-
-                // // text color
-                // if let Some(color) = &text_style.color {
-                //     if let Some(v) = parse_color(color) {
-                //         text.sections[0].style.color = v;
-                //     }
-                // }
+                // color
+                if let Some(color) = &text_style.color {
+                    if let Some(v) = parse_color(color) {
+                        text_color.0 = v;
+                    }
+                }
             }
         }
     }

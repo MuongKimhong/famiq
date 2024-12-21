@@ -172,18 +172,9 @@ pub fn parse_overflow_y(value: &str) -> Option<OverflowAxis> {
 }
 
 pub fn parse_z_index(value: &str) -> Option<ZIndex> {
-    let parts: Vec<&str> = value.split_whitespace().collect();
-
-    if parts.len() != 2 {
-        return None;
-    }
-    let prefix = parts[0].to_lowercase();
-    let number = parts[1].parse::<i32>().ok()?;
-
-    match prefix.as_str() {
-        "local" => Some(ZIndex::Local(number)),
-        "global" => Some(ZIndex::Global(number)),
-        _ => None,
+    match value.trim().parse::<i32>() {
+        Ok(n) => Some(ZIndex(n)),
+        Err(_) => None
     }
 }
 

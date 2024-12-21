@@ -37,6 +37,12 @@ pub enum WidgetType {
 #[derive(Resource)]
 pub struct StylesKeyValueResource(pub StylesKeyValue);
 
+impl StylesKeyValueResource {
+    pub fn get_style_by_id(&self, widget_id: &str) -> Option<&WidgetStyle> {
+        self.0.iter().flat_map(|map| map.get(widget_id)).next()
+    }
+}
+
 #[derive(Component, Deref)]
 pub struct FamiqWidgetId(pub String);
 
@@ -116,56 +122,13 @@ impl Default for FamiqWidgetBuilderResource {
     }
 }
 
-// impl StylesKeyValueResource {
-//     pub fn get_style_by_id(&self, btn_id: &str) -> Option<&WidgetStyle> {
-//         self.0.iter().flat_map(|map| map.get(btn_id)).next()
-//     }
-// }
-
-// #[derive(Bundle, Clone, Debug)]
-// pub struct FaWidgetBundle {
-//     pub node: Node,
-//     pub style: Style,
-//     pub interaction: Interaction,
-//     pub focus_policy: FocusPolicy,
-//     pub border_color: BorderColor,
-//     pub border_radius: BorderRadius,
-//     pub background_color: BackgroundColor,
-//     pub transform: Transform,
-//     pub global_transform: GlobalTransform,
-//     pub inherited_visibility: InheritedVisibility,
-//     pub visibility: Visibility,
-//     pub view_visibility: ViewVisibility,
-//     pub z_index: ZIndex,
-// }
-
-// impl Default for FaWidgetBundle {
-//     fn default() -> Self {
-//         Self {
-//             node: Default::default(),
-//             style: Default::default(),
-//             interaction: Default::default(),
-//             focus_policy: FocusPolicy::Block,
-//             border_color: Default::default(),
-//             border_radius: Default::default(),
-//             background_color: Default::default(),
-//             transform: Default::default(),
-//             global_transform: Default::default(),
-//             inherited_visibility: Default::default(),
-//             visibility: Default::default(),
-//             view_visibility: Default::default(),
-//             z_index: Default::default(),
-//         }
-//     }
-// }
-
 #[derive(Component)]
 pub struct IsFaWidgetRoot;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct WidgetStyle {
-    pub color: Option<String>,     // for TextBundle's text color only
-    pub font_size: Option<String>, // for TextBundle's text font_size only
+    pub color: Option<String>,     // for fa_text, fa_fps, Text color only
+    pub font_size: Option<String>, // for fa_text, fa_fps, Text font_size only
     pub background_color: Option<String>,
     pub border_color: Option<String>,
     pub border_radius: Option<String>,
