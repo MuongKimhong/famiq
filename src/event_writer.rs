@@ -10,29 +10,29 @@ use bevy::prelude::*;
 pub struct FaInteractionEvent {
     pub entity: Entity,
     pub widget_id: String,
-    pub interaction_type: Interaction,
-    pub widget_type: WidgetType,
+    pub interaction: Interaction,
+    pub widget: WidgetType,
 }
 
 impl FaInteractionEvent {
     fn new(
         entity: Entity,
         widget_id: String,
-        interaction_type: Interaction,
-        widget_type: WidgetType,
+        interaction: Interaction,
+        widget: WidgetType,
     ) -> Self {
         Self {
             entity,
             widget_id,
-            interaction_type,
-            widget_type,
+            interaction,
+            widget,
         }
     }
 
     pub fn send_event<T>(
         interaction_q: &mut Query<(Entity, &T, &FamiqWidgetId, &Interaction), Changed<Interaction>>,
         writer: &mut EventWriter<FaInteractionEvent>,
-        widget_type: WidgetType,
+        widget: WidgetType,
     ) where
         T: Component,
     {
@@ -41,7 +41,7 @@ impl FaInteractionEvent {
                 entity,
                 widget_id.0.clone(),
                 *interaction,
-                widget_type,
+                widget,
             ));
         }
     }
@@ -79,7 +79,7 @@ pub fn container_interaction_system(
 
 pub fn selection_interaction_system(
     mut interaction_q: Query<
-        (Entity, &IsFamiqSelection, &FamiqWidgetId, &Interaction),
+        (Entity, &IsFamiqSelectionSelector, &FamiqWidgetId, &Interaction),
         Changed<Interaction>,
     >,
     mut writer: EventWriter<FaInteractionEvent>,
@@ -87,14 +87,14 @@ pub fn selection_interaction_system(
     FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::Selection);
 }
 
-pub fn selection_item_interaction_system(
+pub fn selection_choice_interaction_system(
     mut interaction_q: Query<
-        (Entity, &IsFamiqSelectionItem, &FamiqWidgetId, &Interaction),
+        (Entity, &IsFamiqSelectionChoice, &FamiqWidgetId, &Interaction),
         Changed<Interaction>,
     >,
     mut writer: EventWriter<FaInteractionEvent>,
 ) {
-    FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::SelectionItem);
+    FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::SelectionChoice);
 }
 
 pub fn text_interaction_system(
