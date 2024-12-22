@@ -1,5 +1,12 @@
 use crate::event_writer;
-use crate::widgets::{list_view::*, selection::*, text_input::*, fps::*, *};
+use crate::widgets::{
+    list_view::*,
+    selection::*,
+    text_input::*,
+    fps::*,
+    button::*,
+    *
+};
 
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::prelude::*;
@@ -47,7 +54,13 @@ fn fa_text_input_systems(app: &mut App) {
 }
 
 fn fa_button_systems(app: &mut App) {
-    app.add_systems(Update, event_writer::btn_interaction_system);
+    app.add_systems(
+        Update,
+        (
+            event_writer::btn_interaction_system,
+            FaButton::handle_button_on_hover_system
+        )
+    );
 }
 
 fn fa_text_systems(app: &mut App) {

@@ -1,14 +1,26 @@
 pub mod helper;
 
 use crate::utils;
-// use crate::widgets::{DefaultTextBundle, DefaultWidgetBundle, FamiqWidgetId};
-use crate::widgets::{DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId};
+use crate::widgets::{DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId, WidgetType};
+use crate::event_writer::FaInteractionEvent;
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 use helper::*;
 
 #[derive(Component)]
 pub struct IsFamiqButton;
+
+#[derive(Component)]
+pub struct IsFamiqButtonText;
+
+#[derive(Component)]
+pub struct IsFamiqButtonTextContainer;
+
+#[derive(Component)]
+pub struct ButtonTextEntity(pub Entity);
+
+#[derive(Component)]
+pub struct ButtonTextContainerEntity(pub Entity);
 
 #[derive(Component)]
 pub struct FaButtonText(pub String);
@@ -33,25 +45,25 @@ pub struct FaButton;
 
 // buttons need to be inside a container
 impl<'a> FaButton {
-    pub fn new(
+    fn _build_text(
         id: &str,
         text: &str,
         root_node: &'a mut EntityCommands,
         asset_server: &'a ResMut<'a, AssetServer>,
         font_path: &String,
-        variant: BtnVariant,
-        size: BtnSize,
+        variant: &BtnVariant,
+        size: &BtnSize,
     ) -> Entity {
         let txt = Text::new(text);
         let txt_font = TextFont {
             font: asset_server.load(utils::strip_assets_prefix(font_path).unwrap()),
-            font_size: get_text_size(&size),
+            font_size: get_text_size(size),
             ..default()
         };
-        let txt_color = TextColor(get_text_color(&variant));
+        let txt_color = TextColor(get_text_color(variant));
         let txt_layout = TextLayout::new_with_justify(JustifyText::Center);
 
-        let txt_entity = root_node
+        root_node
             .commands()
             .spawn((
                 txt.clone(),
@@ -61,11 +73,42 @@ impl<'a> FaButton {
                 FamiqWidgetId(format!("{id}_btn_text")),
                 FaButtonText(text.to_string()),
                 DefaultTextEntity::new(txt, txt_font, txt_color, txt_layout),
+                IsFamiqButtonText
             ))
-            .id();
+            .id()
+    }
 
+    fn _build_text_container(root_node: &'a mut EntityCommands, height: Val, border_width: Val) -> Entity {
+        root_node
+            .commands()
+            .spawn((
+                default_button_text_container_node(height, border_width),
+                BorderColor(Color::NONE),
+                BorderRadius::default(),
+                BackgroundColor(Color::NONE),
+                ZIndex::default(),
+                Visibility::default(),
+                IsFamiqButtonTextContainer
+            ))
+            .id()
+    }
+
+    pub fn new(
+        id: &str,
+        text: &str,
+        root_node: &'a mut EntityCommands,
+        asset_server: &'a ResMut<'a, AssetServer>,
+        font_path: &String,
+        variant: BtnVariant,
+        size: BtnSize,
+    ) -> Entity {
+        let txt_entity = Self::_build_text(id, text, root_node, asset_server, font_path, &variant, &size);
         let (height, border_width) = get_button_size(size);
-        let node = default_button_node(height, border_width);
+        let txt_container_entity = Self::_build_text_container(root_node, height, border_width);
+
+        utils::entity_add_child(root_node, txt_entity, txt_container_entity);
+
+        let node = default_button_node(height);
         let border_color = get_button_border_color(&variant);
         let bg_color = get_button_background_color(&variant);
         let border_radius = BorderRadius::all(Val::Px(5.0));
@@ -91,11 +134,41 @@ impl<'a> FaButton {
                     z_index,
                     visibility,
                 ),
-                Interaction::default()
+                Interaction::default(),
+                ButtonTextEntity(txt_entity),
+                ButtonTextContainerEntity(txt_container_entity)
             ))
             .id();
 
-        utils::entity_add_child(root_node, txt_entity, btn_entity);
+        utils::entity_add_child(root_node, txt_container_entity, btn_entity);
         btn_entity
+    }
+
+    pub fn handle_button_on_hover_system(
+        mut events: EventReader<FaInteractionEvent>,
+        mut text_container_q: Query<(
+            &IsFamiqButtonTextContainer,
+            &mut BackgroundColor,
+            &mut BorderColor
+        )>,
+        button_q: Query<(&IsFamiqButton, &ButtonTextContainerEntity)>,
+    ) {
+        for e in events.read() {
+            if let Ok((_, txt_container_entity)) = button_q.get(e.entity) {
+                if let Ok((_, mut bg_color, mut border_color)) = text_container_q.get_mut(txt_container_entity.0) {
+                    match e.interaction {
+                        Interaction::Hovered => {
+                            *bg_color = BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.5));
+                            *border_color = BorderColor(Color::srgba(0.0, 0.0, 0.0, 0.5));
+                        }
+                        Interaction::None => {
+                            *bg_color = BackgroundColor(Color::NONE);
+                            *border_color = BorderColor(Color::NONE);
+                        }
+                        _ => ()
+                    }
+                }
+            }
+        }
     }
 }

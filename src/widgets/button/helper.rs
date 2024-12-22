@@ -65,13 +65,24 @@ pub fn get_button_size(size: BtnSize) -> (Val, Val) {
     (height, border_width)
 }
 
-pub fn default_button_node(height: Val, border_width: Val) -> Node {
+pub fn default_button_text_container_node(height: Val, border_width: Val) -> Node {
     Node {
         width: Val::Auto,
         height,
         justify_content: JustifyContent::Center,
         align_items: AlignItems::Center,
         border: UiRect::all(border_width),
+        ..default()
+    }
+}
+
+pub fn default_button_node(height: Val) -> Node {
+    Node {
+        width: Val::Auto,
+        height,
+        justify_content: JustifyContent::Center,
+        align_items: AlignItems::Center,
+        border: UiRect::all(Val::Px(0.0)),
         ..default()
     }
 }
