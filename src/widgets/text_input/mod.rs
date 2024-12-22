@@ -1,10 +1,15 @@
 pub mod helper;
 
+use std::fmt::Pointer;
+
 use bevy::utils::HashMap;
 use helper::*;
 
 use crate::utils;
-use crate::widgets::{DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId};
+use crate::widgets::{DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId, WidgetType};
+use crate::event_writer::FaInteractionEvent;
+use bevy::input::keyboard::{Key, KeyboardInput};
+use bevy::input::ButtonState;
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 use smol_str::SmolStr;
@@ -43,6 +48,12 @@ impl FaTextInputResource {
 
 #[derive(Component)]
 pub struct IsFamiqTextInput;
+
+#[derive(Component)]
+pub struct IsFamiqTextInputPlaceholder;
+
+#[derive(Component)]
+pub struct FamiqTextInputPlaceholderEntity(pub Entity);
 
 pub enum TextInputVariant {
     Default,
@@ -83,8 +94,9 @@ impl<'a> FaTextInput {
                 txt_font.clone(),
                 txt_color.clone(),
                 txt_layout.clone(),
-                FamiqWidgetId(format!("{id}_placeholder")),
+                // FamiqWidgetId(format!("{id}_placeholder")),
                 DefaultTextEntity::new(txt, txt_font, txt_color, txt_layout),
+                IsFamiqTextInputPlaceholder
             ))
             .id()
     }
@@ -93,6 +105,8 @@ impl<'a> FaTextInput {
         id: &str,
         root_node: &'a mut EntityCommands,
         variant: TextInputVariant,
+        placeholder: &str,
+        placeholder_entity: Entity
     ) -> Entity {
         let mut border_width = outlined_border_width();
         let mut border_radius = outlined_border_radius();
@@ -129,6 +143,9 @@ impl<'a> FaTextInput {
                     z_index,
                     visibility,
                 ),
+                TextInput::new("", placeholder),
+                Interaction::default(),
+                FamiqTextInputPlaceholderEntity(placeholder_entity)
             ))
             .id()
     }
@@ -142,171 +159,106 @@ impl<'a> FaTextInput {
         size: TextInputSize,
         variant: TextInputVariant,
     ) -> Entity {
-        let input = Self::_build_input(id, root_node, variant);
-        let ph = Self::_build_placeholder(id, ph, root_node, asset_server, font_path, &size);
+        let ph_entity = Self::_build_placeholder(id, ph, root_node, asset_server, font_path, &size);
+        let input_entity = Self::_build_input(id, root_node, variant, ph, ph_entity);
 
-        utils::entity_add_child(root_node, ph, input);
-        input
+        utils::entity_add_child(root_node, ph_entity, input_entity);
+        input_entity
+    }
+
+    pub fn update_input_text_color_system(
+        input_q: Query<(&TextInput, &FamiqTextInputPlaceholderEntity, &IsFamiqTextInput)>,
+        mut text_q: Query<(&mut TextColor, &IsFamiqTextInputPlaceholder)>
+    ) {
+        for (text_input, placeholder_entity, _) in input_q.iter() {
+            if let Ok((mut text_color, _)) = text_q.get_mut(placeholder_entity.0) {
+                if text_input.focused {
+                    text_color.0 = TEXT_INPUT_VALUE_COLOR;
+                }
+                else {
+                    text_color.0 = PLACEHOLDER_COLOR;
+                }
+            }
+        }
+    }
+
+    pub fn handle_text_input_on_click_system(
+        mut events: EventReader<FaInteractionEvent>,
+        mut input_q: Query<(&mut TextInput, &IsFamiqTextInput, &FamiqWidgetId)>
+    ) {
+        for e in events.read() {
+            if e.interaction == Interaction::Pressed && e.widget == WidgetType::TextInput {
+                // set all to unfocused
+                for (mut text_input, _, _) in input_q.iter_mut() {
+                    text_input.focused = false;
+                }
+                if let Ok((mut text_input, _, _)) = input_q.get_mut(e.entity) {
+                    text_input.focused = true;
+                }
+                break;
+            }
+        }
+    }
+
+    pub fn handle_text_input_on_typing_system(
+        mut evr_kbd: EventReader<KeyboardInput>,
+        mut input_q: Query<(&mut TextInput, &FamiqTextInputPlaceholderEntity, &IsFamiqTextInput, &FamiqWidgetId)>,
+        mut text_q: Query<(&mut Text, &IsFamiqTextInputPlaceholder)>,
+        mut input_resource: ResMut<FaTextInputResource>,
+    ) {
+        for e in evr_kbd.read() {
+            if e.state == ButtonState::Released {
+                continue;
+            }
+            match &e.logical_key {
+                Key::Character(input) => {
+                    for (mut text_input, placeholder_entity, _, id) in input_q.iter_mut() {
+                        if text_input.focused {
+                            text_input.text.push_str(input);
+                            input_resource.update_or_insert(id.0.clone(), text_input.text.clone());
+
+                            if let Ok((mut text, _)) = text_q.get_mut(placeholder_entity.0) {
+                                text.0 = text_input.text.clone();
+                            }
+                            break;
+                        }
+                    }
+                }
+                Key::Space => {
+                    for (mut text_input, placeholder_entity, _, id) in input_q.iter_mut() {
+                        if text_input.focused {
+                            text_input.text.push_str(&SmolStr::new(" "));
+                            input_resource.update_or_insert(id.0.clone(), text_input.text.clone());
+
+                            if let Ok((mut text, _)) = text_q.get_mut(placeholder_entity.0) {
+                                text.0 = text_input.text.clone();
+                            }
+                            break;
+                        }
+                    }
+                }
+                Key::Backspace => {
+                    for (mut text_input, placeholder_entity, _, id) in input_q.iter_mut() {
+                        if text_input.focused {
+                            text_input.text.pop();
+                            input_resource.update_or_insert(id.0.clone(), text_input.text.clone());
+
+                            if let Ok((mut text, _)) = text_q.get_mut(placeholder_entity.0) {
+                                if text_input.text.is_empty() {
+                                    text.0 = text_input.placeholder.clone();
+                                }
+                                else {
+                                    text.0 = text_input.text.clone();
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+                _ => {
+                    continue;
+                }
+            }
+        }
     }
 }
-
-// // need container
-// impl<'a> FaTextInput {
-//     fn _build_text_input(
-//         id: &str,
-//         placeholder: &str,
-//         root_node: &'a mut EntityCommands,
-//         asset_server: &'a ResMut<'a, AssetServer>,
-//         font_path: &String,
-//         size: Option<TextInputSize>,
-//         border_width: UiRect,
-//         border_radius: BorderRadius,
-//     ) -> Entity {
-//         let input_bundle = default_text_input_bundle(border_width, border_radius, &size);
-//         let text_bundle = create_text_input_value(placeholder, &size, asset_server, font_path);
-
-//         let text_entity = root_node
-//             .commands()
-//             .spawn((
-//                 text_bundle,
-//                 FamiqWidgetId(format!("{id}_text_input_value")),
-//                 DefaultTextBundle(create_text_input_value(
-//                     placeholder,
-//                     &size,
-//                     asset_server,
-//                     font_path,
-//                 )),
-//             ))
-//             .id();
-
-//         let input_entity = root_node
-//             .commands()
-//             .spawn((
-//                 input_bundle.clone(),
-//                 FamiqWidgetId(id.to_string()),
-//                 TextInput::new("", placeholder),
-//                 IsFamiqTextInput,
-//                 DefaultWidgetBundle(input_bundle),
-//             ))
-//             .id();
-
-//         utils::entity_add_child(root_node, text_entity, input_entity);
-//         input_entity
-//     }
-
-//     pub fn fa_text_input(
-//         id: &str,
-//         placeholder: &str,
-//         root_node: &'a mut EntityCommands,
-//         asset_server: &'a ResMut<'a, AssetServer>,
-//         font_path: &String,
-//         size: Option<TextInputSize>,
-//         variant: TextInputVariant,
-//     ) -> Entity {
-//         let mut border_width = outlined_border_width();
-//         let mut border_radius = outlined_border_radius();
-
-//         match variant {
-//             TextInputVariant::Underlined => {
-//                 border_width = underlined_border_width();
-//                 border_radius = underlined_border_radius();
-//             }
-//             _ => (),
-//         }
-
-//         Self::_build_text_input(
-//             id,
-//             placeholder,
-//             root_node,
-//             asset_server,
-//             font_path,
-//             size,
-//             border_width,
-//             border_radius,
-//         )
-//     }
-
-//     fn update_input_text_bundle_color(
-//         children: &Children,
-//         text_query: &mut Query<&mut Text>,
-//         color: Color,
-//     ) {
-//         for &child in children.iter() {
-//             if let Ok(mut text) = text_query.get_mut(child) {
-//                 text.sections[0].style.color = color;
-//             }
-//         }
-//     }
-
-//     pub fn update_input_text_bundle_value(
-//         children: &Children,
-//         text_query: &mut Query<&mut Text>,
-//         text_input: &Mut<TextInput>,
-//     ) {
-//         for &child in children.iter() {
-//             if let Ok(mut text) = text_query.get_mut(child) {
-//                 if text_input.text == "" {
-//                     text.sections[0].value = text_input.placeholder.clone();
-//                 } else {
-//                     text.sections[0].value = text_input.text.clone();
-//                 }
-//             }
-//         }
-//     }
-
-//     pub fn set_unfocused_all(
-//         text_input_q: &mut Query<(&Children, &mut TextInput, &FamiqWidgetId)>,
-//         text_q: &mut Query<&mut Text>,
-//         input_resource: &mut ResMut<TextInputResource>,
-//     ) {
-//         for (children, mut input, id) in text_input_q.iter_mut() {
-//             input.focused = false;
-//             input_resource.update_or_insert(id.0.clone(), input.text.clone());
-//             Self::update_input_text_bundle_color(&children, text_q, PLACEHOLDER_COLOR);
-//         }
-//     }
-
-//     pub fn set_focus(
-//         text_input_q: &mut Query<(&Children, &mut TextInput, &FamiqWidgetId)>,
-//         text_input_entity: Entity,
-//         text_q: &mut Query<&mut Text>,
-//         input_resource: &mut ResMut<TextInputResource>,
-//     ) {
-//         if let Ok((children, mut input, id)) = text_input_q.get_mut(text_input_entity) {
-//             input.focused = true;
-//             input_resource.update_or_insert(id.0.clone(), input.text.clone());
-//             Self::update_input_text_bundle_color(&children, text_q, TEXT_INPUT_VALUE_COLOR);
-//         }
-//     }
-
-//     pub fn add_text(
-//         text_input_q: &mut Query<(&Children, &mut TextInput, &FamiqWidgetId)>,
-//         text_q: &mut Query<&mut Text>,
-//         input: &SmolStr,
-//         input_resource: &mut ResMut<TextInputResource>,
-//     ) {
-//         for (children, mut text_input, id) in text_input_q.iter_mut() {
-//             if text_input.focused {
-//                 text_input.text.push_str(input);
-//                 input_resource.update_or_insert(id.0.clone(), text_input.text.clone());
-//                 Self::update_input_text_bundle_value(&children, text_q, &text_input);
-//                 break;
-//             }
-//         }
-//     }
-
-//     pub fn delete_text(
-//         text_input_q: &mut Query<(&Children, &mut TextInput, &FamiqWidgetId)>,
-//         text_q: &mut Query<&mut Text>,
-//         input_resource: &mut ResMut<TextInputResource>,
-//     ) {
-//         for (children, mut text_input, id) in text_input_q.iter_mut() {
-//             if text_input.focused {
-//                 text_input.text.pop();
-//                 input_resource.update_or_insert(id.0.clone(), text_input.text.clone());
-//                 Self::update_input_text_bundle_value(&children, text_q, &text_input);
-//                 break;
-//             }
-//         }
-//     }
-// }

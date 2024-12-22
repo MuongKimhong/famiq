@@ -5,57 +5,6 @@ use bevy::prelude::*;
 pub const PLACEHOLDER_COLOR: Color = Color::srgba(0.651, 0.651, 0.651, 0.6);
 pub const TEXT_INPUT_VALUE_COLOR: Color = Color::srgba(1.0, 1.0, 1.0, 0.922);
 
-// fn set_text_input_default_size(
-//     size: &Option<TextInputSize>,
-//     // text_bundle: &TextBundle,
-//     text_input_bundle: &mut FaWidgetBundle,
-// ) {
-//     let width = Val::Percent(100.0);
-//     let size_small_height = Val::Px(28.0);
-//     let size_normal_height = Val::Px(34.0);
-//     let size_large_height = Val::Px(40.0);
-
-//     let height = match size {
-//         Some(TextInputSize::Small) => size_small_height,
-//         Some(TextInputSize::Normal) => size_normal_height,
-//         Some(TextInputSize::Large) => size_large_height,
-//         None => size_normal_height,
-//     };
-
-//     text_input_bundle.style.height = height;
-//     text_input_bundle.style.width = width;
-// }
-
-// fn get_default_text_input_style(border_width: UiRect) -> Style {
-//     Style {
-//         justify_content: JustifyContent::Start,
-//         align_items: AlignItems::Center,
-//         border: border_width,
-//         padding: UiRect {
-//             left: Val::Px(5.0),
-//             right: Val::Px(5.0),
-//             top: Val::Px(1.0),
-//             bottom: Val::Px(1.0),
-//         },
-//         ..default()
-//     }
-// }
-
-// pub fn default_text_input_bundle(
-//     border_width: UiRect,
-//     border_radius: BorderRadius,
-//     size: &Option<TextInputSize>,
-// ) -> FaWidgetBundle {
-//     let mut input_bundle = FaWidgetBundle {
-//         style: get_default_text_input_style(border_width),
-//         border_radius,
-//         border_color: BorderColor(Color::srgba(0.902, 0.902, 0.902, 0.922)),
-//         ..default()
-//     };
-//     set_text_input_default_size(size, &mut input_bundle);
-//     input_bundle
-// }
-
 pub fn default_input_node(border_width: UiRect) -> Node {
     Node {
         justify_content: JustifyContent::Start,
