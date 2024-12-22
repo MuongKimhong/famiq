@@ -73,7 +73,6 @@ impl<'a> FaFpsText {
         let count_txt = TextSpan::default();
         let count_txt_font = label_txt_font.clone();
         let count_txt_color = TextColor(GREEN_COLOR);
-        let count_txt_layout = TextLayout::new_with_justify(JustifyText::Center);
 
         let label_txt_entity = root_node
             .commands()
@@ -99,7 +98,6 @@ impl<'a> FaFpsText {
                 count_txt,
                 count_txt_font,
                 count_txt_color,
-                count_txt_layout,
                 IsFamiqFPSTextCount,
             ))
             .id();
