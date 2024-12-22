@@ -1,7 +1,7 @@
 pub mod components;
 pub mod helper;
 pub mod styling;
-// pub mod systems;
+pub mod systems;
 
 use crate::utils;
 use crate::widgets::{DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId};
@@ -14,19 +14,19 @@ pub use helper::*;
 
 use super::color::WHITE_COLOR;
 pub use styling::*;
-// pub use systems::*;
+pub use systems::*;
 
-#[derive(Resource)]
-pub struct SelectedItemsResource {
-    pub items: HashMap<String, String>, // id - choice
+#[derive(Resource, Debug)]
+pub struct SelectedChoicesResource {
+    pub choices: HashMap<String, String>, // id - choice
 }
 
-impl SelectedItemsResource {
-    pub fn update_or_insert(&mut self, id: String, selected_item: String) {
-        if let Some(item_value) = self.items.get_mut(&id) {
-            *item_value = selected_item;
+impl SelectedChoicesResource {
+    pub fn update_or_insert(&mut self, id: String, selected_choice: String) {
+        if let Some(item_value) = self.choices.get_mut(&id) {
+            *item_value = selected_choice;
         } else {
-            self.items.insert(id, selected_item);
+            self.choices.insert(id, selected_choice);
         }
     }
 }
@@ -102,7 +102,35 @@ impl<'a> FaSelection {
                 txt_font.clone(),
                 txt_color.clone(),
                 txt_layout.clone(),
-                FamiqWidgetId(format!("{id}_selection_placeholder")),
+                // FamiqWidgetId(format!("{id}_selection_placeholder")),
+                DefaultTextEntity::new(txt, txt_font, txt_color, txt_layout),
+            ))
+            .id()
+    }
+
+    fn _build_selector_arrow_icon(
+        id: &str,
+        root_node: &'a mut EntityCommands,
+        asset_server: &'a ResMut<'a, AssetServer>,
+        font_path: &String,
+        size: &SelectionSize,
+    ) -> Entity {
+        let txt = Text::new("▼");
+        let txt_font = TextFont {
+            font: asset_server.load(utils::strip_assets_prefix(font_path).unwrap()),
+            font_size: get_text_size(&size),
+            ..default()
+        };
+        let txt_color = TextColor(PLACEHOLDER_COLOR_UNFOCUSED);
+        let txt_layout = TextLayout::new_with_justify(JustifyText::Right);
+
+        root_node
+            .commands()
+            .spawn((
+                txt.clone(),
+                txt_font.clone(),
+                txt_color.clone(),
+                txt_layout.clone(),
                 DefaultTextEntity::new(txt, txt_font, txt_color, txt_layout),
             ))
             .id()
@@ -112,6 +140,11 @@ impl<'a> FaSelection {
         id: &str,
         root_node: &'a mut EntityCommands,
         variant: &SelectorVariant,
+        placeholder: &str,
+        placeholder_entity: Entity,
+        arrow_icon_entity: Entity,
+        choices_panel_entity: Entity,
+        label_entity: Option<Entity>
     ) -> Entity {
         let border_width;
         let border_radius;
@@ -132,7 +165,7 @@ impl<'a> FaSelection {
         let z_index = ZIndex::default();
         let visibility = Visibility::Visible;
 
-        root_node
+        let selector_entity = root_node
             .commands()
             .spawn((
                 node.clone(),
@@ -151,8 +184,21 @@ impl<'a> FaSelection {
                     z_index,
                     visibility,
                 ),
+                Interaction::default(),
+                Selection::new(placeholder.to_string()),
+                SelectorPlaceHolderEntity(placeholder_entity),
+                SelectorArrowIconEntity(arrow_icon_entity),
+                SelectionChoicesPanelEntity(choices_panel_entity)
             ))
-            .id()
+            .id();
+
+        if let Some(label) = label_entity {
+            root_node
+                .commands()
+                .entity(selector_entity)
+                .insert(SelectionLabelEntity(label));
+        }
+        selector_entity
     }
 
     fn _build_choices_panel(
@@ -161,18 +207,19 @@ impl<'a> FaSelection {
         choices: &Vec<String>,
         asset_server: &'a ResMut<'a, AssetServer>,
         font_path: &String,
+        container_entity: Entity
     ) -> Entity {
         let node = default_selection_choices_panel_node();
         let border_color = BorderColor(PANEL_BG_COLOR);
         let border_radius = BorderRadius::all(Val::Px(5.0));
         let bg_color = BackgroundColor(PANEL_BG_COLOR);
-        let z_index = ZIndex::default();
+        let z_index = ZIndex(100);
         let visibility = Visibility::Hidden;
 
         let mut choice_entities: Vec<Entity> = Vec::new();
         for choice in choices.iter() {
-            let container = Self::_build_choice_container(id, root_node);
             let txt = Self::_build_choice_text(id, choice, root_node, asset_server, font_path);
+            let container = Self::_build_choice_container(id, root_node, txt);
             utils::entity_add_child(root_node, txt, container);
             choice_entities.push(container);
         }
@@ -196,6 +243,7 @@ impl<'a> FaSelection {
                     z_index,
                     visibility,
                 ),
+                SelectionContainerEntity(container_entity)
             ))
             .id();
 
@@ -203,7 +251,7 @@ impl<'a> FaSelection {
         panel
     }
 
-    fn _build_choice_container(id: &str, root_node: &'a mut EntityCommands) -> Entity {
+    fn _build_choice_container(id: &str, root_node: &'a mut EntityCommands, text_entity: Entity) -> Entity {
         let node = default_choice_container_node();
         let border_color = BorderColor::default();
         let border_radius = BorderRadius::all(Val::Px(5.0));
@@ -230,6 +278,8 @@ impl<'a> FaSelection {
                     visibility,
                 ),
                 IsFamiqSelectionChoice,
+                SelectionChoiceTextEntity(text_entity),
+                Interaction::default()
             ))
             .id()
     }
@@ -289,6 +339,8 @@ impl<'a> FaSelection {
                 txt_layout.clone(),
                 FamiqWidgetId(format!("{id}_selection_label")),
                 DefaultTextEntity::new(txt, txt_font, txt_color, txt_layout),
+                Node::default(),
+                IsFamiqSelectionLabel
             ))
             .id()
     }
@@ -305,9 +357,25 @@ impl<'a> FaSelection {
         size: SelectionSize,
         choices: &Vec<String>,
     ) -> Entity {
+        let mut label_entity = None;
         let container = Self::_build_container(id, root_node);
 
-        let placeholder = Self::_build_selector_placeholder(
+        if let Some(label_txt) = label {
+            let label_ = Self::_build_label(id, label_txt, &size, root_node, asset_server, font_path);
+            label_entity = Some(label_);
+            utils::entity_add_child(root_node, label_, container);
+        }
+
+        let choices_panel = Self::_build_choices_panel(
+            id,
+            root_node,
+            choices,
+            asset_server,
+            font_path,
+            container
+        );
+
+        let placeholder_entity = Self::_build_selector_placeholder(
             id,
             placeholder,
             root_node,
@@ -315,20 +383,21 @@ impl<'a> FaSelection {
             font_path,
             &size,
         );
-        let selector = Self::_build_selector(id, root_node, &variant);
-        utils::entity_add_child(root_node, placeholder, selector);
-
-        let choices_panel = Self::_build_choices_panel(
+        let arrow_icon_entity = Self::_build_selector_arrow_icon(id, root_node, asset_server, font_path, &size);
+        let selector = Self::_build_selector(
             id,
             root_node,
-            choices,
-            asset_server,
-            font_path
+            &variant,
+            placeholder,
+            placeholder_entity,
+            arrow_icon_entity,
+            choices_panel,
+            label_entity
         );
-        if let Some(label_txt) = label {
-            let label_entity = Self::_build_label(id, label_txt, &size, root_node, asset_server, font_path);
-            utils::entity_add_child(root_node, label_entity, container);
-        }
+        utils::entity_add_children(root_node, &vec![placeholder_entity, arrow_icon_entity], selector);
+
+
+
         utils::entity_add_children(root_node, &vec![selector, choices_panel], container);
 
         container

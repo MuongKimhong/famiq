@@ -120,33 +120,33 @@ pub fn underlined_border_radius() -> BorderRadius {
     BorderRadius::all(Val::Px(0.0))
 }
 
-// pub fn set_selection_panel_pos(selector_style: &Node, panel_style: &mut Node, label_height: f32) {
-//     let mut pos = 0.0;
-//     let top_offset = 6.0;
+pub fn set_selection_panel_pos(selector_style: &Node, panel_style: &mut Node, label_height: f32) {
+    let mut pos = 0.0;
+    let top_offset = 6.0;
 
-//     if let Some(height) = extract_val(selector_style.height) {
-//         pos += height;
-//     }
-//     if let Some(m_top) = extract_val(selector_style.margin.top) {
-//         pos += m_top;
-//     }
-//     if let Some(m_bottom) = extract_val(selector_style.margin.bottom) {
-//         pos += m_bottom;
-//     }
-//     pos += label_height;
-//     panel_style.top = Val::Px(pos + top_offset);
-//     panel_style.left = selector_style.left;
-// }
+    if let Some(height) = extract_val(selector_style.height) {
+        pos += height;
+    }
+    if let Some(m_top) = extract_val(selector_style.margin.top) {
+        pos += m_top;
+    }
+    if let Some(m_bottom) = extract_val(selector_style.margin.bottom) {
+        pos += m_bottom;
+    }
+    pos += label_height;
+    panel_style.top = Val::Px(pos + top_offset);
+    panel_style.left = selector_style.left;
+}
 
-// pub fn set_selection_panel_width(
-//     parent_q: &Query<&ComputedNode>,
-//     parent: &Parent,
-//     panel_style: &mut Node,
-// ) {
-//     if let Ok(parent_node) = parent_q.get(parent.get()) {
-//         let parent_width = parent_node.size().x;
-//         let padding_left = 15.0;
-//         let padding_right = 15.0;
-//         panel_style.width = Val::Px(parent_width - padding_left - padding_right);
-//     }
-// }
+pub fn set_selection_panel_width(
+    parent_q: &Query<&ComputedNode>,
+    parent: &Parent,
+    panel_style: &mut Node,
+) {
+    if let Ok(parent_node) = parent_q.get(parent.get()) {
+        let parent_width = parent_node.size().x;
+        let padding_left = 15.0;
+        let padding_right = 15.0;
+        panel_style.width = Val::Px(parent_width - padding_left - padding_right);
+    }
+}

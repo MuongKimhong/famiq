@@ -1,81 +1,188 @@
-// use crate::widgets::selection::*;
-// use bevy::prelude::*;
+use crate::widgets::selection::*;
+use crate::widgets::WidgetType;
+use crate::event_writer::FaInteractionEvent;
+use crate::utils;
+use bevy::prelude::*;
 
-// // on focus use PLACEHOLDER_COLOR_FOCUSED else use PLACEHOLDER_COLOR_UNFOCUSED
-// pub fn update_selector_placeholder_color_system(
-//     selection_q: Query<(&Selection, &SelectorPlaceHolderEntity), Changed<Selection>>,
-//     mut text_q: Query<&mut Text>,
-// ) {
-//     for (selection, placeholder) in selection_q.iter() {
-//         if let Ok(mut text) = text_q.get_mut(placeholder.0) {
-//             text.sections[0].style.color = if selection.focused {
-//                 PLACEHOLDER_COLOR_FOCUSED
-//             } else {
-//                 PLACEHOLDER_COLOR_UNFOCUSED
-//             };
-//         }
-//     }
-// }
+use std::time::Instant;
 
-// // on focus use arrow up else use arrow down
-// pub fn update_selector_arrow_icon_system(
-//     selection_q: Query<(&Selection, &SelectorArrowIconEntity), Changed<Selection>>,
-//     mut text_q: Query<&mut Text>,
-// ) {
-//     for (selection, arrow_icon_entity) in selection_q.iter() {
-//         if let Ok(mut text) = text_q.get_mut(arrow_icon_entity.0) {
-//             text.sections[0].value = if selection.focused {
-//                 "▲".to_string()
-//             } else {
-//                 "▼".to_string()
-//             };
-//         }
-//     }
-// }
+// on focus use PLACEHOLDER_COLOR_FOCUSED else use PLACEHOLDER_COLOR_UNFOCUSED
+pub fn update_selector_placeholder_color_system(
+    selection_q: Query<(&Selection, &SelectorPlaceHolderEntity), Changed<Selection>>,
+    mut text_q: Query<&mut TextColor>,
+) {
+    for (selection, placeholder) in selection_q.iter() {
+        if let Ok(mut text_color) = text_q.get_mut(placeholder.0) {
+            text_color.0 = if selection.focused {
+                PLACEHOLDER_COLOR_FOCUSED
+            } else {
+                PLACEHOLDER_COLOR_UNFOCUSED
+            };
+        }
+    }
+}
 
-// // on focus show panel else hide
-// pub fn update_selection_items_panel_visibility_system(
-//     selection_q: Query<(&Selection, &SelectionItemsPanelEntity), Changed<Selection>>,
-//     mut visibility_q: Query<&mut Visibility>,
-// ) {
-//     for (selection, items_panel_entity) in selection_q.iter() {
-//         if let Ok(mut visibility) = visibility_q.get_mut(items_panel_entity.0) {
-//             *visibility = if selection.focused {
-//                 Visibility::Visible
-//             } else {
-//                 Visibility::Hidden
-//             };
-//         }
-//     }
-// }
+// on focus use arrow up else use arrow down
+pub fn update_selector_arrow_icon_system(
+    selection_q: Query<(&Selection, &SelectorArrowIconEntity), Changed<Selection>>,
+    mut text_q: Query<&mut Text>,
+) {
+    for (selection, arrow_icon_entity) in selection_q.iter() {
+        if let Ok(mut text) = text_q.get_mut(arrow_icon_entity.0) {
+            text.0 = if selection.focused {
+                "▲".to_string()
+            } else {
+                "▼".to_string()
+            };
+        }
+    }
+}
 
-// pub fn update_selection_items_panel_position_and_width_system(
-//     selection_q: Query<(
-//         &Selection,
-//         &Node,
-//         &SelectionItemsPanelEntity,
-//         Option<&SelectionLabelEntity>,
-//         &Parent,
-//     )>,
-//     node_q: Query<&ComputedNode>,
-//     mut style_q: Query<&mut Node, Without<Selection>>,
-// ) {
-//     for (selection, selection_style, panel_entity, label_entity, parent) in selection_q.iter() {
-//         if selection.focused {
-//             let mut label_height = 0.0;
+// on focus show panel else hide
+pub fn update_selection_choices_panel_visibility_system(
+    selection_q: Query<(&Selection, &SelectionChoicesPanelEntity), Changed<Selection>>,
+    mut visibility_q: Query<(&mut Visibility, &mut DefaultWidgetEntity, &IsFamiqSelectionChoicesPanel)>,
+) {
+    for (selection, choices_panel_entity) in selection_q.iter() {
+        if let Ok((mut visibility, mut default_widget, _)) = visibility_q.get_mut(choices_panel_entity.0) {
+            if selection.focused {
+                *visibility = Visibility::Visible;
+                default_widget.visibility = Visibility::Visible;
+            }
+            else {
+                *visibility = Visibility::Hidden;
+                default_widget.visibility = Visibility::Hidden;
+            }
+        }
+    }
+}
 
-//             if let Some(label) = label_entity {
-//                 if let Ok(label_node) = node_q.get(label.0) {
-//                     label_height = label_node.size().y;
-//                 }
-//             }
+pub fn update_choices_panel_position_and_width_system(
+    selection_q: Query<
+        (
+            &Selection,
+            &Node,
+            &ComputedNode,
+            &SelectionChoicesPanelEntity,
+            Option<&SelectionLabelEntity>
+        ),
+        Changed<Selection>
+    >,
+    mut panel_q: Query<
+        (
+            &IsFamiqSelectionChoicesPanel,
+            &mut Node,
+            &mut DefaultWidgetEntity,
+        ),
+        Without<Selection>
+    >,
+    label_q: Query<
+        (&Node, &IsFamiqSelectionLabel),
+        Without<IsFamiqSelectionChoicesPanel>
+    >
+) {
+    for (selection, selector_node, computed_node, panel_entity, label_entity) in selection_q.iter() {
+        if selection.focused {
+            if let Ok((_, mut panel_node, mut default_widget)) = panel_q.get_mut(panel_entity.0) {
+                let mut top_pos: f32 = 0.0;
+                let top_offset: f32 = 6.0;
 
-//             if let Ok(mut panel_style) = style_q.get_mut(panel_entity.0) {
-//                 set_selection_panel_pos(selection_style, &mut panel_style, label_height);
-//                 set_selection_panel_width(&node_q, parent, &mut panel_style);
-//             }
+                if let Some(label_entity) = label_entity {
+                    if let Ok((label_node, _)) = label_q.get(label_entity.0) {
+                        if let Some(label_height) = utils::extract_val(label_node.height) {
+                            top_pos += label_height;
+                        }
+                    }
+                }
+                if let Some(m_top) = utils::extract_val(selector_node.margin.top) {
+                    top_pos += m_top;
+                }
+                if let Some(m_bottom) = utils::extract_val(selector_node.margin.bottom) {
+                    top_pos += m_bottom;
+                }
+                top_pos += computed_node.size().y;
 
-//             break;
-//         }
-//     }
-// }
+                panel_node.top = Val::Px(top_pos + top_offset);
+                panel_node.left = selector_node.left;
+                panel_node.width = Val::Px(computed_node.size().x);
+
+                default_widget.node.top = Val::Px(top_pos + top_offset);
+                default_widget.node.left = selector_node.left;
+                default_widget.node.width = Val::Px(computed_node.size().x);
+            }
+        }
+    }
+}
+
+pub fn handle_selection_interaction_system(
+    mut events: EventReader<FaInteractionEvent>,
+    mut selection_q: Query<(&mut Selection, &FamiqWidgetId)>,
+) {
+    for e in events.read() {
+        if e.widget == WidgetType::Selection && e.interaction == Interaction::Pressed {
+            for (mut selection, id) in selection_q.iter_mut() {
+                if e.widget_id == id.0 {
+                    selection.focused = !selection.focused;
+                }
+                else {
+                    selection.focused = false;
+                }
+            }
+        }
+    }
+}
+
+pub fn handle_selection_choice_interaction_system(
+    mut events: EventReader<FaInteractionEvent>,
+    mut selection_choice_q: Query<(
+        &mut DefaultWidgetEntity,
+        &mut BackgroundColor,
+        &SelectionChoiceTextEntity,
+        &IsFamiqSelectionChoice
+    )>,
+    mut selection_q: Query<(&mut Selection, &FamiqWidgetId, &mut SelectorPlaceHolderEntity)>,
+    mut selected_choices_res: ResMut<SelectedChoicesResource>,
+    mut text_q: Query<&mut Text>,
+) {
+    for e in events.read() {
+        if e.widget == WidgetType::SelectionChoice {
+            let mut selected_choice = String::new();
+
+            for (mut selection, selection_id, placeholder_entity) in selection_q.iter_mut() {
+                if selection.focused {
+
+                    if let Ok((mut default_choice_widget, mut bg_color, choice_text_entity, _)) = selection_choice_q.get_mut(e.entity) {
+                        match e.interaction {
+                            Interaction::Hovered => {
+                                *bg_color = BackgroundColor(ITEM_ON_HOVER_BG_COLOR);
+                                default_choice_widget.background_color = BackgroundColor(ITEM_ON_HOVER_BG_COLOR);
+                            }
+                            Interaction::Pressed => {
+                                // Update selected items resource
+                                if let Ok(text) = text_q.get_mut(choice_text_entity.0) {
+                                    selected_choices_res.update_or_insert(selection_id.0.clone(), text.0.clone());
+                                    selected_choice = text.0.clone();
+                                }
+
+                                // update placeholder value
+                                if let Ok(mut text) = text_q.get_mut(placeholder_entity.0) {
+                                    text.0 = selected_choice.clone();
+                                }
+
+                                // set selection to unfocus after choice is selected
+                                selection.focused = false;
+
+                                *bg_color = BackgroundColor(ITEM_NORMAL_BG_COLOR);
+                                default_choice_widget.background_color = BackgroundColor(ITEM_NORMAL_BG_COLOR);
+                            }
+                            _ => {
+                                *bg_color = BackgroundColor(ITEM_NORMAL_BG_COLOR);
+                                default_choice_widget.background_color = BackgroundColor(ITEM_NORMAL_BG_COLOR);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -24,6 +24,9 @@ pub struct SelectorArrowIconEntity(pub Entity);
 #[derive(Component)]
 pub struct SelectionChoicesPanelEntity(pub Entity);
 
+#[derive(Component)]
+pub struct SelectionContainerEntity(pub Entity);
+
 #[derive(Component, Debug)]
 pub struct Selection {
     pub placeholder: String,
