@@ -41,6 +41,7 @@ impl<'a> FaContainer {
                     z_index,
                     visibility,
                 ),
+                Interaction::default()
             ))
             .id();
 

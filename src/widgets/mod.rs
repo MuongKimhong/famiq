@@ -31,7 +31,7 @@ pub enum WidgetType {
     ListView,
     ListViewItem,
     Selection,
-    SelectionItem,
+    SelectionChoice,
 }
 
 #[derive(Resource)]

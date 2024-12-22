@@ -123,6 +123,7 @@ impl<'a> FaListView {
                     z_index,
                     visibility,
                 ),
+                Interaction::default()
             ))
             .id()
     }

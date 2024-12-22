@@ -73,6 +73,7 @@ impl<'a> FaSelection {
                     z_index,
                     visibility,
                 ),
+                Interaction::default()
             ))
             .id()
     }

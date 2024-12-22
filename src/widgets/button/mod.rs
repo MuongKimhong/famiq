@@ -91,6 +91,7 @@ impl<'a> FaButton {
                     z_index,
                     visibility,
                 ),
+                Interaction::default()
             ))
             .id();
 

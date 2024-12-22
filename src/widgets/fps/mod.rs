@@ -50,6 +50,7 @@ impl<'a> FaFpsText {
                     z_index,
                     visibility,
                 ),
+                Interaction::default()
             ))
             .id()
     }

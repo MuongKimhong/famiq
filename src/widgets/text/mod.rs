@@ -33,6 +33,7 @@ pub fn fa_text<'a>(
             txt_layout.clone(),
             FamiqWidgetId(id.to_string()),
             DefaultTextEntity::new(txt, txt_font, txt_color, txt_layout),
+            Interaction::default()
         ))
         .id()
 }
