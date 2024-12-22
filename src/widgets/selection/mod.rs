@@ -213,7 +213,7 @@ impl<'a> FaSelection {
         let border_color = BorderColor(PANEL_BG_COLOR);
         let border_radius = BorderRadius::all(Val::Px(5.0));
         let bg_color = BackgroundColor(PANEL_BG_COLOR);
-        let z_index = ZIndex(100);
+        let z_index = ZIndex(10);
         let visibility = Visibility::Hidden;
 
         let mut choice_entities: Vec<Entity> = Vec::new();

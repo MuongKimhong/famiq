@@ -7,7 +7,7 @@ use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 use helper::*;
 
-use super::color::{GREEN_COLOR, WHITE_COLOR};
+use super::color::{GREEN_COLOR, WHITE_COLOR, LIGHT_GREEN_COLOR, WARNING_COLOR, DANGER_COLOR};
 
 const DEFAULT_FPS_TEXT_SIZE: f32 = 20.0;
 
@@ -61,7 +61,7 @@ impl<'a> FaFpsText {
         asset_server: &'a ResMut<'a, AssetServer>,
         font_path: &String,
     ) -> Entity {
-        let label_txt = Text::new("FPS: ");
+        let label_txt = Text::new("FPS:");
         let label_txt_font = TextFont {
             font: asset_server.load(strip_assets_prefix(font_path).unwrap()),
             font_size: DEFAULT_FPS_TEXT_SIZE,
@@ -119,16 +119,26 @@ impl<'a> FaFpsText {
         text_entity
     }
 
-    //     pub fn update_fps_count_system(
-    //         diagnostics: Res<DiagnosticsStore>,
-    //         mut query: Query<&mut Text, With<IsFamiqFPSText>>,
-    //     ) {
-    //         for mut text in &mut query {
-    //             if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
-    //                 if let Some(value) = fps.smoothed() {
-    //                     text.sections[1].value = format!("{value:.2}");
-    //                 }
-    //             }
-    //         }
-    //     }
+    pub fn update_fps_count_system(
+        diagnostics: Res<DiagnosticsStore>,
+        mut text_q: Query<(&mut TextSpan, &mut TextColor, &IsFamiqFPSTextCount)>
+    ) {
+        for (mut text, mut color, _) in text_q.iter_mut() {
+            if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
+                if let Some(value) = fps.smoothed() {
+                    text.0 = format!("{value:.2}");
+
+                    if value > 100.0 {
+                        color.0 = GREEN_COLOR;
+                    }
+                    else if value > 60.0 && value < 100.0 {
+                        color.0 = WARNING_COLOR;
+                    }
+                    else {
+                        color.0 = DANGER_COLOR;
+                    }
+                }
+            }
+        }
+    }
 }

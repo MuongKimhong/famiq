@@ -1,5 +1,5 @@
 use crate::event_writer;
-use crate::widgets::{list_view::*, selection::*, text_input::*, *};
+use crate::widgets::{list_view::*, selection::*, text_input::*, fps::*, *};
 
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::prelude::*;
@@ -69,8 +69,8 @@ fn fa_listview_systems(app: &mut App) {
 
 fn fa_fps_text_systems(app: &mut App) {
     // run system every 10 millisecond, Update Scedule is too fast
-    // app.insert_resource(Time::<Fixed>::from_seconds(0.10));
-    // app.add_systems(FixedUpdate, fps::FaFpsText::update_fps_count_system);
+    app.insert_resource(Time::<Fixed>::from_seconds(0.10));
+    app.add_systems(FixedUpdate, FaFpsText::update_fps_count_system);
 }
 
 pub fn famiq_plugin(app: &mut App) {
