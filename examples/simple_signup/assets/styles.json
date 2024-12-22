@@ -1,5 +1,5 @@
 {
-  "#container": {
+  "#btn-container": {
     "padding": "20px 20px 0px 0px",
     "border": "3px 3px 3px 3px",
     "border_color": "srgba 1.0, 1.0, 1.0, 0.3",
@@ -7,37 +7,11 @@
     "width": "80%",
     "margin": "auto auto auto auto"
   },
-  "#signup-txt-container": {
-    "justify_content": "center",
-    "align_items": "center",
-    "margin": "0px 0px 15px 0px"
+  "#btn": {
+    "border_color": "srgba 1.0, 1.0, 1.0, 0.3"
   },
-  "#name-container": {
-    "flex_direction": "row",
-    "justify_content": "center",
-    "align_items": "center"
-  },
-  "#f_name": {
-    "width": "50%",
-    "margin": "0px 5px 0px 0px"
-  },
-  "#l_name": {
-    "width": "50%",
-    "margin": "5px 0px 0px 0px"
-  },
-  "#ask_selection_container": {
-    "margin": "0px 0px 5px 0px",
-    "justify_content": "center",
-    "align_items": "center",
-    "padding": "10px 10px 0px 0px"
-  },
-  "#btn-container": {
-    "margin": "0px 0px 15px 15px",
-    "justify_content": "center",
-    "align_items": "center"
-  },
-  "#fps-text": {
-    "color": "srgba 1.0, 0.984, 0.4, 0.922",
-    "font_size": "20.0"
+  "#txt": {
+    "color": "srgba 1.0, 1.0, 1.0, 0.3",
+    "font_size": "30"
   }
 }
