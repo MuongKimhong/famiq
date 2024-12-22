@@ -20,6 +20,9 @@ pub struct IsFamiqFPSTextCount;
 #[derive(Component)]
 pub struct IsFamiqFPSTextContainer;
 
+#[derive(Component)]
+pub struct CanChangeColor(pub bool); // whether fps change color. green > 100, orange < 100, red < 60
+
 pub struct FaFpsText;
 
 impl<'a> FaFpsText {
@@ -60,6 +63,7 @@ impl<'a> FaFpsText {
         root_node: &'a mut EntityCommands,
         asset_server: &'a ResMut<'a, AssetServer>,
         font_path: &String,
+        change_color: bool
     ) -> Entity {
         let label_txt = Text::new("FPS:");
         let label_txt_font = TextFont {
@@ -99,6 +103,7 @@ impl<'a> FaFpsText {
                 count_txt_font,
                 count_txt_color,
                 IsFamiqFPSTextCount,
+                CanChangeColor(change_color)
             ))
             .id();
 
@@ -111,9 +116,10 @@ impl<'a> FaFpsText {
         root_node: &'a mut EntityCommands,
         asset_server: &'a ResMut<'a, AssetServer>,
         font_path: &String,
+        change_color: bool
     ) -> Entity {
         let container_entity = Self::_build_container(id, root_node);
-        let text_entity = Self::_build_text(id, root_node, asset_server, font_path);
+        let text_entity = Self::_build_text(id, root_node, asset_server, font_path, change_color);
 
         entity_add_child(root_node, text_entity, container_entity);
         text_entity
@@ -121,21 +127,26 @@ impl<'a> FaFpsText {
 
     pub fn update_fps_count_system(
         diagnostics: Res<DiagnosticsStore>,
-        mut text_q: Query<(&mut TextSpan, &mut TextColor, &IsFamiqFPSTextCount)>
+        mut text_q: Query<(&mut TextSpan, &mut TextColor, &CanChangeColor, &IsFamiqFPSTextCount)>
     ) {
-        for (mut text, mut color, _) in text_q.iter_mut() {
+        for (mut text, mut color, change_color, _) in text_q.iter_mut() {
             if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
                 if let Some(value) = fps.smoothed() {
                     text.0 = format!("{value:.2}");
 
-                    if value > 100.0 {
-                        color.0 = GREEN_COLOR;
-                    }
-                    else if value > 60.0 && value < 100.0 {
-                        color.0 = WARNING_COLOR;
+                    if change_color.0 {
+                        if value > 100.0 {
+                            color.0 = GREEN_COLOR;
+                        }
+                        else if value > 60.0 && value < 100.0 {
+                            color.0 = WARNING_COLOR;
+                        }
+                        else {
+                            color.0 = DANGER_COLOR;
+                        }
                     }
                     else {
-                        color.0 = DANGER_COLOR;
+                        color.0 = WHITE_COLOR;
                     }
                 }
             }

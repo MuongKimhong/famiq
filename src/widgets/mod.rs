@@ -262,12 +262,13 @@ impl<'a> FamiqWidgetBuilder<'a> {
         )
     }
 
-    pub fn fa_fps(&mut self, id: &str) -> Entity {
+    pub fn fa_fps(&mut self, id: &str, change_color: bool) -> Entity {
         fps::FaFpsText::new(
             id,
             &mut self.ui_root_node,
             self.asset_server,
             &self.font_path,
+            change_color
         )
     }
 
