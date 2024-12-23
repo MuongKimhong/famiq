@@ -8,11 +8,13 @@ pub mod style;
 pub mod style_parse;
 pub mod text;
 pub mod text_input;
+pub mod circular;
 
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 use bevy::ui::FocusPolicy;
-use button::{BtnSize, BtnVariant};
+use button::{BtnSize, BtnVariant, FaButton};
+use circular::{CircularVariant, CircularSize, FaCircular};
 use selection::{SelectionSize, SelectorVariant};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -241,7 +243,7 @@ impl<'a> FamiqWidgetBuilder<'a> {
             _ => use_size = BtnSize::Normal,
         }
 
-        button::FaButton::new(
+        FaButton::new(
             id,
             text,
             &mut self.ui_root_node,
@@ -349,5 +351,32 @@ impl<'a> FamiqWidgetBuilder<'a> {
             use_size,
             choices,
         )
+    }
+
+    pub fn fa_circular(
+        &mut self,
+        id: &str,
+        variant: &str,
+        size: &str
+    ) -> Entity {
+        let use_variant;
+        let use_size;
+
+        match variant.trim().to_lowercase().as_str() {
+            "primary" => use_variant = CircularVariant::Primary,
+            "secondary" => use_variant = CircularVariant::Secondary,
+            "danger" => use_variant = CircularVariant::Danger,
+            "success" => use_variant = CircularVariant::Success,
+            "warning" => use_variant = CircularVariant::Warning,
+            "info" => use_variant = CircularVariant::Info,
+            _ => use_variant = CircularVariant::Default,
+        }
+        match size.trim().to_lowercase().as_str() {
+            "small" => use_size = CircularSize::Small,
+            "large" => use_size = CircularSize::Large,
+            _ => use_size = CircularSize::Normal
+        }
+
+        FaCircular::new(id, &mut self.ui_root_node, use_variant, use_size)
     }
 }
