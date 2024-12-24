@@ -87,7 +87,7 @@ impl<'a> FaButton {
                 BorderRadius::default(),
                 BackgroundColor(Color::NONE),
                 ZIndex::default(),
-                Visibility::default(),
+                Visibility::Inherited,
                 IsFamiqButtonTextContainer
             ))
             .id()
@@ -113,7 +113,7 @@ impl<'a> FaButton {
         let bg_color = get_button_background_color(&variant);
         let border_radius = BorderRadius::all(Val::Px(5.0));
         let z_index = ZIndex::default();
-        let visibility = Visibility::Visible;
+        let visibility = Visibility::Inherited;
 
         let btn_entity = root_node
             .commands()

@@ -14,5 +14,7 @@ pub mod prelude {
     // };
     //
     pub use crate::plugin::famiq_plugin;
-    pub use crate::widgets::{FamiqWidgetBuilder, FamiqWidgetBuilderResource};
+    pub use crate::widgets::{FamiqWidgetBuilder, FamiqWidgetBuilderResource, WidgetType, FamiqWidgetId};
+    pub use crate::widgets::modal::FaModalState;
+    pub use crate::event_writer::FaInteractionEvent;
 }

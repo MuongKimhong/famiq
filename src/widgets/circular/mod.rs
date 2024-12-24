@@ -47,7 +47,7 @@ impl<'a> FaCircular {
         let border_radius = BorderRadius::all(Val::Percent(45.0));
         let bg_color = BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.55));
         let z_index = ZIndex::default();
-        let visibility = Visibility::Visible;
+        let visibility = Visibility::Inherited;
 
         root_node
             .commands()
@@ -81,7 +81,7 @@ impl<'a> FaCircular {
         let border_radius = BorderRadius::all(Val::Percent(50.0));
         let bg_color = BackgroundColor(Color::NONE);
         let z_index = ZIndex::default();
-        let visibility = Visibility::Visible;
+        let visibility = Visibility::Inherited;
 
         root_node
             .commands()

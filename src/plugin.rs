@@ -6,6 +6,7 @@ use crate::widgets::{
     fps::*,
     button::*,
     circular::*,
+    modal::*,
     *
 };
 
@@ -90,6 +91,10 @@ fn fa_circular_systems(app: &mut App) {
     app.add_systems(Update, (FaCircular::rotate_node, FaCircular::update_speed));
 }
 
+fn fa_modal_systems(app: &mut App) {
+    app.add_systems(Update, FaModal::hide_or_display_modal_system);
+}
+
 pub fn famiq_plugin(app: &mut App) {
     app.add_plugins(FrameTimeDiagnosticsPlugin::default());
     app.insert_resource(Time::<Fixed>::from_seconds(0.30));
@@ -114,4 +119,5 @@ pub fn famiq_plugin(app: &mut App) {
     fa_text_input_systems(app);
     fa_fps_text_systems(app);
     fa_circular_systems(app);
+    fa_modal_systems(app);
 }

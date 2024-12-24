@@ -9,12 +9,14 @@ pub mod style_parse;
 pub mod text;
 pub mod text_input;
 pub mod circular;
+pub mod modal;
 
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 use bevy::ui::FocusPolicy;
 use button::{BtnSize, BtnVariant, FaButton};
 use circular::{CircularVariant, CircularSize, FaCircular};
+use modal::FaModal;
 use selection::{SelectionSize, SelectorVariant};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -378,5 +380,10 @@ impl<'a> FamiqWidgetBuilder<'a> {
         }
 
         FaCircular::new(id, &mut self.ui_root_node, use_variant, use_size)
+    }
+
+    // doesn't need to return Entity
+    pub fn fa_modal(&mut self, id: &str, items: &Vec<Entity>) {
+        FaModal::new(id, items, &mut self.ui_root_node);
     }
 }
