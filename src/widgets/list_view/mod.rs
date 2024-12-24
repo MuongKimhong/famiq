@@ -50,6 +50,7 @@ pub struct CanBeScrolledListView {
 
 pub struct FaListView;
 
+// doesn't need container
 impl<'a> FaListView {
     fn _build_move_panel(
         id: &str,

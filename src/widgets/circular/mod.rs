@@ -40,9 +40,10 @@ pub enum CircularVariant {
 
 pub struct FaCircular;
 
+// need container
 impl<'a> FaCircular {
-    fn _build_inner_circle(root_node: &'a mut EntityCommands, size: &CircularSize) -> Entity {
-        let node = default_inner_circle_node(size);
+    fn _build_spinner(root_node: &'a mut EntityCommands, size: &CircularSize) -> Entity {
+        let node = default_spinner_node(size);
         let border_color = BorderColor(Color::srgba(0.0, 0.0, 0.0, 0.55));
         let border_radius = BorderRadius::all(Val::Percent(45.0));
         let bg_color = BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.55));
@@ -113,14 +114,14 @@ impl<'a> FaCircular {
         variant: CircularVariant,
         size: CircularSize,
     ) -> Entity {
-        let inner = Self::_build_inner_circle(root_node, &size);
+        let inner = Self::_build_spinner(root_node, &size);
         let outer = Self::_build_outer_circle(id, root_node, &variant, &size, inner);
 
         utils::entity_add_child(root_node, inner, outer);
         outer
     }
 
-    pub fn rotate_node(
+    pub fn rotate_spinner(
         time: Res<Time>,
         mut query: Query<(&mut Transform, &RotatingSequence)>,
     ) {
@@ -134,7 +135,7 @@ impl<'a> FaCircular {
         }
     }
 
-    pub fn update_speed(
+    pub fn update_spinner_speed(
         time: Res<Time>,
         mut query: Query<&mut RotatingSequence>,
     ) {

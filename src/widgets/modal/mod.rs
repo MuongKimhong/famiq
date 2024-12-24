@@ -2,10 +2,8 @@ pub mod helper;
 
 use crate::widgets::{FamiqWidgetId, DefaultWidgetEntity};
 use crate::utils;
-use super::color::PRIMARY_COLOR;
 use bevy::prelude::*;
 use bevy::ui::FocusPolicy;
-use bevy::utils::HashMap;
 use helper::*;
 
 #[derive(Component)]
@@ -25,6 +23,7 @@ pub struct AnimationProgress(pub f32);
 
 pub struct FaModal;
 
+// doesn't need container
 impl<'a> FaModal {
     fn _build_modal_container(id: &str, root_node: &'a mut EntityCommands, items: &Vec<Entity>) -> Entity {
         let node = default_modal_container_node();
@@ -89,7 +88,6 @@ impl<'a> FaModal {
         container
     }
 
-    // only 1 modal can showup at a time
     pub fn hide_or_display_modal_system(
         mut modal_bg_q: Query<(&mut Visibility, &FaModalState, &FaModalContainerEntity)>,
         mut modal_container_q: Query<(&mut AnimationProgress, &mut Transform, &IsFamiqModalContainer)>,

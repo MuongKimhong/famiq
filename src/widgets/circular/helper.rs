@@ -57,7 +57,7 @@ pub fn default_outer_circle_node(size: &CircularSize) -> Node {
     }
 }
 
-pub fn default_inner_circle_node(size: &CircularSize) -> Node {
+pub fn default_spinner_node(size: &CircularSize) -> Node {
     let mut height: f32 = 0.0;
 
     let (_, outer_height) = get_outer_circle_size(size);

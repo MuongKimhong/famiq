@@ -7,7 +7,7 @@ use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 use helper::*;
 
-use super::color::{GREEN_COLOR, WHITE_COLOR, LIGHT_GREEN_COLOR, WARNING_COLOR, DANGER_COLOR};
+use super::color::{GREEN_COLOR, WHITE_COLOR, WARNING_COLOR, DANGER_COLOR};
 
 const DEFAULT_FPS_TEXT_SIZE: f32 = 20.0;
 
@@ -25,6 +25,7 @@ pub struct CanChangeColor(pub bool); // whether fps change color. green > 100, o
 
 pub struct FaFpsText;
 
+// doesn't need container
 impl<'a> FaFpsText {
     fn _build_container(id: &str, root_node: &'a mut EntityCommands) -> Entity {
         let node = default_fps_text_container_node();

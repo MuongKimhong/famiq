@@ -88,7 +88,7 @@ fn fa_fps_text_systems(app: &mut App) {
 }
 
 fn fa_circular_systems(app: &mut App) {
-    app.add_systems(Update, (FaCircular::rotate_node, FaCircular::update_speed));
+    app.add_systems(Update, (FaCircular::rotate_spinner, FaCircular::update_spinner_speed));
 }
 
 fn fa_modal_systems(app: &mut App) {

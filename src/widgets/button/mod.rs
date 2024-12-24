@@ -1,7 +1,7 @@
 pub mod helper;
 
 use crate::utils;
-use crate::widgets::{DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId, WidgetType};
+use crate::widgets::{DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId};
 use crate::event_writer::FaInteractionEvent;
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
@@ -43,7 +43,7 @@ pub enum BtnSize {
 
 pub struct FaButton;
 
-// buttons need to be inside a container
+// need container
 impl<'a> FaButton {
     fn _build_text(
         id: &str,
