@@ -83,6 +83,8 @@ impl<'a> FaListView {
                     z_index,
                     visibility,
                 ),
+                ScrollList::default(),
+
             ))
             .id();
 
@@ -98,7 +100,7 @@ impl<'a> FaListView {
         move_panel_entity
     }
 
-    fn _build_listview(id: &str, root_node: &'a mut EntityCommands) -> Entity {
+    fn _build_listview(id: &str, root_node: &'a mut EntityCommands, panel_entity: Entity) -> Entity {
         let node = default_listview_node();
         let bg_color = BackgroundColor::default();
         let border_color = BorderColor::default();
@@ -125,14 +127,15 @@ impl<'a> FaListView {
                     z_index,
                     visibility,
                 ),
-                Interaction::default()
+                Interaction::default(),
+                ListViewMovePanelEntity(panel_entity)
             ))
             .id()
     }
 
     pub fn new(id: &str, root_node: &'a mut EntityCommands, items: &Vec<Entity>) -> Entity {
         let move_panel = Self::_build_move_panel(id, items, root_node);
-        let listview = Self::_build_listview(id, root_node);
+        let listview = Self::_build_listview(id, root_node, move_panel);
 
         utils::entity_add_child(root_node, move_panel, listview);
         listview
@@ -176,8 +179,11 @@ impl<'a> FaListView {
 
     pub fn on_mouse_scroll_system(
         mut mouse_wheel_events: EventReader<MouseWheel>,
-        listview_q: Query<(&ComputedNode, &Node, &ListViewMovePanelEntity), Without<ScrollList>>,
-        mut listview_panel_q: Query<(&mut ScrollList, &mut Node, &ComputedNode)>,
+        listview_q: Query<
+            (&ComputedNode, &Node, &ListViewMovePanelEntity),
+            Without<ScrollList>
+        >,
+        mut listview_panel_q: Query<(&mut ScrollList, &mut Node, &mut DefaultWidgetEntity, &ComputedNode)>,
         can_be_scrolled_listview: ResMut<CanBeScrolledListView>,
     ) {
         let scroll_height = 12.0;
@@ -185,8 +191,7 @@ impl<'a> FaListView {
         for e in mouse_wheel_events.read() {
             if let Some(hovered_listview) = can_be_scrolled_listview.entity {
                 if let Ok((l_node, l_style, panel_entity)) = listview_q.get(hovered_listview) {
-                    if let Ok((mut scrolling, mut style, panel_node)) =
-                        listview_panel_q.get_mut(panel_entity.0)
+                    if let Ok((mut scrolling, mut style, mut default_widget, panel_node)) = listview_panel_q.get_mut(panel_entity.0)
                     {
                         let max_scroll = Self::_calculate_max_scroll(panel_node, l_node, l_style);
 
@@ -197,7 +202,7 @@ impl<'a> FaListView {
                         scrolling.position += dy;
                         scrolling.position = scrolling.position.clamp(-max_scroll, 0.);
                         style.top = Val::Px(scrolling.position);
-                        break;
+                        default_widget.node.top = Val::Px(scrolling.position);
                     }
                 }
             }
