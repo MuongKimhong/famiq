@@ -7,7 +7,7 @@ use bevy::prelude::*;
 #[derive(Component)]
 pub struct IsFamiqText;
 
-// need container
+// Needs container
 pub fn fa_text<'a>(
     id: &str,
     value: &str,

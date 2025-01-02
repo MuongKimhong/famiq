@@ -45,7 +45,7 @@ pub enum SelectionSize {
 
 pub struct FaSelection;
 
-// need container
+// Needs container
 impl<'a> FaSelection {
     fn _build_container(id: &str, root_node: &'a mut EntityCommands) -> Entity {
         let node = default_selection_container_node();

@@ -69,7 +69,7 @@ pub enum TextInputSize {
 
 pub struct FaTextInput;
 
-// need container
+// Needs container
 impl<'a> FaTextInput {
     fn _build_placeholder(
         id: &str,

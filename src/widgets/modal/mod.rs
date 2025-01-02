@@ -23,7 +23,7 @@ pub struct AnimationProgress(pub f32);
 
 pub struct FaModal;
 
-// doesn't need container
+// Doesn't need container
 impl<'a> FaModal {
     fn _build_modal_container(id: &str, root_node: &'a mut EntityCommands, items: &Vec<Entity>) -> Entity {
         let node = default_modal_container_node();

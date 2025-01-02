@@ -12,7 +12,7 @@ pub struct IsFamiqContainer;
 
 pub struct FaContainer;
 
-// containable
+// Doesn't need container
 impl<'a> FaContainer {
     pub fn new(id: &str, root_node: &'a mut EntityCommands, children: &Vec<Entity>) -> Entity {
         let node = default_container_node();

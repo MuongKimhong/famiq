@@ -4,7 +4,6 @@ use std::fs::File;
 use std::io::Read;
 
 use crate::errors::StylesFileError;
-use crate::widgets::WidgetType;
 use crate::widgets::{StyleKeyValue, StylesKeyValue, WidgetStyle};
 
 pub fn read_styles_json_file(path: &str) -> Result<StylesKeyValue, StylesFileError> {

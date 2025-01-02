@@ -25,7 +25,7 @@ pub struct CanChangeColor(pub bool); // whether fps change color. green > 100, o
 
 pub struct FaFpsText;
 
-// doesn't need container
+// Doesn't need container
 impl<'a> FaFpsText {
     fn _build_container(id: &str, root_node: &'a mut EntityCommands) -> Entity {
         let node = default_fps_text_container_node();

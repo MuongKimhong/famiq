@@ -43,7 +43,7 @@ pub enum BtnSize {
 
 pub struct FaButton;
 
-// need container
+// Needs container
 impl<'a> FaButton {
     fn _build_text(
         id: &str,

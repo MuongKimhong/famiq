@@ -13,7 +13,6 @@ pub mod modal;
 
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
-use bevy::ui::FocusPolicy;
 use button::{BtnSize, BtnVariant, FaButton};
 use circular::{CircularVariant, CircularSize, FaCircular};
 use modal::FaModal;

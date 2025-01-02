@@ -40,7 +40,7 @@ pub enum CircularVariant {
 
 pub struct FaCircular;
 
-// need container
+// Needs container
 impl<'a> FaCircular {
     fn _build_spinner(root_node: &'a mut EntityCommands, size: &CircularSize) -> Entity {
         let node = default_spinner_node(size);
