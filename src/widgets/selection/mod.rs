@@ -80,7 +80,6 @@ impl<'a> FaSelection {
     }
 
     fn _build_selector_placeholder(
-        id: &str,
         placeholder: &str,
         root_node: &'a mut EntityCommands,
         asset_server: &'a ResMut<'a, AssetServer>,
@@ -110,7 +109,6 @@ impl<'a> FaSelection {
     }
 
     fn _build_selector_arrow_icon(
-        id: &str,
         root_node: &'a mut EntityCommands,
         asset_server: &'a ResMut<'a, AssetServer>,
         font_path: &String,
@@ -378,14 +376,13 @@ impl<'a> FaSelection {
         );
 
         let placeholder_entity = Self::_build_selector_placeholder(
-            id,
             placeholder,
             root_node,
             asset_server,
             font_path,
             &size,
         );
-        let arrow_icon_entity = Self::_build_selector_arrow_icon(id, root_node, asset_server, font_path, &size);
+        let arrow_icon_entity = Self::_build_selector_arrow_icon(root_node, asset_server, font_path, &size);
         let selector = Self::_build_selector(
             id,
             root_node,

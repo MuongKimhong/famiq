@@ -1,5 +1,3 @@
-use crate::widgets::text_input::*;
-// use crate::widgets::FaWidgetBundle;
 use bevy::prelude::*;
 
 pub const PLACEHOLDER_COLOR: Color = Color::srgba(0.651, 0.651, 0.651, 0.6);

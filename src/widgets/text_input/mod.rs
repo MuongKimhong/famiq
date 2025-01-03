@@ -1,7 +1,5 @@
 pub mod helper;
 
-use std::fmt::Pointer;
-
 use bevy::utils::HashMap;
 use helper::*;
 
@@ -72,7 +70,6 @@ pub struct FaTextInput;
 // Needs container
 impl<'a> FaTextInput {
     fn _build_placeholder(
-        id: &str,
         placeholder: &str,
         root_node: &'a mut EntityCommands,
         asset_server: &'a ResMut<'a, AssetServer>,
@@ -160,7 +157,7 @@ impl<'a> FaTextInput {
         size: TextInputSize,
         variant: TextInputVariant,
     ) -> Entity {
-        let ph_entity = Self::_build_placeholder(id, ph, root_node, asset_server, font_path, &size);
+        let ph_entity = Self::_build_placeholder(ph, root_node, asset_server, font_path, &size);
         let input_entity = Self::_build_input(id, root_node, variant, ph, ph_entity);
 
         utils::entity_add_child(root_node, ph_entity, input_entity);

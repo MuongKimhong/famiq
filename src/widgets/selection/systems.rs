@@ -4,8 +4,6 @@ use crate::event_writer::FaInteractionEvent;
 use crate::utils;
 use bevy::prelude::*;
 
-use std::time::Instant;
-
 // on focus use PLACEHOLDER_COLOR_FOCUSED else use PLACEHOLDER_COLOR_UNFOCUSED
 pub fn update_selector_placeholder_color_system(
     selection_q: Query<(&Selection, &SelectorPlaceHolderEntity), Changed<Selection>>,

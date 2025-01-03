@@ -63,10 +63,10 @@ pub fn default_spinner_node(size: &CircularSize) -> Node {
     let (_, outer_height) = get_outer_circle_size(size);
     let outer_border_width = get_outer_circle_border_width();
 
-    if let Some((out_height)) = utils::extract_val(outer_height) {
+    if let Some(out_height) = utils::extract_val(outer_height) {
         height = out_height;
     }
-    if let Some((border_width)) = utils::extract_val(outer_border_width) {
+    if let Some(border_width) = utils::extract_val(outer_border_width) {
         height = height - (border_width * 2.0);
     }
 

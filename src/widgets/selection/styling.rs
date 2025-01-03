@@ -1,5 +1,4 @@
-use crate::utils::{extract_val, strip_assets_prefix};
-use crate::widgets::selection::{get_text_size, SelectionSize};
+use crate::utils::extract_val;
 use bevy::prelude::*;
 
 pub const PLACEHOLDER_COLOR_UNFOCUSED: Color = Color::srgba(0.651, 0.651, 0.651, 0.6);
