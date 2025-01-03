@@ -17,8 +17,8 @@ pub fn default_selector_node(border_width: UiRect) -> Node {
         padding: UiRect {
             left: Val::Px(10.0),
             right: Val::Px(10.0),
-            top: Val::Px(2.0),
-            bottom: Val::Px(2.0),
+            top: Val::Px(4.0),
+            bottom: Val::Px(4.0),
         },
         margin: UiRect {
             top: Val::Px(5.0),
@@ -61,17 +61,6 @@ pub fn default_selection_choices_panel_node() -> Node {
         ..default()
     }
 }
-
-// pub fn default_item_text_style<'a>(
-//     asset_server: &'a ResMut<'a, AssetServer>,
-//     font_path: &String,
-// ) -> TextStyle {
-//     TextStyle {
-//         font: asset_server.load(strip_assets_prefix(font_path).unwrap()),
-//         font_size: get_text_size(&Some(SelectionSize::Normal)),
-//         ..default()
-//     }
-// }
 
 pub fn default_choice_container_node() -> Node {
     Node {
