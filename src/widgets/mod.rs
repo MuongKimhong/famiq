@@ -10,11 +10,13 @@ pub mod text;
 pub mod text_input;
 pub mod circular;
 pub mod modal;
+pub mod image;
 
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 use button::{BtnSize, BtnVariant, FaButton};
 use circular::{CircularVariant, CircularSize, FaCircular};
+use image::FaImage;
 use modal::FaModal;
 use selection::{SelectionSize, SelectorVariant};
 use serde::{Deserialize, Serialize};
@@ -37,7 +39,8 @@ pub enum WidgetType {
     Selection,
     SelectionChoice,
     Circular,
-    Modal
+    Modal,
+    Image
 }
 
 #[derive(Resource)]
@@ -382,6 +385,10 @@ impl<'a> FamiqWidgetBuilder<'a> {
         }
 
         FaCircular::new(id, &mut self.ui_root_node, use_variant, use_size)
+    }
+
+    pub fn fa_image(&mut self, id: &str, path: &str) -> Entity {
+        FaImage::new(id, path, &mut self.ui_root_node, self.asset_server)
     }
 
     // doesn't need to return Entity

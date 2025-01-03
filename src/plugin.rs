@@ -95,6 +95,10 @@ fn fa_modal_systems(app: &mut App) {
     app.add_systems(Update, FaModal::hide_or_display_modal_system);
 }
 
+fn fa_image_systems(app: &mut App) {
+    app.add_systems(Update, event_writer::image_interaction_system);
+}
+
 pub fn famiq_plugin(app: &mut App) {
     app.add_plugins(FrameTimeDiagnosticsPlugin::default());
     app.insert_resource(Time::<Fixed>::from_seconds(0.30));
@@ -120,4 +124,5 @@ pub fn famiq_plugin(app: &mut App) {
     fa_fps_text_systems(app);
     fa_circular_systems(app);
     fa_modal_systems(app);
+    fa_image_systems(app);
 }

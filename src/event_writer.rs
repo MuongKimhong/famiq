@@ -1,5 +1,12 @@
 use crate::widgets::{
-    button::*, container::*, list_view::*, selection::*, text::*, text_input::*, *,
+    button::*,
+    container::*,
+    list_view::*,
+    selection::*,
+    text::*,
+    text_input::*,
+    image::*,
+    *,
 };
 
 use bevy::ecs::event::EventWriter;
@@ -55,6 +62,16 @@ pub fn btn_interaction_system(
     mut writer: EventWriter<FaInteractionEvent>,
 ) {
     FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::Button);
+}
+
+pub fn image_interaction_system(
+    mut interaction_q: Query<
+        (Entity, &IsFamiqImage, &FamiqWidgetId, &Interaction),
+        Changed<Interaction>,
+    >,
+    mut writer: EventWriter<FaInteractionEvent>,
+) {
+    FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::Image);
 }
 
 pub fn text_input_interaction_system(
