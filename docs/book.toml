@@ -1,0 +1,6 @@
+[book]
+authors = ["MuongKimhong"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Famiq Documentation"
