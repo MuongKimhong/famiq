@@ -30,11 +30,14 @@ pub enum WidgetType {
     Button,
     Container,
     Text,
+    FpsText,
     TextInput,
     ListView,
     ListViewItem,
     Selection,
     SelectionChoice,
+    Circular,
+    Modal
 }
 
 #[derive(Resource)]
