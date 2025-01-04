@@ -16,3 +16,4 @@
     - [Circular](./chapter_3/circular.md)
     - [Modal](./chapter_3/modal.md)
     - [ListView](./chapter_3/list_view.md)
+    - [Image](./chapter_3/image.md)

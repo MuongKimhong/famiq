@@ -443,6 +443,7 @@ That means all those widgets will emit <code>FaInteractionEvent</code> to bevy's
 <li><a href="chapter_3/./circular.html">Circular</a></li>
 <li><a href="chapter_3/./modal.html">Modal</a></li>
 <li><a href="chapter_3/./list_view.html">ListView</a></li>
+<li><a href="chapter_3/./image.html">Image</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="facontainer"><a class="header" href="#facontainer">FaContainer</a></h1>
 <pre><code>🟢 Doesn't need container
@@ -885,6 +886,37 @@ builder.fa_container("#container", &amp;vec![
 </span><span class="boring">fn main() {
 </span>builder.fa_list_view(..);
 <span class="boring">}</span></code></pre></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="faimage"><a class="header" href="#faimage">FaImage</a></h1>
+<pre><code>🟡 Needs container
+🟡 Doesn't accept child/children
+</code></pre>
+<h3 id="api-9"><a class="header" href="#api-9">API</a></h3>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>pub fn fa_image(&amp;mut self, id: &amp;str, path: &amp;str) -&gt; Entity {
+    // ..
+}
+<span class="boring">}</span></code></pre></pre>
+<ul>
+<li><code>path</code>: Path to image relative to <code>assets</code> folder.</li>
+<li>Return entity of the widget which must be used as child of <code>FaContainer</code> widget.</li>
+</ul>
+<h3 id="usage-via-builder-9"><a class="header" href="#usage-via-builder-9">Usage via builder</a></h3>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let image = builder.fa_image(..);
+
+builder.fa_container("#container", &amp;vec![image]);
+<span class="boring">}</span></code></pre></pre>
+<h3 id="example-7"><a class="header" href="#example-7">Example</a></h3>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let bevy_logo = builder.fa_image("#bevy-logo", "bevylogo.png");
+let falcon = builder.fa_image("#falcon", "falcon.png");
+
+builder.fa_container("#container", &amp;vec![bevy_logo, falcon]);
+<span class="boring">}</span></code></pre></pre>
+<p><img src="chapter_3/../images/image_example_1.png" alt="Example 1" /></p>
 
                     </main>
 
@@ -903,6 +935,22 @@ builder.fa_container("#container", &amp;vec![
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 
