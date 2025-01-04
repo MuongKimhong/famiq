@@ -5,10 +5,6 @@ widgets and a simple way to manage styles. Instead of writing Rust code for styl
 developers can define styles in a well known JSON file. These styles are then parsed
 into Bevy's native UI styles, significantly reducing boilerplate code.
 
-### Note
-- This documentation is for Famiq **v0.2.0**.
-- Documentation for **v0.1.0** is [here](https://muongkimhong.github.io/famiq/)
-
 ### Simple button
 ```rust
 let my_btn = builder.fa_button("#my-btn", "Press me", "info", "large");
