@@ -172,6 +172,10 @@ pub struct WidgetStyle {
     pub row_gap: Option<String>,
     pub column_gap: Option<String>,
     pub grid_auto_flow: Option<String>,
+    pub margin_left: Option<String>,
+    pub margin_right: Option<String>,
+    pub margin_top: Option<String>,
+    pub margin_bottom: Option<String>
 }
 
 pub struct FamiqWidgetBuilder<'a> {

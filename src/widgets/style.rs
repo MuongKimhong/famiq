@@ -292,6 +292,30 @@ pub fn apply_styles_from_external_json(
             node.grid_auto_flow = v;
         }
     }
+
+    if let Some(margin_left) = &widget_style.margin_left {
+        if let Some(v) = parse_val(margin_left) {
+            node.margin.left = v;
+        }
+    }
+
+    if let Some(margin_right) = &widget_style.margin_right {
+        if let Some(v) = parse_val(margin_right) {
+            node.margin.right = v;
+        }
+    }
+
+    if let Some(margin_top) = &widget_style.margin_top {
+        if let Some(v) = parse_val(margin_top) {
+            node.margin.top = v;
+        }
+    }
+
+    if let Some(margin_bottom) = &widget_style.margin_bottom {
+        if let Some(v) = parse_val(margin_bottom) {
+            node.margin.bottom = v;
+        }
+    }
 }
 
 // for fa_text & Text only
