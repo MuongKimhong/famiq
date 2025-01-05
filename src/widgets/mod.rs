@@ -223,6 +223,7 @@ impl<'a> FamiqWidgetBuilder<'a> {
             },
             FamiqWidgetId("#fa_root".to_string()),
             IsFaWidgetRoot,
+            GlobalZIndex(1)
         ))
     }
 
