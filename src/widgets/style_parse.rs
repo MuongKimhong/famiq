@@ -102,14 +102,14 @@ pub fn parse_border_radius(value: &str) -> Option<BorderRadius> {
     }
     let top_left = parse_val(components[0])?;
     let top_right = parse_val(components[1])?;
-    let bottom_right = parse_val(components[2])?;
-    let bottom_left = parse_val(components[3])?;
+    let bottom_left = parse_val(components[2])?;
+    let bottom_right = parse_val(components[3])?;
 
     Some(BorderRadius {
         top_left,
         top_right,
-        bottom_right,
         bottom_left,
+        bottom_right,
     })
 }
 

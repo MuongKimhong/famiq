@@ -107,6 +107,30 @@ pub fn apply_styles_from_external_json(
         }
     }
 
+    if let Some(border_radius_top_left) = &widget_style.border_radius_top_left {
+        if let Some(v) = parse_val(border_radius_top_left) {
+            border_radius.top_left = v;
+        }
+    }
+
+    if let Some(border_radius_top_right) = &widget_style.border_radius_top_right {
+        if let Some(v) = parse_val(border_radius_top_right) {
+            border_radius.top_right = v;
+        }
+    }
+
+    if let Some(border_radius_bottom_left) = &widget_style.border_radius_bottom_left {
+        if let Some(v) = parse_val(border_radius_bottom_left) {
+            border_radius.bottom_left = v;
+        }
+    }
+
+    if let Some(border_radius_bottom_right) = &widget_style.border_radius_bottom_right {
+        if let Some(v) = parse_val(border_radius_bottom_right) {
+            border_radius.bottom_right = v;
+        }
+    }
+
     if let Some(visibility_value) = &widget_style.visibility {
         if let Some(v) = parse_visibility(&visibility_value) {
             *visibility = v;

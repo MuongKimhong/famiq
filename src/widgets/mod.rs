@@ -184,6 +184,10 @@ pub struct WidgetStyle {
     pub border_right: Option<String>,
     pub border_top: Option<String>,
     pub border_bottom: Option<String>,
+    pub border_radius_top_left: Option<String>,
+    pub border_radius_top_right: Option<String>,
+    pub border_radius_bottom_left: Option<String>,
+    pub border_radius_bottom_right: Option<String>
 }
 
 pub struct FamiqWidgetBuilder<'a> {
