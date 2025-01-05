@@ -180,6 +180,10 @@ pub struct WidgetStyle {
     pub padding_right: Option<String>,
     pub padding_top: Option<String>,
     pub padding_bottom: Option<String>,
+    pub border_left: Option<String>,
+    pub border_right: Option<String>,
+    pub border_top: Option<String>,
+    pub border_bottom: Option<String>,
 }
 
 pub struct FamiqWidgetBuilder<'a> {

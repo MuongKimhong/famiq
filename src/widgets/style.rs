@@ -340,6 +340,30 @@ pub fn apply_styles_from_external_json(
             node.padding.bottom = v;
         }
     }
+
+    if let Some(border_left) = &widget_style.border_left {
+        if let Some(v) = parse_val(border_left) {
+            node.border.left = v;
+        }
+    }
+
+    if let Some(border_right) = &widget_style.border_right {
+        if let Some(v) = parse_val(border_right) {
+            node.border.right = v;
+        }
+    }
+
+    if let Some(border_top) = &widget_style.border_top {
+        if let Some(v) = parse_val(border_top) {
+            node.border.top = v;
+        }
+    }
+
+    if let Some(border_bottom) = &widget_style.border_bottom {
+        if let Some(v) = parse_val(border_bottom) {
+            node.border.bottom = v;
+        }
+    }
 }
 
 // for fa_text & Text only
