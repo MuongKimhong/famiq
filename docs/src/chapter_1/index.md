@@ -42,32 +42,6 @@ With **Famiq**, you can simply give widget an id, then write styles in json file
 }
 ```
 
-## How to write styles in json file?
-it’s same as bevy styling except that you write it in a string. for example,
-
-```rust
-// bevy -> json
-background_color: BackgroundColor(Color::srgba(1.0, 1.0, 1.0, 0.3))
-"background_color": "srgba 1.0, 1.0, 1.0, 0.3"
-
-padding: UiRect {
-    left: Val::Px(10.0),
-    right: Val::Px(10.0),
-    top: Val::Percent(5.0),
-    bottom: Val::Percent(5.0)
-}
-"padding": "10px 10px 5% 5%" // left right top bottom (order matters)
-
-justify_items: JusitfyItems::Center
-"justify_items": "center"
-
-height: Val::Vw(100.0)
-"height": "100vw"
-
-flex_wrap: FlexWrap::NoWrap
-"flex_wrap": "no_wrap"
-```
-
 ## Supported & Unsupported styles
 #### Unsupported
 ```rust

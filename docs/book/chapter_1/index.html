@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Styling - Famiq Documentation</title>
+        <title>Styling - Famiq documentation</title>
 
 
         <!-- Custom HTML head -->
@@ -91,6 +91,7 @@
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
             </noscript>
+
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
@@ -120,11 +121,14 @@
                         </button>
                     </div>
 
-                    <h1 class="menu-title">Famiq Documentation</h1>
+                    <h1 class="menu-title">Famiq documentation</h1>
 
                     <div class="right-buttons">
                         <a href="../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/MuongKimhong/famiq" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
 
                     </div>
@@ -152,6 +156,9 @@
 
                 <div id="content" class="content">
                     <main>
+                        <div style="display: flex; justify-content: center; align-items: center; margin-top: 15px">
+                            <img src="./logo.jpeg" alt="Logo" style="width: 150px;">
+                        </div>
                         <h1 id="how-styling-works"><a class="header" href="#how-styling-works">How styling works?</a></h1>
 <p>Bevy's default approach to UI development requires writing Rust code for styling, which can quickly become verbose and repetitive. <strong>Famiq</strong> introduces a way to define styles using JSON file, making UI development in Bevy more accessible and efficient.</p>
 <h2 id="key-features"><a class="header" href="#key-features">Key Features</a></h2>
@@ -163,9 +170,7 @@
 </ul>
 <h2 id="example"><a class="header" href="#example">Example</a></h2>
 <p>Normal <strong>Bevy UI</strong> styles.</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>commands.spawn((
+<pre><code class="language-rust">commands.spawn((
     Node {
         border: UiRect::all(Val::Px(3.0)),
         padding: UiRect {
@@ -180,8 +185,7 @@
     },
     BorderColor(Color::srgba(1.0, 1.0, 1.0, 0.3)),
     BorderRadius::all(Val::Px(5.0))
-));
-<span class="boring">}</span></code></pre></pre>
+));</code></pre>
 <p>With <strong>Famiq</strong>, you can simply give widget an id, then write styles in json file.</p>
 <pre><code class="language-json">{
   "#my-widget-id": {
@@ -194,46 +198,16 @@
   }
 }
 </code></pre>
-<h2 id="how-to-write-styles-in-json-file"><a class="header" href="#how-to-write-styles-in-json-file">How to write styles in json file?</a></h2>
-<p>it’s same as bevy styling except that you write it in a string. for example,</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>// bevy -&gt; json
-background_color: BackgroundColor(Color::srgba(1.0, 1.0, 1.0, 0.3))
-"background_color": "srgba 1.0, 1.0, 1.0, 0.3"
-
-padding: UiRect {
-    left: Val::Px(10.0),
-    right: Val::Px(10.0),
-    top: Val::Percent(5.0),
-    bottom: Val::Percent(5.0)
-}
-"padding": "10px 10px 5% 5%" // left right top bottom (order matters)
-
-justify_items: JusitfyItems::Center
-"justify_items": "center"
-
-height: Val::Vw(100.0)
-"height": "100vw"
-
-flex_wrap: FlexWrap::NoWrap
-"flex_wrap": "no_wrap"
-<span class="boring">}</span></code></pre></pre>
 <h2 id="supported--unsupported-styles"><a class="header" href="#supported--unsupported-styles">Supported &amp; Unsupported styles</a></h2>
 <h4 id="unsupported"><a class="header" href="#unsupported">Unsupported</a></h4>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>grid_template_rows: Vec&lt;RepeatedGridTrack&gt;
+<pre><code class="language-rust">grid_template_rows: Vec&lt;RepeatedGridTrack&gt;
 grid_template_columns: Vec&lt;RepeatedGridTrack&gt;
 grid_auto_rows: Vec&lt;GridTrack&gt;
 grid_auto_columns: Vec&lt;GridTrack&gt;
 grid_row: GridPlacement
-grid_column: GridPlacement
-<span class="boring">}</span></code></pre></pre>
+grid_column: GridPlacement</code></pre>
 <h4 id="supported"><a class="header" href="#supported">Supported</a></h4>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>color: Color // can be used for fa_text &amp; TextBundle only
+<pre><code class="language-rust">color: Color // can be used for fa_text &amp; TextBundle only
 font_size: f32 // can be used for fa_text &amp; TextBundle only
 
 background_color: BackgroundColor
@@ -273,28 +247,21 @@ flex_shrink: f32
 flex_basis: Val
 row_gap: Val
 column_gap: Val
-grid_auto_flow: GridAutoFlow
-<span class="boring">}</span></code></pre></pre>
+grid_auto_flow: GridAutoFlow</code></pre>
 <h4 id="supported-val-enum"><a class="header" href="#supported-val-enum">Supported Val enum</a></h4>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>Val {
+<pre><code class="language-rust">Val {
     Auto,
     Px,
     Percent,
     Vw,
     Vh
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <h4 id="supported-color-enum"><a class="header" href="#supported-color-enum">Supported Color enum</a></h4>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>Color {
+<pre><code class="language-rust">Color {
     Srgba(Srgba),
     LinearRgba(LinearRgba),
     Hsla(Hsla)
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 
                     </main>
 

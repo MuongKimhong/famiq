@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Famiq Documentation</title>
+        <title>Famiq documentation</title>
         <meta name="robots" content="noindex">
 
 
@@ -92,6 +92,7 @@
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
             </noscript>
+
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
@@ -121,11 +122,14 @@
                         </button>
                     </div>
 
-                    <h1 class="menu-title">Famiq Documentation</h1>
+                    <h1 class="menu-title">Famiq documentation</h1>
 
                     <div class="right-buttons">
                         <a href="print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/MuongKimhong/famiq" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
 
                     </div>
@@ -153,16 +157,16 @@
 
                 <div id="content" class="content">
                     <main>
+                        <div style="display: flex; justify-content: center; align-items: center; margin-top: 15px">
+                            <img src="./logo.jpeg" alt="Logo" style="width: 150px;">
+                        </div>
                         <h1 id="what-is-famiq"><a class="header" href="#what-is-famiq">What is Famiq?</a></h1>
 <p><strong>Famiq</strong> is a UI library wrapped around Bevy UI module by providing default
 widgets and a simple way to manage styles. Instead of writing Rust code for styling,
 developers can define styles in a well known JSON file. These styles are then parsed
 into Bevy's native UI styles, significantly reducing boilerplate code.</p>
 <h3 id="simple-button"><a class="header" href="#simple-button">Simple button</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>let my_btn = builder.fa_button("#my-btn", "Press me", "info", "large");
-<span class="boring">}</span></code></pre></pre>
+<pre><code class="language-rust">let my_btn = builder.fa_button("#my-btn", "Press me", "info", "large");</code></pre>
 <h3 id="change-background-color"><a class="header" href="#change-background-color">Change background color</a></h3>
 <pre><code class="language-json">{
   "#my-btn": {
@@ -187,7 +191,7 @@ famiq = { git = "https://github.com/muongkimhong/famiq", tag = "v0.2.1" }
 <li><strong>Crate and rustdoc are not available yet.</strong></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="getting-start"><a class="header" href="#getting-start">Getting Start</a></h1>
-<pre><pre class="playground"><code class="language-rust">use bevy::prelude::*;
+<pre><code class="language-rust">use bevy::prelude::*;
 use famiq::prelude::*;
 
 fn main() {
@@ -219,7 +223,7 @@ fn setup(
 
     // add texts to container
     builder.fa_container("#my-container", &amp;vec![hello_boss, hello_mom]);
-}</code></pre></pre>
+}</code></pre>
 <ul>
 <li><code>font_path</code>: Path to font source file. Must be inside <code>assets</code> folder &amp; outside <code>src</code> folder.</li>
 <li><code>style_path</code>: Path to style json file. Must be inside <code>assets</code> folder &amp; outside <code>src</code> folder.</li>
@@ -249,9 +253,7 @@ to re-compile. Should be enabled only during development.</li>
 </ul>
 <h2 id="example"><a class="header" href="#example">Example</a></h2>
 <p>Normal <strong>Bevy UI</strong> styles.</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>commands.spawn((
+<pre><code class="language-rust">commands.spawn((
     Node {
         border: UiRect::all(Val::Px(3.0)),
         padding: UiRect {
@@ -266,8 +268,7 @@ to re-compile. Should be enabled only during development.</li>
     },
     BorderColor(Color::srgba(1.0, 1.0, 1.0, 0.3)),
     BorderRadius::all(Val::Px(5.0))
-));
-<span class="boring">}</span></code></pre></pre>
+));</code></pre>
 <p>With <strong>Famiq</strong>, you can simply give widget an id, then write styles in json file.</p>
 <pre><code class="language-json">{
   "#my-widget-id": {
@@ -280,46 +281,16 @@ to re-compile. Should be enabled only during development.</li>
   }
 }
 </code></pre>
-<h2 id="how-to-write-styles-in-json-file"><a class="header" href="#how-to-write-styles-in-json-file">How to write styles in json file?</a></h2>
-<p>it’s same as bevy styling except that you write it in a string. for example,</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>// bevy -&gt; json
-background_color: BackgroundColor(Color::srgba(1.0, 1.0, 1.0, 0.3))
-"background_color": "srgba 1.0, 1.0, 1.0, 0.3"
-
-padding: UiRect {
-    left: Val::Px(10.0),
-    right: Val::Px(10.0),
-    top: Val::Percent(5.0),
-    bottom: Val::Percent(5.0)
-}
-"padding": "10px 10px 5% 5%" // left right top bottom (order matters)
-
-justify_items: JusitfyItems::Center
-"justify_items": "center"
-
-height: Val::Vw(100.0)
-"height": "100vw"
-
-flex_wrap: FlexWrap::NoWrap
-"flex_wrap": "no_wrap"
-<span class="boring">}</span></code></pre></pre>
 <h2 id="supported--unsupported-styles"><a class="header" href="#supported--unsupported-styles">Supported &amp; Unsupported styles</a></h2>
 <h4 id="unsupported"><a class="header" href="#unsupported">Unsupported</a></h4>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>grid_template_rows: Vec&lt;RepeatedGridTrack&gt;
+<pre><code class="language-rust">grid_template_rows: Vec&lt;RepeatedGridTrack&gt;
 grid_template_columns: Vec&lt;RepeatedGridTrack&gt;
 grid_auto_rows: Vec&lt;GridTrack&gt;
 grid_auto_columns: Vec&lt;GridTrack&gt;
 grid_row: GridPlacement
-grid_column: GridPlacement
-<span class="boring">}</span></code></pre></pre>
+grid_column: GridPlacement</code></pre>
 <h4 id="supported"><a class="header" href="#supported">Supported</a></h4>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>color: Color // can be used for fa_text &amp; TextBundle only
+<pre><code class="language-rust">color: Color // can be used for fa_text &amp; TextBundle only
 font_size: f32 // can be used for fa_text &amp; TextBundle only
 
 background_color: BackgroundColor
@@ -359,28 +330,21 @@ flex_shrink: f32
 flex_basis: Val
 row_gap: Val
 column_gap: Val
-grid_auto_flow: GridAutoFlow
-<span class="boring">}</span></code></pre></pre>
+grid_auto_flow: GridAutoFlow</code></pre>
 <h4 id="supported-val-enum"><a class="header" href="#supported-val-enum">Supported Val enum</a></h4>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>Val {
+<pre><code class="language-rust">Val {
     Auto,
     Px,
     Percent,
     Vw,
     Vh
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <h4 id="supported-color-enum"><a class="header" href="#supported-color-enum">Supported Color enum</a></h4>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>Color {
+<pre><code class="language-rust">Color {
     Srgba(Srgba),
     LinearRgba(LinearRgba),
     Hsla(Hsla)
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="how-to-write-bevy-styles-in-json-file"><a class="header" href="#how-to-write-bevy-styles-in-json-file">How to write bevy styles in JSON file.</a></h1>
 <p><strong>Famiq</strong> supports almost all UI styles provided by Bevy engine.</p>
 <h3 id="for-text-widgets"><a class="header" href="#for-text-widgets">For text widgets</a></h3>
@@ -597,19 +561,14 @@ grid_auto_flow: GridAutoFlow
 <div style="break-before: page; page-break-before: always;"></div><h1 id="interaction"><a class="header" href="#interaction">Interaction</a></h1>
 <p>All widgets provided by <strong>Famiq</strong> have <code>Interaction</code> component attached by default.
 That means all those widgets will emit <code>FaInteractionEvent</code> to bevy's <code>EventReader</code> with either <code>Pressed</code>, <code>Hovered</code> or <code>None</code>.</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>pub struct FaInteractionEvent {
+<pre><code class="language-rust">pub struct FaInteractionEvent {
     pub entity: Entity,
     pub widget_id: String,
     pub interaction: Interaction,
     pub widget: WidgetType,
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <p>Available widget types</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>pub enum WidgetType {
+<pre><code class="language-rust">pub enum WidgetType {
     Button,
     Container,
     Text,
@@ -621,13 +580,10 @@ That means all those widgets will emit <code>FaInteractionEvent</code> to bevy's
     SelectionChoice,
     Circular,
     Modal
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <h2 id="handle-interaction"><a class="header" href="#handle-interaction">Handle interaction</a></h2>
 <p>You can write a bevy system to handle Famiq’s widgets interaction.</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>fn handle_button_press_system(mut events: EventReader&lt;FaInteractionEvent&gt;) {
+<pre><code class="language-rust">fn handle_button_press_system(mut events: EventReader&lt;FaInteractionEvent&gt;) {
     for e in events.read() {
         if e.widget == WidgetType::Button &amp;&amp; e.interaction == Interaction::Pressed {
 
@@ -644,8 +600,7 @@ That means all those widgets will emit <code>FaInteractionEvent</code> to bevy's
 
         }
     }
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="famiq-widgets"><a class="header" href="#famiq-widgets">Famiq Widgets</a></h1>
 <p>Famiq provides some default widgets that are likely required in any UI development.</p>
 <h3 id="default-widgets"><a class="header" href="#default-widgets">Default widgets</a></h3>
@@ -667,34 +622,22 @@ That means all those widgets will emit <code>FaInteractionEvent</code> to bevy's
 </code></pre>
 <p>An empty and stylyable widget. Think of it as a div inside HTML.</p>
 <h3 id="api"><a class="header" href="#api">API</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>pub fn fa_container(&amp;mut self, id: &amp;str, children: &amp;Vec&lt;Entity&gt;) -&gt; Entity {
+<pre><code class="language-rust">pub fn fa_container(&amp;mut self, id: &amp;str, children: &amp;Vec&lt;Entity&gt;) -&gt; Entity {
     // ..
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <h3 id="usage-via-builder"><a class="header" href="#usage-via-builder">usage via builder</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>let container = builder.fa_container(..);
-<span class="boring">}</span></code></pre></pre>
+<pre><code class="language-rust">let container = builder.fa_container(..);</code></pre>
 <p>Return <code>Entity</code> of the widget which can be used as child for another widget.</p>
 <h3 id="example-1"><a class="header" href="#example-1">Example</a></h3>
 <p>Texts without container</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>let boss = builder.fa_text("#boss", "Hello Boss");
-let mom = builder.fa_text("#mom", "Hello Mom");
-<span class="boring">}</span></code></pre></pre>
+<pre><code class="language-rust">let boss = builder.fa_text("#boss", "Hello Boss");
+let mom = builder.fa_text("#mom", "Hello Mom");</code></pre>
 <p><img src="chapter_3/../images/container_example_1.png" alt="Example 1" /></p>
 <p>Texts inside container</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>let boss = builder.fa_text("#boss", "Hello Boss");
+<pre><code class="language-rust">let boss = builder.fa_text("#boss", "Hello Boss");
 let mom = builder.fa_text("#mom", "Hello Mom");
 
-builder.fa_container("#container", &amp;vec![boss, mom]);
-<span class="boring">}</span></code></pre></pre>
+builder.fa_container("#container", &amp;vec![boss, mom]);</code></pre>
 <p><img src="chapter_3/../images/container_example_2.png" alt="Example 2" /></p>
 <h3 id="styling"><a class="header" href="#styling">Styling</a></h3>
 <p>Example of styling in json file</p>
@@ -712,9 +655,7 @@ builder.fa_container("#container", &amp;vec![boss, mom]);
 🟡 Doesn't accept child/children
 </code></pre>
 <h3 id="variants"><a class="header" href="#variants">Variants</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>pub enum BtnVariant {
+<pre><code class="language-rust">pub enum BtnVariant {
     Default,
     Primary,
     Secondary,
@@ -722,34 +663,22 @@ builder.fa_container("#container", &amp;vec![boss, mom]);
     Danger,
     Warning,
     Info,
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <h3 id="sizes"><a class="header" href="#sizes">Sizes</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>pub enum BtnSize {
+<pre><code class="language-rust">pub enum BtnSize {
     Small,
     Normal,
     Large,
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <h3 id="api-1"><a class="header" href="#api-1">API</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>pub fn fa_button(&amp;mut self, id: &amp;str, text: &amp;str, variant: &amp;str, size: &amp;str) -&gt; Entity {
+<pre><code class="language-rust">pub fn fa_button(&amp;mut self, id: &amp;str, text: &amp;str, variant: &amp;str, size: &amp;str) -&gt; Entity {
     // ..
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <h3 id="usage-via-builder-1"><a class="header" href="#usage-via-builder-1">Usage via builder</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>let button = builder.fa_button(..);
-<span class="boring">}</span></code></pre></pre>
+<pre><code class="language-rust">let button = builder.fa_button(..);</code></pre>
 <p>Return <code>Entity</code> of the widget which must be used inside <code>FaContainer</code> widget.</p>
 <h3 id="example-2"><a class="header" href="#example-2">Example</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>// default
+<pre><code class="language-rust">// default
 let my_btn = builder.fa_button("#my-btn", "Press me", "", "");
 
 // info
@@ -766,13 +695,10 @@ builder.fa_container("#container", &amp;vec![
     info_btn,
     small_btn,
     warning_btn
-]);
-<span class="boring">}</span></code></pre></pre>
+]);</code></pre>
 <p><img src="chapter_3/../images/btn_example_1.png" alt="Example 1" /></p>
 <h3 id="handle-button-press"><a class="header" href="#handle-button-press">Handle button press</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>fn handle_button_press_system(mut events: EventReader&lt;FaInteractionEvent&gt;) {
+<pre><code class="language-rust">fn handle_button_press_system(mut events: EventReader&lt;FaInteractionEvent&gt;) {
     for e in events.read() {
         if e.widget == WidgetType::Button &amp;&amp; e.interaction == Interaction::Pressed {
 
@@ -789,86 +715,59 @@ builder.fa_container("#container", &amp;vec![
 
         }
     }
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="fatext"><a class="header" href="#fatext">FaText</a></h1>
 <pre><code>🟡 Needs container
 🟡 Doesn't accept child/children
 </code></pre>
 <h3 id="api-2"><a class="header" href="#api-2">API</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>pub fn fa_text(&amp;mut self, id: &amp;str, value: &amp;str) -&gt; Entity {
+<pre><code class="language-rust">pub fn fa_text(&amp;mut self, id: &amp;str, value: &amp;str) -&gt; Entity {
     // ..
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <h3 id="usage-via-builder-2"><a class="header" href="#usage-via-builder-2">Usage via builder</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>let text = builder.fa_text(..);
-<span class="boring">}</span></code></pre></pre>
+<pre><code class="language-rust">let text = builder.fa_text(..);</code></pre>
 <p>Return <code>Entity</code> of the widget which must be used inside <code>FaContainer</code> widget.</p>
 <h3 id="example-3"><a class="header" href="#example-3">Example</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>let boss = builder.fa_text("#boss", "Hello Boss");
+<pre><code class="language-rust">let boss = builder.fa_text("#boss", "Hello Boss");
 let mom = builder.fa_text("#mom", "Hello Mom");
 
-builder.fa_container("#container", &amp;vec![boss, mom]);
-<span class="boring">}</span></code></pre></pre>
+builder.fa_container("#container", &amp;vec![boss, mom]);</code></pre>
 <p><img src="chapter_3/../images/container_example_2.png" alt="Example 1" /></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="fafpstext"><a class="header" href="#fafpstext">FaFpsText</a></h1>
 <pre><code>🟢 Doesn't need container
 🟡 Doesn't accept child/children
 </code></pre>
 <h3 id="api-3"><a class="header" href="#api-3">API</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>pub fn fa_fps(&amp;mut self, id: &amp;str, change_color: bool) -&gt; Entity {
+<pre><code class="language-rust">pub fn fa_fps(&amp;mut self, id: &amp;str, change_color: bool) -&gt; Entity {
     // ..
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <ul>
 <li><code>change_color</code> if <code>true</code> it changes color based on number.</li>
 </ul>
 <h3 id="usage-via-builder-3"><a class="header" href="#usage-via-builder-3">Usage via builder</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>builder.fa_fps(..);
-<span class="boring">}</span></code></pre></pre>
+<pre><code class="language-rust">builder.fa_fps(..);</code></pre>
 <h3 id="example-4"><a class="header" href="#example-4">Example</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>builder.fa_fps("#fps", true);
-<span class="boring">}</span></code></pre></pre>
+<pre><code class="language-rust">builder.fa_fps("#fps", true);</code></pre>
 <p><img src="chapter_3/../images/fps_example_1.png" alt="Example 1" /></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="fatextinput"><a class="header" href="#fatextinput">FaTextInput</a></h1>
 <pre><code>🟡 Needs container
 🟡 Doesn't accept child/children
 </code></pre>
 <h3 id="variants-1"><a class="header" href="#variants-1">Variants</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>pub enum TextInputVariant {
+<pre><code class="language-rust">pub enum TextInputVariant {
     Default,
     Outlined,
     Underlined,
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <h3 id="sizes-1"><a class="header" href="#sizes-1">Sizes</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>pub enum TextInputSize {
+<pre><code class="language-rust">pub enum TextInputSize {
     Small,
     Normal,
     Large,
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <h3 id="resource"><a class="header" href="#resource">Resource</a></h3>
 <p>Resource to store key value pair of text-input id &amp; its data.</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>pub struct FaTextInputResource {
+<pre><code class="language-rust">pub struct FaTextInputResource {
     pub inputs: HashMap&lt;String, String&gt;,
 }
 
@@ -876,12 +775,9 @@ impl FaTextInputResource {
     pub fn update_or_insert(&amp;mut self, id: String, new_value: String) {
         // ..
     }
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <h3 id="api-4"><a class="header" href="#api-4">API</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>pub fn fa_text_input(
+<pre><code class="language-rust">pub fn fa_text_input(
     &amp;mut self,
     id: &amp;str,
     placeholder: &amp;str,
@@ -889,59 +785,41 @@ impl FaTextInputResource {
     size: &amp;str,
 ) -&gt; Entity {
     // ..
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <h3 id="usage-via-builder-4"><a class="header" href="#usage-via-builder-4">Usage via builder</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>let input = builder.fa_text_input(..);
-<span class="boring">}</span></code></pre></pre>
+<pre><code class="language-rust">let input = builder.fa_text_input(..);</code></pre>
 <p>Return <code>Entity</code> of the widget which must be used as child of <code>FaContainer</code> widget.</p>
 <h3 id="example-5"><a class="header" href="#example-5">Example</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>let input = builder.fa_text_input("#input", "Enter your name", "", "");
+<pre><code class="language-rust">let input = builder.fa_text_input("#input", "Enter your name", "", "");
 
-builder.fa_container("#container", &amp;vec![input]);
-<span class="boring">}</span></code></pre></pre>
+builder.fa_container("#container", &amp;vec![input]);</code></pre>
 <p><img src="chapter_3/../images/input_example_1.png" alt="Example 1" /></p>
 <h3 id="getting-input-data"><a class="header" href="#getting-input-data">Getting input data</a></h3>
 <p>The input data can be read from <code>FaTextInputResource</code> within system.</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>fn my_system(input_resource: Res&lt;FaTextInputResource&gt;) {
+<pre><code class="language-rust">fn my_system(input_resource: Res&lt;FaTextInputResource&gt;) {
     if let Some(data) = input_resource.inputs.get("#my-text-input-id") {
         println!("Data: {:?}", data);
     }
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="faselection"><a class="header" href="#faselection">FaSelection</a></h1>
 <pre><code>🟡 Needs container
 🟡 Doesn't accepts child/children
 </code></pre>
 <h3 id="variants-2"><a class="header" href="#variants-2">Variants</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>pub enum SelectorVariant {
+<pre><code class="language-rust">pub enum SelectorVariant {
     Outlined,
     Default,
     Underlined,
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <h3 id="sizes-2"><a class="header" href="#sizes-2">Sizes</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>pub enum SelectionSize {
+<pre><code class="language-rust">pub enum SelectionSize {
     Small,
     Normal,
     Large,
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <h3 id="resource-1"><a class="header" href="#resource-1">Resource</a></h3>
 <p>Resource to store key value pair of selector id &amp; selected choice.</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>pub struct SelectedChoicesResource {
+<pre><code class="language-rust">pub struct SelectedChoicesResource {
     pub choices: HashMap&lt;String, String&gt;
 }
 
@@ -949,12 +827,9 @@ impl SelectedChoicesResource {
     pub fn update_or_insert(&amp;mut self, id: String, selected_choice: String) {
         // ..
     }
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <h3 id="api-5"><a class="header" href="#api-5">API</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>pub fn fa_selection(
+<pre><code class="language-rust">pub fn fa_selection(
     &amp;mut self,
     id: &amp;str,
     placeholder: &amp;str,
@@ -964,18 +839,12 @@ impl SelectedChoicesResource {
     size: &amp;str,
 ) -&gt; Entity {
     // ..
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <h3 id="usage-via-builder-5"><a class="header" href="#usage-via-builder-5">Usage via builder</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>let selection = builder.fa_selection(..);
-<span class="boring">}</span></code></pre></pre>
+<pre><code class="language-rust">let selection = builder.fa_selection(..);</code></pre>
 <p>Return <code>Entity</code> of the widget which must be used as child of <code>FaContainer</code> widget.</p>
 <h3 id="example-6"><a class="header" href="#example-6">Example</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>let plans = builder.fa_selection(
+<pre><code class="language-rust">let plans = builder.fa_selection(
     "#plans",
     "Select plan",
     &amp;vec!["Personal".to_string(), "Team".to_string(), "Enterprise".to_string()],
@@ -984,28 +853,22 @@ impl SelectedChoicesResource {
     ""
 );
 
-builder.fa_container("#container", &amp;vec![plans]);
-<span class="boring">}</span></code></pre></pre>
+builder.fa_container("#container", &amp;vec![plans]);</code></pre>
 <p><img src="chapter_3/../images/selection_example_1.png" alt="Example 1" /></p>
 <h3 id="getting-selected-choice"><a class="header" href="#getting-selected-choice">Getting selected choice</a></h3>
 <p>The selected choice of a selection can be read from <code>SelectedItemsResource</code> within system.</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>fn my_system(selected_items: Res&lt;SelectedItemsResource&gt;) {
+<pre><code class="language-rust">fn my_system(selected_items: Res&lt;SelectedItemsResource&gt;) {
     if let Some(selected_choice) = selected_items.items.get("#my-selection-id") {
         println!("Choice: {:?}", selected_choice);
     }
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="facircular"><a class="header" href="#facircular">FaCircular</a></h1>
 <pre><code>🟡 Needs container
 🟡 Doesn't accept child/children
 </code></pre>
 <p>Spinning circular.</p>
 <h3 id="variants-3"><a class="header" href="#variants-3">Variants</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>pub enum CircularVariant {
+<pre><code class="language-rust">pub enum CircularVariant {
     Default,
     Primary,
     Secondary,
@@ -1013,34 +876,22 @@ builder.fa_container("#container", &amp;vec![plans]);
     Danger,
     Warning,
     Info,
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <h3 id="sizes-3"><a class="header" href="#sizes-3">Sizes</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>pub enum CircularSize {
+<pre><code class="language-rust">pub enum CircularSize {
     Small,
     Normal,
     Large
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <h3 id="api-6"><a class="header" href="#api-6">API</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>pub fn fa_circular(&amp;mut self, id: &amp;str, variant: &amp;str, size: &amp;str) -&gt; Entity {
+<pre><code class="language-rust">pub fn fa_circular(&amp;mut self, id: &amp;str, variant: &amp;str, size: &amp;str) -&gt; Entity {
     // ..
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <h3 id="usage-via-builder-6"><a class="header" href="#usage-via-builder-6">Usage via builder</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>let circular = builder.fa_circular(..);
-<span class="boring">}</span></code></pre></pre>
+<pre><code class="language-rust">let circular = builder.fa_circular(..);</code></pre>
 <p>Return <code>Entity</code> of the widget which must be used inside <code>FaContainer</code> widget.</p>
 <h3 id="example-7"><a class="header" href="#example-7">Example</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>// default
+<pre><code class="language-rust">// default
 let cir = builder.fa_circular("#cir", "", "");
 
 // warning &amp; small
@@ -1053,30 +904,21 @@ builder.fa_container("#container", &amp;vec![
     cir,
     warning_cir,
     primary_cir
-]);
-<span class="boring">}</span></code></pre></pre>
+]);</code></pre>
 <p><img src="chapter_3/../images/circular_example_1.png" alt="Example 1" /></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="famodal"><a class="header" href="#famodal">FaModal</a></h1>
 <pre><code>🟢 Doesn't need container
 🟢 Accepts child/children
 </code></pre>
 <h3 id="api-7"><a class="header" href="#api-7">API</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>pub fn fa_modal(&amp;mut self, id: &amp;str, items: &amp;Vec&lt;Entity&gt;) {
+<pre><code class="language-rust">pub fn fa_modal(&amp;mut self, id: &amp;str, items: &amp;Vec&lt;Entity&gt;) {
     // ..
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <h3 id="usage-via-builder-7"><a class="header" href="#usage-via-builder-7">Usage via builder</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>builder.fa_modal(..);
-<span class="boring">}</span></code></pre></pre>
+<pre><code class="language-rust">builder.fa_modal(..);</code></pre>
 <h3 id="showhide-modal"><a class="header" href="#showhide-modal">Show/Hide modal</a></h3>
 <p>Modals can be shown or hided by updating <code>FaModalState</code> component.</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>fn show_or_hide_modal_system(mut modal: Query&lt;(&amp;FamiqWidgetId, &amp;mut FaModalState)&gt;) {
+<pre><code class="language-rust">fn show_or_hide_modal_system(mut modal: Query&lt;(&amp;FamiqWidgetId, &amp;mut FaModalState)&gt;) {
     let should_visible = true;
 
     for (id, mut state) in modal.iter_mut() {
@@ -1084,54 +926,38 @@ builder.fa_container("#container", &amp;vec![
             state.0 = true; // show
         }
     }
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="falistview"><a class="header" href="#falistview">FaListView</a></h1>
 <pre><code>🟢 Doesn't need container
 🟢 Accepts child/children
 </code></pre>
 <h3 id="api-8"><a class="header" href="#api-8">API</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>pub fn fa_list_view(&amp;mut self, id: &amp;str, items: &amp;Vec&lt;Entity&gt;) -&gt; Entity {
+<pre><code class="language-rust">pub fn fa_list_view(&amp;mut self, id: &amp;str, items: &amp;Vec&lt;Entity&gt;) -&gt; Entity {
     // ..
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <h3 id="usage-via-builder-8"><a class="header" href="#usage-via-builder-8">Usage via builder</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>builder.fa_list_view(..);
-<span class="boring">}</span></code></pre></pre>
+<pre><code class="language-rust">builder.fa_list_view(..);</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="faimage"><a class="header" href="#faimage">FaImage</a></h1>
 <pre><code>🟡 Needs container
 🟡 Doesn't accept child/children
 </code></pre>
 <h3 id="api-9"><a class="header" href="#api-9">API</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>pub fn fa_image(&amp;mut self, id: &amp;str, path: &amp;str) -&gt; Entity {
+<pre><code class="language-rust">pub fn fa_image(&amp;mut self, id: &amp;str, path: &amp;str) -&gt; Entity {
     // ..
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <ul>
 <li><code>path</code>: Path to image relative to <code>assets</code> folder.</li>
 <li>Return entity of the widget which must be used as child of <code>FaContainer</code> widget.</li>
 </ul>
 <h3 id="usage-via-builder-9"><a class="header" href="#usage-via-builder-9">Usage via builder</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>let image = builder.fa_image(..);
+<pre><code class="language-rust">let image = builder.fa_image(..);
 
-builder.fa_container("#container", &amp;vec![image]);
-<span class="boring">}</span></code></pre></pre>
+builder.fa_container("#container", &amp;vec![image]);</code></pre>
 <h3 id="example-8"><a class="header" href="#example-8">Example</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>let bevy_logo = builder.fa_image("#bevy-logo", "bevylogo.png");
+<pre><code class="language-rust">let bevy_logo = builder.fa_image("#bevy-logo", "bevylogo.png");
 let falcon = builder.fa_image("#falcon", "falcon.png");
 
-builder.fa_container("#container", &amp;vec![bevy_logo, falcon]);
-<span class="boring">}</span></code></pre></pre>
+builder.fa_container("#container", &amp;vec![bevy_logo, falcon]);</code></pre>
 <p><img src="chapter_3/../images/image_example_1.png" alt="Example 1" /></p>
 
                     </main>

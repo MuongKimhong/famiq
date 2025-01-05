@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>TextInput - Famiq Documentation</title>
+        <title>TextInput - Famiq documentation</title>
 
 
         <!-- Custom HTML head -->
@@ -91,6 +91,7 @@
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
             </noscript>
+
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
@@ -120,11 +121,14 @@
                         </button>
                     </div>
 
-                    <h1 class="menu-title">Famiq Documentation</h1>
+                    <h1 class="menu-title">Famiq documentation</h1>
 
                     <div class="right-buttons">
                         <a href="../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/MuongKimhong/famiq" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
 
                     </div>
@@ -152,33 +156,28 @@
 
                 <div id="content" class="content">
                     <main>
+                        <div style="display: flex; justify-content: center; align-items: center; margin-top: 15px">
+                            <img src="./logo.jpeg" alt="Logo" style="width: 150px;">
+                        </div>
                         <h1 id="fatextinput"><a class="header" href="#fatextinput">FaTextInput</a></h1>
 <pre><code>🟡 Needs container
 🟡 Doesn't accept child/children
 </code></pre>
 <h3 id="variants"><a class="header" href="#variants">Variants</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>pub enum TextInputVariant {
+<pre><code class="language-rust">pub enum TextInputVariant {
     Default,
     Outlined,
     Underlined,
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <h3 id="sizes"><a class="header" href="#sizes">Sizes</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>pub enum TextInputSize {
+<pre><code class="language-rust">pub enum TextInputSize {
     Small,
     Normal,
     Large,
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <h3 id="resource"><a class="header" href="#resource">Resource</a></h3>
 <p>Resource to store key value pair of text-input id &amp; its data.</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>pub struct FaTextInputResource {
+<pre><code class="language-rust">pub struct FaTextInputResource {
     pub inputs: HashMap&lt;String, String&gt;,
 }
 
@@ -186,12 +185,9 @@ impl FaTextInputResource {
     pub fn update_or_insert(&amp;mut self, id: String, new_value: String) {
         // ..
     }
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <h3 id="api"><a class="header" href="#api">API</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>pub fn fa_text_input(
+<pre><code class="language-rust">pub fn fa_text_input(
     &amp;mut self,
     id: &amp;str,
     placeholder: &amp;str,
@@ -199,32 +195,22 @@ impl FaTextInputResource {
     size: &amp;str,
 ) -&gt; Entity {
     // ..
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <h3 id="usage-via-builder"><a class="header" href="#usage-via-builder">Usage via builder</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>let input = builder.fa_text_input(..);
-<span class="boring">}</span></code></pre></pre>
+<pre><code class="language-rust">let input = builder.fa_text_input(..);</code></pre>
 <p>Return <code>Entity</code> of the widget which must be used as child of <code>FaContainer</code> widget.</p>
 <h3 id="example"><a class="header" href="#example">Example</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>let input = builder.fa_text_input("#input", "Enter your name", "", "");
+<pre><code class="language-rust">let input = builder.fa_text_input("#input", "Enter your name", "", "");
 
-builder.fa_container("#container", &amp;vec![input]);
-<span class="boring">}</span></code></pre></pre>
+builder.fa_container("#container", &amp;vec![input]);</code></pre>
 <p><img src="../images/input_example_1.png" alt="Example 1" /></p>
 <h3 id="getting-input-data"><a class="header" href="#getting-input-data">Getting input data</a></h3>
 <p>The input data can be read from <code>FaTextInputResource</code> within system.</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>fn my_system(input_resource: Res&lt;FaTextInputResource&gt;) {
+<pre><code class="language-rust">fn my_system(input_resource: Res&lt;FaTextInputResource&gt;) {
     if let Some(data) = input_resource.inputs.get("#my-text-input-id") {
         println!("Data: {:?}", data);
     }
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 
                     </main>
 

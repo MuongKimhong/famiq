@@ -3,4 +3,15 @@ authors = ["MuongKimhong"]
 language = "en"
 multilingual = false
 src = "src"
-title = "Famiq Documentation"
+title = "Famiq documentation"
+
+[output.html]
+git-repository-url = "https://github.com/MuongKimhong/famiq"
+git-repository-icon = "fa-github"
+
+[output.html.playground]
+editable = false
+copyable = true
+copy-js = false
+line-numbers = true
+runnable = false

@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Modal - Famiq Documentation</title>
+        <title>Modal - Famiq documentation</title>
 
 
         <!-- Custom HTML head -->
@@ -91,6 +91,7 @@
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
             </noscript>
+
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
@@ -120,11 +121,14 @@
                         </button>
                     </div>
 
-                    <h1 class="menu-title">Famiq Documentation</h1>
+                    <h1 class="menu-title">Famiq documentation</h1>
 
                     <div class="right-buttons">
                         <a href="../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/MuongKimhong/famiq" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
 
                     </div>
@@ -152,27 +156,22 @@
 
                 <div id="content" class="content">
                     <main>
+                        <div style="display: flex; justify-content: center; align-items: center; margin-top: 15px">
+                            <img src="./logo.jpeg" alt="Logo" style="width: 150px;">
+                        </div>
                         <h1 id="famodal"><a class="header" href="#famodal">FaModal</a></h1>
 <pre><code>🟢 Doesn't need container
 🟢 Accepts child/children
 </code></pre>
 <h3 id="api"><a class="header" href="#api">API</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>pub fn fa_modal(&amp;mut self, id: &amp;str, items: &amp;Vec&lt;Entity&gt;) {
+<pre><code class="language-rust">pub fn fa_modal(&amp;mut self, id: &amp;str, items: &amp;Vec&lt;Entity&gt;) {
     // ..
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 <h3 id="usage-via-builder"><a class="header" href="#usage-via-builder">Usage via builder</a></h3>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>builder.fa_modal(..);
-<span class="boring">}</span></code></pre></pre>
+<pre><code class="language-rust">builder.fa_modal(..);</code></pre>
 <h3 id="showhide-modal"><a class="header" href="#showhide-modal">Show/Hide modal</a></h3>
 <p>Modals can be shown or hided by updating <code>FaModalState</code> component.</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
-</span><span class="boring">fn main() {
-</span>fn show_or_hide_modal_system(mut modal: Query&lt;(&amp;FamiqWidgetId, &amp;mut FaModalState)&gt;) {
+<pre><code class="language-rust">fn show_or_hide_modal_system(mut modal: Query&lt;(&amp;FamiqWidgetId, &amp;mut FaModalState)&gt;) {
     let should_visible = true;
 
     for (id, mut state) in modal.iter_mut() {
@@ -180,8 +179,7 @@
             state.0 = true; // show
         }
     }
-}
-<span class="boring">}</span></code></pre></pre>
+}</code></pre>
 
                     </main>
 
