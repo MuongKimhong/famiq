@@ -175,7 +175,11 @@ pub struct WidgetStyle {
     pub margin_left: Option<String>,
     pub margin_right: Option<String>,
     pub margin_top: Option<String>,
-    pub margin_bottom: Option<String>
+    pub margin_bottom: Option<String>,
+    pub padding_left: Option<String>,
+    pub padding_right: Option<String>,
+    pub padding_top: Option<String>,
+    pub padding_bottom: Option<String>,
 }
 
 pub struct FamiqWidgetBuilder<'a> {
