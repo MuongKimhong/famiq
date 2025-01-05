@@ -1,5 +1,9 @@
 ## Simplifying UI Development in Bevy engine
 
+<div style="display: flex; justify-content: center; align-items: center;">
+    <img src="logo.jpeg" alt="Logo" width="150px">
+</div>
+
 ```rust
 let txt = builder.fa_text("#signup-txt", "SIGN UP");
 
