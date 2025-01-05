@@ -1,8 +1,11 @@
-## Simplifying UI Development in Bevy engine
+# Famiq
 
-<div style="display: flex; justify-content: center; align-items: center;">
-    <img src="logo.jpeg" alt="Logo" width="150px">
-</div>
+<p align="center">
+  Simplifying UI Development in Bevy engine
+</p>
+<p align="center">
+  <img width="200" height="200" src="logo.jpeg">
+</p>
 
 ```rust
 let txt = builder.fa_text("#signup-txt", "SIGN UP");
@@ -28,8 +31,9 @@ builder.fa_container(
     &vec![txt, name_container, ask_container, btn],
 );
 ```
-Result
-![Screenshot](./screenshot.png)
+<p align="center">
+  <img src="screenshot.png">
+</p>
 
 ## What is Famiq?
 **Famiq** is a UI library wrapped around Bevy UI module by providing default
