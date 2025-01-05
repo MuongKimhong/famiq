@@ -4,7 +4,8 @@
 [Installation](./installation.md)
 [Getting Start](./gettingstart.md)
 
-- [How styling works?](./chapter_1/index.md)
+- [Styling](./chapter_1/index.md)
+    - [How to write styles in json file?](./chapter_1/how_to_write_styles.md)
 - [Interaction](./chapter_2/index.md)
 - [Widgets](./chapter_3/index.md)
     - [Container](./chapter_3/container.md)

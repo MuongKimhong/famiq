@@ -1,6 +1,15 @@
 # How styling works?
 
-Instead of writing rust code for styling provided by Bevy UI
+Bevy's default approach to UI development requires writing Rust code for styling, which can quickly become verbose and repetitive. **Famiq** introduces a way to define styles using JSON file, making UI development in Bevy more accessible and efficient.
+
+## Key Features
+- **JSON-based Styling**: Write styles in a familiar, CSS-like JSON format.
+- **Automatic Parsing**: JSON styles are parsed into Bevy's native style format.
+- **Reduced Boilerplate**: Eliminate repetitive Rust code for UI styling.
+- **Hot-Reload**: Any changes made to json file will be reflected to the running app without needing to re-compile the app.
+
+## Example
+Normal **Bevy UI** styles.
 ```rust
 commands.spawn((
     Node {
@@ -19,7 +28,7 @@ commands.spawn((
     BorderRadius::all(Val::Px(5.0))
 ));
 ```
-you can simply give widget an id, then write styles in json file and any changes made to json file will be reflected to the running app without needing to re-compile the app.
+With **Famiq**, you can simply give widget an id, then write styles in json file.
 ```json
 {
   "#my-widget-id": {

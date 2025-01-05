@@ -24,9 +24,8 @@ Hot-reload can be enabled during development. When it's enabled, every changes i
 file will reflect the running app immediately without needing to re-compile the app.
 
 ### Bevy versions support
-Famiq is new and still in early stage of development. Currently, it supports only Bevy 0.14.x and 0.15.x.
+Famiq is new and still in early stage of development. Currently, it supports only 0.15.x onward.
 
 | Bevy     | Famiq    |
 |----------|----------|
-| 0.14.x   | 0.1.0    |
-| 0.15.x   | 0.2.0    |
+| 0.15.x   | 0.2.x    |

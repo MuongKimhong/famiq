@@ -173,10 +173,9 @@ into Bevy's native UI styles, significantly reducing boilerplate code.</p>
 <p>Hot-reload can be enabled during development. When it's enabled, every changes in json
 file will reflect the running app immediately without needing to re-compile the app.</p>
 <h3 id="bevy-versions-support"><a class="header" href="#bevy-versions-support">Bevy versions support</a></h3>
-<p>Famiq is new and still in early stage of development. Currently, it supports only Bevy 0.14.x and 0.15.x.</p>
+<p>Famiq is new and still in early stage of development. Currently, it supports only 0.15.x onward.</p>
 <div class="table-wrapper"><table><thead><tr><th>Bevy</th><th>Famiq</th></tr></thead><tbody>
-<tr><td>0.14.x</td><td>0.1.0</td></tr>
-<tr><td>0.15.x</td><td>0.2.0</td></tr>
+<tr><td>0.15.x</td><td>0.2.x</td></tr>
 </tbody></table>
 </div>
                     </main>
@@ -202,6 +201,22 @@ file will reflect the running app immediately without needing to re-compile the 
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 

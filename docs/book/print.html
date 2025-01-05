@@ -174,15 +174,14 @@ into Bevy's native UI styles, significantly reducing boilerplate code.</p>
 <p>Hot-reload can be enabled during development. When it's enabled, every changes in json
 file will reflect the running app immediately without needing to re-compile the app.</p>
 <h3 id="bevy-versions-support"><a class="header" href="#bevy-versions-support">Bevy versions support</a></h3>
-<p>Famiq is new and still in early stage of development. Currently, it supports only Bevy 0.14.x and 0.15.x.</p>
+<p>Famiq is new and still in early stage of development. Currently, it supports only 0.15.x onward.</p>
 <div class="table-wrapper"><table><thead><tr><th>Bevy</th><th>Famiq</th></tr></thead><tbody>
-<tr><td>0.14.x</td><td>0.1.0</td></tr>
-<tr><td>0.15.x</td><td>0.2.0</td></tr>
+<tr><td>0.15.x</td><td>0.2.x</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="installation"><a class="header" href="#installation">Installation</a></h1>
 <p>Famiq can be installed by adding this line into <code>Cargo.toml</code> file.</p>
 <pre><code class="language-toml">[dependencies]
-famiq = { git = "https://github.com/muongkimhong/famiq", tag = "v0.2.0" }
+famiq = { git = "https://github.com/muongkimhong/famiq", tag = "v0.2.1" }
 </code></pre>
 <ul>
 <li><strong>Crate and rustdoc are not available yet.</strong></li>
@@ -240,7 +239,16 @@ to re-compile. Should be enabled only during development.</li>
 <h3 id="result-1"><a class="header" href="#result-1">Result</a></h3>
 <p><img src="images/helloboss_2_img.png" alt="Hello Boss 2 screenshot" /></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="how-styling-works"><a class="header" href="#how-styling-works">How styling works?</a></h1>
-<p>Instead of writing rust code for styling provided by Bevy UI</p>
+<p>Bevy's default approach to UI development requires writing Rust code for styling, which can quickly become verbose and repetitive. <strong>Famiq</strong> introduces a way to define styles using JSON file, making UI development in Bevy more accessible and efficient.</p>
+<h2 id="key-features"><a class="header" href="#key-features">Key Features</a></h2>
+<ul>
+<li><strong>JSON-based Styling</strong>: Write styles in a familiar, CSS-like JSON format.</li>
+<li><strong>Automatic Parsing</strong>: JSON styles are parsed into Bevy's native style format.</li>
+<li><strong>Reduced Boilerplate</strong>: Eliminate repetitive Rust code for UI styling.</li>
+<li><strong>Hot-Reload</strong>: Any changes made to json file will be reflected to the running app without needing to re-compile the app.</li>
+</ul>
+<h2 id="example"><a class="header" href="#example">Example</a></h2>
+<p>Normal <strong>Bevy UI</strong> styles.</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>commands.spawn((
@@ -260,7 +268,7 @@ to re-compile. Should be enabled only during development.</li>
     BorderRadius::all(Val::Px(5.0))
 ));
 <span class="boring">}</span></code></pre></pre>
-<p>you can simply give widget an id, then write styles in json file and any changes made to json file will be reflected to the running app without needing to re-compile the app.</p>
+<p>With <strong>Famiq</strong>, you can simply give widget an id, then write styles in json file.</p>
 <pre><code class="language-json">{
   "#my-widget-id": {
     "padding": "5px 5px 10px 10px",
@@ -373,6 +381,219 @@ grid_auto_flow: GridAutoFlow
     Hsla(Hsla)
 }
 <span class="boring">}</span></code></pre></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="how-to-write-bevy-styles-in-json-file"><a class="header" href="#how-to-write-bevy-styles-in-json-file">How to write bevy styles in JSON file.</a></h1>
+<p><strong>Famiq</strong> supports almost all UI styles provided by Bevy engine.</p>
+<h3 id="for-text-widgets"><a class="header" href="#for-text-widgets">For text widgets</a></h3>
+<ul>
+<li>
+<p><code>color</code>: text color. Supports only <code>srgba</code>, <code>linear_rgba</code> and <code>hsla</code>.</p>
+<p>Example, <code>"color": "srgba 0.961, 0, 0.784, 0.961"</code></p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.TextColor.html">https://docs.rs/bevy/latest/bevy/prelude/struct.TextColor.html</a></p>
+</li>
+<li>
+<p><code>font_size</code>: text font size.</p>
+<p>Example, <code>"font_size": "14px"</code></p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.TextFont.html#structfield.font_size">https://docs.rs/bevy/latest/bevy/prelude/struct.TextFont.html#structfield.font_size</a></p>
+</li>
+</ul>
+<p>Can be used for <code>fa_text</code> and <code>fa_fps</code> widgets.</p>
+<h3 id="for-node-widgets"><a class="header" href="#for-node-widgets">For node widgets</a></h3>
+<ul>
+<li>
+<p><code>background_color</code>: supports only <code>srgba</code>, <code>linear_rgba</code> and <code>hsla</code>.</p>
+<p>Example, <code>"background_color": "srgba 0.961, 0, 0.784, 0.961"</code></p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.BackgroundColor.html">https://docs.rs/bevy/latest/bevy/prelude/struct.BackgroundColor.html</a></p>
+</li>
+<li>
+<p><code>border_color</code>: supports only <code>srgba</code>, <code>linear_rgba</code> and <code>hsla</code>.</p>
+<p>Example, <code>"border_color": "linear_rgba 0.961, 0, 0.784, 0.961"</code></p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.BorderColor.html">https://docs.rs/bevy/latest/bevy/prelude/struct.BorderColor.html</a></p>
+</li>
+<li>
+<p><code>border_radius</code>: top_left, top_right, bottom_left, bottom_right.</p>
+<p>Example, <code>"border_radius": "10px 10px 10px 10px"</code></p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.BorderRadius.html">https://docs.rs/bevy/latest/bevy/prelude/struct.BorderRadius.html</a></p>
+</li>
+<li>
+<p><code>border_radius_top_left</code>: this will override top_left value defined in <code>border_radius</code>.</p>
+</li>
+<li>
+<p><code>border_radius_top_right</code>: this will override top_right value defined in <code>border_radius</code>.</p>
+</li>
+<li>
+<p><code>border_radius_bottom_left</code>: this will override bottom_left value defined in <code>border_radius</code>.</p>
+</li>
+<li>
+<p><code>border_radius_bottom_right</code>: this will override bottom_right value defined in <code>border_radius</code>.</p>
+</li>
+<li>
+<p><code>visibility</code>: supports only <code>visible</code>, <code>hidden</code> and <code>inherited</code>.</p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/enum.Visibility.html">https://docs.rs/bevy/latest/bevy/prelude/enum.Visibility.html</a></p>
+</li>
+<li>
+<p><code>z_index</code>: indicates that this Node entity’s front-to-back ordering is not controlled solely by its location in the UI hierarchy. A node with a higher z-index will appear on top of sibling nodes with a lower z-index.</p>
+<p>Example, <code>"z_index": "2"</code></p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.ZIndex.html">https://docs.rs/bevy/latest/bevy/prelude/struct.ZIndex.html</a></p>
+</li>
+<li>
+<p><code>display</code>: defines the layout model used by node. Supports <code>flex</code>, <code>grid</code>, <code>block</code> and <code>none</code>.</p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/enum.Display.html">https://docs.rs/bevy/latest/bevy/prelude/enum.Display.html</a></p>
+</li>
+<li>
+<p><code>position_type</code>: the strategy used to position node. Supports <code>relative</code> and <code>absolute</code>.</p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/enum.PositionType.html">https://docs.rs/bevy/latest/bevy/prelude/enum.PositionType.html</a></p>
+</li>
+<li>
+<p><code>overflow_x</code>: whether to show or clip overflowing items on the x axis. Supports <code>visible</code>, <code>clip</code>, <code>hidden</code> and <code>scroll</code>.</p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Overflow.html">https://docs.rs/bevy/latest/bevy/prelude/struct.Overflow.html</a></p>
+</li>
+<li>
+<p><code>overflow_y</code>: whether to show or clip overflowing items on the y axis. Supports <code>visible</code>, <code>clip</code>, <code>hidden</code> and <code>scroll</code>.</p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Overflow.html">https://docs.rs/bevy/latest/bevy/prelude/struct.Overflow.html</a></p>
+</li>
+<li>
+<p><code>left</code>: the horizontal position of the left edge of the node.</p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.left">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.left</a></p>
+</li>
+<li>
+<p><code>right</code>: the horizontal position of the right edge of the node.</p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.right">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.right</a></p>
+</li>
+<li>
+<p><code>top</code>: the vertical position of the top edge of the node.</p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.top">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.top</a></p>
+</li>
+<li>
+<p><code>bottom</code>: the vertical position of the bottom edge of the node.</p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.bottom">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.bottom</a></p>
+</li>
+<li>
+<p><code>width</code>: the ideal width of the node. width is used when it is within the bounds defined by <code>min_width</code> and <code>max_width</code>.</p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.width">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.width</a></p>
+</li>
+<li>
+<p><code>height</code>: the ideal height of the node. height is used when it is within the bounds defined by <code>min_height</code> and <code>max_height</code>.</p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.height">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.height</a></p>
+</li>
+<li>
+<p><code>min_width</code>: the minimum <code>width</code> of the node. <code>min_width</code> is used if it is greater than <code>width</code> and/or <code>max_width</code>.</p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.min_width">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.min_width</a></p>
+</li>
+<li>
+<p><code>min_height</code>: the minimum <code>height</code> of the node. <code>min_height</code> is used if it is greater than <code>height</code> and/or <code>max_height</code>.</p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.min_height">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.min_height</a></p>
+</li>
+<li>
+<p><code>max_width</code>: the maximum <code>width</code> of the node. <code>max_width</code> is used if it is within the bounds defined by <code>min_width</code> and <code>width</code>.</p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.max_width">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.max_width</a></p>
+</li>
+<li>
+<p><code>max_height</code>: the maximum <code>height</code> of the node. <code>max_height</code> is used if it is within the bounds defined by <code>min_height</code> and <code>height</code>.</p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.max_height">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.max_height</a></p>
+</li>
+<li>
+<p><code>align_items</code>: used to control how each individual item is aligned by default within the space they’re given. Supports <code>default</code>, <code>start</code>,
+<code>end</code>, <code>flex_start</code>, <code>flex_end</code>, <code>center</code>, <code>base_line</code> and <code>stretch</code>.</p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.align_items">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.align_items</a></p>
+</li>
+<li>
+<p><code>justify_items</code>: used to control how each individual item is aligned by default within the space they’re given. Supports <code>default</code>, <code>start</code>,
+<code>end</code>, <code>flex_start</code>, <code>flex_end</code>, <code>center</code>, <code>base_line</code> and <code>stretch</code>.</p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.justify_items">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.justify_items</a></p>
+</li>
+<li>
+<p><code>align_left</code>: used to control how the specified item is aligned within the space it’s given. Supports <code>auto</code>, <code>start</code>, <code>end</code>, <code>flex_start</code>,
+<code>flex_end</code>, <code>center</code>, <code>base_line</code> and <code>stretch</code>.</p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.align_self">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.align_self</a></p>
+</li>
+<li>
+<p><code>justify_content</code>: used to control how items are distributed. Supports <code>default</code>, <code>start</code>, <code>end</code>, <code>flex_start</code>, <code>flex_end</code>, <code>center</code>,    <code>stretch</code>, <code>space_between</code>, <code>space_evenly</code> and <code>space_around</code>.</p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.justify_content">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.justify_content</a></p>
+</li>
+<li>
+<p><code>margin</code>: left, right, top, bottom.</p>
+<p>Example, <code>"margin": "10px 10px 5px 5px"</code></p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.margin">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.margin</a></p>
+</li>
+<li>
+<p><code>margin_left</code>: this will override left value defined in <code>margin</code>.</p>
+</li>
+<li>
+<p><code>margin_right</code>: this will override right value defined in <code>margin</code>.</p>
+</li>
+<li>
+<p><code>margin_top</code>: this will override top value defined in <code>margin</code>.</p>
+</li>
+<li>
+<p><code>margin_bottom</code>: this will override bottom value defined in <code>margin</code>.</p>
+</li>
+<li>
+<p><code>padding</code>: left, right, top, bottom.</p>
+<p>Example, <code>"padding": "10px 10px 5px 5px"</code></p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.padding">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.padding</a></p>
+</li>
+<li>
+<p><code>padding_left</code>: this will override left value defined in <code>padding</code>.</p>
+</li>
+<li>
+<p><code>padding_right</code>: this will override right value defined in <code>padding</code>.</p>
+</li>
+<li>
+<p><code>padding_top</code>: this will override top value defined in <code>padding</code>.</p>
+</li>
+<li>
+<p><code>padding_bottom</code>: this will override bottom value defined in <code>padding</code>.</p>
+</li>
+<li>
+<p><code>border</code>: left, right, top, bottom.</p>
+<p>Example, <code>"padding": "10px 10px 5px 5px"</code></p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.border">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.border</a></p>
+</li>
+<li>
+<p><code>border_left</code>: this will override left value defined in <code>border</code>.</p>
+</li>
+<li>
+<p><code>border_right</code>: this will override right value defined in <code>border</code>.</p>
+</li>
+<li>
+<p><code>border_top</code>: this will override top value defined in <code>border</code>.</p>
+</li>
+<li>
+<p><code>border_bottom</code>: this will override bottom value defined in <code>border</code>.</p>
+</li>
+<li>
+<p><code>flex_direction</code>: whether a Flexbox container should be a row or a column. Supports <code>row</code>, <code>column</code>, <code>row_reverse</code> and <code>column_reverse</code>.</p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.flex_direction">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.flex_direction</a></p>
+</li>
+<li>
+<p><code>flex_wrap</code>: whether a Flexbox container should wrap its contents onto multiple lines if they overflow. Supports <code>no_wrap</code>, <code>wrap</code> and <code>wrap_reverse</code>.</p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.flex_wrap">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.flex_wrap</a></p>
+</li>
+<li>
+<p><code>flex_grow</code>: defines how much a flexbox item should grow if there’s space available. Defaults to "0" (don’t grow at all).</p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.flex_grow">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.flex_grow</a></p>
+</li>
+<li>
+<p><code>flex_shrink</code>: defines how much a flexbox item should shrink if there’s not enough space available. Defaults to 1.</p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.flex_shrink">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.flex_shrink</a></p>
+</li>
+<li>
+<p><code>flex_basis</code>: the initial length of a flexbox in the main axis, before flex growing/shrinking properties are applied.</p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.flex_basis">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.flex_basis</a></p>
+</li>
+<li>
+<p><code>row_gap</code>: the size of the gutters between items in a vertical flexbox layout or between rows in a grid layout.</p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.row_gap">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.row_gap</a></p>
+</li>
+<li>
+<p><code>column_gap</code>: the size of the gutters between items in a horizontal flexbox layout or between column in a grid layout.</p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.column_gap">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.column_gap</a></p>
+</li>
+<li>
+<p><code>grid_auto_flow</code>: controls whether automatically placed grid items are placed row-wise or column-wise as well as whether the sparse or dense packing algorithm is used. Only affects Grid layouts.</p>
+<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.grid_auto_flow">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.grid_auto_flow</a></p>
+</li>
+</ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="interaction"><a class="header" href="#interaction">Interaction</a></h1>
 <p>All widgets provided by <strong>Famiq</strong> have <code>Interaction</code> component attached by default.
 That means all those widgets will emit <code>FaInteractionEvent</code> to bevy's <code>EventReader</code> with either <code>Pressed</code>, <code>Hovered</code> or <code>None</code>.</p>
@@ -458,7 +679,7 @@ That means all those widgets will emit <code>FaInteractionEvent</code> to bevy's
 </span>let container = builder.fa_container(..);
 <span class="boring">}</span></code></pre></pre>
 <p>Return <code>Entity</code> of the widget which can be used as child for another widget.</p>
-<h3 id="example"><a class="header" href="#example">Example</a></h3>
+<h3 id="example-1"><a class="header" href="#example-1">Example</a></h3>
 <p>Texts without container</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
@@ -525,7 +746,7 @@ builder.fa_container("#container", &amp;vec![boss, mom]);
 </span>let button = builder.fa_button(..);
 <span class="boring">}</span></code></pre></pre>
 <p>Return <code>Entity</code> of the widget which must be used inside <code>FaContainer</code> widget.</p>
-<h3 id="example-1"><a class="header" href="#example-1">Example</a></h3>
+<h3 id="example-2"><a class="header" href="#example-2">Example</a></h3>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>// default
@@ -587,7 +808,7 @@ builder.fa_container("#container", &amp;vec![
 </span>let text = builder.fa_text(..);
 <span class="boring">}</span></code></pre></pre>
 <p>Return <code>Entity</code> of the widget which must be used inside <code>FaContainer</code> widget.</p>
-<h3 id="example-2"><a class="header" href="#example-2">Example</a></h3>
+<h3 id="example-3"><a class="header" href="#example-3">Example</a></h3>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>let boss = builder.fa_text("#boss", "Hello Boss");
@@ -615,7 +836,7 @@ builder.fa_container("#container", &amp;vec![boss, mom]);
 </span><span class="boring">fn main() {
 </span>builder.fa_fps(..);
 <span class="boring">}</span></code></pre></pre>
-<h3 id="example-3"><a class="header" href="#example-3">Example</a></h3>
+<h3 id="example-4"><a class="header" href="#example-4">Example</a></h3>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>builder.fa_fps("#fps", true);
@@ -676,7 +897,7 @@ impl FaTextInputResource {
 </span>let input = builder.fa_text_input(..);
 <span class="boring">}</span></code></pre></pre>
 <p>Return <code>Entity</code> of the widget which must be used as child of <code>FaContainer</code> widget.</p>
-<h3 id="example-4"><a class="header" href="#example-4">Example</a></h3>
+<h3 id="example-5"><a class="header" href="#example-5">Example</a></h3>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>let input = builder.fa_text_input("#input", "Enter your name", "", "");
@@ -751,7 +972,7 @@ impl SelectedChoicesResource {
 </span>let selection = builder.fa_selection(..);
 <span class="boring">}</span></code></pre></pre>
 <p>Return <code>Entity</code> of the widget which must be used as child of <code>FaContainer</code> widget.</p>
-<h3 id="example-5"><a class="header" href="#example-5">Example</a></h3>
+<h3 id="example-6"><a class="header" href="#example-6">Example</a></h3>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>let plans = builder.fa_selection(
@@ -816,7 +1037,7 @@ builder.fa_container("#container", &amp;vec![plans]);
 </span>let circular = builder.fa_circular(..);
 <span class="boring">}</span></code></pre></pre>
 <p>Return <code>Entity</code> of the widget which must be used inside <code>FaContainer</code> widget.</p>
-<h3 id="example-6"><a class="header" href="#example-6">Example</a></h3>
+<h3 id="example-7"><a class="header" href="#example-7">Example</a></h3>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>// default
@@ -903,7 +1124,7 @@ builder.fa_container("#container", &amp;vec![
 
 builder.fa_container("#container", &amp;vec![image]);
 <span class="boring">}</span></code></pre></pre>
-<h3 id="example-7"><a class="header" href="#example-7">Example</a></h3>
+<h3 id="example-8"><a class="header" href="#example-8">Example</a></h3>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>let bevy_logo = builder.fa_image("#bevy-logo", "bevylogo.png");
@@ -930,6 +1151,22 @@ builder.fa_container("#container", &amp;vec![bevy_logo, falcon]);
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 
