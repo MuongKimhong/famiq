@@ -24,7 +24,6 @@ builder.fa_container(
     &vec![txt, name_container, ask_container, btn],
 );
 ```
-Result
 ![Screenshot](./screenshot.png)
 
 ## What is Famiq?
@@ -48,21 +47,26 @@ if you want to change background color to something else
 hot-reload can be enabled during development so that any changes made to the json file
 are reflected immediately in the running app, no need to re-compile.
 
-### Installation
+## Installation
+Get latest version of `Famiq` by adding this line to `Cargo.toml`. Currently, crate & rustdoc are not available yet.
 ```toml
 [dependencies]
 famiq = { git = "https://github.com/muongkimhong/famiq", tag = "v0.2.1" }
 ```
 
-### Documentation
+## Documentation
 - [See the docs](https://muongkimhong.github.io/famiq/)
 
-### Versions
+
+## Versions
 | Bevy     | Famiq |
 |----------|----------|
 | 0.15.x   | 0.2.x    |
 
 
-### Goals
+## Goals
 - API Improvements
 - Provide more useful default widgets
+
+## License
+Famiq is released under the [MIT License](https://opensource.org/licenses/MIT).
