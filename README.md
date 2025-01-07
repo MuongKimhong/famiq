@@ -66,6 +66,8 @@ famiq = { git = "https://github.com/muongkimhong/famiq", tag = "v0.2.1" }
 ## Documentation
 - [See the docs](https://muongkimhong.github.io/famiq/)
 
+## Contributing
+Famiq needs your contributions to grow. Please see [contributing](https://github.com/MuongKimhong/famiq/blob/master/CONTRIBUTING.md).
 
 ## Versions
 | Bevy     | Famiq |
