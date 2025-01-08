@@ -1,6 +1,6 @@
 pub mod helper;
 
-use crate::widgets::{FamiqWidgetId, DefaultWidgetEntity};
+use crate::widgets::{FamiqWidgetId, FamiqWidgetClasses, DefaultWidgetEntity};
 use crate::utils;
 use bevy::prelude::*;
 use bevy::ui::FocusPolicy;
@@ -61,7 +61,12 @@ impl<'a> FaModal {
         container_entity
     }
 
-    fn _build_modal_background(id: &str, root_node: &'a mut EntityCommands, container_entity: Entity) -> Entity {
+    fn _build_modal_background(
+        id: &str,
+        classes: &str,
+        root_node: &'a mut EntityCommands,
+        container_entity: Entity
+    ) -> Entity {
         root_node
             .commands()
             .spawn((
@@ -75,15 +80,21 @@ impl<'a> FaModal {
                 IsFamiqModalBackground,
                 FaModalState(false),
                 FamiqWidgetId(id.to_string()),
+                FamiqWidgetClasses(classes.to_string()),
                 FocusPolicy::Block,
                 FaModalContainerEntity(container_entity)
             ))
             .id()
     }
 
-    pub fn new(id: &str, items: &Vec<Entity>, root_node: &'a mut EntityCommands) -> Entity {
+    pub fn new(
+        id: &str,
+        classes: &str,
+        items: &Vec<Entity>,
+        root_node: &'a mut EntityCommands
+    ) -> Entity {
         let container = Self::_build_modal_container(id, root_node, items);
-        let background = Self::_build_modal_background(id, root_node, container);
+        let background = Self::_build_modal_background(id, classes, root_node, container);
 
         utils::entity_add_child(root_node, container, background);
         container

@@ -1,7 +1,7 @@
 pub mod helper;
 
 use bevy::prelude::*;
-use crate::widgets::{FamiqWidgetId, DefaultWidgetEntity};
+use crate::widgets::{FamiqWidgetId, FamiqWidgetClasses, DefaultWidgetEntity};
 use crate::utils;
 use helper::*;
 
@@ -72,6 +72,7 @@ impl<'a> FaCircular {
 
     fn _build_outer_circle(
         id: &str,
+        classes: &str,
         root_node: &'a mut EntityCommands,
         variant: &CircularVariant,
         size: &CircularSize,
@@ -94,6 +95,7 @@ impl<'a> FaCircular {
                 z_index.clone(),
                 visibility.clone(),
                 FamiqWidgetId(id.to_string()),
+                FamiqWidgetClasses(classes.to_string()),
                 DefaultWidgetEntity::new(
                     node,
                     border_color,
@@ -110,12 +112,13 @@ impl<'a> FaCircular {
 
     pub fn new(
         id: &str,
+        classes: &str,
         root_node: &'a mut EntityCommands,
         variant: CircularVariant,
         size: CircularSize,
     ) -> Entity {
         let inner = Self::_build_spinner(root_node, &size);
-        let outer = Self::_build_outer_circle(id, root_node, &variant, &size, inner);
+        let outer = Self::_build_outer_circle(id, classes, root_node, &variant, &size, inner);
 
         utils::entity_add_child(root_node, inner, outer);
         outer

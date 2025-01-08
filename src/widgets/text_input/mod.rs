@@ -4,7 +4,7 @@ use bevy::utils::HashMap;
 use helper::*;
 
 use crate::utils;
-use crate::widgets::{DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId, WidgetType};
+use crate::widgets::{DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetClasses, WidgetType};
 use crate::event_writer::FaInteractionEvent;
 use bevy::input::keyboard::{Key, KeyboardInput};
 use bevy::input::ButtonState;
@@ -101,6 +101,7 @@ impl<'a> FaTextInput {
 
     fn _build_input(
         id: &str,
+        classes: &str,
         root_node: &'a mut EntityCommands,
         variant: TextInputVariant,
         placeholder: &str,
@@ -132,6 +133,7 @@ impl<'a> FaTextInput {
                 z_index.clone(),
                 visibility.clone(),
                 FamiqWidgetId(id.to_string()),
+                FamiqWidgetClasses(classes.to_string()),
                 IsFamiqTextInput,
                 DefaultWidgetEntity::new(
                     node,
@@ -150,6 +152,7 @@ impl<'a> FaTextInput {
 
     pub fn new(
         id: &str,
+        classes: &str,
         ph: &str, // placeholder
         root_node: &'a mut EntityCommands,
         asset_server: &'a ResMut<'a, AssetServer>,
@@ -158,7 +161,7 @@ impl<'a> FaTextInput {
         variant: TextInputVariant,
     ) -> Entity {
         let ph_entity = Self::_build_placeholder(ph, root_node, asset_server, font_path, &size);
-        let input_entity = Self::_build_input(id, root_node, variant, ph, ph_entity);
+        let input_entity = Self::_build_input(id, classes, root_node, variant, ph, ph_entity);
 
         utils::entity_add_child(root_node, ph_entity, input_entity);
         input_entity

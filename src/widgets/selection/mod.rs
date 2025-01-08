@@ -4,7 +4,7 @@ pub mod styling;
 pub mod systems;
 
 use crate::utils;
-use crate::widgets::{DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId};
+use crate::widgets::{DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetClasses};
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
@@ -47,7 +47,7 @@ pub struct FaSelection;
 
 // Needs container
 impl<'a> FaSelection {
-    fn _build_container(id: &str, root_node: &'a mut EntityCommands) -> Entity {
+    fn _build_container(id: &str, classes: &str, root_node: &'a mut EntityCommands) -> Entity {
         let node = default_selection_container_node();
         let border_color = BorderColor::default();
         let border_radius = BorderRadius::default();
@@ -65,6 +65,7 @@ impl<'a> FaSelection {
                 z_index.clone(),
                 visibility.clone(),
                 FamiqWidgetId(id.to_string()),
+                FamiqWidgetClasses(classes.to_string()),
                 IsFamiqSelectionContainer,
                 DefaultWidgetEntity::new(
                     node,
@@ -348,6 +349,7 @@ impl<'a> FaSelection {
     // return Entity of Container (Selection refers to container itself)
     pub fn new(
         id: &str,
+        classes: &str,
         placeholder: &str,
         label: Option<&str>,
         root_node: &'a mut EntityCommands,
@@ -358,7 +360,7 @@ impl<'a> FaSelection {
         choices: &Vec<String>,
     ) -> Entity {
         let mut label_entity = None;
-        let container = Self::_build_container(id, root_node);
+        let container = Self::_build_container(id, classes, root_node);
 
         if let Some(label_txt) = label {
             let label_ = Self::_build_label(id, label_txt, &size, root_node, asset_server, font_path);
@@ -394,9 +396,6 @@ impl<'a> FaSelection {
             label_entity
         );
         utils::entity_add_children(root_node, &vec![placeholder_entity, arrow_icon_entity], selector);
-
-
-
         utils::entity_add_children(root_node, &vec![selector, choices_panel], container);
 
         container

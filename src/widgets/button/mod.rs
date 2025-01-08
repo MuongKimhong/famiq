@@ -1,7 +1,7 @@
 pub mod helper;
 
 use crate::utils;
-use crate::widgets::{DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId};
+use crate::widgets::{DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetClasses};
 use crate::event_writer::FaInteractionEvent;
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
@@ -95,6 +95,7 @@ impl<'a> FaButton {
 
     pub fn new(
         id: &str,
+        classes: &str,
         text: &str,
         root_node: &'a mut EntityCommands,
         asset_server: &'a ResMut<'a, AssetServer>,
@@ -125,6 +126,7 @@ impl<'a> FaButton {
                 z_index.clone(),
                 visibility.clone(),
                 FamiqWidgetId(id.to_string()),
+                FamiqWidgetClasses(classes.to_string()),
                 IsFamiqButton,
                 DefaultWidgetEntity::new(
                     node,

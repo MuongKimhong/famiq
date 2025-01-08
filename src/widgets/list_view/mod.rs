@@ -2,7 +2,7 @@ pub mod helper;
 
 // use crate::event_writer::FaInteractionEvent;
 use crate::utils;
-use crate::widgets::{DefaultWidgetEntity, FamiqWidgetId, WidgetType};
+use crate::widgets::{DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetClasses, WidgetType};
 use crate::event_writer::FaInteractionEvent;
 use bevy::ecs::system::EntityCommands;
 use bevy::input::mouse::{MouseScrollUnit, MouseWheel};
@@ -100,7 +100,7 @@ impl<'a> FaListView {
         move_panel_entity
     }
 
-    fn _build_listview(id: &str, root_node: &'a mut EntityCommands, panel_entity: Entity) -> Entity {
+    fn _build_listview(id: &str, classes: &str, root_node: &'a mut EntityCommands, panel_entity: Entity) -> Entity {
         let node = default_listview_node();
         let bg_color = BackgroundColor::default();
         let border_color = BorderColor::default();
@@ -118,6 +118,7 @@ impl<'a> FaListView {
                 z_index.clone(),
                 visibility.clone(),
                 FamiqWidgetId(id.to_string()),
+                FamiqWidgetClasses(classes.to_string()),
                 IsFamiqListView,
                 DefaultWidgetEntity::new(
                     node,
@@ -133,9 +134,9 @@ impl<'a> FaListView {
             .id()
     }
 
-    pub fn new(id: &str, root_node: &'a mut EntityCommands, items: &Vec<Entity>) -> Entity {
+    pub fn new(id: &str, classes: &str, root_node: &'a mut EntityCommands, items: &Vec<Entity>) -> Entity {
         let move_panel = Self::_build_move_panel(id, items, root_node);
-        let listview = Self::_build_listview(id, root_node, move_panel);
+        let listview = Self::_build_listview(id, classes, root_node, move_panel);
 
         utils::entity_add_child(root_node, move_panel, listview);
         listview

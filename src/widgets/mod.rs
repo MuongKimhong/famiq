@@ -55,6 +55,9 @@ impl StylesKeyValueResource {
 #[derive(Component, Deref)]
 pub struct FamiqWidgetId(pub String);
 
+#[derive(Component, Deref)]
+pub struct FamiqWidgetClasses(pub String);
+
 #[derive(Component)]
 pub struct DefaultWidgetEntity {
     pub node: Node,
@@ -243,12 +246,17 @@ impl<'a> FamiqWidgetBuilder<'a> {
         ))
     }
 
-    pub fn fa_container(&mut self, id: &str, children: &Vec<Entity>) -> Entity {
-        container::FaContainer::new(id, &mut self.ui_root_node, children)
+    pub fn fa_container(
+        &mut self,
+        id: &str,
+        classes: &str,
+        children: &Vec<Entity>,
+    ) -> Entity {
+        container::FaContainer::new(id, classes, &mut self.ui_root_node, children)
     }
 
-    pub fn fa_button(&mut self, id: &str, text: &str, class: &str) -> Entity {
-        let class_split: Vec<&str> = class.split_whitespace().collect();
+    pub fn fa_button(&mut self, id: &str, classes: &str, text: &str) -> Entity {
+        let class_split: Vec<&str> = classes.split_whitespace().collect();
 
         let mut use_variant = BtnVariant::Default;
         let mut use_size = BtnSize::Normal;
@@ -275,6 +283,7 @@ impl<'a> FamiqWidgetBuilder<'a> {
 
         FaButton::new(
             id,
+            classes,
             text,
             &mut self.ui_root_node,
             self.asset_server,
@@ -284,9 +293,10 @@ impl<'a> FamiqWidgetBuilder<'a> {
         )
     }
 
-    pub fn fa_text(&mut self, id: &str, value: &str) -> Entity {
+    pub fn fa_text(&mut self, id: &str, classes: &str, value: &str) -> Entity {
         text::fa_text(
             id,
+            classes,
             value,
             &mut self.ui_root_node,
             self.asset_server,
@@ -307,10 +317,10 @@ impl<'a> FamiqWidgetBuilder<'a> {
     pub fn fa_text_input(
         &mut self,
         id: &str,
+        classes: &str,
         placeholder: &str,
-        class: &str
     ) -> Entity {
-        let class_split: Vec<&str> = class.split_whitespace().collect();
+        let class_split: Vec<&str> = classes.split_whitespace().collect();
 
         let mut use_variant = TextInputVariant::Default;
         let mut use_size = TextInputSize::Normal;
@@ -329,6 +339,7 @@ impl<'a> FamiqWidgetBuilder<'a> {
 
         text_input::FaTextInput::new(
             id,
+            classes,
             placeholder,
             &mut self.ui_root_node,
             self.asset_server,
@@ -338,19 +349,19 @@ impl<'a> FamiqWidgetBuilder<'a> {
         )
     }
 
-    pub fn fa_list_view(&mut self, id: &str, items: &Vec<Entity>) -> Entity {
-        list_view::FaListView::new(id, &mut self.ui_root_node, items)
+    pub fn fa_list_view(&mut self, id: &str, classes: &str, items: &Vec<Entity>) -> Entity {
+        list_view::FaListView::new(id, classes, &mut self.ui_root_node, items)
     }
 
     pub fn fa_selection(
         &mut self,
         id: &str,
+        classes: &str,
         placeholder: &str,
         choices: &Vec<String>,
         label: &str,
-        class: &str
     ) -> Entity {
-        let class_split: Vec<&str> = class.split_whitespace().collect();
+        let class_split: Vec<&str> = classes.split_whitespace().collect();
 
         let mut use_variant = SelectorVariant::Underlined;
         let mut use_size = SelectionSize::Normal;
@@ -376,6 +387,7 @@ impl<'a> FamiqWidgetBuilder<'a> {
 
         selection::FaSelection::new(
             id,
+            classes,
             placeholder,
             use_label,
             &mut self.ui_root_node,
@@ -390,9 +402,9 @@ impl<'a> FamiqWidgetBuilder<'a> {
     pub fn fa_circular(
         &mut self,
         id: &str,
-        class: &str
+        classes: &str
     ) -> Entity {
-        let class_split: Vec<&str> = class.split_whitespace().collect();
+        let class_split: Vec<&str> = classes.split_whitespace().collect();
 
         let mut use_variant = CircularVariant::Default;
         let mut use_size = CircularSize::Normal;
@@ -412,15 +424,15 @@ impl<'a> FamiqWidgetBuilder<'a> {
                 _ => ()
             }
         }
-        FaCircular::new(id, &mut self.ui_root_node, use_variant, use_size)
+        FaCircular::new(id, classes, &mut self.ui_root_node, use_variant, use_size)
     }
 
-    pub fn fa_image(&mut self, id: &str, path: &str) -> Entity {
-        FaImage::new(id, path, &mut self.ui_root_node, self.asset_server)
+    pub fn fa_image(&mut self, id: &str, classes: &str, path: &str) -> Entity {
+        FaImage::new(id, classes, path, &mut self.ui_root_node, self.asset_server)
     }
 
     // doesn't need to return Entity
-    pub fn fa_modal(&mut self, id: &str, items: &Vec<Entity>) {
-        FaModal::new(id, items, &mut self.ui_root_node);
+    pub fn fa_modal(&mut self, id: &str, classes: &str, items: &Vec<Entity>) {
+        FaModal::new(id, classes, items, &mut self.ui_root_node);
     }
 }

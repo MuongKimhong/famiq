@@ -4,7 +4,7 @@ use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 
 use crate::utils;
-use crate::widgets::{DefaultWidgetEntity, FamiqWidgetId};
+use crate::widgets::{DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetClasses};
 use helper::default_container_node;
 
 #[derive(Component)]
@@ -14,7 +14,7 @@ pub struct FaContainer;
 
 // Doesn't need container
 impl<'a> FaContainer {
-    pub fn new(id: &str, root_node: &'a mut EntityCommands, children: &Vec<Entity>) -> Entity {
+    pub fn new(id: &str, classes: &str, root_node: &'a mut EntityCommands, children: &Vec<Entity>) -> Entity {
         let node = default_container_node();
         let bg_color = BackgroundColor::default();
         let border_color = BorderColor::default();
@@ -32,6 +32,7 @@ impl<'a> FaContainer {
                 z_index.clone(),
                 visibility.clone(),
                 FamiqWidgetId(id.to_string()),
+                FamiqWidgetClasses(classes.to_string()),
                 IsFamiqContainer,
                 DefaultWidgetEntity::new(
                     node,

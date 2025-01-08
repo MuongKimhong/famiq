@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::widgets::{DefaultWidgetEntity, FamiqWidgetId};
+use crate::widgets::{DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetClasses};
 
 #[derive(Component)]
 pub struct IsFamiqImage;
@@ -9,6 +9,7 @@ pub struct FaImage;
 impl<'a> FaImage {
     pub fn new(
         id: &str,
+        classes: &str,
         path: &str,
         root_node: &'a mut EntityCommands,
         asset_server: &'a ResMut<'a, AssetServer>,
@@ -30,6 +31,7 @@ impl<'a> FaImage {
             visibility.clone(),
             IsFamiqImage,
             FamiqWidgetId(id.to_string()),
+            FamiqWidgetClasses(classes.to_string()),
             DefaultWidgetEntity::new(
                 node,
                 border_color,
