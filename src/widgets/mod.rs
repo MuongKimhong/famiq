@@ -247,24 +247,30 @@ impl<'a> FamiqWidgetBuilder<'a> {
         container::FaContainer::new(id, &mut self.ui_root_node, children)
     }
 
-    pub fn fa_button(&mut self, id: &str, text: &str, variant: &str, size: &str) -> Entity {
-        let use_variant;
-        let use_size;
+    pub fn fa_button(&mut self, id: &str, text: &str, class: &str) -> Entity {
+        let class_split: Vec<&str> = class.split_whitespace().collect();
 
-        match variant.trim().to_lowercase().as_str() {
-            "primary" => use_variant = BtnVariant::Primary,
-            "secondary" => use_variant = BtnVariant::Secondary,
-            "danger" => use_variant = BtnVariant::Danger,
-            "success" => use_variant = BtnVariant::Success,
-            "warning" => use_variant = BtnVariant::Warning,
-            "info" => use_variant = BtnVariant::Info,
-            _ => use_variant = BtnVariant::Default,
-        }
+        let mut use_variant = BtnVariant::Default;
+        let mut use_size = BtnSize::Normal;
 
-        match size.trim().to_lowercase().as_str() {
-            "small" => use_size = BtnSize::Small,
-            "large" => use_size = BtnSize::Large,
-            _ => use_size = BtnSize::Normal,
+        for class_name in class_split {
+            match class_name {
+                // Check for variants
+                "is-primary" => use_variant = BtnVariant::Primary,
+                "is-secondary" => use_variant = BtnVariant::Secondary,
+                "is-danger" => use_variant = BtnVariant::Danger,
+                "is-success" => use_variant = BtnVariant::Success,
+                "is-warning" => use_variant = BtnVariant::Warning,
+                "is-info" => use_variant = BtnVariant::Info,
+                "is-default" => use_variant = BtnVariant::Default,
+
+                // Check for sizes
+                "is-small" => use_size = BtnSize::Small,
+                "is-large" => use_size = BtnSize::Large,
+                "is-normal" => use_size = BtnSize::Normal,
+
+                 _ => (),
+            }
         }
 
         FaButton::new(
@@ -302,21 +308,23 @@ impl<'a> FamiqWidgetBuilder<'a> {
         &mut self,
         id: &str,
         placeholder: &str,
-        variant: &str,
-        size: &str,
+        class: &str
     ) -> Entity {
-        let use_variant;
-        let use_size;
+        let class_split: Vec<&str> = class.split_whitespace().collect();
 
-        match variant.trim().to_lowercase().as_str() {
-            "underlined" => use_variant = TextInputVariant::Underlined,
-            "outlined" => use_variant = TextInputVariant::Outlined,
-            _ => use_variant = TextInputVariant::Default,
-        }
-        match size.trim().to_lowercase().as_str() {
-            "small" => use_size = TextInputSize::Small,
-            "large" => use_size = TextInputSize::Large,
-            _ => use_size = TextInputSize::Normal,
+        let mut use_variant = TextInputVariant::Default;
+        let mut use_size = TextInputSize::Normal;
+
+        for class_name in class_split {
+            match class_name {
+                "is-underlined" => use_variant = TextInputVariant::Underlined,
+                "is-outlined" => use_variant = TextInputVariant::Outlined,
+
+                "is-small" => use_size = TextInputSize::Small,
+                "is-large" => use_size = TextInputSize::Large,
+
+                _ => ()
+            }
         }
 
         text_input::FaTextInput::new(
@@ -340,22 +348,24 @@ impl<'a> FamiqWidgetBuilder<'a> {
         placeholder: &str,
         choices: &Vec<String>,
         label: &str,
-        variant: &str,
-        size: &str,
+        class: &str
     ) -> Entity {
-        let use_variant;
-        let use_size;
+        let class_split: Vec<&str> = class.split_whitespace().collect();
+
+        let mut use_variant = SelectorVariant::Underlined;
+        let mut use_size = SelectionSize::Normal;
         let use_label;
 
-        match variant.trim().to_lowercase().as_str() {
-            "underlined" => use_variant = SelectorVariant::Underlined,
-            "outlined" => use_variant = SelectorVariant::Outlined,
-            _ => use_variant = SelectorVariant::Default
-        }
-        match size.trim().to_lowercase().as_str() {
-            "small" => use_size = SelectionSize::Small,
-            "large" => use_size = SelectionSize::Large,
-            _ => use_size = SelectionSize::Normal
+        for class_name in class_split {
+            match class_name {
+                "is-underlined" => use_variant = SelectorVariant::Underlined,
+                "is-outlined" => use_variant = SelectorVariant::Outlined,
+
+                "is-small" => use_size = SelectionSize::Small,
+                "is-large" => use_size = SelectionSize::Large,
+
+                _ => ()
+            }
         }
         if label.trim().is_empty() {
             use_label = None;
@@ -380,27 +390,28 @@ impl<'a> FamiqWidgetBuilder<'a> {
     pub fn fa_circular(
         &mut self,
         id: &str,
-        variant: &str,
-        size: &str
+        class: &str
     ) -> Entity {
-        let use_variant;
-        let use_size;
+        let class_split: Vec<&str> = class.split_whitespace().collect();
 
-        match variant.trim().to_lowercase().as_str() {
-            "primary" => use_variant = CircularVariant::Primary,
-            "secondary" => use_variant = CircularVariant::Secondary,
-            "danger" => use_variant = CircularVariant::Danger,
-            "success" => use_variant = CircularVariant::Success,
-            "warning" => use_variant = CircularVariant::Warning,
-            "info" => use_variant = CircularVariant::Info,
-            _ => use_variant = CircularVariant::Default,
-        }
-        match size.trim().to_lowercase().as_str() {
-            "small" => use_size = CircularSize::Small,
-            "large" => use_size = CircularSize::Large,
-            _ => use_size = CircularSize::Normal
-        }
+        let mut use_variant = CircularVariant::Default;
+        let mut use_size = CircularSize::Normal;
 
+        for class_name in class_split {
+            match class_name {
+                "is-primary" => use_variant = CircularVariant::Primary,
+                "is-secondary" => use_variant = CircularVariant::Secondary,
+                "is-danger" => use_variant = CircularVariant::Danger,
+                "is-success" => use_variant = CircularVariant::Success,
+                "is-warning" => use_variant = CircularVariant::Warning,
+                "is-info" => use_variant = CircularVariant::Info,
+
+                "is-small" => use_size = CircularSize::Small,
+                "is-large" => use_size = CircularSize::Large,
+
+                _ => ()
+            }
+        }
         FaCircular::new(id, &mut self.ui_root_node, use_variant, use_size)
     }
 
