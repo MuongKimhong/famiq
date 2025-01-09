@@ -25,7 +25,7 @@ pub struct ButtonTextContainerEntity(pub Entity);
 #[derive(Component)]
 pub struct FaButtonText(pub String);
 
-pub enum BtnVariant {
+pub enum BtnColor {
     Default,
     Primary,
     Secondary,
@@ -51,7 +51,7 @@ impl<'a> FaButton {
         root_node: &'a mut EntityCommands,
         asset_server: &'a ResMut<'a, AssetServer>,
         font_path: &String,
-        variant: &BtnVariant,
+        color: &BtnColor,
         size: &BtnSize,
     ) -> Entity {
         let txt = Text::new(text);
@@ -60,7 +60,7 @@ impl<'a> FaButton {
             font_size: get_text_size(size),
             ..default()
         };
-        let txt_color = TextColor(get_text_color(variant));
+        let txt_color = TextColor(get_text_color(color));
         let txt_layout = TextLayout::new_with_justify(JustifyText::Center);
 
         root_node
@@ -100,18 +100,18 @@ impl<'a> FaButton {
         root_node: &'a mut EntityCommands,
         asset_server: &'a ResMut<'a, AssetServer>,
         font_path: &String,
-        variant: BtnVariant,
+        color: BtnColor,
         size: BtnSize,
     ) -> Entity {
-        let txt_entity = Self::_build_text(id, text, root_node, asset_server, font_path, &variant, &size);
+        let txt_entity = Self::_build_text(id, text, root_node, asset_server, font_path, &color, &size);
         let (height, border_width) = get_button_size(size);
         let txt_container_entity = Self::_build_text_container(root_node, height, border_width);
 
         utils::entity_add_child(root_node, txt_entity, txt_container_entity);
 
         let node = default_button_node(height);
-        let border_color = get_button_border_color(&variant);
-        let bg_color = get_button_background_color(&variant);
+        let border_color = get_button_border_color(&color);
+        let bg_color = get_button_background_color(&color);
         let border_radius = BorderRadius::all(Val::Px(5.0));
         let z_index = ZIndex::default();
         let visibility = Visibility::Inherited;

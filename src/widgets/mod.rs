@@ -14,7 +14,7 @@ pub mod image;
 
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
-use button::{BtnSize, BtnVariant, FaButton};
+use button::{BtnSize, BtnColor, FaButton};
 use circular::{CircularVariant, CircularSize, FaCircular};
 use image::FaImage;
 use modal::FaModal;
@@ -262,19 +262,19 @@ impl<'a> FamiqWidgetBuilder<'a> {
     pub fn fa_button(&mut self, id: &str, classes: &str, text: &str) -> Entity {
         let class_split: Vec<&str> = classes.split_whitespace().collect();
 
-        let mut use_variant = BtnVariant::Default;
+        let mut use_color = BtnColor::Default;
         let mut use_size = BtnSize::Normal;
 
         for class_name in class_split {
             match class_name {
-                // Check for variants
-                "is-primary" => use_variant = BtnVariant::Primary,
-                "is-secondary" => use_variant = BtnVariant::Secondary,
-                "is-danger" => use_variant = BtnVariant::Danger,
-                "is-success" => use_variant = BtnVariant::Success,
-                "is-warning" => use_variant = BtnVariant::Warning,
-                "is-info" => use_variant = BtnVariant::Info,
-                "is-default" => use_variant = BtnVariant::Default,
+                // Check for colors
+                "is-primary" => use_color = BtnColor::Primary,
+                "is-secondary" => use_color = BtnColor::Secondary,
+                "is-danger" => use_color = BtnColor::Danger,
+                "is-success" => use_color = BtnColor::Success,
+                "is-warning" => use_color = BtnColor::Warning,
+                "is-info" => use_color = BtnColor::Info,
+                "is-default" => use_color = BtnColor::Default,
 
                 // Check for sizes
                 "is-small" => use_size = BtnSize::Small,
@@ -292,7 +292,7 @@ impl<'a> FamiqWidgetBuilder<'a> {
             &mut self.ui_root_node,
             self.asset_server,
             &self.font_path,
-            use_variant,
+            use_color,
             use_size,
         )
     }

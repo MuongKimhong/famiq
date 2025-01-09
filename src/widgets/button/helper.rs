@@ -14,39 +14,39 @@ pub fn get_text_size(size: &BtnSize) -> f32 {
     text_size
 }
 
-pub fn get_text_color(variant: &BtnVariant) -> Color {
+pub fn get_text_color(variant: &BtnColor) -> Color {
     // all variants have text color white except Warning & Defauklt variant which
     // has text color black
 
     match variant {
-        BtnVariant::Warning => BLACK_COLOR,
-        BtnVariant::Default => BLACK_COLOR,
+        BtnColor::Warning => BLACK_COLOR,
+        BtnColor::Default => BLACK_COLOR,
         _ => WHITE_COLOR,
     }
 }
 
-pub fn get_button_background_color(variant: &BtnVariant) -> BackgroundColor {
+pub fn get_button_background_color(variant: &BtnColor) -> BackgroundColor {
     let bg_color: BackgroundColor = match variant {
-        BtnVariant::Default => BackgroundColor(BUTTON_DEFAULT_COLOR),
-        BtnVariant::Primary => BackgroundColor(PRIMARY_COLOR),
-        BtnVariant::Secondary => BackgroundColor(SECONDARY_COLOR),
-        BtnVariant::Success => BackgroundColor(SUCCESS_COLOR),
-        BtnVariant::Danger => BackgroundColor(DANGER_COLOR),
-        BtnVariant::Warning => BackgroundColor(WARNING_COLOR),
-        BtnVariant::Info => BackgroundColor(INFO_COLOR),
+        BtnColor::Default => BackgroundColor(BUTTON_DEFAULT_COLOR),
+        BtnColor::Primary => BackgroundColor(PRIMARY_COLOR),
+        BtnColor::Secondary => BackgroundColor(SECONDARY_COLOR),
+        BtnColor::Success => BackgroundColor(SUCCESS_COLOR),
+        BtnColor::Danger => BackgroundColor(DANGER_COLOR),
+        BtnColor::Warning => BackgroundColor(WARNING_COLOR),
+        BtnColor::Info => BackgroundColor(INFO_COLOR),
     };
     bg_color
 }
 
-pub fn get_button_border_color(variant: &BtnVariant) -> BorderColor {
+pub fn get_button_border_color(variant: &BtnColor) -> BorderColor {
     let border_color: BorderColor = match variant {
-        BtnVariant::Default => BorderColor(BUTTON_DEFAULT_COLOR),
-        BtnVariant::Primary => BorderColor(PRIMARY_COLOR),
-        BtnVariant::Secondary => BorderColor(SECONDARY_COLOR),
-        BtnVariant::Success => BorderColor(SUCCESS_COLOR),
-        BtnVariant::Danger => BorderColor(DANGER_COLOR),
-        BtnVariant::Warning => BorderColor(WARNING_COLOR),
-        BtnVariant::Info => BorderColor(INFO_COLOR),
+        BtnColor::Default => BorderColor(BUTTON_DEFAULT_COLOR),
+        BtnColor::Primary => BorderColor(PRIMARY_COLOR),
+        BtnColor::Secondary => BorderColor(SECONDARY_COLOR),
+        BtnColor::Success => BorderColor(SUCCESS_COLOR),
+        BtnColor::Danger => BorderColor(DANGER_COLOR),
+        BtnColor::Warning => BorderColor(WARNING_COLOR),
+        BtnColor::Info => BorderColor(INFO_COLOR),
     };
     border_color
 }
