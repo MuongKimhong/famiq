@@ -6,12 +6,11 @@ pub fn get_text_size(size: &BtnSize) -> f32 {
     let size_normal = 20.0;
     let size_large = 24.0;
 
-    let text_size = match size {
+    match size {
         BtnSize::Small => size_small,
         BtnSize::Normal => size_normal,
         BtnSize::Large => size_large,
-    };
-    text_size
+    }
 }
 
 pub fn get_text_color(variant: &BtnColor) -> Color {
@@ -65,24 +64,19 @@ pub fn get_button_size(size: BtnSize) -> (Val, Val) {
     (height, border_width)
 }
 
-pub fn default_button_text_container_node(height: Val, border_width: Val) -> Node {
+pub fn default_button_node() -> Node {
     Node {
         width: Val::Auto,
-        height,
+        height: Val::Auto,
         justify_content: JustifyContent::Center,
         align_items: AlignItems::Center,
-        border: UiRect::all(border_width),
-        ..default()
-    }
-}
-
-pub fn default_button_node(height: Val) -> Node {
-    Node {
-        width: Val::Auto,
-        height,
-        justify_content: JustifyContent::Center,
-        align_items: AlignItems::Center,
-        border: UiRect::all(Val::Px(0.0)),
+        border: UiRect::all(Val::Px(2.0)),
+        padding: UiRect {
+            left: Val::Px(6.0),
+            right: Val::Px(6.0),
+            top: Val::Px(2.0),
+            bottom: Val::Px(2.0)
+        },
         ..default()
     }
 }

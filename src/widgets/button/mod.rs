@@ -14,9 +14,6 @@ pub struct IsFamiqButton;
 pub struct IsFamiqButtonText;
 
 #[derive(Component)]
-pub struct IsFamiqButtonTextContainer;
-
-#[derive(Component)]
 pub struct ButtonTextEntity(pub Entity);
 
 #[derive(Component)]
@@ -84,21 +81,6 @@ impl<'a> FaButton {
             .id()
     }
 
-    fn _build_text_container(root_node: &'a mut EntityCommands, height: Val, border_width: Val) -> Entity {
-        root_node
-            .commands()
-            .spawn((
-                default_button_text_container_node(height, border_width),
-                BorderColor(Color::NONE),
-                BorderRadius::default(),
-                BackgroundColor(Color::NONE),
-                ZIndex::default(),
-                Visibility::Inherited,
-                IsFamiqButtonTextContainer
-            ))
-            .id()
-    }
-
     pub fn new(
         id: &str,
         classes: &str,
@@ -111,12 +93,8 @@ impl<'a> FaButton {
         shape: BtnShape
     ) -> Entity {
         let txt_entity = Self::_build_text(id, text, root_node, asset_server, font_path, &color, &size);
-        let (height, border_width) = get_button_size(size);
-        let txt_container_entity = Self::_build_text_container(root_node, height, border_width);
 
-        utils::entity_add_child(root_node, txt_entity, txt_container_entity);
-
-        let node = default_button_node(height);
+        let node = default_button_node();
         let border_color = get_button_border_color(&color);
         let bg_color = get_button_background_color(&color);
         let z_index = ZIndex::default();
@@ -149,38 +127,50 @@ impl<'a> FaButton {
                     visibility,
                 ),
                 Interaction::default(),
-                ButtonTextEntity(txt_entity),
-                ButtonTextContainerEntity(txt_container_entity)
+                ButtonTextEntity(txt_entity)
             ))
             .id();
 
-        utils::entity_add_child(root_node, txt_container_entity, btn_entity);
+        utils::entity_add_child(root_node, txt_entity, btn_entity);
         btn_entity
     }
 
     pub fn handle_button_on_hover_system(
         mut events: EventReader<FaInteractionEvent>,
-        mut text_container_q: Query<(
-            &IsFamiqButtonTextContainer,
-            &mut BackgroundColor,
-            &mut BorderColor
-        )>,
-        button_q: Query<(&IsFamiqButton, &ButtonTextContainerEntity)>,
+        mut button_q: Query<(&IsFamiqButton, &DefaultWidgetEntity, &mut BackgroundColor, &mut BorderColor)>
     ) {
         for e in events.read() {
-            if let Ok((_, txt_container_entity)) = button_q.get(e.entity) {
-                if let Ok((_, mut bg_color, mut border_color)) = text_container_q.get_mut(txt_container_entity.0) {
-                    match e.interaction {
-                        Interaction::Hovered => {
-                            *bg_color = BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.5));
-                            *border_color = BorderColor(Color::srgba(0.0, 0.0, 0.0, 0.5));
+            if let Ok((_, default_style, mut bg_color, mut bd_color)) = button_q.get_mut(e.entity) {
+                match e.interaction {
+                    Interaction::Hovered => {
+                        // darken by 15%
+                        if let Color::Srgba(mut value) = bg_color.0 {
+                            value.red = (value.red * 0.85).clamp(0.0, 1.0);
+                            value.green = (value.green * 0.85).clamp(0.0, 1.0);
+                            value.blue = (value.blue * 0.85).clamp(0.0, 1.0);
+                            bg_color.0 = Color::Srgba(value);
+                            bd_color.0 = Color::Srgba(value);
                         }
-                        Interaction::None => {
-                            *bg_color = BackgroundColor(Color::NONE);
-                            *border_color = BorderColor(Color::NONE);
+
+                        if let Color::LinearRgba(mut value) = bg_color.0 {
+                            value.red = (value.red * 0.85).clamp(0.0, 1.0);
+                            value.green = (value.green * 0.85).clamp(0.0, 1.0);
+                            value.blue = (value.blue * 0.85).clamp(0.0, 1.0);
+                            bg_color.0 = Color::LinearRgba(value);
+                            bd_color.0 = Color::LinearRgba(value);
                         }
-                        _ => ()
-                    }
+
+                        if let Color::Hsla(mut value) = bg_color.0 {
+                            value.lightness = (value.lightness * 0.85).clamp(0.0, 1.0);
+                            bg_color.0 = Color::Hsla(value);
+                            bd_color.0 = Color::Hsla(value);
+                        }
+                    },
+                    Interaction::None => {
+                        *bg_color = default_style.background_color.clone();
+                        *bd_color = default_style.border_color.clone();
+                    },
+                    _ => ()
                 }
             }
         }
