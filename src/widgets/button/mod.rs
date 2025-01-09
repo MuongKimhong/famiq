@@ -41,6 +41,12 @@ pub enum BtnSize {
     Large,
 }
 
+pub enum BtnShape {
+    Default,
+    Round,
+    Rectangle
+}
+
 pub struct FaButton;
 
 // Needs container
@@ -102,6 +108,7 @@ impl<'a> FaButton {
         font_path: &String,
         color: BtnColor,
         size: BtnSize,
+        shape: BtnShape
     ) -> Entity {
         let txt_entity = Self::_build_text(id, text, root_node, asset_server, font_path, &color, &size);
         let (height, border_width) = get_button_size(size);
@@ -112,10 +119,15 @@ impl<'a> FaButton {
         let node = default_button_node(height);
         let border_color = get_button_border_color(&color);
         let bg_color = get_button_background_color(&color);
-        let border_radius = BorderRadius::all(Val::Px(5.0));
         let z_index = ZIndex::default();
         let visibility = Visibility::Inherited;
+        let mut border_radius =  BorderRadius::all(Val::Px(5.0));
 
+        match shape {
+            BtnShape::Round => border_radius = BorderRadius::all(Val::Percent(50.0)),
+            BtnShape::Rectangle => border_radius = BorderRadius::all(Val::Px(0.0)),
+            _ => ()
+        }
         let btn_entity = root_node
             .commands()
             .spawn((

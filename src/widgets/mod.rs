@@ -14,7 +14,7 @@ pub mod image;
 
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
-use button::{BtnSize, BtnColor, FaButton};
+use button::{BtnSize, BtnColor, BtnShape, FaButton};
 use circular::{CircularVariant, CircularSize, FaCircular};
 use image::FaImage;
 use modal::FaModal;
@@ -264,6 +264,7 @@ impl<'a> FamiqWidgetBuilder<'a> {
 
         let mut use_color = BtnColor::Default;
         let mut use_size = BtnSize::Normal;
+        let mut use_shape = BtnShape::Default;
 
         for class_name in class_split {
             match class_name {
@@ -281,6 +282,10 @@ impl<'a> FamiqWidgetBuilder<'a> {
                 "is-large" => use_size = BtnSize::Large,
                 "is-normal" => use_size = BtnSize::Normal,
 
+                // check for shapes
+                "is-round" => use_shape = BtnShape::Round,
+                "is-rectangle" => use_shape = BtnShape::Rectangle,
+
                  _ => (),
             }
         }
@@ -294,6 +299,7 @@ impl<'a> FamiqWidgetBuilder<'a> {
             &self.font_path,
             use_color,
             use_size,
+            use_shape
         )
     }
 
