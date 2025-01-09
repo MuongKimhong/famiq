@@ -4,7 +4,7 @@ use std::fs::File;
 use std::io::Read;
 
 use crate::errors::StylesFileError;
-use crate::widgets::{StyleKeyValue, StylesKeyValue, WidgetStyle};
+use crate::widgets::{StyleKeyValue, StylesKeyValue};
 
 pub fn read_styles_json_file(path: &str) -> Result<StylesKeyValue, StylesFileError> {
     let mut file = match File::open(path) {
@@ -43,16 +43,6 @@ pub fn get_widget_styles_maps(
         })
         .collect();
     Ok(maps)
-}
-
-// get one style key-value pair based on id
-pub fn get_widget_styles_map(id: &str, all_styles_maps: &StylesKeyValue) -> Option<WidgetStyle> {
-    for style_map in all_styles_maps {
-        if let Some(style) = style_map.get(id) {
-            return Some(style.clone());
-        }
-    }
-    None
 }
 
 // extract bevy Val enum value

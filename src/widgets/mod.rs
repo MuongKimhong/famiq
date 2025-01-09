@@ -23,7 +23,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use text_input::{TextInputSize, TextInputVariant};
 
-// key-value of "#widget-id" and all its styles in styles.json
+// key-value of "#widget-id"/".class-name" and all its styles in styles.json
 pub type StyleKeyValue = HashMap<String, WidgetStyle>;
 pub type StylesKeyValue = Vec<StyleKeyValue>;
 
@@ -49,6 +49,10 @@ pub struct StylesKeyValueResource(pub StylesKeyValue);
 impl StylesKeyValueResource {
     pub fn get_style_by_id(&self, widget_id: &str) -> Option<&WidgetStyle> {
         self.0.iter().flat_map(|map| map.get(widget_id)).next()
+    }
+
+    pub fn get_style_by_class_name(&self, class_name: &str) -> Option<&WidgetStyle> {
+        self.0.iter().flat_map(|map| map.get(class_name)).next()
     }
 }
 

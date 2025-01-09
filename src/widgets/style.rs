@@ -1,7 +1,7 @@
 use crate::utils;
 use crate::widgets::{
     style_parse::*, DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetBuilderResource,
-    FamiqWidgetId, StylesKeyValueResource, WidgetStyle,
+    FamiqWidgetId, FamiqWidgetClasses, StylesKeyValueResource, WidgetStyle,
 };
 use bevy::prelude::*;
 
@@ -13,6 +13,7 @@ type WidgetStyleQuery<'a, 'w, 's> = Query<
     's,
     (
         &'a FamiqWidgetId,
+        &'a FamiqWidgetClasses,
         &'a mut Node,
         &'a mut BackgroundColor,
         &'a mut BorderColor,
@@ -48,6 +49,7 @@ pub fn apply_widgets_styles_system(
     if builder_resource.hot_reload_styles || !apply_state.0 {
         for (
             widget_id,
+            widget_classes,
             mut node,
             mut bg_color,
             mut border_color,
@@ -64,6 +66,23 @@ pub fn apply_widgets_styles_system(
             *visibility = default_widget_entity.visibility.clone();
             *z_index = default_widget_entity.z_index.clone();
             *node = default_widget_entity.node.clone();
+
+            // styles from id will override styles from class
+
+            let classes_split: Vec<&str> = widget_classes.0.split_whitespace().collect();
+            for class_name in classes_split{
+                if let Some(widget_style) = styles.get_style_by_class_name(format!(".{class_name}").as_str()) {
+                    apply_styles_from_external_json(
+                        &mut bg_color,
+                        &mut border_color,
+                        &mut border_radius,
+                        &mut visibility,
+                        &mut z_index,
+                        &mut node,
+                        &widget_style,
+                    );
+                }
+            }
 
             if let Some(widget_style) = styles.get_style_by_id(&widget_id.0) {
                 apply_styles_from_external_json(
@@ -399,14 +418,36 @@ pub fn apply_text_style_system(
         &mut TextFont,
         &mut TextColor,
         &FamiqWidgetId,
+        &FamiqWidgetClasses,
         &DefaultTextEntity
     )>,
 ) {
     if builder_resource.hot_reload_styles || !apply_state.0 {
-        for (mut text_font, mut text_color, widget_id, default_text) in text_q.iter_mut() {
+        for (mut text_font, mut text_color, widget_id, widget_classes, default_text) in text_q.iter_mut() {
             // assign default values first
             *text_font = default_text.text_font.clone();
             *text_color = default_text.text_color.clone();
+
+            // styles from id will override styles from class
+
+            let classes_split: Vec<&str> = widget_classes.0.split_whitespace().collect();
+            for class_name in classes_split{
+                if let Some(text_style) = styles.get_style_by_class_name(format!(".{class_name}").as_str()) {
+                    // font size
+                    if let Some(font_size) = &text_style.font_size {
+                        if let Ok(parsed_value) = font_size.trim().parse::<f32>() {
+                            text_font.font_size = parsed_value;
+                        }
+                    }
+
+                    // color
+                    if let Some(color) = &text_style.color {
+                        if let Some(v) = parse_color(color) {
+                            text_color.0 = v;
+                        }
+                    }
+                }
+            }
 
             if let Some(text_style) = styles.get_style_by_id(&widget_id.0) {
                 // font size
