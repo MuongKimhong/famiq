@@ -27,5 +27,8 @@
     "margin": "0px 0px 5px 15px",
     "justify_content": "center",
     "align_items": "center"
+  },
+  ".is-testing": {
+    "border_radius": "20px 10px 10px 20px"
   }
 }
