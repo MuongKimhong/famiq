@@ -65,6 +65,12 @@ pub enum TextInputSize {
     Large,
 }
 
+pub enum TextInputShape {
+    Default,
+    Round,
+    Rectangle
+}
+
 pub struct FaTextInput;
 
 // Needs container
@@ -104,24 +110,35 @@ impl<'a> FaTextInput {
         classes: &str,
         root_node: &'a mut EntityCommands,
         variant: TextInputVariant,
+        shape: TextInputShape,
         placeholder: &str,
         placeholder_entity: Entity
     ) -> Entity {
-        let mut border_width = outlined_border_width();
-        let mut border_radius = outlined_border_radius();
-
-        match variant {
-            TextInputVariant::Underlined => {
-                border_width = underlined_border_width();
-                border_radius = underlined_border_radius();
-            }
-            _ => (),
-        }
-        let node = default_input_node(border_width);
+        let mut node = default_input_node();
         let border_color = BorderColor(Color::srgba(0.902, 0.902, 0.902, 0.922));
         let bg_color = BackgroundColor::default();
         let z_index = ZIndex::default();
         let visibility = Visibility::Visible;
+        let mut border_radius = outlined_border_radius();
+
+        match shape {
+            TextInputShape::Round => border_radius = round_border_radius(),
+            TextInputShape::Rectangle => border_radius = rectangle_border_radius(),
+            _ => ()
+        }
+
+        match variant {
+            TextInputVariant::Underlined => {
+                border_radius = underlined_border_radius();
+                node.border = UiRect {
+                    left: Val::Px(0.0),
+                    right: Val::Px(0.0),
+                    top: Val::Px(0.0),
+                    bottom: Val::Px(2.0),
+                }
+            }
+            _ => (),
+        }
 
         root_node
             .commands()
@@ -159,9 +176,10 @@ impl<'a> FaTextInput {
         font_path: &String,
         size: TextInputSize,
         variant: TextInputVariant,
+        shape: TextInputShape
     ) -> Entity {
         let ph_entity = Self::_build_placeholder(ph, root_node, asset_server, font_path, &size);
-        let input_entity = Self::_build_input(id, classes, root_node, variant, ph, ph_entity);
+        let input_entity = Self::_build_input(id, classes, root_node, variant, shape, ph, ph_entity);
 
         utils::entity_add_child(root_node, ph_entity, input_entity);
         input_entity

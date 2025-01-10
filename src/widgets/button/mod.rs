@@ -99,7 +99,7 @@ impl<'a> FaButton {
         let bg_color = get_button_background_color(&color);
         let z_index = ZIndex::default();
         let visibility = Visibility::Inherited;
-        let mut border_radius =  BorderRadius::all(Val::Px(5.0));
+        let mut border_radius =  BorderRadius::all(Val::Px(6.0));
 
         match shape {
             BtnShape::Round => border_radius = BorderRadius::all(Val::Percent(50.0)),

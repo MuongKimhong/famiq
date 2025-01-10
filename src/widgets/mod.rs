@@ -21,7 +21,7 @@ use modal::FaModal;
 use selection::{SelectionSize, SelectorVariant};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use text_input::{TextInputSize, TextInputVariant};
+use text_input::{TextInputSize, TextInputVariant, TextInputShape, FaTextInput};
 
 // key-value of "#widget-id"/".class-name" and all its styles in styles.json
 pub type StyleKeyValue = HashMap<String, WidgetStyle>;
@@ -334,6 +334,7 @@ impl<'a> FamiqWidgetBuilder<'a> {
 
         let mut use_variant = TextInputVariant::Default;
         let mut use_size = TextInputSize::Normal;
+        let mut use_shape = TextInputShape::Default;
 
         for class_name in class_split {
             match class_name {
@@ -343,11 +344,13 @@ impl<'a> FamiqWidgetBuilder<'a> {
                 "is-small" => use_size = TextInputSize::Small,
                 "is-large" => use_size = TextInputSize::Large,
 
+                "is-round" => use_shape = TextInputShape::Round,
+                "is-rectangle" => use_shape = TextInputShape::Rectangle,
                 _ => ()
             }
         }
 
-        text_input::FaTextInput::new(
+        FaTextInput::new(
             id,
             classes,
             placeholder,
@@ -356,6 +359,7 @@ impl<'a> FamiqWidgetBuilder<'a> {
             &self.font_path,
             use_size,
             use_variant,
+            use_shape
         )
     }
 
