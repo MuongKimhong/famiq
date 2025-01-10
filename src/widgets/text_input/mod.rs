@@ -160,6 +160,7 @@ impl<'a> FaTextInput {
                 border_radius.clone(),
                 z_index.clone(),
                 visibility.clone(),
+                BoxShadow::default(),
                 FamiqWidgetId(id.to_string()),
                 FamiqWidgetClasses(classes.to_string()),
                 IsFamiqTextInput,
@@ -173,7 +174,7 @@ impl<'a> FaTextInput {
                 ),
                 TextInput::new("", placeholder),
                 Interaction::default(),
-                FamiqTextInputPlaceholderEntity(placeholder_entity)
+                FamiqTextInputPlaceholderEntity(placeholder_entity),
             ))
             .id()
     }
@@ -197,6 +198,31 @@ impl<'a> FaTextInput {
         input_entity
     }
 
+    pub fn handle_text_input_on_hover_system(
+        mut events: EventReader<FaInteractionEvent>,
+        mut input_q: Query<(&mut BoxShadow, &DefaultWidgetEntity, &IsFamiqTextInput)>
+    ) {
+        for e in events.read() {
+            if e.widget == WidgetType::TextInput {
+                if let Ok((mut box_shadow, default_style, _)) = input_q.get_mut(e.entity) {
+                    match e.interaction {
+                        Interaction::Hovered => {
+                            box_shadow.color = default_style.border_color.0.clone();
+                            box_shadow.x_offset = Val::Px(0.0);
+                            box_shadow.y_offset = Val::Px(0.0);
+                            box_shadow.spread_radius = Val::Px(0.5);
+                            box_shadow.blur_radius = Val::Px(1.0);
+                        },
+                        Interaction::None => {
+                            *box_shadow = BoxShadow::default();
+                        },
+                        _ => {}
+                    }
+                }
+            }
+        }
+    }
+
     pub fn update_input_text_color_system(
         input_q: Query<(&TextInput, &FamiqTextInputPlaceholderEntity, &IsFamiqTextInput)>,
         mut text_q: Query<(&mut TextColor, &IsFamiqTextInputPlaceholder)>
@@ -215,15 +241,15 @@ impl<'a> FaTextInput {
 
     pub fn handle_text_input_on_click_system(
         mut events: EventReader<FaInteractionEvent>,
-        mut input_q: Query<(&mut TextInput, &IsFamiqTextInput, &FamiqWidgetId)>
+        mut input_q: Query<(&mut TextInput, &IsFamiqTextInput)>
     ) {
         for e in events.read() {
             if e.interaction == Interaction::Pressed && e.widget == WidgetType::TextInput {
                 // set all to unfocused
-                for (mut text_input, _, _) in input_q.iter_mut() {
+                for (mut text_input, _) in input_q.iter_mut() {
                     text_input.focused = false;
                 }
-                if let Ok((mut text_input, _, _)) = input_q.get_mut(e.entity) {
+                if let Ok((mut text_input, _)) = input_q.get_mut(e.entity) {
                     text_input.focused = true;
                 }
                 break;
