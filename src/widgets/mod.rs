@@ -18,7 +18,7 @@ use button::{BtnSize, BtnColor, BtnShape, FaButton};
 use circular::{CircularVariant, CircularSize, FaCircular};
 use image::FaImage;
 use modal::FaModal;
-use selection::{SelectionSize, SelectorVariant, SelectorShape, FaSelection};
+use selection::{SelectionSize, SelectorVariant, SelectorShape, SelectorColor, FaSelection};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use text_input::{TextInputSize, TextInputVariant, TextInputShape, TextInputColor, FaTextInput};
@@ -393,6 +393,7 @@ impl<'a> FamiqWidgetBuilder<'a> {
         let mut use_variant = SelectorVariant::Default;
         let mut use_size = SelectionSize::Normal;
         let mut use_shape = SelectorShape::Default;
+        let mut use_color = SelectorColor::Default;
         let use_label;
 
         for class_name in class_split {
@@ -405,6 +406,13 @@ impl<'a> FamiqWidgetBuilder<'a> {
 
                 "is-round" => use_shape = SelectorShape::Round,
                 "is-rectangle" => use_shape = SelectorShape::Rectangle,
+
+                "is-primary" => use_color = SelectorColor::Primary,
+                "is-secondary" => use_color = SelectorColor::Secondary,
+                "is-danger" => use_color = SelectorColor::Danger,
+                "is-success" => use_color = SelectorColor::Success,
+                "is-warning" => use_color = SelectorColor::Warning,
+                "is-info" => use_color = SelectorColor::Info,
 
                 _ => ()
             }
@@ -425,6 +433,7 @@ impl<'a> FamiqWidgetBuilder<'a> {
             self.asset_server,
             &self.font_path,
             use_variant,
+            use_color,
             use_size,
             use_shape,
             choices,

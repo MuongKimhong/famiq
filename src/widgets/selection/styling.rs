@@ -1,4 +1,6 @@
 use crate::utils::extract_val;
+use crate::widgets::color::*;
+use super::SelectorColor;
 use bevy::prelude::*;
 
 pub const PLACEHOLDER_COLOR_UNFOCUSED: Color = Color::srgba(0.651, 0.651, 0.651, 0.6);
@@ -121,5 +123,45 @@ pub fn set_selection_panel_width(
         let padding_left = 15.0;
         let padding_right = 15.0;
         panel_style.width = Val::Px(parent_width - padding_left - padding_right);
+    }
+}
+
+pub fn get_selector_background_color(color: &SelectorColor) -> BackgroundColor {
+    match color {
+        SelectorColor::Primary => BackgroundColor(PRIMARY_DARK_COLOR),
+        SelectorColor::Secondary => BackgroundColor(SECONDARY_DARK_COLOR),
+        SelectorColor::Success => BackgroundColor(SUCCESS_DARK_COLOR),
+        SelectorColor::Danger => BackgroundColor(DANGER_DARK_COLOR),
+        SelectorColor::Warning => BackgroundColor(WARNING_DARK_COLOR),
+        SelectorColor::Info => BackgroundColor(INFO_DARK_COLOR),
+        _ => BackgroundColor(PANEL_BG_COLOR)
+    }
+}
+
+pub fn get_selector_border_color(color: &SelectorColor) -> BorderColor {
+    match color {
+        SelectorColor::Primary => BorderColor(PRIMARY_COLOR),
+        SelectorColor::Secondary => BorderColor(SECONDARY_COLOR),
+        SelectorColor::Success => BorderColor(SUCCESS_COLOR),
+        SelectorColor::Danger => BorderColor(DANGER_COLOR),
+        SelectorColor::Warning => BorderColor(WARNING_COLOR),
+        SelectorColor::Info => BorderColor(INFO_COLOR),
+        _ => BorderColor(Color::srgba(0.902, 0.902, 0.902, 0.922))
+    }
+}
+
+pub fn get_choice_panel_background_color(color: &SelectorColor) -> BackgroundColor {
+    get_selector_background_color(color)
+}
+
+pub fn get_choice_panel_border_color(color: &SelectorColor) -> BorderColor {
+    match color {
+        SelectorColor::Primary => BorderColor(PRIMARY_DARK_COLOR),
+        SelectorColor::Secondary => BorderColor(SECONDARY_DARK_COLOR),
+        SelectorColor::Success => BorderColor(SUCCESS_DARK_COLOR),
+        SelectorColor::Danger => BorderColor(DANGER_DARK_COLOR),
+        SelectorColor::Warning => BorderColor(WARNING_DARK_COLOR),
+        SelectorColor::Info => BorderColor(INFO_DARK_COLOR),
+        _ => BorderColor(PANEL_BG_COLOR)
     }
 }

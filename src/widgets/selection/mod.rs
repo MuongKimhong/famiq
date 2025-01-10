@@ -37,6 +37,16 @@ pub enum SelectorVariant {
     Underlined,
 }
 
+pub enum SelectorColor {
+    Default,
+    Primary,
+    Secondary,
+    Success,
+    Danger,
+    Warning,
+    Info,
+}
+
 pub enum SelectorShape {
     Default,
     Round,
@@ -147,6 +157,7 @@ impl<'a> FaSelection {
         root_node: &'a mut EntityCommands,
         variant: &SelectorVariant,
         shape: &SelectorShape,
+        color: &SelectorColor,
         placeholder: &str,
         placeholder_entity: Entity,
         arrow_icon_entity: Entity,
@@ -174,8 +185,8 @@ impl<'a> FaSelection {
             _ => ()
         }
         let node = default_selector_node(border_width);
-        let border_color = BorderColor(Color::srgba(0.902, 0.902, 0.902, 0.922));
-        let bg_color = BackgroundColor::default();
+        let border_color = get_selector_border_color(color);
+        let bg_color = get_selector_background_color(color);
         let z_index = ZIndex::default();
         let visibility = Visibility::Visible;
 
@@ -221,12 +232,13 @@ impl<'a> FaSelection {
         choices: &Vec<String>,
         asset_server: &'a ResMut<'a, AssetServer>,
         font_path: &String,
-        container_entity: Entity
+        container_entity: Entity,
+        color: &SelectorColor
     ) -> Entity {
         let node = default_selection_choices_panel_node();
-        let border_color = BorderColor(PANEL_BG_COLOR);
         let border_radius = BorderRadius::all(Val::Px(5.0));
-        let bg_color = BackgroundColor(PANEL_BG_COLOR);
+        let border_color = get_choice_panel_border_color(color);
+        let bg_color = get_choice_panel_background_color(color);
         let z_index = ZIndex::default();
         let visibility = Visibility::Hidden;
 
@@ -370,6 +382,7 @@ impl<'a> FaSelection {
         asset_server: &'a ResMut<'a, AssetServer>,
         font_path: &String,
         variant: SelectorVariant,
+        color: SelectorColor,
         size: SelectionSize,
         shape: SelectorShape,
         choices: &Vec<String>,
@@ -389,7 +402,8 @@ impl<'a> FaSelection {
             choices,
             asset_server,
             font_path,
-            container
+            container,
+            &color
         );
 
         let placeholder_entity = Self::_build_selector_placeholder(
@@ -405,6 +419,7 @@ impl<'a> FaSelection {
             root_node,
             &variant,
             &shape,
+            &color,
             placeholder,
             placeholder_entity,
             arrow_icon_entity,
