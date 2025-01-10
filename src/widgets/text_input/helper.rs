@@ -14,6 +14,12 @@ pub fn default_input_node() -> Node {
             top: Val::Px(5.0),
             bottom: Val::Px(5.0),
         },
+        margin: UiRect {
+            top: Val::Px(5.0),
+            right: Val::Px(0.0),
+            left: Val::Px(0.0),
+            bottom: Val::Px(5.0),
+        },
         height: Val::Auto,
         width: Val::Percent(100.0),
         border: UiRect::all(Val::Px(2.0)),

@@ -74,6 +74,12 @@ pub fn default_spinner_node(size: &CircularSize) -> Node {
         width: Val::Percent(100.0),
         height: Val::Px(height),
         position_type: PositionType::Absolute,
+        margin: UiRect {
+            top: Val::Px(5.0),
+            right: Val::Px(0.0),
+            left: Val::Px(0.0),
+            bottom: Val::Px(5.0),
+        },
         ..default()
     }
 }
