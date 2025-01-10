@@ -18,9 +18,13 @@ pub fn get_text_color(variant: &BtnColor) -> Color {
     // has text color black
 
     match variant {
-        BtnColor::Warning => BLACK_COLOR,
-        BtnColor::Default => BLACK_COLOR,
-        _ => WHITE_COLOR,
+        BtnColor::Secondary => WHITE_COLOR,
+        BtnColor::PrimaryDark => PRIMARY_COLOR,
+        BtnColor::SuccessDark => SUCCESS_COLOR,
+        BtnColor::DangerDark => DANGER_COLOR,
+        BtnColor::WarningDark => WARNING_COLOR,
+        BtnColor::InfoDark => INFO_COLOR,
+        _ => BLACK_COLOR,
     }
 }
 
@@ -28,11 +32,16 @@ pub fn get_button_background_color(variant: &BtnColor) -> BackgroundColor {
     let bg_color: BackgroundColor = match variant {
         BtnColor::Default => BackgroundColor(BUTTON_DEFAULT_COLOR),
         BtnColor::Primary => BackgroundColor(PRIMARY_COLOR),
+        BtnColor::PrimaryDark => BackgroundColor(PRIMARY_DARK_COLOR),
         BtnColor::Secondary => BackgroundColor(SECONDARY_COLOR),
         BtnColor::Success => BackgroundColor(SUCCESS_COLOR),
+        BtnColor::SuccessDark => BackgroundColor(SUCCESS_DARK_COLOR),
         BtnColor::Danger => BackgroundColor(DANGER_COLOR),
+        BtnColor::DangerDark => BackgroundColor(DANGER_DARK_COLOR),
         BtnColor::Warning => BackgroundColor(WARNING_COLOR),
+        BtnColor::WarningDark => BackgroundColor(WARNING_DARK_COLOR),
         BtnColor::Info => BackgroundColor(INFO_COLOR),
+        BtnColor::InfoDark => BackgroundColor(INFO_DARK_COLOR),
     };
     bg_color
 }
@@ -41,11 +50,16 @@ pub fn get_button_border_color(variant: &BtnColor) -> BorderColor {
     let border_color: BorderColor = match variant {
         BtnColor::Default => BorderColor(BUTTON_DEFAULT_COLOR),
         BtnColor::Primary => BorderColor(PRIMARY_COLOR),
+        BtnColor::PrimaryDark => BorderColor(PRIMARY_DARK_COLOR),
         BtnColor::Secondary => BorderColor(SECONDARY_COLOR),
         BtnColor::Success => BorderColor(SUCCESS_COLOR),
+        BtnColor::SuccessDark => BorderColor(SUCCESS_DARK_COLOR),
         BtnColor::Danger => BorderColor(DANGER_COLOR),
+        BtnColor::DangerDark => BorderColor(DANGER_DARK_COLOR),
         BtnColor::Warning => BorderColor(WARNING_COLOR),
+        BtnColor::WarningDark => BorderColor(WARNING_DARK_COLOR),
         BtnColor::Info => BorderColor(INFO_COLOR),
+        BtnColor::InfoDark => BorderColor(INFO_DARK_COLOR),
     };
     border_color
 }

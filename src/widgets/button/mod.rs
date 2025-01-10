@@ -25,11 +25,16 @@ pub struct FaButtonText(pub String);
 pub enum BtnColor {
     Default,
     Primary,
+    PrimaryDark,
     Secondary,
     Success,
+    SuccessDark,
     Danger,
+    DangerDark,
     Warning,
+    WarningDark,
     Info,
+    InfoDark
 }
 
 pub enum BtnSize {

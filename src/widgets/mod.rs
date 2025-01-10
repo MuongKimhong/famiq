@@ -270,11 +270,16 @@ impl<'a> FamiqWidgetBuilder<'a> {
             match class_name {
                 // Check for colors
                 "is-primary" => use_color = BtnColor::Primary,
+                "is-primary-dark" => use_color = BtnColor::PrimaryDark,
                 "is-secondary" => use_color = BtnColor::Secondary,
                 "is-danger" => use_color = BtnColor::Danger,
+                "is-danger-dark" => use_color = BtnColor::DangerDark,
                 "is-success" => use_color = BtnColor::Success,
+                "is-success-dark" => use_color = BtnColor::SuccessDark,
                 "is-warning" => use_color = BtnColor::Warning,
+                "is-warning-dark" => use_color = BtnColor::WarningDark,
                 "is-info" => use_color = BtnColor::Info,
+                "is-info-dark" => use_color = BtnColor::InfoDark,
                 "is-default" => use_color = BtnColor::Default,
 
                 // Check for sizes
