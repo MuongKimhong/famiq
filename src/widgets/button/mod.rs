@@ -148,34 +148,18 @@ impl<'a> FaButton {
             if let Ok((_, default_style, mut bg_color, mut bd_color)) = button_q.get_mut(e.entity) {
                 match e.interaction {
                     Interaction::Hovered => {
+                        // darken by 10%
+                        set_default_bg_and_bd_color(default_style, &mut bg_color, &mut bd_color);
+                        darken_bg_and_bg_color(10.0, &mut bg_color, &mut bd_color);
+                    },
+                    Interaction::Pressed => {
                         // darken by 15%
-                        if let Color::Srgba(mut value) = bg_color.0 {
-                            value.red = (value.red * 0.85).clamp(0.0, 1.0);
-                            value.green = (value.green * 0.85).clamp(0.0, 1.0);
-                            value.blue = (value.blue * 0.85).clamp(0.0, 1.0);
-                            bg_color.0 = Color::Srgba(value);
-                            bd_color.0 = Color::Srgba(value);
-                        }
-
-                        if let Color::LinearRgba(mut value) = bg_color.0 {
-                            value.red = (value.red * 0.85).clamp(0.0, 1.0);
-                            value.green = (value.green * 0.85).clamp(0.0, 1.0);
-                            value.blue = (value.blue * 0.85).clamp(0.0, 1.0);
-                            bg_color.0 = Color::LinearRgba(value);
-                            bd_color.0 = Color::LinearRgba(value);
-                        }
-
-                        if let Color::Hsla(mut value) = bg_color.0 {
-                            value.lightness = (value.lightness * 0.85).clamp(0.0, 1.0);
-                            bg_color.0 = Color::Hsla(value);
-                            bd_color.0 = Color::Hsla(value);
-                        }
+                        set_default_bg_and_bd_color(default_style, &mut bg_color, &mut bd_color);
+                        darken_bg_and_bg_color(15.0, &mut bg_color, &mut bd_color);
                     },
                     Interaction::None => {
-                        *bg_color = default_style.background_color.clone();
-                        *bd_color = default_style.border_color.clone();
+                        set_default_bg_and_bd_color(default_style, &mut bg_color, &mut bd_color);
                     },
-                    _ => ()
                 }
             }
         }

@@ -100,3 +100,40 @@ pub fn default_button_node() -> Node {
         ..default()
     }
 }
+
+// background and border color
+pub fn darken_bg_and_bg_color(percentage: f32, bg_color: &mut BackgroundColor, bd_color: &mut BorderColor) {
+    let multiplier = 1.0 - (percentage / 100.0);
+
+    if let Color::Srgba(mut value) = bg_color.0 {
+        value.red = (value.red * multiplier).clamp(0.0, 1.0);
+        value.green = (value.green * multiplier).clamp(0.0, 1.0);
+        value.blue = (value.blue * multiplier).clamp(0.0, 1.0);
+        bg_color.0 = Color::Srgba(value);
+        bd_color.0 = Color::Srgba(value);
+    }
+
+    if let Color::LinearRgba(mut value) = bg_color.0 {
+        value.red = (value.red * multiplier).clamp(0.0, 1.0);
+        value.green = (value.green * multiplier).clamp(0.0, 1.0);
+        value.blue = (value.blue * multiplier).clamp(0.0, 1.0);
+        bg_color.0 = Color::LinearRgba(value);
+        bd_color.0 = Color::LinearRgba(value);
+    }
+
+    if let Color::Hsla(mut value) = bg_color.0 {
+        value.lightness = (value.lightness * multiplier).clamp(0.0, 1.0);
+        bg_color.0 = Color::Hsla(value);
+        bd_color.0 = Color::Hsla(value);
+    }
+}
+
+// background and border color
+pub fn set_default_bg_and_bd_color(
+    default_style: &DefaultWidgetEntity,
+    bg_color: &mut BackgroundColor,
+    bd_color: &mut BorderColor
+) {
+    *bg_color = default_style.background_color.clone();
+    *bd_color = default_style.border_color.clone();
+}
