@@ -37,6 +37,12 @@ pub enum SelectorVariant {
     Underlined,
 }
 
+pub enum SelectorShape {
+    Default,
+    Round,
+    Rectangle
+}
+
 pub enum SelectionSize {
     Small,
     Normal,
@@ -140,24 +146,32 @@ impl<'a> FaSelection {
         id: &str,
         root_node: &'a mut EntityCommands,
         variant: &SelectorVariant,
+        shape: &SelectorShape,
         placeholder: &str,
         placeholder_entity: Entity,
         arrow_icon_entity: Entity,
         choices_panel_entity: Entity,
         label_entity: Option<Entity>
     ) -> Entity {
-        let border_width;
-        let border_radius;
+        let mut border_width = UiRect::all(Val::Px(2.0));
+        let mut border_radius = outlined_border_radius();
 
+        match shape {
+            SelectorShape::Round => border_radius = round_border_radius(),
+            SelectorShape::Rectangle => border_radius = rectangle_border_radius(),
+            _ => ()
+        }
         match variant {
             SelectorVariant::Underlined => {
-                border_width = underlined_border_width();
                 border_radius = underlined_border_radius();
+                border_width = UiRect {
+                    left: Val::Px(0.0),
+                    right: Val::Px(0.0),
+                    top: Val::Px(0.0),
+                    bottom: Val::Px(2.0),
+                }
             }
-            _ => {
-                border_width = outlined_border_width();
-                border_radius = outlined_border_radius();
-            }
+            _ => ()
         }
         let node = default_selector_node(border_width);
         let border_color = BorderColor(Color::srgba(0.902, 0.902, 0.902, 0.922));
@@ -357,6 +371,7 @@ impl<'a> FaSelection {
         font_path: &String,
         variant: SelectorVariant,
         size: SelectionSize,
+        shape: SelectorShape,
         choices: &Vec<String>,
     ) -> Entity {
         let mut label_entity = None;
@@ -389,6 +404,7 @@ impl<'a> FaSelection {
             id,
             root_node,
             &variant,
+            &shape,
             placeholder,
             placeholder_entity,
             arrow_icon_entity,

@@ -18,7 +18,7 @@ use button::{BtnSize, BtnColor, BtnShape, FaButton};
 use circular::{CircularVariant, CircularSize, FaCircular};
 use image::FaImage;
 use modal::FaModal;
-use selection::{SelectionSize, SelectorVariant};
+use selection::{SelectionSize, SelectorVariant, SelectorShape, FaSelection};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use text_input::{TextInputSize, TextInputVariant, TextInputShape, FaTextInput};
@@ -377,8 +377,9 @@ impl<'a> FamiqWidgetBuilder<'a> {
     ) -> Entity {
         let class_split: Vec<&str> = classes.split_whitespace().collect();
 
-        let mut use_variant = SelectorVariant::Underlined;
+        let mut use_variant = SelectorVariant::Default;
         let mut use_size = SelectionSize::Normal;
+        let mut use_shape = SelectorShape::Default;
         let use_label;
 
         for class_name in class_split {
@@ -388,6 +389,9 @@ impl<'a> FamiqWidgetBuilder<'a> {
 
                 "is-small" => use_size = SelectionSize::Small,
                 "is-large" => use_size = SelectionSize::Large,
+
+                "is-round" => use_shape = SelectorShape::Round,
+                "is-rectangle" => use_shape = SelectorShape::Rectangle,
 
                 _ => ()
             }
@@ -399,7 +403,7 @@ impl<'a> FamiqWidgetBuilder<'a> {
             use_label = Some(label);
         }
 
-        selection::FaSelection::new(
+        FaSelection::new(
             id,
             classes,
             placeholder,
@@ -409,6 +413,7 @@ impl<'a> FamiqWidgetBuilder<'a> {
             &self.font_path,
             use_variant,
             use_size,
+            use_shape,
             choices,
         )
     }

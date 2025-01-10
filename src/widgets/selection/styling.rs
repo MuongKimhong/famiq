@@ -15,16 +15,16 @@ pub fn default_selector_node(border_width: UiRect) -> Node {
         justify_content: JustifyContent::SpaceBetween,
         border: border_width,
         padding: UiRect {
-            left: Val::Px(10.0),
-            right: Val::Px(10.0),
-            top: Val::Px(4.0),
-            bottom: Val::Px(4.0),
+            left: Val::Px(15.0),
+            right: Val::Px(15.0),
+            top: Val::Px(5.0),
+            bottom: Val::Px(5.0),
         },
         margin: UiRect {
             top: Val::Px(5.0),
             right: Val::Px(0.0),
             left: Val::Px(0.0),
-            bottom: Val::Px(0.0),
+            bottom: Val::Px(5.0),
         },
         height: Val::Auto,
         width: Val::Percent(100.0),
@@ -77,35 +77,20 @@ pub fn default_choice_container_node() -> Node {
     }
 }
 
-// pub fn default_selection_label_style() -> Node {
-//     Node {
-//         width: Val::Percent(100.0),
-//         height: Val::Auto,
-//         justify_content: JustifyContent::Start,
-//         align_items: AlignItems::Center,
-//         ..default()
-//     }
-// }
-
-pub fn outlined_border_width() -> UiRect {
-    UiRect::all(Val::Px(2.0))
-}
-
 pub fn outlined_border_radius() -> BorderRadius {
-    BorderRadius::all(Val::Px(5.0))
-}
-
-pub fn underlined_border_width() -> UiRect {
-    UiRect {
-        left: Val::Px(0.0),
-        right: Val::Px(0.0),
-        top: Val::Px(0.0),
-        bottom: Val::Px(2.0),
-    }
+    BorderRadius::all(Val::Px(6.0))
 }
 
 pub fn underlined_border_radius() -> BorderRadius {
     BorderRadius::all(Val::Px(0.0))
+}
+
+pub fn rectangle_border_radius() -> BorderRadius {
+    BorderRadius::all(Val::Px(0.0))
+}
+
+pub fn round_border_radius() -> BorderRadius {
+    BorderRadius::all(Val::Percent(100.0))
 }
 
 pub fn set_selection_panel_pos(selector_style: &Node, panel_style: &mut Node, label_height: f32) {
