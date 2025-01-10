@@ -21,7 +21,7 @@ use modal::FaModal;
 use selection::{SelectionSize, SelectorVariant, SelectorShape, FaSelection};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use text_input::{TextInputSize, TextInputVariant, TextInputShape, FaTextInput};
+use text_input::{TextInputSize, TextInputVariant, TextInputShape, TextInputColor, FaTextInput};
 
 // key-value of "#widget-id"/".class-name" and all its styles in styles.json
 pub type StyleKeyValue = HashMap<String, WidgetStyle>;
@@ -280,7 +280,6 @@ impl<'a> FamiqWidgetBuilder<'a> {
                 "is-warning-dark" => use_color = BtnColor::WarningDark,
                 "is-info" => use_color = BtnColor::Info,
                 "is-info-dark" => use_color = BtnColor::InfoDark,
-                "is-default" => use_color = BtnColor::Default,
 
                 // Check for sizes
                 "is-small" => use_size = BtnSize::Small,
@@ -340,6 +339,7 @@ impl<'a> FamiqWidgetBuilder<'a> {
         let mut use_variant = TextInputVariant::Default;
         let mut use_size = TextInputSize::Normal;
         let mut use_shape = TextInputShape::Default;
+        let mut use_color = TextInputColor::Default;
 
         for class_name in class_split {
             match class_name {
@@ -351,6 +351,13 @@ impl<'a> FamiqWidgetBuilder<'a> {
 
                 "is-round" => use_shape = TextInputShape::Round,
                 "is-rectangle" => use_shape = TextInputShape::Rectangle,
+
+                "is-primary" => use_color = TextInputColor::Primary,
+                "is-secondary" => use_color = TextInputColor::Secondary,
+                "is-danger" => use_color = TextInputColor::Danger,
+                "is-success" => use_color = TextInputColor::Success,
+                "is-warning" => use_color = TextInputColor::Warning,
+                "is-info" => use_color = TextInputColor::Info,
                 _ => ()
             }
         }
@@ -364,6 +371,7 @@ impl<'a> FamiqWidgetBuilder<'a> {
             &self.font_path,
             use_size,
             use_variant,
+            use_color,
             use_shape
         )
     }

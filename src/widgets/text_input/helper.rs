@@ -1,7 +1,8 @@
 use bevy::prelude::*;
-use crate::widgets::text_input::TextInputSize;
+use crate::widgets::text_input::{TextInputSize, TextInputColor};
+use crate::widgets::color::*;
 
-pub const PLACEHOLDER_COLOR: Color = Color::srgba(0.651, 0.651, 0.651, 0.6);
+pub const PLACEHOLDER_COLOR: Color = Color::srgba(0.749, 0.749, 0.749, 1.0);
 pub const TEXT_INPUT_VALUE_COLOR: Color = Color::srgba(1.0, 1.0, 1.0, 0.922);
 
 pub fn default_input_node() -> Node {
@@ -67,4 +68,28 @@ pub fn get_text_size(size: &TextInputSize) -> f32 {
         TextInputSize::Large => size_large,
     };
     text_size
+}
+
+pub fn get_input_background_color(color: &TextInputColor) -> BackgroundColor {
+    match color {
+        TextInputColor::Primary => BackgroundColor(PRIMARY_DARK_COLOR),
+        TextInputColor::Secondary => BackgroundColor(SECONDARY_DARK_COLOR),
+        TextInputColor::Success => BackgroundColor(SUCCESS_DARK_COLOR),
+        TextInputColor::Danger => BackgroundColor(DANGER_DARK_COLOR),
+        TextInputColor::Warning => BackgroundColor(WARNING_DARK_COLOR),
+        TextInputColor::Info => BackgroundColor(INFO_DARK_COLOR),
+        _ => BackgroundColor::default()
+    }
+}
+
+pub fn get_input_border_color(color: &TextInputColor) -> BorderColor {
+    match color {
+        TextInputColor::Primary => BorderColor(PRIMARY_COLOR),
+        TextInputColor::Secondary => BorderColor(SECONDARY_COLOR),
+        TextInputColor::Success => BorderColor(SUCCESS_COLOR),
+        TextInputColor::Danger => BorderColor(DANGER_COLOR),
+        TextInputColor::Warning => BorderColor(WARNING_COLOR),
+        TextInputColor::Info => BorderColor(INFO_COLOR),
+        _ => BorderColor(Color::srgba(0.902, 0.902, 0.902, 0.922))
+    }
 }

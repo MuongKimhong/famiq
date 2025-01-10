@@ -53,6 +53,16 @@ pub struct IsFamiqTextInputPlaceholder;
 #[derive(Component)]
 pub struct FamiqTextInputPlaceholderEntity(pub Entity);
 
+pub enum TextInputColor {
+    Default,
+    Primary,
+    Secondary,
+    Success,
+    Danger,
+    Warning,
+    Info,
+}
+
 pub enum TextInputVariant {
     Default,
     Outlined,
@@ -110,13 +120,14 @@ impl<'a> FaTextInput {
         classes: &str,
         root_node: &'a mut EntityCommands,
         variant: TextInputVariant,
+        color: TextInputColor,
         shape: TextInputShape,
         placeholder: &str,
         placeholder_entity: Entity
     ) -> Entity {
         let mut node = default_input_node();
-        let border_color = BorderColor(Color::srgba(0.902, 0.902, 0.902, 0.922));
-        let bg_color = BackgroundColor::default();
+        let border_color = get_input_border_color(&color);
+        let bg_color = get_input_background_color(&color);
         let z_index = ZIndex::default();
         let visibility = Visibility::Visible;
         let mut border_radius = outlined_border_radius();
@@ -176,10 +187,11 @@ impl<'a> FaTextInput {
         font_path: &String,
         size: TextInputSize,
         variant: TextInputVariant,
+        color: TextInputColor,
         shape: TextInputShape
     ) -> Entity {
         let ph_entity = Self::_build_placeholder(ph, root_node, asset_server, font_path, &size);
-        let input_entity = Self::_build_input(id, classes, root_node, variant, shape, ph, ph_entity);
+        let input_entity = Self::_build_input(id, classes, root_node, variant, color, shape, ph, ph_entity);
 
         utils::entity_add_child(root_node, ph_entity, input_entity);
         input_entity
