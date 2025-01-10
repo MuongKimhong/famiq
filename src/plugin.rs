@@ -38,7 +38,8 @@ fn fa_selection_systems(app: &mut App) {
             update_selection_choices_panel_visibility_system,
             update_choices_panel_position_and_width_system,
             handle_selection_interaction_system,
-            handle_selection_choice_interaction_system
+            handle_selection_choice_interaction_system,
+            handle_selector_on_hover_system
         ),
     );
 }
@@ -50,7 +51,8 @@ fn fa_text_input_systems(app: &mut App) {
             event_writer::text_input_interaction_system,
             FaTextInput::update_input_text_color_system,
             FaTextInput::handle_text_input_on_click_system,
-            FaTextInput::handle_text_input_on_typing_system
+            FaTextInput::handle_text_input_on_typing_system,
+            FaTextInput::handle_text_input_on_hover_system
         ),
     );
 }

@@ -199,6 +199,7 @@ impl<'a> FaSelection {
                 bg_color.clone(),
                 z_index.clone(),
                 visibility.clone(),
+                BoxShadow::default(),
                 FamiqWidgetId(format!("{id}_selection_selector")),
                 IsFamiqSelectionSelector,
                 DefaultWidgetEntity::new(
