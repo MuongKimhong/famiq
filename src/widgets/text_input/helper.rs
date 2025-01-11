@@ -1,5 +1,6 @@
 use bevy::prelude::*;
-use crate::widgets::text_input::{TextInputSize, TextInputColor};
+use crate::utils;
+use crate::widgets::text_input::{TextInputSize, TextInputColor, IsFamiqTextInputCursor};
 use crate::widgets::color::*;
 
 pub const PLACEHOLDER_COLOR: Color = Color::srgba(0.749, 0.749, 0.749, 1.0);
@@ -91,5 +92,23 @@ pub fn get_input_border_color(color: &TextInputColor) -> BorderColor {
         TextInputColor::Warning => BorderColor(WARNING_COLOR),
         TextInputColor::Info => BorderColor(INFO_COLOR),
         _ => BorderColor(Color::srgba(0.902, 0.902, 0.902, 0.922))
+    }
+}
+
+pub fn update_cursor_position(
+    cursor_q: &mut Query<(&mut Node, &mut Visibility, &IsFamiqTextInputCursor)>,
+    cursor_entity: Entity,
+    char_width: f32,
+    add: bool
+) {
+    if let Ok((mut node, _, _)) = cursor_q.get_mut(cursor_entity) {
+        let left = utils::extract_val(node.left).unwrap();
+
+        if add {
+            node.left = Val::Px(left + char_width);
+        }
+        else {
+            node.left = Val::Px(left - char_width);
+        }
     }
 }

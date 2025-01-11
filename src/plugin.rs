@@ -49,10 +49,11 @@ fn fa_text_input_systems(app: &mut App) {
         Update,
         (
             event_writer::text_input_interaction_system,
-            FaTextInput::update_input_text_color_system,
             FaTextInput::handle_text_input_on_click_system,
             FaTextInput::handle_text_input_on_typing_system,
-            FaTextInput::handle_text_input_on_hover_system
+            FaTextInput::handle_text_input_on_hover_system,
+            FaTextInput::handle_text_input_cursor_on_focused_system,
+            FaTextInput::handle_cursor_blink_system
         ),
     );
 }
@@ -112,6 +113,10 @@ pub fn famiq_plugin(app: &mut App) {
     });
     app.insert_resource(FaTextInputResource {
         inputs: HashMap::new(),
+    });
+    app.insert_resource(FaTextInputCursorBlinkTimer {
+        timer: Timer::from_seconds(0.5, TimerMode::Repeating),
+        is_transparent: false
     });
     app.insert_resource(FamiqWidgetBuilderResource::default());
 
