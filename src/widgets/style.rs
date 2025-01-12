@@ -14,6 +14,7 @@ type WidgetStyleQuery<'a, 'w, 's> = Query<
     (
         &'a FamiqWidgetId,
         &'a FamiqWidgetClasses,
+        &'a Interaction,
         &'a mut Node,
         &'a mut BackgroundColor,
         &'a mut BorderColor,
@@ -50,6 +51,7 @@ pub fn apply_widgets_styles_system(
         for (
             widget_id,
             widget_classes,
+            interaction,
             mut node,
             mut bg_color,
             mut border_color,
@@ -59,14 +61,15 @@ pub fn apply_widgets_styles_system(
             default_widget_entity,
         ) in query.iter_mut()
         {
-            // assign default first before applying external style
-            *bg_color = default_widget_entity.background_color.clone();
-            *border_color = default_widget_entity.border_color.clone();
-            *border_radius = default_widget_entity.border_radius.clone();
-            *visibility = default_widget_entity.visibility.clone();
-            *z_index = default_widget_entity.z_index.clone();
-            *node = default_widget_entity.node.clone();
-
+            // assign default first before applying external style when no interaction
+            if *interaction == Interaction::None {
+                *bg_color = default_widget_entity.background_color.clone();
+                *border_color = default_widget_entity.border_color.clone();
+                *border_radius = default_widget_entity.border_radius.clone();
+                *visibility = default_widget_entity.visibility.clone();
+                *z_index = default_widget_entity.z_index.clone();
+                *node = default_widget_entity.node.clone();
+            }
             // styles from id will override styles from class
 
             let classes_split: Vec<&str> = widget_classes.0.split_whitespace().collect();
