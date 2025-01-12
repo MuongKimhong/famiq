@@ -84,7 +84,7 @@ pub fn get_input_background_color(color: &TextInputColor) -> BackgroundColor {
         TextInputColor::Danger => BackgroundColor(DANGER_DARK_COLOR),
         TextInputColor::Warning => BackgroundColor(WARNING_DARK_COLOR),
         TextInputColor::Info => BackgroundColor(INFO_DARK_COLOR),
-        _ => BackgroundColor::default()
+        _ => BackgroundColor(WHITE_COLOR)
     }
 }
 
@@ -96,7 +96,7 @@ pub fn get_input_border_color(color: &TextInputColor) -> BorderColor {
         TextInputColor::Danger => BorderColor(DANGER_COLOR),
         TextInputColor::Warning => BorderColor(WARNING_COLOR),
         TextInputColor::Info => BorderColor(INFO_COLOR),
-        _ => BorderColor(Color::srgba(0.902, 0.902, 0.902, 0.922))
+        _ => BorderColor(WHITE_COLOR)
     }
 }
 

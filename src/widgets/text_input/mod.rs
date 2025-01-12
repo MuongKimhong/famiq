@@ -14,6 +14,8 @@ use bevy::utils::HashMap;
 use bevy::prelude::*;
 use smol_str::SmolStr;
 
+use super::color::BLACK_COLOR;
+
 #[derive(Component)]
 pub struct TextInput {
     pub text: String,
@@ -75,6 +77,7 @@ pub struct CharacterSize {
 
 pub const CURSOR_WIDTH: f32 = 2.0;
 
+#[derive(PartialEq)]
 pub enum TextInputColor {
     Default,
     Primary,
@@ -137,7 +140,12 @@ impl<'a> FaTextInput {
             .id()
     }
 
-    fn _build_cursor(root_node: &'a mut EntityCommands) -> Entity {
+    fn _build_cursor(root_node: &'a mut EntityCommands, color: &TextInputColor) -> Entity {
+        let mut use_color = WHITE_COLOR;
+
+        if *color == TextInputColor::Default {
+            use_color = BLACK_COLOR;
+        }
         root_node
             .commands()
             .spawn((
@@ -147,7 +155,7 @@ impl<'a> FaTextInput {
                     top: Val::Px(0.0),
                     ..default()
                 },
-                BackgroundColor(WHITE_COLOR),
+                BackgroundColor(use_color),
                 BorderRadius::all(Val::Px(0.0)),
                 BorderColor(WHITE_COLOR),
                 ZIndex(10),
@@ -236,7 +244,7 @@ impl<'a> FaTextInput {
         color: TextInputColor,
         shape: TextInputShape
     ) -> Entity {
-        let cursor_entity = Self::_build_cursor(root_node);
+        let cursor_entity = Self::_build_cursor(root_node, &color);
         let ph_entity = Self::_build_placeholder(ph, root_node, asset_server, font_path, &size);
         let input_entity = Self::_build_input(
             id,
@@ -283,6 +291,7 @@ impl<'a> FaTextInput {
         mut input_q: Query<(
             &TextInput,
             &Node,
+            &BackgroundColor,
             &FamiqTextInputCursorEntity,
             &FamiqTextInputPlaceholderEntity,
             &mut CharacterSize
@@ -297,12 +306,18 @@ impl<'a> FaTextInput {
         >,
         mut text_q: Query<(&Text, &mut TextColor, &TextLayoutInfo, &IsFamiqTextInputPlaceholder)>,
     ) {
-        for (text_input, text_input_node, cursor_entity, placeholder_entity, mut char_size) in input_q.iter_mut() {
+        for (text_input, text_input_node, bg_color, cursor_entity, placeholder_entity, mut char_size) in input_q.iter_mut() {
             if let Ok((mut cursor_node, mut visibility, _)) = cursor_q.get_mut(cursor_entity.0) {
 
                 if let Ok((text, mut text_color, text_info, _)) = text_q.get_mut(placeholder_entity.0) {
                     if text_input.focused {
-                        text_color.0 = TEXT_INPUT_VALUE_COLOR;
+                        if bg_color.0 == WHITE_COLOR {
+                            text_color.0 = BLACK_COLOR;
+                        }
+                        else {
+                            text_color.0 = TEXT_INPUT_VALUE_COLOR;
+                        }
+
                         *visibility = Visibility::Visible;
 
                         // update char_size resource every time as users might change
@@ -420,18 +435,23 @@ impl<'a> FaTextInput {
 
     pub fn handle_cursor_blink_system(
         time: Res<Time>,
-        input_q: Query<(&FamiqTextInputCursorEntity, &TextInput), With<IsFamiqTextInput>>,
-        mut cursor_q: Query<&mut BackgroundColor>,
+        input_q: Query<(&FamiqTextInputCursorEntity, &TextInput, &BackgroundColor), With<IsFamiqTextInput>>,
+        mut cursor_q: Query<&mut BackgroundColor, Without<TextInput>>,
         mut cursor_blink_timer: ResMut<FaTextInputCursorBlinkTimer>,
     ) {
-        for (cursor_entity, text_input) in input_q.iter() {
+        for (cursor_entity, text_input, input_bg_color) in input_q.iter() {
             if text_input.focused {
                 if let Ok(mut bg_color) = cursor_q.get_mut(cursor_entity.0) {
                     cursor_blink_timer.timer.tick(time.delta());
 
                     if cursor_blink_timer.timer.finished() {
                         if cursor_blink_timer.is_transparent {
-                            bg_color.0 = WHITE_COLOR;
+                            if input_bg_color.0 == WHITE_COLOR {
+                                bg_color.0 = BLACK_COLOR;
+                            }
+                            else {
+                                bg_color.0 = WHITE_COLOR;
+                            }
                         }
                         else {
                             *bg_color = BackgroundColor::default();
