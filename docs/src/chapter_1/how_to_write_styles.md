@@ -3,6 +3,20 @@
 
 **Famiq** supports almost all UI styles provided by Bevy engine.
 
+### id & Class
+**Famiq** supports styles via `id` and `classes`.
+```json
+{
+  "#my-widget-id": {
+    ..
+  },
+  ".some-class": {
+    ..
+  }
+}
+```
+- `class_name` must starts with dot `.`.
+
 ### For text widgets
 - `color`: text color. Supports only `srgba`, `linear_rgba` and `hsla`.
 

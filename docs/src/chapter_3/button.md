@@ -5,16 +5,30 @@
 🟡 Doesn't accept child/children
 ```
 
-### Variants
+### Colors
 ```rust
-pub enum BtnVariant {
+pub enum BtnColor {
     Default,
     Primary,
+    PrimaryDark,
     Secondary,
     Success,
+    SuccessDark,
     Danger,
+    DangerDark,
     Warning,
+    WarningDark,
     Info,
+    InfoDark
+}
+```
+
+### Shapes
+```rust
+pub enum BtnShape {
+    Default,
+    Round,
+    Rectangle
 }
 ```
 
@@ -29,7 +43,7 @@ pub enum BtnSize {
 
 ### API
 ```rust
-pub fn fa_button(&mut self, id: &str, text: &str, variant: &str, size: &str) -> Entity {
+pub fn fa_button(&mut self, id: &str, classes: &str, text: &str) -> Entity {
     // ..
 }
 ```
@@ -40,21 +54,29 @@ let button = builder.fa_button(..);
 ```
 Return `Entity` of the widget which must be used inside `FaContainer` widget.
 
+### Built-in classes
+- Color: `is-primary`, `is-primary-dark`, `is-secondary`, `is-danger`, `is-danger-dark`, `is-info`, `is-info-dark`,
+         `is-success`, `is-success-dark`, `is-warning`, `is-warning-dark`.
+
+- Size: `is-small`, `is-normal`, `is-large`.
+
+- Shape: `is-round`, `is-rectangle`.
+
 ### Example
 ```rust
 // default
-let my_btn = builder.fa_button("#my-btn", "Press me", "", "");
+let my_btn = builder.fa_button("#my-btn", "", "Press me");
 
 // info
-let info_btn = builder.fa_button("#info-btn", "Press me", "info", "");
+let info_btn = builder.fa_button("#info-btn", "is-info", "Press me");
 
 // small
-let small_btn = builder.fa_button("#small-btn", "Press me", "", "small");
+let small_btn = builder.fa_button("#small-btn", "is-success, is-small", "Press me");
 
 // warning & large
-let warning_btn = builder.fa_button("#warning-btn", "Press me", "warning", "large");
+let warning_btn = builder.fa_button("#warning-btn", "is-warning is-large", "Press me");
 
-builder.fa_container("#container", &vec![
+builder.fa_container("#container", "", &vec![
     my_btn,
     info_btn,
     small_btn,

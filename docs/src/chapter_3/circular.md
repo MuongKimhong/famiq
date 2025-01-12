@@ -8,7 +8,7 @@ Spinning circular.
 
 ### Variants
 ```rust
-pub enum CircularVariant {
+pub enum CircularColor {
     Default,
     Primary,
     Secondary,
@@ -30,7 +30,7 @@ pub enum CircularSize {
 
 ### API
 ```rust
-pub fn fa_circular(&mut self, id: &str, variant: &str, size: &str) -> Entity {
+pub fn fa_circular(&mut self, id: &str, classes: &str) -> Entity {
     // ..
 }
 ```
@@ -41,18 +41,23 @@ let circular = builder.fa_circular(..);
 ```
 Return `Entity` of the widget which must be used inside `FaContainer` widget.
 
+### Built-in classes
+- Color: `is-primary`, `is-secondary`, `is-warning`, `is-info`, `is-success`, `is-danger`.
+
+- Size: `is-small`, `is-normal`, `is-large`.
+
 ### Example
 ```rust
 // default
-let cir = builder.fa_circular("#cir", "", "");
+let cir = builder.fa_circular("#cir", "");
 
 // warning & small
-let warning_cir = builder.fa_circular("#warning-cir", "warning", "small");
+let warning_cir = builder.fa_circular("#warning-cir", "is-warning is-small");
 
 // primary & large
-let primary_cir = builder.fa_circular("#primary-cir", "primary", "large");
+let primary_cir = builder.fa_circular("#primary-cir", "is-primary is-large");
 
-builder.fa_container("#container", &vec![
+builder.fa_container("#container", "", &vec![
     cir,
     warning_cir,
     primary_cir

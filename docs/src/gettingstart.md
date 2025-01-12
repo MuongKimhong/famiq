@@ -28,11 +28,11 @@ fn setup(
     );
 
     // create simple texts using the builder
-    let hello_boss = builder.fa_text("#boss", "Hello Boss");
-    let hello_mom = builder.fa_text("#mom", "Hello Mom");
+    let hello_boss = builder.fa_text("#boss", "", "Hello Boss");
+    let hello_mom = builder.fa_text("#mom", "", "Hello Mom");
 
     // add texts to container
-    builder.fa_container("#my-container", &vec![hello_boss, hello_mom]);
+    builder.fa_container("#my-container", "", &vec![hello_boss, hello_mom]);
 }
 ```
 - `font_path`: Path to font source file. Must be inside `assets` folder & outside `src` folder.
@@ -43,12 +43,16 @@ fn setup(
 ### Result
 ![Hello Boss Screenshot](images/helloboss_img.png)
 
+### Widget argument patterns
+From `0.2.2` onward, the first 2 arguments of the widgets are `id` and `classes`.
+Just like in `HTML/CSS`, you can provide styles to widget via either `id` or `classes`.
+
 ### Apply styles
 my_styles.json
 ```json
 {
   "#mom": {
-    "color": "srgba 0.961, 0, 0.784, 0.961"
+    "color": "srgba 0.961, 0.0, 0.784, 0.961"
   }
 }
 ```

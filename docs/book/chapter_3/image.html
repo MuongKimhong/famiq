@@ -91,7 +91,6 @@
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
             </noscript>
-
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
@@ -156,15 +155,12 @@
 
                 <div id="content" class="content">
                     <main>
-                        <div style="display: flex; justify-content: center; align-items: center; margin-top: 15px">
-                            <img src="./logo.jpeg" alt="Logo" style="width: 150px;">
-                        </div>
                         <h1 id="faimage"><a class="header" href="#faimage">FaImage</a></h1>
 <pre><code>🟡 Needs container
 🟡 Doesn't accept child/children
 </code></pre>
 <h3 id="api"><a class="header" href="#api">API</a></h3>
-<pre><code class="language-rust">pub fn fa_image(&amp;mut self, id: &amp;str, path: &amp;str) -&gt; Entity {
+<pre><code class="language-rust">pub fn fa_image(&amp;mut self, id: &amp;str, classes: &amp;str, path: &amp;str) -&gt; Entity {
     // ..
 }</code></pre>
 <ul>
@@ -172,12 +168,10 @@
 <li>Return entity of the widget which must be used as child of <code>FaContainer</code> widget.</li>
 </ul>
 <h3 id="usage-via-builder"><a class="header" href="#usage-via-builder">Usage via builder</a></h3>
-<pre><code class="language-rust">let image = builder.fa_image(..);
-
-builder.fa_container("#container", &amp;vec![image]);</code></pre>
+<pre><code class="language-rust">let image = builder.fa_image(..);</code></pre>
 <h3 id="example"><a class="header" href="#example">Example</a></h3>
-<pre><code class="language-rust">let bevy_logo = builder.fa_image("#bevy-logo", "bevylogo.png");
-let falcon = builder.fa_image("#falcon", "falcon.png");
+<pre><code class="language-rust">let bevy_logo = builder.fa_image("#bevy-logo", "", "bevylogo.png");
+let falcon = builder.fa_image("#falcon", "", "falcon.png");
 
 builder.fa_container("#container", &amp;vec![bevy_logo, falcon]);</code></pre>
 <p><img src="../images/image_example_1.png" alt="Example 1" /></p>

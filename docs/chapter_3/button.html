@@ -91,7 +91,6 @@
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
             </noscript>
-
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
@@ -156,22 +155,30 @@
 
                 <div id="content" class="content">
                     <main>
-                        <div style="display: flex; justify-content: center; align-items: center; margin-top: 15px">
-                            <img src="./logo.jpeg" alt="Logo" style="width: 150px;">
-                        </div>
                         <h1 id="fabutton"><a class="header" href="#fabutton">FaButton</a></h1>
 <pre><code>🟡 Needs container
 🟡 Doesn't accept child/children
 </code></pre>
-<h3 id="variants"><a class="header" href="#variants">Variants</a></h3>
-<pre><code class="language-rust">pub enum BtnVariant {
+<h3 id="colors"><a class="header" href="#colors">Colors</a></h3>
+<pre><code class="language-rust">pub enum BtnColor {
     Default,
     Primary,
+    PrimaryDark,
     Secondary,
     Success,
+    SuccessDark,
     Danger,
+    DangerDark,
     Warning,
+    WarningDark,
     Info,
+    InfoDark
+}</code></pre>
+<h3 id="shapes"><a class="header" href="#shapes">Shapes</a></h3>
+<pre><code class="language-rust">pub enum BtnShape {
+    Default,
+    Round,
+    Rectangle
 }</code></pre>
 <h3 id="sizes"><a class="header" href="#sizes">Sizes</a></h3>
 <pre><code class="language-rust">pub enum BtnSize {
@@ -180,26 +187,39 @@
     Large,
 }</code></pre>
 <h3 id="api"><a class="header" href="#api">API</a></h3>
-<pre><code class="language-rust">pub fn fa_button(&amp;mut self, id: &amp;str, text: &amp;str, variant: &amp;str, size: &amp;str) -&gt; Entity {
+<pre><code class="language-rust">pub fn fa_button(&amp;mut self, id: &amp;str, classes: &amp;str, text: &amp;str) -&gt; Entity {
     // ..
 }</code></pre>
 <h3 id="usage-via-builder"><a class="header" href="#usage-via-builder">Usage via builder</a></h3>
 <pre><code class="language-rust">let button = builder.fa_button(..);</code></pre>
 <p>Return <code>Entity</code> of the widget which must be used inside <code>FaContainer</code> widget.</p>
+<h3 id="built-in-classes"><a class="header" href="#built-in-classes">Built-in classes</a></h3>
+<ul>
+<li>
+<p>Color: <code>is-primary</code>, <code>is-primary-dark</code>, <code>is-secondary</code>, <code>is-danger</code>, <code>is-danger-dark</code>, <code>is-info</code>, <code>is-info-dark</code>,
+<code>is-success</code>, <code>is-success-dark</code>, <code>is-warning</code>, <code>is-warning-dark</code>.</p>
+</li>
+<li>
+<p>Size: <code>is-small</code>, <code>is-normal</code>, <code>is-large</code>.</p>
+</li>
+<li>
+<p>Shape: <code>is-round</code>, <code>is-rectangle</code>.</p>
+</li>
+</ul>
 <h3 id="example"><a class="header" href="#example">Example</a></h3>
 <pre><code class="language-rust">// default
-let my_btn = builder.fa_button("#my-btn", "Press me", "", "");
+let my_btn = builder.fa_button("#my-btn", "", "Press me");
 
 // info
-let info_btn = builder.fa_button("#info-btn", "Press me", "info", "");
+let info_btn = builder.fa_button("#info-btn", "is-info", "Press me");
 
 // small
-let small_btn = builder.fa_button("#small-btn", "Press me", "", "small");
+let small_btn = builder.fa_button("#small-btn", "is-success, is-small", "Press me");
 
 // warning &amp; large
-let warning_btn = builder.fa_button("#warning-btn", "Press me", "warning", "large");
+let warning_btn = builder.fa_button("#warning-btn", "is-warning is-large", "Press me");
 
-builder.fa_container("#container", &amp;vec![
+builder.fa_container("#container", "", &amp;vec![
     my_btn,
     info_btn,
     small_btn,

@@ -7,7 +7,7 @@
 
 ### API
 ```rust
-pub fn fa_image(&mut self, id: &str, path: &str) -> Entity {
+pub fn fa_image(&mut self, id: &str, classes: &str, path: &str) -> Entity {
     // ..
 }
 ```
@@ -17,14 +17,12 @@ pub fn fa_image(&mut self, id: &str, path: &str) -> Entity {
 ### Usage via builder
 ```rust
 let image = builder.fa_image(..);
-
-builder.fa_container("#container", &vec![image]);
 ```
 
 ### Example
 ```rust
-let bevy_logo = builder.fa_image("#bevy-logo", "bevylogo.png");
-let falcon = builder.fa_image("#falcon", "falcon.png");
+let bevy_logo = builder.fa_image("#bevy-logo", "", "bevylogo.png");
+let falcon = builder.fa_image("#falcon", "", "falcon.png");
 
 builder.fa_container("#container", &vec![bevy_logo, falcon]);
 ```

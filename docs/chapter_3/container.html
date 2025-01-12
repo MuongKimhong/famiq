@@ -91,7 +91,6 @@
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
             </noscript>
-
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
@@ -156,16 +155,13 @@
 
                 <div id="content" class="content">
                     <main>
-                        <div style="display: flex; justify-content: center; align-items: center; margin-top: 15px">
-                            <img src="./logo.jpeg" alt="Logo" style="width: 150px;">
-                        </div>
                         <h1 id="facontainer"><a class="header" href="#facontainer">FaContainer</a></h1>
 <pre><code>🟢 Doesn't need container
 🟢 Accepts child/children
 </code></pre>
 <p>An empty and stylyable widget. Think of it as a div inside HTML.</p>
 <h3 id="api"><a class="header" href="#api">API</a></h3>
-<pre><code class="language-rust">pub fn fa_container(&amp;mut self, id: &amp;str, children: &amp;Vec&lt;Entity&gt;) -&gt; Entity {
+<pre><code class="language-rust">pub fn fa_container(&amp;mut self, id: &amp;str, classes: &amp;str, children: &amp;Vec&lt;Entity&gt;) -&gt; Entity {
     // ..
 }</code></pre>
 <h3 id="usage-via-builder"><a class="header" href="#usage-via-builder">usage via builder</a></h3>
@@ -173,14 +169,14 @@
 <p>Return <code>Entity</code> of the widget which can be used as child for another widget.</p>
 <h3 id="example"><a class="header" href="#example">Example</a></h3>
 <p>Texts without container</p>
-<pre><code class="language-rust">let boss = builder.fa_text("#boss", "Hello Boss");
-let mom = builder.fa_text("#mom", "Hello Mom");</code></pre>
+<pre><code class="language-rust">let boss = builder.fa_text("#boss", "", "Hello Boss");
+let mom = builder.fa_text("#mom", "", "Hello Mom");</code></pre>
 <p><img src="../images/container_example_1.png" alt="Example 1" /></p>
 <p>Texts inside container</p>
-<pre><code class="language-rust">let boss = builder.fa_text("#boss", "Hello Boss");
-let mom = builder.fa_text("#mom", "Hello Mom");
+<pre><code class="language-rust">let boss = builder.fa_text("#boss", "", "Hello Boss");
+let mom = builder.fa_text("#mom", "", "Hello Mom");
 
-builder.fa_container("#container", &amp;vec![boss, mom]);</code></pre>
+builder.fa_container("#container", "", &amp;vec![boss, mom]);</code></pre>
 <p><img src="../images/container_example_2.png" alt="Example 2" /></p>
 <h3 id="styling"><a class="header" href="#styling">Styling</a></h3>
 <p>Example of styling in json file</p>

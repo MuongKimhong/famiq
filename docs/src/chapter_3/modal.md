@@ -7,7 +7,7 @@
 
 ### API
 ```rust
-pub fn fa_modal(&mut self, id: &str, items: &Vec<Entity>) {
+pub fn fa_modal(&mut self, id: &str, classes: &str, items: &Vec<Entity>) {
     // ..
 }
 ```

@@ -91,7 +91,6 @@
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
             </noscript>
-
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
@@ -156,17 +155,15 @@
 
                 <div id="content" class="content">
                     <main>
-                        <div style="display: flex; justify-content: center; align-items: center; margin-top: 15px">
-                            <img src="./logo.jpeg" alt="Logo" style="width: 150px;">
-                        </div>
                         <h1 id="what-is-famiq"><a class="header" href="#what-is-famiq">What is Famiq?</a></h1>
 <p><strong>Famiq</strong> is a UI library wrapped around Bevy UI module by providing default
 widgets and a simple way to manage styles. Instead of writing Rust code for styling,
 developers can define styles in a well known JSON file. These styles are then parsed
 into Bevy's native UI styles, significantly reducing boilerplate code.</p>
+<p>Just like in <code>HTML/CSS</code>, you can provide styles to widget via either <code>id</code> or <code>classes</code>.</p>
 <h3 id="simple-button"><a class="header" href="#simple-button">Simple button</a></h3>
-<pre><code class="language-rust">let my_btn = builder.fa_button("#my-btn", "Press me", "info", "large");</code></pre>
-<h3 id="change-background-color"><a class="header" href="#change-background-color">Change background color</a></h3>
+<pre><code class="language-rust">let my_btn = builder.fa_button("#my-btn", "", "Press me");</code></pre>
+<p>If you want to change background color</p>
 <pre><code class="language-json">{
   "#my-btn": {
     "background_color": "srgba 0.357, 0.565, 0.941, 0.902"
@@ -178,10 +175,7 @@ into Bevy's native UI styles, significantly reducing boilerplate code.</p>
 file will reflect the running app immediately without needing to re-compile the app.</p>
 <h3 id="bevy-versions-support"><a class="header" href="#bevy-versions-support">Bevy versions support</a></h3>
 <p>Famiq is new and still in early stage of development. Currently, it supports only 0.15.x onward.</p>
-<div class="table-wrapper"><table><thead><tr><th>Bevy</th><th>Famiq</th></tr></thead><tbody>
-<tr><td>0.15.x</td><td>0.2.x</td></tr>
-</tbody></table>
-</div>
+
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

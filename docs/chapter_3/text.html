@@ -91,7 +91,6 @@
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
             </noscript>
-
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
@@ -156,25 +155,22 @@
 
                 <div id="content" class="content">
                     <main>
-                        <div style="display: flex; justify-content: center; align-items: center; margin-top: 15px">
-                            <img src="./logo.jpeg" alt="Logo" style="width: 150px;">
-                        </div>
                         <h1 id="fatext"><a class="header" href="#fatext">FaText</a></h1>
 <pre><code>🟡 Needs container
 🟡 Doesn't accept child/children
 </code></pre>
 <h3 id="api"><a class="header" href="#api">API</a></h3>
-<pre><code class="language-rust">pub fn fa_text(&amp;mut self, id: &amp;str, value: &amp;str) -&gt; Entity {
+<pre><code class="language-rust">pub fn fa_text(&amp;mut self, id: &amp;str, classes: &amp;str, value: &amp;str) -&gt; Entity {
     // ..
 }</code></pre>
 <h3 id="usage-via-builder"><a class="header" href="#usage-via-builder">Usage via builder</a></h3>
 <pre><code class="language-rust">let text = builder.fa_text(..);</code></pre>
 <p>Return <code>Entity</code> of the widget which must be used inside <code>FaContainer</code> widget.</p>
 <h3 id="example"><a class="header" href="#example">Example</a></h3>
-<pre><code class="language-rust">let boss = builder.fa_text("#boss", "Hello Boss");
-let mom = builder.fa_text("#mom", "Hello Mom");
+<pre><code class="language-rust">let boss = builder.fa_text("#boss", "", "Hello Boss");
+let mom = builder.fa_text("#mom", "", "Hello Mom");
 
-builder.fa_container("#container", &amp;vec![boss, mom]);</code></pre>
+builder.fa_container("#container", "", &amp;vec![boss, mom]);</code></pre>
 <p><img src="../images/container_example_2.png" alt="Example 1" /></p>
 
                     </main>

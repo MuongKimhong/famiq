@@ -7,7 +7,7 @@
 
 ### API
 ```rust
-pub fn fa_text(&mut self, id: &str, value: &str) -> Entity {
+pub fn fa_text(&mut self, id: &str, classes: &str, value: &str) -> Entity {
     // ..
 }
 ```
@@ -20,9 +20,9 @@ Return `Entity` of the widget which must be used inside `FaContainer` widget.
 
 ### Example
 ```rust
-let boss = builder.fa_text("#boss", "Hello Boss");
-let mom = builder.fa_text("#mom", "Hello Mom");
+let boss = builder.fa_text("#boss", "", "Hello Boss");
+let mom = builder.fa_text("#mom", "", "Hello Mom");
 
-builder.fa_container("#container", &vec![boss, mom]);
+builder.fa_container("#container", "", &vec![boss, mom]);
 ```
 ![Example 1](../images/container_example_2.png)

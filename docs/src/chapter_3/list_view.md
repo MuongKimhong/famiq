@@ -7,7 +7,7 @@
 
 ### API
 ```rust
-pub fn fa_list_view(&mut self, id: &str, items: &Vec<Entity>) -> Entity {
+pub fn fa_list_view(&mut self, id: &str, classes: &str, items: &Vec<Entity>) -> Entity {
     // ..
 }
 ```

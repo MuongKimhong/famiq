@@ -91,7 +91,6 @@
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
             </noscript>
-
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
@@ -156,11 +155,22 @@
 
                 <div id="content" class="content">
                     <main>
-                        <div style="display: flex; justify-content: center; align-items: center; margin-top: 15px">
-                            <img src="./logo.jpeg" alt="Logo" style="width: 150px;">
-                        </div>
                         <h1 id="how-to-write-bevy-styles-in-json-file"><a class="header" href="#how-to-write-bevy-styles-in-json-file">How to write bevy styles in JSON file.</a></h1>
 <p><strong>Famiq</strong> supports almost all UI styles provided by Bevy engine.</p>
+<h3 id="id--class"><a class="header" href="#id--class">id &amp; Class</a></h3>
+<p><strong>Famiq</strong> supports styles via <code>id</code> and <code>classes</code>.</p>
+<pre><code class="language-json">{
+  "#my-widget-id": {
+    ..
+  },
+  ".some-class": {
+    ..
+  }
+}
+</code></pre>
+<ul>
+<li><code>class_name</code> must starts with dot <code>.</code>.</li>
+</ul>
 <h3 id="for-text-widgets"><a class="header" href="#for-text-widgets">For text widgets</a></h3>
 <ul>
 <li>

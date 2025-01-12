@@ -28,7 +28,7 @@ commands.spawn((
     BorderRadius::all(Val::Px(5.0))
 ));
 ```
-With **Famiq**, you can simply give widget an id, then write styles in json file.
+With **Famiq**, you can simply give widget an id or classes, then write styles in json file.
 ```json
 {
   "#my-widget-id": {

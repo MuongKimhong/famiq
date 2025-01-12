@@ -91,7 +91,6 @@
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
             </noscript>
-
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
@@ -156,16 +155,13 @@
 
                 <div id="content" class="content">
                     <main>
-                        <div style="display: flex; justify-content: center; align-items: center; margin-top: 15px">
-                            <img src="./logo.jpeg" alt="Logo" style="width: 150px;">
-                        </div>
                         <h1 id="facircular"><a class="header" href="#facircular">FaCircular</a></h1>
 <pre><code>🟡 Needs container
 🟡 Doesn't accept child/children
 </code></pre>
 <p>Spinning circular.</p>
 <h3 id="variants"><a class="header" href="#variants">Variants</a></h3>
-<pre><code class="language-rust">pub enum CircularVariant {
+<pre><code class="language-rust">pub enum CircularColor {
     Default,
     Primary,
     Secondary,
@@ -181,23 +177,32 @@
     Large
 }</code></pre>
 <h3 id="api"><a class="header" href="#api">API</a></h3>
-<pre><code class="language-rust">pub fn fa_circular(&amp;mut self, id: &amp;str, variant: &amp;str, size: &amp;str) -&gt; Entity {
+<pre><code class="language-rust">pub fn fa_circular(&amp;mut self, id: &amp;str, classes: &amp;str) -&gt; Entity {
     // ..
 }</code></pre>
 <h3 id="usage-via-builder"><a class="header" href="#usage-via-builder">Usage via builder</a></h3>
 <pre><code class="language-rust">let circular = builder.fa_circular(..);</code></pre>
 <p>Return <code>Entity</code> of the widget which must be used inside <code>FaContainer</code> widget.</p>
+<h3 id="built-in-classes"><a class="header" href="#built-in-classes">Built-in classes</a></h3>
+<ul>
+<li>
+<p>Color: <code>is-primary</code>, <code>is-secondary</code>, <code>is-warning</code>, <code>is-info</code>, <code>is-success</code>, <code>is-danger</code>.</p>
+</li>
+<li>
+<p>Size: <code>is-small</code>, <code>is-normal</code>, <code>is-large</code>.</p>
+</li>
+</ul>
 <h3 id="example"><a class="header" href="#example">Example</a></h3>
 <pre><code class="language-rust">// default
-let cir = builder.fa_circular("#cir", "", "");
+let cir = builder.fa_circular("#cir", "");
 
 // warning &amp; small
-let warning_cir = builder.fa_circular("#warning-cir", "warning", "small");
+let warning_cir = builder.fa_circular("#warning-cir", "is-warning is-small");
 
 // primary &amp; large
-let primary_cir = builder.fa_circular("#primary-cir", "primary", "large");
+let primary_cir = builder.fa_circular("#primary-cir", "is-primary is-large");
 
-builder.fa_container("#container", &amp;vec![
+builder.fa_container("#container", "", &amp;vec![
     cir,
     warning_cir,
     primary_cir

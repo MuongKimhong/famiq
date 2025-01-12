@@ -91,7 +91,6 @@
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
             </noscript>
-
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
@@ -156,9 +155,6 @@
 
                 <div id="content" class="content">
                     <main>
-                        <div style="display: flex; justify-content: center; align-items: center; margin-top: 15px">
-                            <img src="./logo.jpeg" alt="Logo" style="width: 150px;">
-                        </div>
                         <h1 id="faselection"><a class="header" href="#faselection">FaSelection</a></h1>
 <pre><code>🟡 Needs container
 🟡 Doesn't accepts child/children
@@ -169,11 +165,27 @@
     Default,
     Underlined,
 }</code></pre>
+<h3 id="colors"><a class="header" href="#colors">Colors</a></h3>
+<pre><code class="language-rust">pub enum SelectorColor {
+    Default,
+    Primary,
+    Secondary,
+    Success,
+    Danger,
+    Warning,
+    Info,
+}</code></pre>
 <h3 id="sizes"><a class="header" href="#sizes">Sizes</a></h3>
 <pre><code class="language-rust">pub enum SelectionSize {
     Small,
     Normal,
     Large,
+}</code></pre>
+<h3 id="shapes"><a class="header" href="#shapes">Shapes</a></h3>
+<pre><code class="language-rust">pub enum SelectorShape {
+    Default,
+    Round,
+    Rectangle
 }</code></pre>
 <h3 id="resource"><a class="header" href="#resource">Resource</a></h3>
 <p>Resource to store key value pair of selector id &amp; selected choice.</p>
@@ -190,28 +202,46 @@ impl SelectedChoicesResource {
 <pre><code class="language-rust">pub fn fa_selection(
     &amp;mut self,
     id: &amp;str,
+    classes: &amp;str,
     placeholder: &amp;str,
-    choices: &amp;Vec&lt;String&gt;,
-    label: &amp;str,
-    variant: &amp;str,
-    size: &amp;str,
+    choices: &amp;Vec&lt;String&gt;
 ) -&gt; Entity {
     // ..
 }</code></pre>
 <h3 id="usage-via-builder"><a class="header" href="#usage-via-builder">Usage via builder</a></h3>
 <pre><code class="language-rust">let selection = builder.fa_selection(..);</code></pre>
 <p>Return <code>Entity</code> of the widget which must be used as child of <code>FaContainer</code> widget.</p>
+<h3 id="built-in-classes"><a class="header" href="#built-in-classes">Built-in classes</a></h3>
+<ul>
+<li>
+<p>Color: <code>is-primary</code>, <code>is-secondary</code>, <code>is-warning</code>, <code>is-info</code>, <code>is-success</code>, <code>is-danger</code>.</p>
+</li>
+<li>
+<p>Size: <code>is-small</code>, <code>is-normal</code>, <code>is-large</code>.</p>
+</li>
+<li>
+<p>Shapes: <code>is-round</code>, <code>is-rectangle</code>.</p>
+</li>
+<li>
+<p>Variant: <code>is-underlined</code>, <code>is-outlined</code>.</p>
+</li>
+</ul>
 <h3 id="example"><a class="header" href="#example">Example</a></h3>
 <pre><code class="language-rust">let plans = builder.fa_selection(
     "#plans",
+    "is-info",
     "Select plan",
     &amp;vec!["Personal".to_string(), "Team".to_string(), "Enterprise".to_string()],
-    "",
-    "",
-    ""
 );
 
-builder.fa_container("#container", &amp;vec![plans]);</code></pre>
+let subscriptions = builder.fa_selection(
+    "#subscriptions",
+    "is-rectangle",
+    "Select subscription payment",
+    &amp;vec!["Weekly".to_string(), "Monthly".to_string(), "Annually".to_string()],
+);
+
+builder.fa_container("#container", "", &amp;vec![plans, subscriptions]);</code></pre>
 <p><img src="../images/selection_example_1.png" alt="Example 1" /></p>
 <h3 id="getting-selected-choice"><a class="header" href="#getting-selected-choice">Getting selected choice</a></h3>
 <p>The selected choice of a selection can be read from <code>SelectedItemsResource</code> within system.</p>
