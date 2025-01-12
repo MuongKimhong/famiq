@@ -92,10 +92,10 @@ pub fn default_button_node() -> Node {
             bottom: Val::Px(2.0)
         },
         margin: UiRect {
-            top: Val::Px(5.0),
+            top: Val::Px(2.0),
             right: Val::Px(0.0),
             left: Val::Px(0.0),
-            bottom: Val::Px(5.0),
+            bottom: Val::Px(2.0),
         },
         ..default()
     }

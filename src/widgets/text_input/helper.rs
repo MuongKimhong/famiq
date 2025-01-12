@@ -1,12 +1,7 @@
 use bevy::prelude::*;
 use crate::utils;
-use super::{
-    TextInputSize, TextInputColor, IsFamiqTextInputCursor,
-    FaTextInputResource, IsFamiqTextInputPlaceholder, TextInput,
-    CharacterSize
-};
+use super::{TextInputSize, TextInputColor, IsFamiqTextInputCursor};
 use crate::widgets::color::*;
-use crate::widgets::FamiqWidgetId;
 
 pub const PLACEHOLDER_COLOR: Color = Color::srgba(0.749, 0.749, 0.749, 1.0);
 pub const TEXT_INPUT_VALUE_COLOR: Color = Color::srgba(1.0, 1.0, 1.0, 0.922);
@@ -16,16 +11,16 @@ pub fn default_input_node() -> Node {
         justify_content: JustifyContent::Start,
         align_items: AlignItems::Center,
         padding: UiRect {
-            left: Val::Px(15.0),
-            right: Val::Px(15.0),
+            left: Val::Px(10.0),
+            right: Val::Px(10.0),
             top: Val::Px(5.0),
             bottom: Val::Px(5.0),
         },
         margin: UiRect {
-            top: Val::Px(5.0),
+            top: Val::Px(2.0),
             right: Val::Px(0.0),
             left: Val::Px(0.0),
-            bottom: Val::Px(5.0),
+            bottom: Val::Px(2.0),
         },
         height: Val::Auto,
         width: Val::Percent(100.0),

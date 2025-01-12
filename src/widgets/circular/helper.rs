@@ -54,8 +54,8 @@ pub fn default_outer_circle_node(size: &CircularSize) -> Node {
         align_items: AlignItems::Center,
         border: UiRect::all(border_width),
         margin: UiRect {
-            top: Val::Px(5.0),
-            bottom: Val::Px(5.0),
+            top: Val::Px(2.0),
+            bottom: Val::Px(2.0),
             ..default()
         },
         ..default()
