@@ -54,6 +54,8 @@ famiq = { git = "https://github.com/muongkimhong/famiq", tag = "v0.2.2" }
 ## Documentation
 - [See the docs](https://muongkimhong.github.io/famiq/)
 
+## Contributing
+Famiq needs your contributions to grow. Please see [contributing](https://github.com/MuongKimhong/famiq/blob/master/CONTRIBUTING.md).
 
 ## Versions
 Famiq is new and still in early stage of development. Currently, it supports only 0.15.x onward.
