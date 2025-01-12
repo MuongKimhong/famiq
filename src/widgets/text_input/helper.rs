@@ -1,7 +1,12 @@
 use bevy::prelude::*;
 use crate::utils;
-use crate::widgets::text_input::{TextInputSize, TextInputColor, IsFamiqTextInputCursor};
+use super::{
+    TextInputSize, TextInputColor, IsFamiqTextInputCursor,
+    FaTextInputResource, IsFamiqTextInputPlaceholder, TextInput,
+    CharacterSize
+};
 use crate::widgets::color::*;
+use crate::widgets::FamiqWidgetId;
 
 pub const PLACEHOLDER_COLOR: Color = Color::srgba(0.749, 0.749, 0.749, 1.0);
 pub const TEXT_INPUT_VALUE_COLOR: Color = Color::srgba(1.0, 1.0, 1.0, 0.922);
@@ -95,6 +100,8 @@ pub fn get_input_border_color(color: &TextInputColor) -> BorderColor {
     }
 }
 
+/// Updates the cursor position based on character width and action.
+/// `add` indicates whether a character is added (true) or removed (false).
 pub fn update_cursor_position(
     cursor_q: &mut Query<(&mut Node, &mut Visibility, &IsFamiqTextInputCursor)>,
     cursor_entity: Entity,

@@ -1,19 +1,18 @@
 pub mod helper;
 
-use bevy::text::TextLayoutInfo;
-use bevy::utils::HashMap;
 use helper::*;
-
 use crate::utils;
+use crate::widgets::color::WHITE_COLOR;
 use crate::widgets::{DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetClasses, WidgetType};
 use crate::event_writer::FaInteractionEvent;
+
 use bevy::input::keyboard::{Key, KeyboardInput};
-use bevy::input::ButtonState;
 use bevy::ecs::system::EntityCommands;
+use bevy::text::TextLayoutInfo;
+use bevy::input::ButtonState;
+use bevy::utils::HashMap;
 use bevy::prelude::*;
 use smol_str::SmolStr;
-
-use super::color::WHITE_COLOR;
 
 #[derive(Component)]
 pub struct TextInput {
@@ -73,6 +72,8 @@ pub struct CharacterSize {
     pub width: f32,
     pub height: f32
 }
+
+pub const CURSOR_WIDTH: f32 = 2.0;
 
 pub enum TextInputColor {
     Default,
@@ -279,49 +280,43 @@ impl<'a> FaTextInput {
     }
 
     pub fn handle_text_input_cursor_on_focused_system(
-        mut input_q: Query<
-            (
-                &TextInput,
-                &Node,
-                &FamiqTextInputCursorEntity,
-                &FamiqTextInputPlaceholderEntity,
-                &mut CharacterSize,
-                &IsFamiqTextInput,
-            )
-        >,
+        mut input_q: Query<(
+            &TextInput,
+            &Node,
+            &FamiqTextInputCursorEntity,
+            &FamiqTextInputPlaceholderEntity,
+            &mut CharacterSize
+        )>,
         mut cursor_q: Query<
             (
                 &mut Node,
                 &mut Visibility,
                 &IsFamiqTextInputCursor
             ),
-            Without<IsFamiqTextInput>
+            Without<CharacterSize>
         >,
-        mut text_q: Query<
-            (
-                &Text,
-                &mut TextColor,
-                &TextLayoutInfo,
-                &IsFamiqTextInputPlaceholder
-            )
-        >,
+        mut text_q: Query<(&Text, &mut TextColor, &TextLayoutInfo, &IsFamiqTextInputPlaceholder)>,
     ) {
-        for (text_input, text_input_node, cursor_entity, placeholder_entity, mut char_size, _) in input_q.iter_mut() {
-            if let Ok((mut node, mut visibility, _)) = cursor_q.get_mut(cursor_entity.0) {
+        for (text_input, text_input_node, cursor_entity, placeholder_entity, mut char_size) in input_q.iter_mut() {
+            if let Ok((mut cursor_node, mut visibility, _)) = cursor_q.get_mut(cursor_entity.0) {
 
                 if let Ok((text, mut text_color, text_info, _)) = text_q.get_mut(placeholder_entity.0) {
                     if text_input.focused {
                         text_color.0 = TEXT_INPUT_VALUE_COLOR;
                         *visibility = Visibility::Visible;
 
+                        // update char_size resource every time as users might change
+                        // the TextInputSize
                         char_size.width = text_info.size.x / text.0.len() as f32;
                         char_size.height = text_info.size.y;
 
-                        if utils::extract_val(node.left).unwrap() == 0.0 {
-                            node.left = text_input_node.padding.left.clone();
-                            node.top = text_input_node.padding.top.clone();
-                            node.width = Val::Px(2.0);
-                            node.height = Val::Px(text_info.size.y);
+                        // initial value of cursor node left position is 0.0.
+                        // if it's 0.0, update position to be at input padding
+                        if utils::extract_val(cursor_node.left).unwrap() == 0.0 {
+                            cursor_node.left = text_input_node.padding.left.clone();
+                            cursor_node.top = text_input_node.padding.top.clone();
+                            cursor_node.width = Val::Px(CURSOR_WIDTH);
+                            cursor_node.height = Val::Px(text_info.size.y);
                         }
                     }
                     else {
@@ -353,21 +348,16 @@ impl<'a> FaTextInput {
 
     pub fn handle_text_input_on_typing_system(
         mut evr_kbd: EventReader<KeyboardInput>,
+        mut input_resource: ResMut<FaTextInputResource>,
         mut input_q: Query<(
             &mut TextInput,
             &CharacterSize,
             &FamiqTextInputPlaceholderEntity,
             &FamiqTextInputCursorEntity,
-            &IsFamiqTextInput,
             &FamiqWidgetId
         )>,
         mut text_q: Query<(&mut Text, &IsFamiqTextInputPlaceholder)>,
-        mut input_resource: ResMut<FaTextInputResource>,
-        mut cursor_q: Query<(
-            &mut Node,
-            &mut Visibility,
-            &IsFamiqTextInputCursor
-        )>,
+        mut cursor_q: Query<(&mut Node, &mut Visibility, &IsFamiqTextInputCursor)>,
     ) {
         for e in evr_kbd.read() {
             if e.state == ButtonState::Released {
@@ -375,7 +365,7 @@ impl<'a> FaTextInput {
             }
             match &e.logical_key {
                 Key::Character(input) => {
-                    for (mut text_input, char_size, placeholder_entity, cursor_entity, _, id) in input_q.iter_mut() {
+                    for (mut text_input, char_size, placeholder_entity, cursor_entity, id) in input_q.iter_mut() {
                         if text_input.focused {
                             text_input.text.push_str(input);
                             input_resource.update_or_insert(id.0.clone(), text_input.text.clone());
@@ -389,7 +379,7 @@ impl<'a> FaTextInput {
                     }
                 }
                 Key::Space => {
-                    for (mut text_input, char_size, placeholder_entity, cursor_entity, _, id) in input_q.iter_mut() {
+                    for (mut text_input, char_size, placeholder_entity, cursor_entity, id) in input_q.iter_mut() {
                         if text_input.focused {
                             text_input.text.push_str(&SmolStr::new(" "));
                             input_resource.update_or_insert(id.0.clone(), text_input.text.clone());
@@ -403,7 +393,7 @@ impl<'a> FaTextInput {
                     }
                 }
                 Key::Backspace => {
-                    for (mut text_input, char_size, placeholder_entity, cursor_entity, _, id) in input_q.iter_mut() {
+                    for (mut text_input, char_size, placeholder_entity, cursor_entity, id) in input_q.iter_mut() {
                         if text_input.focused {
                             text_input.text.pop();
                             input_resource.update_or_insert(id.0.clone(), text_input.text.clone());
@@ -423,20 +413,18 @@ impl<'a> FaTextInput {
                         }
                     }
                 }
-                _ => {
-                    continue;
-                }
+                _ => continue
             }
         }
     }
 
     pub fn handle_cursor_blink_system(
         time: Res<Time>,
-        input_q: Query<(&FamiqTextInputCursorEntity, &TextInput, &IsFamiqTextInput)>,
+        input_q: Query<(&FamiqTextInputCursorEntity, &TextInput), With<IsFamiqTextInput>>,
         mut cursor_q: Query<&mut BackgroundColor>,
         mut cursor_blink_timer: ResMut<FaTextInputCursorBlinkTimer>,
     ) {
-        for (cursor_entity, text_input, _) in input_q.iter() {
+        for (cursor_entity, text_input) in input_q.iter() {
             if text_input.focused {
                 if let Ok(mut bg_color) = cursor_q.get_mut(cursor_entity.0) {
                     cursor_blink_timer.timer.tick(time.delta());
@@ -450,6 +438,7 @@ impl<'a> FaTextInput {
                         }
                         cursor_blink_timer.is_transparent = !cursor_blink_timer.is_transparent;
                     }
+                    break;
                 }
             }
         }
