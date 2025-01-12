@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use crate::widgets::color::*;
 use crate::utils;
-use super::{CircularSize, CircularVariant};
+use super::{CircularSize, CircularColor};
 
 pub fn get_outer_circle_size(size: &CircularSize) -> (Val, Val) {
     let size_small = Val::Px(32.0);
@@ -15,15 +15,15 @@ pub fn get_outer_circle_size(size: &CircularSize) -> (Val, Val) {
     }
 }
 
-pub fn get_outer_circle_border_color(variant: &CircularVariant) -> BorderColor {
+pub fn get_outer_circle_border_color(variant: &CircularColor) -> BorderColor {
     match variant {
-        CircularVariant::Default => BorderColor(Color::srgba(0.812, 0.812, 0.812, 1.0)),
-        CircularVariant::Primary => BorderColor(PRIMARY_COLOR),
-        CircularVariant::Secondary => BorderColor(SECONDARY_COLOR),
-        CircularVariant::Success => BorderColor(SUCCESS_COLOR),
-        CircularVariant::Danger => BorderColor(DANGER_COLOR),
-        CircularVariant::Warning => BorderColor(WARNING_COLOR),
-        CircularVariant::Info => BorderColor(INFO_COLOR),
+        CircularColor::Default => BorderColor(Color::srgba(0.812, 0.812, 0.812, 1.0)),
+        CircularColor::Primary => BorderColor(PRIMARY_COLOR),
+        CircularColor::Secondary => BorderColor(SECONDARY_COLOR),
+        CircularColor::Success => BorderColor(SUCCESS_COLOR),
+        CircularColor::Danger => BorderColor(DANGER_COLOR),
+        CircularColor::Warning => BorderColor(WARNING_COLOR),
+        CircularColor::Info => BorderColor(INFO_COLOR),
     }
 }
 
@@ -53,6 +53,11 @@ pub fn default_outer_circle_node(size: &CircularSize) -> Node {
         justify_content: JustifyContent::Center,
         align_items: AlignItems::Center,
         border: UiRect::all(border_width),
+        margin: UiRect {
+            top: Val::Px(5.0),
+            bottom: Val::Px(5.0),
+            ..default()
+        },
         ..default()
     }
 }

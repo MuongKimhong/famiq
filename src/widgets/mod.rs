@@ -15,7 +15,7 @@ pub mod image;
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 use button::{BtnSize, BtnColor, BtnShape, FaButton};
-use circular::{CircularVariant, CircularSize, FaCircular};
+use circular::{CircularColor, CircularSize, FaCircular};
 use image::FaImage;
 use modal::FaModal;
 use selection::{SelectionSize, SelectorVariant, SelectorShape, SelectorColor, FaSelection};
@@ -386,7 +386,7 @@ impl<'a> FamiqWidgetBuilder<'a> {
         classes: &str,
         placeholder: &str,
         choices: &Vec<String>,
-        label: &str,
+        // label: &str,
     ) -> Entity {
         let class_split: Vec<&str> = classes.split_whitespace().collect();
 
@@ -394,7 +394,7 @@ impl<'a> FamiqWidgetBuilder<'a> {
         let mut use_size = SelectionSize::Normal;
         let mut use_shape = SelectorShape::Default;
         let mut use_color = SelectorColor::Default;
-        let use_label;
+        // let use_label;
 
         for class_name in class_split {
             match class_name {
@@ -417,18 +417,18 @@ impl<'a> FamiqWidgetBuilder<'a> {
                 _ => ()
             }
         }
-        if label.trim().is_empty() {
-            use_label = None;
-        }
-        else {
-            use_label = Some(label);
-        }
+        // if label.trim().is_empty() {
+        //     use_label = None;
+        // }
+        // else {
+        //     use_label = Some(label);
+        // }
 
         FaSelection::new(
             id,
             classes,
             placeholder,
-            use_label,
+            None,
             &mut self.ui_root_node,
             self.asset_server,
             &self.font_path,
@@ -447,17 +447,17 @@ impl<'a> FamiqWidgetBuilder<'a> {
     ) -> Entity {
         let class_split: Vec<&str> = classes.split_whitespace().collect();
 
-        let mut use_variant = CircularVariant::Default;
+        let mut use_variant = CircularColor::Default;
         let mut use_size = CircularSize::Normal;
 
         for class_name in class_split {
             match class_name {
-                "is-primary" => use_variant = CircularVariant::Primary,
-                "is-secondary" => use_variant = CircularVariant::Secondary,
-                "is-danger" => use_variant = CircularVariant::Danger,
-                "is-success" => use_variant = CircularVariant::Success,
-                "is-warning" => use_variant = CircularVariant::Warning,
-                "is-info" => use_variant = CircularVariant::Info,
+                "is-primary" => use_variant = CircularColor::Primary,
+                "is-secondary" => use_variant = CircularColor::Secondary,
+                "is-danger" => use_variant = CircularColor::Danger,
+                "is-success" => use_variant = CircularColor::Success,
+                "is-warning" => use_variant = CircularColor::Warning,
+                "is-info" => use_variant = CircularColor::Info,
 
                 "is-small" => use_size = CircularSize::Small,
                 "is-large" => use_size = CircularSize::Large,

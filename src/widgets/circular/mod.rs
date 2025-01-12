@@ -28,7 +28,7 @@ pub enum CircularSize {
     Large
 }
 
-pub enum CircularVariant {
+pub enum CircularColor {
     Default,
     Primary,
     Secondary,
@@ -74,12 +74,12 @@ impl<'a> FaCircular {
         id: &str,
         classes: &str,
         root_node: &'a mut EntityCommands,
-        variant: &CircularVariant,
+        color: &CircularColor,
         size: &CircularSize,
         spinner_entity: Entity
     ) -> Entity {
         let node = default_outer_circle_node(size);
-        let border_color = get_outer_circle_border_color(variant);
+        let border_color = get_outer_circle_border_color(color);
         let border_radius = BorderRadius::all(Val::Percent(50.0));
         let bg_color = BackgroundColor(Color::NONE);
         let z_index = ZIndex::default();
@@ -114,11 +114,11 @@ impl<'a> FaCircular {
         id: &str,
         classes: &str,
         root_node: &'a mut EntityCommands,
-        variant: CircularVariant,
+        color: CircularColor,
         size: CircularSize,
     ) -> Entity {
         let inner = Self::_build_spinner(root_node, &size);
-        let outer = Self::_build_outer_circle(id, classes, root_node, &variant, &size, inner);
+        let outer = Self::_build_outer_circle(id, classes, root_node, &color, &size, inner);
 
         utils::entity_add_child(root_node, inner, outer);
         outer

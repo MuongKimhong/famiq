@@ -3,7 +3,7 @@ use crate::widgets::color::*;
 use super::SelectorColor;
 use bevy::prelude::*;
 
-pub const PLACEHOLDER_COLOR_UNFOCUSED: Color = Color::srgba(0.651, 0.651, 0.651, 0.6);
+pub const PLACEHOLDER_COLOR_UNFOCUSED: Color = Color::srgba(0.749, 0.749, 0.749, 1.0);
 pub const PLACEHOLDER_COLOR_FOCUSED: Color = Color::srgba(1.0, 1.0, 1.0, 0.922);
 pub const LABEL_COLOR: Color = Color::srgba(1.0, 1.0, 1.0, 0.922);
 pub const PANEL_BG_COLOR: Color = Color::srgba(0.29, 0.29, 0.282, 1.0);
