@@ -6,13 +6,14 @@ pub mod systems;
 use crate::utils;
 use crate::widgets::{DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetClasses};
 use bevy::ecs::system::EntityCommands;
+use bevy::ui::FocusPolicy;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 
 pub use components::*;
 pub use helper::*;
 
-use super::color::WHITE_COLOR;
+use super::color::{BLACK_COLOR, WHITE_COLOR};
 pub use styling::*;
 pub use systems::*;
 
@@ -37,6 +38,7 @@ pub enum SelectorVariant {
     Underlined,
 }
 
+#[derive(PartialEq)]
 pub enum SelectorColor {
     Default,
     Primary,
@@ -245,7 +247,7 @@ impl<'a> FaSelection {
 
         let mut choice_entities: Vec<Entity> = Vec::new();
         for choice in choices.iter() {
-            let txt = Self::_build_choice_text(id, choice, root_node, asset_server, font_path);
+            let txt = Self::_build_choice_text(id, choice, root_node, asset_server, font_path, color);
             let container = Self::_build_choice_container(id, root_node, txt);
             utils::entity_add_child(root_node, txt, container);
             choice_entities.push(container);
@@ -271,7 +273,8 @@ impl<'a> FaSelection {
                     visibility,
                 ),
                 SelectionContainerEntity(container_entity),
-                GlobalZIndex(2)
+                GlobalZIndex(2),
+                FocusPolicy::Block
             ))
             .id();
 
@@ -318,13 +321,17 @@ impl<'a> FaSelection {
         root_node: &'a mut EntityCommands,
         asset_server: &'a ResMut<'a, AssetServer>,
         font_path: &String,
+        color: &SelectorColor
     ) -> Entity {
         let txt = Text::new(choice);
         let txt_font = TextFont {
             font: asset_server.load(utils::strip_assets_prefix(font_path).unwrap()),
             ..default()
         };
-        let txt_color = TextColor(WHITE_COLOR);
+        let mut txt_color = TextColor(WHITE_COLOR);
+        if *color == SelectorColor::Default {
+            txt_color = TextColor(BLACK_COLOR);
+        }
         let txt_layout = TextLayout::new_with_justify(JustifyText::Center);
 
         root_node

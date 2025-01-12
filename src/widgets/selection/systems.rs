@@ -1,21 +1,27 @@
 use crate::widgets::selection::*;
 use crate::widgets::WidgetType;
+use crate::widgets::color::*;
 use crate::event_writer::FaInteractionEvent;
 use crate::utils;
 use bevy::prelude::*;
 
-// on focus use PLACEHOLDER_COLOR_FOCUSED else use PLACEHOLDER_COLOR_UNFOCUSED
 pub fn update_selector_placeholder_color_system(
-    selection_q: Query<(&Selection, &SelectorPlaceHolderEntity), Changed<Selection>>,
+    selection_q: Query<(&Selection, &BackgroundColor, &SelectorPlaceHolderEntity), Changed<Selection>>,
     mut text_q: Query<&mut TextColor>,
 ) {
-    for (selection, placeholder) in selection_q.iter() {
+    for (selection, bg_color, placeholder) in selection_q.iter() {
         if let Ok(mut text_color) = text_q.get_mut(placeholder.0) {
-            text_color.0 = if selection.focused {
-                PLACEHOLDER_COLOR_FOCUSED
-            } else {
-                PLACEHOLDER_COLOR_UNFOCUSED
-            };
+            if selection.focused {
+                if bg_color.0 == WHITE_COLOR {
+                    text_color.0 = BLACK_COLOR
+                }
+                else {
+                    text_color.0 = PLACEHOLDER_COLOR_FOCUSED;
+                }
+            }
+            else {
+                text_color.0 = PLACEHOLDER_COLOR_UNFOCUSED;
+            }
         }
     }
 }

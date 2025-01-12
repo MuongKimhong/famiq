@@ -134,7 +134,7 @@ pub fn get_selector_background_color(color: &SelectorColor) -> BackgroundColor {
         SelectorColor::Danger => BackgroundColor(DANGER_DARK_COLOR),
         SelectorColor::Warning => BackgroundColor(WARNING_DARK_COLOR),
         SelectorColor::Info => BackgroundColor(INFO_DARK_COLOR),
-        _ => BackgroundColor(PANEL_BG_COLOR)
+        _ => BackgroundColor(WHITE_COLOR)
     }
 }
 
@@ -146,7 +146,7 @@ pub fn get_selector_border_color(color: &SelectorColor) -> BorderColor {
         SelectorColor::Danger => BorderColor(DANGER_COLOR),
         SelectorColor::Warning => BorderColor(WARNING_COLOR),
         SelectorColor::Info => BorderColor(INFO_COLOR),
-        _ => BorderColor(Color::srgba(0.902, 0.902, 0.902, 0.922))
+        _ => BorderColor(WHITE_COLOR)
     }
 }
 
@@ -162,6 +162,6 @@ pub fn get_choice_panel_border_color(color: &SelectorColor) -> BorderColor {
         SelectorColor::Danger => BorderColor(DANGER_DARK_COLOR),
         SelectorColor::Warning => BorderColor(WARNING_DARK_COLOR),
         SelectorColor::Info => BorderColor(INFO_DARK_COLOR),
-        _ => BorderColor(PANEL_BG_COLOR)
+        _ => BorderColor(WHITE_COLOR)
     }
 }
