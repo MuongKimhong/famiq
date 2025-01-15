@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use crate::widgets::style_parse::parse_val;
 use crate::widgets::{DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetClasses};
 
 #[derive(Component)]
@@ -11,16 +12,24 @@ impl<'a> FaImage {
         id: &str,
         classes: &str,
         path: &str,
+        width: &str,
+        height: &str,
         root_node: &'a mut EntityCommands,
         asset_server: &'a ResMut<'a, AssetServer>,
     ) -> Entity {
-        let node = Node::default();
+        let mut node = Node::default();
         let bg_color = BackgroundColor::default();
         let border_color = BorderColor::default();
         let border_radius = BorderRadius::default();
         let z_index = ZIndex::default();
         let visibility = Visibility::Inherited;
 
+        if let Some(parsed_w) = parse_val(width) {
+            node.width = parsed_w;
+        }
+        if let Some(parsed_h) = parse_val(height) {
+            node.height = parsed_h;
+        }
         root_node.commands().spawn((
             ImageNode::new(asset_server.load(path)),
             node.clone(),

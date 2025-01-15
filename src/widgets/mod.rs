@@ -468,8 +468,15 @@ impl<'a> FamiqWidgetBuilder<'a> {
         FaCircular::new(id, classes, &mut self.ui_root_node, use_variant, use_size)
     }
 
-    pub fn fa_image(&mut self, id: &str, classes: &str, path: &str) -> Entity {
-        FaImage::new(id, classes, path, &mut self.ui_root_node, self.asset_server)
+    pub fn fa_image(
+        &mut self,
+        id: &str,
+        classes: &str,
+        width: &str,
+        height: &str,
+        path: &str
+    ) -> Entity {
+        FaImage::new(id, classes, path, width, height, &mut self.ui_root_node, self.asset_server)
     }
 
     // doesn't need to return Entity

@@ -79,14 +79,14 @@ fn fa_listview_systems(app: &mut App) {
             event_writer::listview_interaction_system,
             event_writer::listview_item_interaction_system,
             FaListView::on_hover_system,
-            FaListView::on_mouse_scroll_system,
+            FaListView::on_scroll_system,
         )
             .chain(),
     );
 }
 
 fn fa_fps_text_systems(app: &mut App) {
-    // run system every 10 millisecond, Update Scedule is too fast
+    // run system every 30 millisecond, Update Scedule is too fast
     app.add_systems(FixedUpdate, FaFpsText::update_fps_count_system);
 }
 
