@@ -49,9 +49,8 @@ fn fa_text_input_systems(app: &mut App) {
         Update,
         (
             event_writer::text_input_interaction_system,
-            FaTextInput::handle_text_input_on_click_system,
             FaTextInput::handle_text_input_on_typing_system,
-            FaTextInput::handle_text_input_on_hover_system,
+            FaTextInput::handle_text_input_interaction_system,
             FaTextInput::handle_text_input_cursor_on_focused_system,
             FaTextInput::handle_cursor_blink_system
         ),

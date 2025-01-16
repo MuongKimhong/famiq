@@ -262,31 +262,6 @@ impl<'a> FaTextInput {
         input_entity
     }
 
-    pub fn handle_text_input_on_hover_system(
-        mut events: EventReader<FaInteractionEvent>,
-        mut input_q: Query<(&mut BoxShadow, &DefaultWidgetEntity, &IsFamiqTextInput)>
-    ) {
-        for e in events.read() {
-            if e.widget == WidgetType::TextInput {
-                if let Ok((mut box_shadow, default_style, _)) = input_q.get_mut(e.entity) {
-                    match e.interaction {
-                        Interaction::Hovered => {
-                            box_shadow.color = default_style.border_color.0.clone();
-                            box_shadow.x_offset = Val::Px(0.0);
-                            box_shadow.y_offset = Val::Px(0.0);
-                            box_shadow.spread_radius = Val::Px(0.5);
-                            box_shadow.blur_radius = Val::Px(1.0);
-                        },
-                        Interaction::None => {
-                            *box_shadow = BoxShadow::default();
-                        },
-                        _ => {}
-                    }
-                }
-            }
-        }
-    }
-
     pub fn handle_text_input_cursor_on_focused_system(
         mut input_q: Query<(
             &TextInput,
@@ -343,20 +318,38 @@ impl<'a> FaTextInput {
         }
     }
 
-    pub fn handle_text_input_on_click_system(
+    // hovered, pressed, none
+    pub fn handle_text_input_interaction_system(
         mut events: EventReader<FaInteractionEvent>,
-        mut input_q: Query<(&mut TextInput, &IsFamiqTextInput)>
+        mut input_q_for_hover: Query<
+            (&mut BoxShadow, &DefaultWidgetEntity),
+            With<IsFamiqTextInput>
+        >,
+        mut input_q: Query<&mut TextInput>
     ) {
         for e in events.read() {
-            if e.interaction == Interaction::Pressed && e.widget == WidgetType::TextInput {
-                // set all to unfocused
-                for (mut text_input, _) in input_q.iter_mut() {
-                    text_input.focused = false;
+            if e.widget == WidgetType::TextInput {
+                if let Ok((mut box_shadow, default_style)) = input_q_for_hover.get_mut(e.entity) {
+                    match e.interaction {
+                        Interaction::Hovered => {
+                            box_shadow.color = default_style.border_color.0.clone();
+                            box_shadow.x_offset = Val::Px(0.0);
+                            box_shadow.y_offset = Val::Px(0.0);
+                            box_shadow.spread_radius = Val::Px(0.5);
+                            box_shadow.blur_radius = Val::Px(1.0);
+                        },
+                        Interaction::Pressed => {
+                            // set all to unfocused
+                            for mut text_input in input_q.iter_mut() {
+                                text_input.focused = false;
+                            }
+                            if let Ok(mut text_input) = input_q.get_mut(e.entity) {
+                                text_input.focused = true;
+                            }
+                        },
+                        _ => *box_shadow = BoxShadow::default()
+                    }
                 }
-                if let Ok((mut text_input, _)) = input_q.get_mut(e.entity) {
-                    text_input.focused = true;
-                }
-                break;
             }
         }
     }
