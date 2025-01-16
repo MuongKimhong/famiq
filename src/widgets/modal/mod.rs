@@ -102,13 +102,13 @@ impl<'a> FaModal {
 
     pub fn hide_or_display_modal_system(
         mut modal_bg_q: Query<(&mut Visibility, &FaModalState, &FaModalContainerEntity)>,
-        mut modal_container_q: Query<(&mut AnimationProgress, &mut Transform, &IsFamiqModalContainer)>,
+        mut modal_container_q: Query<(&mut AnimationProgress, &mut Transform), With<IsFamiqModalContainer>>,
         time: Res<Time>
     ) {
         let delta = time.delta_secs() * 6.0;
 
         for (mut visibility, modal_state, container_entity) in modal_bg_q.iter_mut() {
-            if let Ok((mut progress, mut transform, _)) = modal_container_q.get_mut(container_entity.0) {
+            if let Ok((mut progress, mut transform)) = modal_container_q.get_mut(container_entity.0) {
                 if modal_state.0 {
                     *visibility = Visibility::Visible;
                     progress.0 = (progress.0 + delta).min(1.0);
