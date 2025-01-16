@@ -201,13 +201,9 @@ pub fn handle_selector_on_hover_system(
                 match e.interaction {
                     Interaction::Hovered => {
                         box_shadow.color = default_style.border_color.0.clone();
-                        box_shadow.x_offset = Val::Px(0.0);
-                        box_shadow.y_offset = Val::Px(0.0);
-                        box_shadow.spread_radius = Val::Px(0.5);
-                        box_shadow.blur_radius = Val::Px(1.0);
                     },
                     Interaction::None => {
-                        *box_shadow = BoxShadow::default();
+                        box_shadow.color = Color::NONE;
                     },
                     _ => {}
                 }
