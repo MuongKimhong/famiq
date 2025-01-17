@@ -82,3 +82,47 @@ pub fn strip_assets_prefix(path: &String) -> Option<String> {
         None
     }
 }
+
+pub fn lighten_color(percentage: f32, color: &Color) -> Option<Color> {
+    let multiplier = percentage / 100.0;
+
+    if let Color::Srgba(mut value) = color {
+        value.red = (value.red + (1.0 - value.red) * multiplier).clamp(0.0, 1.0);
+        value.green = (value.green + (1.0 - value.green) * multiplier).clamp(0.0, 1.0);
+        value.blue = (value.blue + (1.0 - value.blue) * multiplier).clamp(0.0, 1.0);
+        return Some(Color::Srgba(value));
+    }
+    if let Color::LinearRgba(mut value) = color {
+        value.red = (value.red + (1.0 - value.red) * multiplier).clamp(0.0, 1.0);
+        value.green = (value.green + (1.0 - value.green) * multiplier).clamp(0.0, 1.0);
+        value.blue = (value.blue + (1.0 - value.blue) * multiplier).clamp(0.0, 1.0);
+        return Some(Color::LinearRgba(value));
+    }
+    if let Color::Hsla(mut value) = color {
+        value.lightness = (value.lightness + (1.0 - value.lightness) * multiplier).clamp(0.0, 1.0);
+        return Some(Color::Hsla(value));
+    }
+    None
+}
+
+pub fn darken_color(percentage: f32, color: &Color) -> Option<Color> {
+    let multiplier = 1.0 - (percentage / 100.0);
+
+    if let Color::Srgba(mut value) = color {
+        value.red = (value.red * multiplier).clamp(0.0, 1.0);
+        value.green = (value.green * multiplier).clamp(0.0, 1.0);
+        value.blue = (value.blue * multiplier).clamp(0.0, 1.0);
+        return Some(Color::Srgba(value));
+    }
+    if let Color::LinearRgba(mut value) = color {
+        value.red = (value.red * multiplier).clamp(0.0, 1.0);
+        value.green = (value.green * multiplier).clamp(0.0, 1.0);
+        value.blue = (value.blue * multiplier).clamp(0.0, 1.0);
+        return Some(Color::LinearRgba(value));
+    }
+    if let Color::Hsla(mut value) = color {
+        value.lightness = (value.lightness * multiplier).clamp(0.0, 1.0);
+        return Some(Color::Hsla(value));
+    }
+    None
+}
