@@ -164,13 +164,21 @@ pub fn handle_selection_choice_interaction_system(
                             Interaction::Pressed => {
                                 // Update selected items resource
                                 if let Ok(text) = text_q.get_mut(choice_text_entity.0) {
+                                    selected_choice = if text.0 == "-/-" {
+                                        String::from("")
+                                    } else {
+                                        text.0.clone()
+                                    };
                                     selected_choices_res.update_or_insert(selection_id.0.clone(), text.0.clone());
-                                    selected_choice = text.0.clone();
                                 }
 
                                 // update placeholder value
                                 if let Ok(mut text) = text_q.get_mut(placeholder_entity.0) {
-                                    text.0 = selected_choice.clone();
+                                    if selected_choice != "" {
+                                        text.0 = selected_choice.clone();
+                                    } else {
+                                        text.0 = selection.placeholder.clone();
+                                    }
                                 }
 
                                 // set selection to unfocus after choice is selected

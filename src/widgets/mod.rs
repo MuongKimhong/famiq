@@ -386,7 +386,6 @@ impl<'a> FamiqWidgetBuilder<'a> {
         classes: &str,
         placeholder: &str,
         choices: &Vec<String>,
-        // label: &str,
     ) -> Entity {
         let class_split: Vec<&str> = classes.split_whitespace().collect();
 
@@ -394,7 +393,6 @@ impl<'a> FamiqWidgetBuilder<'a> {
         let mut use_size = SelectionSize::Normal;
         let mut use_shape = SelectorShape::Default;
         let mut use_color = SelectorColor::Default;
-        // let use_label;
 
         for class_name in class_split {
             match class_name {
@@ -417,12 +415,6 @@ impl<'a> FamiqWidgetBuilder<'a> {
                 _ => ()
             }
         }
-        // if label.trim().is_empty() {
-        //     use_label = None;
-        // }
-        // else {
-        //     use_label = Some(label);
-        // }
 
         FaSelection::new(
             id,
