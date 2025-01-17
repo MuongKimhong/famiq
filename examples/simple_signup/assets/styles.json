@@ -15,11 +15,11 @@
     "align_items": "center",
     "margin": "0px 0px 15px 0px"
   },
-  "#f_name": {
+  "#first-name": {
     "width": "50%",
     "margin": "0px 5px 0px 0px"
   },
-  "#l_name": {
+  "#last-name": {
     "width": "50%",
     "margin": "5px 0px 0px 0px"
   },
@@ -27,8 +27,5 @@
     "margin": "0px 0px 5px 15px",
     "justify_content": "center",
     "align_items": "center"
-  },
-  ".is-testing": {
-    "border_radius": "20px 10px 10px 20px"
   }
 }

@@ -28,8 +28,8 @@ fn setup(
 
     let txt = builder.fa_text("#signup-txt", "", "SIGN UP");
 
-    let f_name = builder.fa_text_input("#f_name", "", "First name");
-    let l_name = builder.fa_text_input("#l_name", "", "Last name");
+    let f_name = builder.fa_text_input("#first-name", "", "First name");
+    let l_name = builder.fa_text_input("#last-name", "", "Last name");
     let name_container = builder.fa_container("#name-container", "", &vec![f_name, l_name]);
 
     let ask = builder.fa_selection(
@@ -37,11 +37,10 @@ fn setup(
         "",
         "Select your subscription",
         &vec!["Personal".to_string(), "Team".to_string()],
-        "",
     );
     let ask_container = builder.fa_container("#ask-container", "", &vec![ask]);
 
-    let btn = builder.fa_button("#btn", "is-testing is-another-testing", "Confirm");
+    let btn = builder.fa_button("#btn", "is-secondary", "Confirm");
 
     builder.fa_container(
         "#container",
