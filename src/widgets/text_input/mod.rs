@@ -3,7 +3,7 @@ pub mod helper;
 use helper::*;
 use crate::utils;
 use crate::widgets::color::WHITE_COLOR;
-use crate::widgets::{DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetClasses, WidgetType};
+use crate::widgets::{DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetClasses, WidgetType, FamiqWidgetBuilderResource};
 use crate::event_writer::FaInteractionEvent;
 
 use bevy::input::keyboard::{Key, KeyboardInput};
@@ -329,9 +329,10 @@ impl<'a> FaTextInput {
         mut events: EventReader<FaInteractionEvent>,
         mut input_q_for_hover: Query<
             (&mut BoxShadow, &DefaultWidgetEntity),
-            With<IsFamiqTextInput>
+            With<TextInput>
         >,
-        mut input_q: Query<&mut TextInput>
+        mut input_q: Query<&mut TextInput>,
+        mut builder_res: ResMut<FamiqWidgetBuilderResource>
     ) {
         for e in events.read() {
             if e.widget == WidgetType::TextInput {
@@ -348,6 +349,10 @@ impl<'a> FaTextInput {
                             if let Ok(mut text_input) = input_q.get_mut(e.entity) {
                                 text_input.focused = true;
                             }
+
+                            // global focus
+                            builder_res.update_all_focus_states(false);
+                            builder_res.update_or_insert_focus_state(e.entity, true);
                         },
                         _ => box_shadow.color = Color::NONE
                     }
@@ -430,7 +435,7 @@ impl<'a> FaTextInput {
 
     pub fn handle_cursor_blink_system(
         time: Res<Time>,
-        input_q: Query<(&FamiqTextInputCursorEntity, &TextInput, &BackgroundColor), With<IsFamiqTextInput>>,
+        input_q: Query<(&FamiqTextInputCursorEntity, &TextInput, &BackgroundColor)>,
         mut cursor_q: Query<&mut BackgroundColor, Without<TextInput>>,
         mut cursor_blink_timer: ResMut<FaTextInputCursorBlinkTimer>,
     ) {

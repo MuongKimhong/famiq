@@ -126,6 +126,24 @@ pub struct FamiqWidgetBuilderResource {
 
     // read external style (json) file and apply styles to widget every single frame
     pub hot_reload_styles: bool,
+
+    pub widget_focus_state: HashMap<Entity, bool>
+}
+
+impl FamiqWidgetBuilderResource {
+    pub fn update_or_insert_focus_state(&mut self, entity: Entity, state: bool) {
+        if let Some(old_value) = self.widget_focus_state.get_mut(&entity) {
+            *old_value = state;
+        } else {
+            self.widget_focus_state.insert(entity, state);
+        }
+    }
+
+    pub fn update_all_focus_states(&mut self, new_state: bool) {
+        for (_, state) in self.widget_focus_state.iter_mut() {
+            *state = new_state;
+        }
+    }
 }
 
 impl Default for FamiqWidgetBuilderResource {
@@ -134,6 +152,7 @@ impl Default for FamiqWidgetBuilderResource {
             font_path: String::new(),
             style_path: String::new(),
             hot_reload_styles: false,
+            widget_focus_state: HashMap::new()
         }
     }
 }

@@ -1,6 +1,6 @@
 use crate::widgets::selection::*;
-use crate::widgets::WidgetType;
 use crate::widgets::color::*;
+use crate::widgets::{WidgetType, FamiqWidgetBuilderResource};
 use crate::event_writer::FaInteractionEvent;
 use crate::utils;
 use bevy::prelude::*;
@@ -121,12 +121,17 @@ pub fn update_choices_panel_position_and_width_system(
 pub fn handle_selection_interaction_system(
     mut events: EventReader<FaInteractionEvent>,
     mut selection_q: Query<(&mut Selection, &FamiqWidgetId)>,
+    mut builder_res: ResMut<FamiqWidgetBuilderResource>
 ) {
     for e in events.read() {
         if e.widget == WidgetType::Selection && e.interaction == Interaction::Pressed {
             for (mut selection, id) in selection_q.iter_mut() {
                 if e.widget_id == id.0 {
                     selection.focused = !selection.focused;
+
+                    // global focus
+                    builder_res.update_all_focus_states(false);
+                    builder_res.update_or_insert_focus_state(e.entity, true);
                 }
                 else {
                     selection.focused = false;
@@ -201,11 +206,11 @@ pub fn handle_selection_choice_interaction_system(
 
 pub fn handle_selector_on_hover_system(
     mut events: EventReader<FaInteractionEvent>,
-    mut selector_q: Query<(&mut BoxShadow, &DefaultWidgetEntity, &IsFamiqSelectionSelector)>
+    mut selector_q: Query<(&mut BoxShadow, &DefaultWidgetEntity), With<Selection>>
 ) {
     for e in events.read() {
         if e.widget == WidgetType::Selection {
-            if let Ok((mut box_shadow, default_style, _)) = selector_q.get_mut(e.entity) {
+            if let Ok((mut box_shadow, default_style)) = selector_q.get_mut(e.entity) {
                 match e.interaction {
                     Interaction::Hovered => {
                         box_shadow.color = default_style.border_color.0.clone();

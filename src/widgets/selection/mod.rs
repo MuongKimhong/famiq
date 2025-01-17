@@ -252,19 +252,6 @@ impl<'a> FaSelection {
         let visibility = Visibility::Hidden;
 
         let mut choice_entities: Vec<Entity> = Vec::new();
-
-        // let txt = Self::_build_choice_text(id, "-/-", root_node, asset_server, font_path, color);
-        // let container = Self::_build_choice_container(id, root_node, txt);
-        // utils::entity_add_child(root_node, txt, container);
-        // choice_entities.push(container);
-
-        // for choice in choices.iter() {
-        //     let txt = Self::_build_choice_text(id, choice, root_node, asset_server, font_path, color);
-        //     let container = Self::_build_choice_container(id, root_node, txt);
-        //     utils::entity_add_child(root_node, txt, container);
-        //     choice_entities.push(container);
-        // }
-
         let mut all_choices = Vec::with_capacity(choices.len() + 1); // Preallocate for efficiency
         all_choices.push("-/-".to_string()); // Include the default choice
         all_choices.extend_from_slice(choices); // Add the existing choices

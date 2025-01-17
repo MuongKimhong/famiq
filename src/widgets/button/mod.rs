@@ -1,7 +1,11 @@
 pub mod helper;
 
 use crate::utils;
-use crate::widgets::{DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetClasses};
+use crate::widgets::{
+    DefaultTextEntity, DefaultWidgetEntity,
+    FamiqWidgetId, FamiqWidgetClasses,
+    FamiqWidgetBuilderResource
+};
 use crate::event_writer::FaInteractionEvent;
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
@@ -140,9 +144,10 @@ impl<'a> FaButton {
         btn_entity
     }
 
-    pub fn handle_button_on_hover_system(
+    pub fn handle_button_on_interaction_system(
         mut events: EventReader<FaInteractionEvent>,
-        mut button_q: Query<(&IsFamiqButton, &DefaultWidgetEntity, &mut BackgroundColor, &mut BorderColor)>
+        mut button_q: Query<(&IsFamiqButton, &DefaultWidgetEntity, &mut BackgroundColor, &mut BorderColor)>,
+        mut builder_res: ResMut<FamiqWidgetBuilderResource>
     ) {
         for e in events.read() {
             if let Ok((_, default_style, mut bg_color, mut bd_color)) = button_q.get_mut(e.entity) {
@@ -156,6 +161,9 @@ impl<'a> FaButton {
                         // darken by 15%
                         set_default_bg_and_bd_color(default_style, &mut bg_color, &mut bd_color);
                         darken_bg_and_bg_color(15.0, &mut bg_color, &mut bd_color);
+
+                        builder_res.update_all_focus_states(false);
+                        builder_res.update_or_insert_focus_state(e.entity, true);
                     },
                     Interaction::None => {
                         set_default_bg_and_bd_color(default_style, &mut bg_color, &mut bd_color);

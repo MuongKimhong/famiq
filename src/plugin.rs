@@ -7,6 +7,7 @@ use crate::widgets::{
     button::*,
     circular::*,
     modal::*,
+    container::*,
     *
 };
 
@@ -62,7 +63,7 @@ fn fa_button_systems(app: &mut App) {
         Update,
         (
             event_writer::btn_interaction_system,
-            FaButton::handle_button_on_hover_system
+            FaButton::handle_button_on_interaction_system
         )
     );
 }
@@ -101,6 +102,10 @@ fn fa_image_systems(app: &mut App) {
     app.add_systems(Update, event_writer::image_interaction_system);
 }
 
+fn fa_container_systems(app: &mut App) {
+    app.add_systems(Update, FaContainer::handle_container_on_interaction_system);
+}
+
 pub fn famiq_plugin(app: &mut App) {
     app.add_plugins(FrameTimeDiagnosticsPlugin::default());
     app.insert_resource(Time::<Fixed>::from_seconds(0.30));
@@ -131,4 +136,5 @@ pub fn famiq_plugin(app: &mut App) {
     fa_circular_systems(app);
     fa_modal_systems(app);
     fa_image_systems(app);
+    fa_container_systems(app);
 }

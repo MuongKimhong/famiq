@@ -4,7 +4,8 @@ use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 
 use crate::utils;
-use crate::widgets::{DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetClasses};
+use crate::event_writer::FaInteractionEvent;
+use crate::widgets::{DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetClasses, FamiqWidgetBuilderResource, WidgetType};
 use helper::default_container_node;
 
 #[derive(Component)]
@@ -49,5 +50,17 @@ impl<'a> FaContainer {
         root_node.add_child(container_entity);
         utils::entity_add_children(root_node, children, container_entity);
         container_entity
+    }
+
+    pub fn handle_container_on_interaction_system(
+        mut events: EventReader<FaInteractionEvent>,
+        mut builder_res: ResMut<FamiqWidgetBuilderResource>
+    ) {
+        for e in events.read() {
+            if e.widget == WidgetType::Container && e.interaction == Interaction::Pressed {
+                builder_res.update_all_focus_states(false);
+                builder_res.update_or_insert_focus_state(e.entity, true);
+            }
+        }
     }
 }
