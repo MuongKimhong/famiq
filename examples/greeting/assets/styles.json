@@ -1,0 +1,26 @@
+{
+  "#container": {
+    "justify_content": "center",
+    "align_items": "center",
+    "padding": "20px 20px 20px 20px",
+    "width": "50%",
+    "margin": "auto auto auto auto"
+  },
+  "#modal-container": {
+    "background_color": "srgba 0.49, 0.49, 0.49, 1.0",
+    "border_color": "srgba 0.49, 0.49, 0.49, 1.0",
+    "border": "1px 1px 1px 1px",
+    "border_radius": "8px 8px 8px 8px",
+    "padding": "20px 20px 20px 20px",
+    "justify_items": "end"
+  },
+  "#name": {
+    "margin_bottom": "10px"
+  },
+  "#btn": {
+    "margin_top": "10px"
+  },
+  "#close-btn": {
+    "margin_top": "25px"
+  }
+}
