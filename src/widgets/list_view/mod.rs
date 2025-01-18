@@ -188,12 +188,12 @@ impl<'a> FaListView {
         mut panel_q: Query<(&mut Node, &ComputedNode, &mut ScrollList, &mut DefaultWidgetEntity)>,
         can_be_scrolled_listview: ResMut<CanBeScrolledListView>,
     ) {
-        let scroll_height: f32 = 12.0;
+        let scroll_height: f32 = 20.0;
 
-        for (mut listview_node, _, _) in listview_q.iter_mut() {
-            // always set paddings to 0 as ListView can't have paddings.
-            listview_node.padding = UiRect::all(Val::Px(0.0));
-        }
+        // for (mut listview_node, _, _) in listview_q.iter_mut() {
+        //     // always set paddings to 0 as ListView can't have paddings.
+        //     listview_node.padding = UiRect::all(Val::Px(0.0));
+        // }
 
         for e in mouse_wheel_events.read() {
             if let Some(hovered_listview) = can_be_scrolled_listview.entity {
