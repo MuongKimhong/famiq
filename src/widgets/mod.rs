@@ -144,6 +144,13 @@ impl FamiqWidgetBuilderResource {
             *state = new_state;
         }
     }
+
+    pub fn get_widget_focus_state(&self, entity: &Entity) -> Option<bool> {
+        if let Some(&state) = self.widget_focus_state.get(entity) {
+            return Some(state);
+        }
+        None
+    }
 }
 
 impl Default for FamiqWidgetBuilderResource {

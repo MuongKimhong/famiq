@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use crate::utils;
-use super::{TextInputSize, TextInputColor, IsFamiqTextInputCursor};
+use super::{TextInputSize, TextInputColor, IsFamiqTextInputCursor, CharacterSize, CURSOR_WIDTH};
+use bevy::text::TextLayoutInfo;
 use crate::widgets::color::*;
 
 pub const PLACEHOLDER_COLOR: Color = Color::srgba(0.749, 0.749, 0.749, 1.0);
@@ -112,5 +113,38 @@ pub fn update_cursor_position(
         else {
             node.left = Val::Px(left - char_width);
         }
+    }
+}
+
+
+pub fn handle_on_focused(
+    text_color: &mut TextColor,
+    bg_color: &BackgroundColor,
+    visibility: &mut Visibility,
+    cursor_node: &mut Node,
+    text_input_node: &Node,
+    text_info: &TextLayoutInfo,
+    text_content: &str,
+    char_size: &mut CharacterSize,
+) {
+    // Update text color based on background
+    text_color.0 = if bg_color.0 == WHITE_COLOR {
+        BLACK_COLOR
+    } else {
+        TEXT_INPUT_VALUE_COLOR
+    };
+
+    *visibility = Visibility::Visible;
+
+    // Update character size
+    char_size.width = text_info.size.x / text_content.len() as f32;
+    char_size.height = text_info.size.y;
+
+    // Set cursor node position and size if it's not set yet
+    if utils::extract_val(cursor_node.left).unwrap_or(0.0) == 0.0 {
+        cursor_node.left = text_input_node.padding.left.clone();
+        cursor_node.top = text_input_node.padding.top.clone();
+        cursor_node.width = Val::Px(CURSOR_WIDTH);
+        cursor_node.height = Val::Px(text_info.size.y);
     }
 }

@@ -270,7 +270,7 @@ impl<'a> FaTextInput {
 
     pub fn handle_text_input_cursor_on_focused_system(
         mut input_q: Query<(
-            &TextInput,
+            Entity,
             &Node,
             &BackgroundColor,
             &FamiqTextInputCursorEntity,
@@ -285,39 +285,31 @@ impl<'a> FaTextInput {
             ),
             Without<CharacterSize>
         >,
-        mut text_q: Query<(&Text, &mut TextColor, &TextLayoutInfo, &IsFamiqTextInputPlaceholder)>,
+        mut text_q: Query<(&Text, &mut TextColor, &TextLayoutInfo), With<IsFamiqTextInputPlaceholder>>,
+        builder_res: Res<FamiqWidgetBuilderResource>
     ) {
-        for (text_input, text_input_node, bg_color, cursor_entity, placeholder_entity, mut char_size) in input_q.iter_mut() {
+        for (input_entity, text_input_node, bg_color, cursor_entity, placeholder_entity, mut char_size) in input_q.iter_mut() {
             if let Ok((mut cursor_node, mut visibility, _)) = cursor_q.get_mut(cursor_entity.0) {
 
-                if let Ok((text, mut text_color, text_info, _)) = text_q.get_mut(placeholder_entity.0) {
-                    if text_input.focused {
-                        if bg_color.0 == WHITE_COLOR {
-                            text_color.0 = BLACK_COLOR;
+                if let Ok((text, mut text_color, text_info)) = text_q.get_mut(placeholder_entity.0) {
+                    match builder_res.get_widget_focus_state(&input_entity) {
+                        Some(true) => {
+                            handle_on_focused(
+                                &mut text_color,
+                                bg_color,
+                                &mut visibility,
+                                &mut cursor_node,
+                                text_input_node,
+                                &text_info,
+                                &text.0,
+                                &mut char_size,
+                            );
                         }
-                        else {
-                            text_color.0 = TEXT_INPUT_VALUE_COLOR;
+                        _ => {
+                            // Handle unfocused state
+                            *visibility = Visibility::Hidden;
+                            text_color.0 = PLACEHOLDER_COLOR;
                         }
-
-                        *visibility = Visibility::Visible;
-
-                        // update char_size resource every time as users might change
-                        // the TextInputSize
-                        char_size.width = text_info.size.x / text.0.len() as f32;
-                        char_size.height = text_info.size.y;
-
-                        // initial value of cursor node left position is 0.0.
-                        // if it's 0.0, update position to be at input padding
-                        if utils::extract_val(cursor_node.left).unwrap() == 0.0 {
-                            cursor_node.left = text_input_node.padding.left.clone();
-                            cursor_node.top = text_input_node.padding.top.clone();
-                            cursor_node.width = Val::Px(CURSOR_WIDTH);
-                            cursor_node.height = Val::Px(text_info.size.y);
-                        }
-                    }
-                    else {
-                        *visibility = Visibility::Hidden;
-                        text_color.0 = PLACEHOLDER_COLOR;
                     }
                 }
             }
@@ -331,7 +323,6 @@ impl<'a> FaTextInput {
             (&mut BoxShadow, &DefaultWidgetEntity),
             With<TextInput>
         >,
-        mut input_q: Query<&mut TextInput>,
         mut builder_res: ResMut<FamiqWidgetBuilderResource>
     ) {
         for e in events.read() {
@@ -342,14 +333,6 @@ impl<'a> FaTextInput {
                             box_shadow.color = default_style.border_color.0.clone();
                         },
                         Interaction::Pressed => {
-                            // set all to unfocused
-                            for mut text_input in input_q.iter_mut() {
-                                text_input.focused = false;
-                            }
-                            if let Ok(mut text_input) = input_q.get_mut(e.entity) {
-                                text_input.focused = true;
-                            }
-
                             // global focus
                             builder_res.update_all_focus_states(false);
                             builder_res.update_or_insert_focus_state(e.entity, true);
@@ -365,6 +348,7 @@ impl<'a> FaTextInput {
         mut evr_kbd: EventReader<KeyboardInput>,
         mut input_resource: ResMut<FaTextInputResource>,
         mut input_q: Query<(
+            Entity,
             &mut TextInput,
             &CharacterSize,
             &FamiqTextInputPlaceholderEntity,
@@ -373,58 +357,68 @@ impl<'a> FaTextInput {
         )>,
         mut text_q: Query<(&mut Text, &IsFamiqTextInputPlaceholder)>,
         mut cursor_q: Query<(&mut Node, &mut Visibility, &IsFamiqTextInputCursor)>,
+        builder_res: Res<FamiqWidgetBuilderResource>
     ) {
         for e in evr_kbd.read() {
             if e.state == ButtonState::Released {
                 continue;
             }
+
             match &e.logical_key {
                 Key::Character(input) => {
-                    for (mut text_input, char_size, placeholder_entity, cursor_entity, id) in input_q.iter_mut() {
-                        if text_input.focused {
-                            text_input.text.push_str(input);
-                            input_resource.update_or_insert(id.0.clone(), text_input.text.clone());
+                    for (entity, mut text_input, char_size, placeholder_entity, cursor_entity, id) in input_q.iter_mut() {
+                        match builder_res.get_widget_focus_state(&entity) {
+                            Some(true) => {
+                                text_input.text.push_str(input);
+                                input_resource.update_or_insert(id.0.clone(), text_input.text.clone());
 
-                            if let Ok((mut text, _)) = text_q.get_mut(placeholder_entity.0) {
-                                text.0 = text_input.text.clone();
-                                update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, true);
-                            }
-                            break;
+                                if let Ok((mut text, _)) = text_q.get_mut(placeholder_entity.0) {
+                                    text.0 = text_input.text.clone();
+                                    update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, true);
+                                }
+                                break;
+                            },
+                            _ => {}
                         }
                     }
                 }
                 Key::Space => {
-                    for (mut text_input, char_size, placeholder_entity, cursor_entity, id) in input_q.iter_mut() {
-                        if text_input.focused {
-                            text_input.text.push_str(&SmolStr::new(" "));
-                            input_resource.update_or_insert(id.0.clone(), text_input.text.clone());
+                    for (entity, mut text_input, char_size, placeholder_entity, cursor_entity, id) in input_q.iter_mut() {
+                        match builder_res.get_widget_focus_state(&entity) {
+                            Some(true) => {
+                                text_input.text.push_str(&SmolStr::new(" "));
+                                input_resource.update_or_insert(id.0.clone(), text_input.text.clone());
 
-                            if let Ok((mut text, _)) = text_q.get_mut(placeholder_entity.0) {
-                                text.0 = text_input.text.clone();
-                                update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, true);
-                            }
-                            break;
+                                if let Ok((mut text, _)) = text_q.get_mut(placeholder_entity.0) {
+                                    text.0 = text_input.text.clone();
+                                    update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, true);
+                                }
+                                break;
+                            },
+                            _ => {}
                         }
                     }
                 }
                 Key::Backspace => {
-                    for (mut text_input, char_size, placeholder_entity, cursor_entity, id) in input_q.iter_mut() {
-                        if text_input.focused {
-                            text_input.text.pop();
-                            input_resource.update_or_insert(id.0.clone(), text_input.text.clone());
+                    for (entity, mut text_input, char_size, placeholder_entity, cursor_entity, id) in input_q.iter_mut() {
+                        match builder_res.get_widget_focus_state(&entity) {
+                            Some(true) => {
+                                text_input.text.pop();
+                                input_resource.update_or_insert(id.0.clone(), text_input.text.clone());
 
-                            if let Ok((mut text, _)) = text_q.get_mut(placeholder_entity.0) {
-                                if text.0 != text_input.placeholder {
-                                    update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, false);
+                                if let Ok((mut text, _)) = text_q.get_mut(placeholder_entity.0) {
+                                    if text.0 != text_input.placeholder {
+                                        update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, false);
+                                    }
+                                    if text_input.text.is_empty() {
+                                        text.0 = text_input.placeholder.clone();
+                                    } else {
+                                        text.0 = text_input.text.clone();
+                                    }
                                 }
-                                if text_input.text.is_empty() {
-                                    text.0 = text_input.placeholder.clone();
-                                }
-                                else {
-                                    text.0 = text_input.text.clone();
-                                }
-                            }
-                            break;
+                                break;
+                            },
+                            _ => {}
                         }
                     }
                 }
@@ -435,31 +429,35 @@ impl<'a> FaTextInput {
 
     pub fn handle_cursor_blink_system(
         time: Res<Time>,
-        input_q: Query<(&FamiqTextInputCursorEntity, &TextInput, &BackgroundColor)>,
-        mut cursor_q: Query<&mut BackgroundColor, Without<TextInput>>,
+        input_q: Query<(Entity, &FamiqTextInputCursorEntity, &BackgroundColor)>,
+        mut cursor_q: Query<(&mut BackgroundColor, &IsFamiqTextInputCursor), Without<FamiqTextInputCursorEntity>>,
         mut cursor_blink_timer: ResMut<FaTextInputCursorBlinkTimer>,
+        builder_res: Res<FamiqWidgetBuilderResource>
     ) {
-        for (cursor_entity, text_input, input_bg_color) in input_q.iter() {
-            if text_input.focused {
-                if let Ok(mut bg_color) = cursor_q.get_mut(cursor_entity.0) {
-                    cursor_blink_timer.timer.tick(time.delta());
+        for (entity, cursor_entity, input_bg_color) in input_q.iter() {
+            match builder_res.get_widget_focus_state(&entity) {
+                Some(true) => {
+                    if let Ok((mut bg_color, _)) = cursor_q.get_mut(cursor_entity.0) {
+                        cursor_blink_timer.timer.tick(time.delta());
 
-                    if cursor_blink_timer.timer.finished() {
-                        if cursor_blink_timer.is_transparent {
-                            if input_bg_color.0 == WHITE_COLOR {
-                                bg_color.0 = BLACK_COLOR;
+                        if cursor_blink_timer.timer.finished() {
+                            if cursor_blink_timer.is_transparent {
+                                if input_bg_color.0 == WHITE_COLOR {
+                                    bg_color.0 = BLACK_COLOR;
+                                }
+                                else {
+                                    bg_color.0 = WHITE_COLOR;
+                                }
                             }
                             else {
-                                bg_color.0 = WHITE_COLOR;
+                                *bg_color = BackgroundColor::default();
                             }
+                            cursor_blink_timer.is_transparent = !cursor_blink_timer.is_transparent;
                         }
-                        else {
-                            *bg_color = BackgroundColor::default();
-                        }
-                        cursor_blink_timer.is_transparent = !cursor_blink_timer.is_transparent;
+                        break;
                     }
-                    break;
-                }
+                },
+                _ => {}
             }
         }
     }
