@@ -123,12 +123,13 @@ pub fn update_choices_panel_position_and_width_system(
 
 pub fn handle_selection_interaction_system(
     mut events: EventReader<FaInteractionEvent>,
-    mut selector_q: Query<(&mut BoxShadow, &DefaultWidgetEntity), With<Selection>>,
-    mut builder_res: ResMut<FamiqWidgetBuilderResource>
+    mut selector_q: Query<(&mut BoxShadow, &FamiqWidgetId, &DefaultWidgetEntity), With<Selection>>,
+    mut builder_res: ResMut<FamiqWidgetBuilderResource>,
+    mut selected_choices_res: ResMut<SelectedChoicesResource>,
 ) {
     for e in events.read() {
         if e.widget == WidgetType::Selection {
-            if let Ok((mut box_shadow, default_style)) = selector_q.get_mut(e.entity) {
+            if let Ok((mut box_shadow, id, default_style)) = selector_q.get_mut(e.entity) {
                 match e.interaction {
                     Interaction::Hovered => {
                         box_shadow.color = default_style.border_color.0.clone();
@@ -137,6 +138,8 @@ pub fn handle_selection_interaction_system(
                         // global focus
                         builder_res.update_all_focus_states(false);
                         builder_res.update_or_insert_focus_state(e.entity, true);
+
+                        selected_choices_res.update_or_insert(id.0.clone(), "-/-".to_string());
                     },
                     _ => {
                         box_shadow.color = Color::NONE;

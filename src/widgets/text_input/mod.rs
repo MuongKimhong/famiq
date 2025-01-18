@@ -19,16 +19,14 @@ use super::color::BLACK_COLOR;
 #[derive(Component)]
 pub struct TextInput {
     pub text: String,
-    pub placeholder: String,
-    pub focused: bool,
+    pub placeholder: String
 }
 
 impl TextInput {
     pub fn new(text: &str, placeholder: &str) -> Self {
         Self {
             text: text.to_string(),
-            placeholder: placeholder.to_string(),
-            focused: false,
+            placeholder: placeholder.to_string()
         }
     }
 }
@@ -320,14 +318,15 @@ impl<'a> FaTextInput {
     pub fn handle_text_input_interaction_system(
         mut events: EventReader<FaInteractionEvent>,
         mut input_q_for_hover: Query<
-            (&mut BoxShadow, &DefaultWidgetEntity),
+            (&mut BoxShadow, &FamiqWidgetId, &DefaultWidgetEntity),
             With<TextInput>
         >,
-        mut builder_res: ResMut<FamiqWidgetBuilderResource>
+        mut builder_res: ResMut<FamiqWidgetBuilderResource>,
+        mut input_resource: ResMut<FaTextInputResource>,
     ) {
         for e in events.read() {
             if e.widget == WidgetType::TextInput {
-                if let Ok((mut box_shadow, default_style)) = input_q_for_hover.get_mut(e.entity) {
+                if let Ok((mut box_shadow, id, default_style)) = input_q_for_hover.get_mut(e.entity) {
                     match e.interaction {
                         Interaction::Hovered => {
                             box_shadow.color = default_style.border_color.0.clone();
@@ -336,6 +335,8 @@ impl<'a> FaTextInput {
                             // global focus
                             builder_res.update_all_focus_states(false);
                             builder_res.update_or_insert_focus_state(e.entity, true);
+
+                            input_resource.update_or_insert(id.0.clone(), "".to_string());
                         },
                         _ => box_shadow.color = Color::NONE
                     }
