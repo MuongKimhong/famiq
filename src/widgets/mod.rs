@@ -276,6 +276,13 @@ impl<'a> FamiqWidgetBuilder<'a> {
         ))
     }
 
+    pub fn insert_component<T: Bundle>(&mut self, entity: Entity, components: T) {
+        self.ui_root_node
+            .commands()
+            .entity(entity)
+            .insert(components);
+    }
+
     pub fn fa_container(
         &mut self,
         id: &str,
