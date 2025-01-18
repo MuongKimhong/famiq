@@ -28,11 +28,9 @@ fn setup(
     );
 
     let name = builder.fa_text_input("#name", "is-secondary", "Enter your name");
-    let name_one = builder.fa_text_input("#name-one", "is-secondary", "Enter your name");
     let done_btn = builder.fa_button("#btn", "is-secondary", "Done");
     builder.fa_container("#container", "", &vec![
         name,
-        name_one,
         done_btn
     ]);
 
