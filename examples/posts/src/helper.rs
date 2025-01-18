@@ -35,22 +35,14 @@ pub fn create_post(
         "like-txt",
         "0"
     );
-    builder
-        .ui_root_node
-        .commands()
-        .entity(like_txt)
-        .insert(LikeCount(0)); // insert LikeCount component to like_txt
+    builder.insert_component(like_txt, LikeCount(0));
 
     let like_btn = builder.fa_button(
         format!("#post-{username}-like-btn").as_str(),
         "like-btn is-small is-primary-dark",
         "♥"
     );
-    builder
-        .ui_root_node
-        .commands()
-        .entity(like_btn)
-        .insert(LikeTextEntity(like_txt)); // insert LikeTextEntity component to like_btn
+    builder.insert_component(like_btn, LikeTextEntity(like_txt));
 
     let action_container = builder.fa_container(
         format!("#post-{username}-action-container").as_str(),
