@@ -40,7 +40,6 @@ fn fa_selection_systems(app: &mut App) {
             update_choices_panel_position_and_width_system,
             handle_selection_interaction_system,
             handle_selection_choice_interaction_system,
-            handle_selector_on_hover_system
         ),
     );
 }
