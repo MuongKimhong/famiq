@@ -28,9 +28,11 @@ fn setup(
     );
 
     let name = builder.fa_text_input("#name", "is-secondary", "Enter your name");
+    let name_one = builder.fa_text_input("#name-one", "is-secondary", "Enter your name");
     let done_btn = builder.fa_button("#btn", "is-secondary", "Done");
     builder.fa_container("#container", "", &vec![
         name,
+        name_one,
         done_btn
     ]);
 
@@ -55,15 +57,17 @@ fn handle_btn_press(
             match e.widget_id.as_str() {
                 "#btn" => {
                     if let Some(name) = input_resource.inputs.get("#name") {
-                        for (text_id, mut text) in text_q.iter_mut() {
-                            if text_id.0 == "#welcome-txt" {
-                                text.0 = format!("Welcome {name}, this example is built with Famiq.");
+                        if !name.trim().is_empty() {
+                            for (text_id, mut text) in text_q.iter_mut() {
+                                if text_id.0 == "#welcome-txt" {
+                                    text.0 = format!("Welcome {name}, this example is built with Famiq.");
+                                }
                             }
-                        }
 
-                        // Open modal
-                        if let Some((_, mut state)) = modal_q.iter_mut().find(|(id, _)| id.0 == "#modal") {
-                            state.0 = true;
+                            // Open modal
+                            if let Some((_, mut state)) = modal_q.iter_mut().find(|(id, _)| id.0 == "#modal") {
+                                state.0 = true;
+                            }
                         }
                     }
                 },
