@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use famiq::prelude::*;
+use super::{LikeCount, LikeTextEntity};
 
 pub fn create_post(
     builder: &mut FamiqWidgetBuilder,
@@ -25,19 +26,53 @@ pub fn create_post(
     let image = builder.fa_image(
         format!("#post-{image_path}").as_str(),
         "image",
-        "",
-        "",
+        "100%",
+        "450px",
         image_path
     );
+    let like_txt = builder.fa_text(
+        format!("#post-{username}-like-txt").as_str(),
+        "like-txt",
+        "0"
+    );
+    builder
+        .ui_root_node
+        .commands()
+        .entity(like_txt)
+        .insert(LikeCount(0)); // insert LikeCount component to like_txt
+
     let like_btn = builder.fa_button(
         format!("#post-{username}-like-btn").as_str(),
         "like-btn is-small is-primary-dark",
         "♥"
     );
+    builder
+        .ui_root_node
+        .commands()
+        .entity(like_btn)
+        .insert(LikeTextEntity(like_txt)); // insert LikeTextEntity component to like_btn
+
+    let action_container = builder.fa_container(
+        format!("#post-{username}-action-container").as_str(),
+        "action-container",
+        &vec![like_txt, like_btn]
+    );
 
     builder.fa_container(
         format!("#post-{username}-container").as_str(),
         "post-container",
-        &vec![user, title_wrapper, image, like_btn]
+        &vec![user, title_wrapper, image, action_container]
     )
+}
+
+pub fn set_window() -> WindowPlugin {
+    WindowPlugin {
+        primary_window: Some(Window {
+            title: "Bevy Engine - Famiq".into(),
+            resolution: (500., 1000.).into(),
+            resizable: false,
+            ..default()
+        }),
+        ..default()
+    }
 }
