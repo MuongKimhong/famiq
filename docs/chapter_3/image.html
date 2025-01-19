@@ -170,10 +170,9 @@
 <h3 id="usage-via-builder"><a class="header" href="#usage-via-builder">Usage via builder</a></h3>
 <pre><code class="language-rust">let image = builder.fa_image(..);</code></pre>
 <h3 id="example"><a class="header" href="#example">Example</a></h3>
-<pre><code class="language-rust">let bevy_logo = builder.fa_image("#bevy-logo", "", "bevylogo.png");
-let falcon = builder.fa_image("#falcon", "", "falcon.png");
+<pre><code class="language-rust">let man = builder.fa_image("#bevy-logo", "", "300px", "300px", "man.JPG");
 
-builder.fa_container("#container", &amp;vec![bevy_logo, falcon]);</code></pre>
+builder.fa_container("#container", "", &amp;vec![man]);</code></pre>
 <p><img src="../images/image_example_1.png" alt="Example 1" /></p>
 
                     </main>

@@ -21,9 +21,8 @@ let image = builder.fa_image(..);
 
 ### Example
 ```rust
-let bevy_logo = builder.fa_image("#bevy-logo", "", "bevylogo.png");
-let falcon = builder.fa_image("#falcon", "", "falcon.png");
+let man = builder.fa_image("#bevy-logo", "", "300px", "300px", "man.JPG");
 
-builder.fa_container("#container", &vec![bevy_logo, falcon]);
+builder.fa_container("#container", "", &vec![man]);
 ```
 ![Example 1](../images/image_example_1.png)

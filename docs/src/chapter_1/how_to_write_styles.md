@@ -26,7 +26,7 @@
 
 - `font_size`: text font size.
 
-  Example, `"font_size": "14px"`
+  Example, `"font_size": "14"`
 
   [https://docs.rs/bevy/latest/bevy/prelude/struct.TextFont.html#structfield.font_size](https://docs.rs/bevy/latest/bevy/prelude/struct.TextFont.html#structfield.font_size)
 
