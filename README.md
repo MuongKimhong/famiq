@@ -48,7 +48,7 @@ are reflected immediately in the running app, no need to re-compile.
 Get latest version of `Famiq` by adding this line to `Cargo.toml`. Currently, crate & rustdoc are not available yet.
 ```toml
 [dependencies]
-famiq = { git = "https://github.com/muongkimhong/famiq", tag = "v0.2.2" }
+famiq = { git = "https://github.com/muongkimhong/famiq", tag = "v0.2.3" }
 ```
 
 ## Documentation
@@ -58,7 +58,7 @@ famiq = { git = "https://github.com/muongkimhong/famiq", tag = "v0.2.2" }
 Famiq needs your contributions to grow. Please see [contributing](https://github.com/MuongKimhong/famiq/blob/master/CONTRIBUTING.md).
 
 ## Versions
-Famiq is new and still in early stage of development. Currently, it supports only 0.15.x onward.
+Famiq is in early stage of development. Currently, it supports only 0.15.x onward.
 
 
 ## Goals

@@ -31,5 +31,5 @@ If you want make any changes to source code, you can do so by:
 
   ```toml
   [dependencies]
-  famiq = { git = "https://github.com/muongkimhong/famiq", tag = "v0.2.2" }
+  famiq = { git = "https://github.com/muongkimhong/famiq", tag = "v0.2.3" }
   ```
