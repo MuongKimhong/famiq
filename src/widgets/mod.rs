@@ -127,7 +127,9 @@ pub struct FamiqWidgetBuilderResource {
     // read external style (json) file and apply styles to widget every single frame
     pub hot_reload_styles: bool,
 
-    pub widget_focus_state: HashMap<Entity, bool>
+    pub widget_focus_state: HashMap<Entity, bool>,
+
+    pub external_style_applied: bool
 }
 
 impl FamiqWidgetBuilderResource {
@@ -159,7 +161,8 @@ impl Default for FamiqWidgetBuilderResource {
             font_path: String::new(),
             style_path: String::new(),
             hot_reload_styles: false,
-            widget_focus_state: HashMap::new()
+            widget_focus_state: HashMap::new(),
+            external_style_applied: false
         }
     }
 }
@@ -240,6 +243,7 @@ impl<'a> FamiqWidgetBuilder<'a> {
         builder_resource.font_path = font_path.to_string();
         builder_resource.style_path = style_path.to_string();
         builder_resource.hot_reload_styles = hot_reload_styles;
+        builder_resource.external_style_applied = false;
     }
 
     pub fn new(

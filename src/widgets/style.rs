@@ -5,9 +5,6 @@ use crate::widgets::{
 };
 use bevy::prelude::*;
 
-#[derive(Resource)]
-pub struct ExternalStylesApplyState(pub bool);
-
 type WidgetStyleQuery<'a, 'w, 's> = Query<
     'w,
     's,
@@ -27,27 +24,25 @@ type WidgetStyleQuery<'a, 'w, 's> = Query<
 
 pub fn read_styles_from_file_system(
     mut styles: ResMut<StylesKeyValueResource>,
-    builder_resource: ResMut<FamiqWidgetBuilderResource>,
-    apply_state: Res<ExternalStylesApplyState>,
+    builder_res: ResMut<FamiqWidgetBuilderResource>,
 ) {
-    if builder_resource.hot_reload_styles || !apply_state.0 {
-        if let Ok(s) = utils::read_styles_json_file(&builder_resource.style_path) {
+    if builder_res.hot_reload_styles || !builder_res.external_style_applied {
+        if let Ok(s) = utils::read_styles_json_file(&builder_res.style_path) {
             styles.0 = s;
         }
     }
 }
 
-pub fn finish_style_applying_system(mut apply_state: ResMut<ExternalStylesApplyState>) {
-    apply_state.0 = true;
+pub fn finish_style_applying_system(mut builder_res: ResMut<FamiqWidgetBuilderResource>) {
+    builder_res.external_style_applied = true;
 }
 
 pub fn apply_widgets_styles_system(
     styles: Res<StylesKeyValueResource>,
-    apply_state: Res<ExternalStylesApplyState>,
-    builder_resource: ResMut<FamiqWidgetBuilderResource>,
+    builder_res: ResMut<FamiqWidgetBuilderResource>,
     mut query: WidgetStyleQuery,
 ) {
-    if builder_resource.hot_reload_styles || !apply_state.0 {
+    if builder_res.hot_reload_styles || !builder_res.external_style_applied {
         for (
             widget_id,
             widget_classes,
@@ -415,8 +410,7 @@ pub fn apply_styles_from_external_json(
 // for fa_text & Text only
 pub fn apply_text_style_system(
     styles: Res<StylesKeyValueResource>,
-    apply_state: Res<ExternalStylesApplyState>,
-    builder_resource: ResMut<FamiqWidgetBuilderResource>,
+    builder_res: ResMut<FamiqWidgetBuilderResource>,
     mut text_q: Query<(
         &mut TextFont,
         &mut TextColor,
@@ -425,7 +419,7 @@ pub fn apply_text_style_system(
         &DefaultTextEntity
     )>,
 ) {
-    if builder_resource.hot_reload_styles || !apply_state.0 {
+    if builder_res.hot_reload_styles || !builder_res.external_style_applied {
         for (mut text_font, mut text_color, widget_id, widget_classes, default_text) in text_q.iter_mut() {
             // assign default values first
             *text_font = default_text.text_font.clone();

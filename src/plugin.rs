@@ -109,7 +109,6 @@ pub fn famiq_plugin(app: &mut App) {
     app.add_plugins(FrameTimeDiagnosticsPlugin::default());
     app.insert_resource(Time::<Fixed>::from_seconds(0.30));
     app.insert_resource(StylesKeyValueResource(StylesKeyValue::new()));
-    app.insert_resource(style::ExternalStylesApplyState(false));
     app.insert_resource(CanBeScrolledListView { entity: None });
     app.insert_resource(SelectedChoicesResource {
         choices: HashMap::new(),
