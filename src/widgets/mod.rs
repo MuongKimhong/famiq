@@ -281,10 +281,20 @@ impl<'a> FamiqWidgetBuilder<'a> {
     }
 
     pub fn insert_component<T: Bundle>(&mut self, entity: Entity, components: T) {
-        self.ui_root_node
-            .commands()
-            .entity(entity)
-            .insert(components);
+        self.ui_root_node.commands().entity(entity).insert(components);
+    }
+
+    pub fn remove_component<T: Bundle>(&mut self, entity: Entity) {
+        self.ui_root_node.commands().entity(entity).remove::<T>();
+    }
+
+    pub fn get_entity(&mut self) -> Entity {
+        self.ui_root_node.id()
+    }
+
+    pub fn clean(&mut self) {
+        let root_entity = self.get_entity();
+        self.ui_root_node.commands().entity(root_entity).despawn_recursive();
     }
 
     pub fn fa_container(
