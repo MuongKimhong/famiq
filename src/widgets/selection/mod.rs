@@ -107,7 +107,7 @@ impl<'a> FaSelection {
     ) -> Entity {
         let txt = Text::new(placeholder);
         let txt_font = TextFont {
-            font: asset_server.load(utils::strip_assets_prefix(font_path).unwrap()),
+            font: asset_server.load(font_path),
             font_size: get_text_size(&size),
             ..default()
         };
@@ -135,7 +135,7 @@ impl<'a> FaSelection {
     ) -> Entity {
         let txt = Text::new("▼");
         let txt_font = TextFont {
-            font: asset_server.load(utils::strip_assets_prefix(font_path).unwrap()),
+            font: asset_server.load(font_path),
             font_size: get_text_size(&size),
             ..default()
         };
@@ -335,7 +335,7 @@ impl<'a> FaSelection {
     ) -> Entity {
         let txt = Text::new(choice);
         let txt_font = TextFont {
-            font: asset_server.load(utils::strip_assets_prefix(font_path).unwrap()),
+            font: asset_server.load(font_path),
             ..default()
         };
         let mut txt_color = TextColor(WHITE_COLOR);
@@ -368,7 +368,7 @@ impl<'a> FaSelection {
     ) -> Entity {
         let txt = Text::new(label);
         let txt_font = TextFont {
-            font: asset_server.load(utils::strip_assets_prefix(font_path).unwrap()),
+            font: asset_server.load(font_path),
             font_size: get_text_size(&size),
             ..default()
         };

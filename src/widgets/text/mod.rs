@@ -1,5 +1,4 @@
 use super::color::WHITE_COLOR;
-use crate::utils::strip_assets_prefix;
 use crate::widgets::{DefaultTextEntity, FamiqWidgetId, FamiqWidgetClasses};
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
@@ -16,10 +15,9 @@ pub fn fa_text<'a>(
     asset_server: &'a ResMut<'a, AssetServer>,
     font_path: &String,
 ) -> Entity {
-    let path = strip_assets_prefix(font_path).unwrap();
     let txt = Text::new(value);
     let txt_font = TextFont {
-        font: asset_server.load(path),
+        font: asset_server.load(font_path),
         ..default()
     };
     let txt_color = TextColor(WHITE_COLOR);

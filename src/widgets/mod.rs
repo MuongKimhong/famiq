@@ -16,12 +16,14 @@ use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 use button::{BtnSize, BtnColor, BtnShape, FaButton};
 use circular::{CircularColor, CircularSize, FaCircular};
+use fps::FaFpsText;
 use image::FaImage;
 use modal::FaModal;
 use selection::{SelectionSize, SelectorVariant, SelectorShape, SelectorColor, FaSelection};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use text_input::{TextInputSize, TextInputVariant, TextInputShape, TextInputColor, FaTextInput};
+use crate::utils::get_embedded_asset_path;
 
 // key-value of "#widget-id"/".class-name" and all its styles in styles.json
 pub type StyleKeyValue = HashMap<String, WidgetStyle>;
@@ -229,39 +231,58 @@ pub struct WidgetStyle {
 pub struct FamiqWidgetBuilder<'a> {
     pub asset_server: &'a ResMut<'a, AssetServer>,
     pub ui_root_node: EntityCommands<'a>,
-    pub font_path: String,
-    pub style_path: String,
+    pub font_path: Option<String>,
+    pub style_path: Option<String>
 }
 
 impl<'a> FamiqWidgetBuilder<'a> {
-    fn _update_builder_resource(
-        font_path: &str,
-        style_path: &str,
-        hot_reload_styles: bool,
-        builder_resource: &mut ResMut<FamiqWidgetBuilderResource>,
-    ) {
-        builder_resource.font_path = font_path.to_string();
-        builder_resource.style_path = style_path.to_string();
-        builder_resource.hot_reload_styles = hot_reload_styles;
+    fn _reset_builder_resource(builder_resource: &mut ResMut<FamiqWidgetBuilderResource>) {
+        builder_resource.font_path = get_embedded_asset_path("embedded_assets/fonts/fira-mono-regular.ttf").to_string();
+        builder_resource.style_path = "assets/styles.json".to_string();
+        builder_resource.hot_reload_styles = true;
         builder_resource.external_style_applied = false;
     }
 
     pub fn new(
         commands: &'a mut Commands,
-        asset_server: &'a ResMut<'a, AssetServer>,
         builder_resource: &mut ResMut<FamiqWidgetBuilderResource>,
-        font_path: &str,  // font path relative to project root
-        style_path: &str, // style path relative to project root
-        hot_reload_styles: bool,
+        asset_server: &'a ResMut<'a, AssetServer>,
     ) -> Self {
-        Self::_update_builder_resource(font_path, style_path, hot_reload_styles, builder_resource);
-
+        Self::_reset_builder_resource(builder_resource);
         Self {
-            font_path: font_path.to_string(),
-            style_path: style_path.to_string(),
             asset_server,
             ui_root_node: Self::create_ui_root_node(commands),
+            font_path: Some(get_embedded_asset_path("embedded_assets/fonts/fira-mono-regular.ttf").to_string()),
+            style_path: Some("assets/styles.json".to_string())
         }
+    }
+
+    pub fn use_font_path(
+        mut self,
+        builder_resource: &mut ResMut<FamiqWidgetBuilderResource>,
+        font_path: &str
+    ) -> Self {
+        self.font_path = Some(font_path.to_string());
+        builder_resource.font_path = font_path.to_string();
+        self
+    }
+
+    pub fn use_style_path(
+        mut self,
+        builder_resource: &mut ResMut<FamiqWidgetBuilderResource>,
+        style_path: &str
+    ) -> Self {
+        self.style_path = Some(style_path.to_string());
+        builder_resource.style_path = style_path.to_string();
+        self
+    }
+
+    pub fn disable_hot_reload(
+        self,
+        builder_resource: &mut ResMut<FamiqWidgetBuilderResource>
+    ) -> Self {
+        builder_resource.hot_reload_styles = false;
+        self
     }
 
     fn create_ui_root_node(commands: &'a mut Commands) -> EntityCommands<'a> {
@@ -347,7 +368,7 @@ impl<'a> FamiqWidgetBuilder<'a> {
             text,
             &mut self.ui_root_node,
             self.asset_server,
-            &self.font_path,
+            &self.font_path.as_ref().unwrap(),
             use_color,
             use_size,
             use_shape
@@ -361,16 +382,16 @@ impl<'a> FamiqWidgetBuilder<'a> {
             value,
             &mut self.ui_root_node,
             self.asset_server,
-            &self.font_path,
+            &self.font_path.as_ref().unwrap(),
         )
     }
 
     pub fn fa_fps(&mut self, id: &str, change_color: bool) -> Entity {
-        fps::FaFpsText::new(
+        FaFpsText::new(
             id,
             &mut self.ui_root_node,
             self.asset_server,
-            &self.font_path,
+            &self.font_path.as_ref().unwrap(),
             change_color
         )
     }
@@ -415,7 +436,7 @@ impl<'a> FamiqWidgetBuilder<'a> {
             placeholder,
             &mut self.ui_root_node,
             self.asset_server,
-            &self.font_path,
+            &self.font_path.as_ref().unwrap(),
             use_size,
             use_variant,
             use_color,
@@ -470,7 +491,7 @@ impl<'a> FamiqWidgetBuilder<'a> {
             None,
             &mut self.ui_root_node,
             self.asset_server,
-            &self.font_path,
+            &self.font_path.as_ref().unwrap(),
             use_variant,
             use_color,
             use_size,

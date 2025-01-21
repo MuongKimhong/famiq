@@ -1,6 +1,6 @@
 pub mod helper;
 
-use crate::utils::{entity_add_child, strip_assets_prefix};
+use crate::utils::entity_add_child;
 use crate::widgets::{DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId};
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::ecs::system::EntityCommands;
@@ -68,7 +68,7 @@ impl<'a> FaFpsText {
     ) -> Entity {
         let label_txt = Text::new("FPS:");
         let label_txt_font = TextFont {
-            font: asset_server.load(strip_assets_prefix(font_path).unwrap()),
+            font: asset_server.load(font_path),
             font_size: DEFAULT_FPS_TEXT_SIZE,
             ..default()
         };

@@ -3,7 +3,10 @@ pub mod helper;
 use helper::*;
 use crate::utils;
 use crate::widgets::color::WHITE_COLOR;
-use crate::widgets::{DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetClasses, WidgetType, FamiqWidgetBuilderResource};
+use crate::widgets::{
+    DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId,
+    FamiqWidgetClasses, WidgetType, FamiqWidgetBuilderResource
+};
 use crate::event_writer::FaInteractionEvent;
 
 use bevy::input::keyboard::{Key, KeyboardInput};
@@ -117,7 +120,7 @@ impl<'a> FaTextInput {
     ) -> Entity {
         let txt = Text::new(placeholder);
         let txt_font = TextFont {
-            font: asset_server.load(utils::strip_assets_prefix(font_path).unwrap()),
+            font: asset_server.load(font_path),
             font_size: get_text_size(size),
             ..default()
         };

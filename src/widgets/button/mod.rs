@@ -68,7 +68,7 @@ impl<'a> FaButton {
     ) -> Entity {
         let txt = Text::new(text);
         let txt_font = TextFont {
-            font: asset_server.load(utils::strip_assets_prefix(font_path).unwrap()),
+            font: asset_server.load(font_path),
             font_size: get_text_size(size),
             ..default()
         };
