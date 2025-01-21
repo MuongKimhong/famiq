@@ -1,5 +1,7 @@
 use bevy::ecs::system::EntityCommands;
+use bevy::asset::{io::AssetSourceId, AssetPath};
 use bevy::prelude::*;
+use std::path::Path;
 use std::fs::File;
 use std::io::Read;
 
@@ -125,4 +127,12 @@ pub fn darken_color(percentage: f32, color: &Color) -> Option<Color> {
         return Some(Color::Hsla(value));
     }
     None
+}
+
+pub fn get_embedded_asset_path(file_path: &str) -> AssetPath {
+    // path: relative to embedded_assets dir
+
+    let path = Path::new("famiq").join(file_path);
+    let source = AssetSourceId::from("embedded");
+    AssetPath::from_path(&path).with_source(source).into_owned()
 }
