@@ -105,34 +105,38 @@ fn fa_container_systems(app: &mut App) {
     app.add_systems(Update, FaContainer::handle_container_on_interaction_system);
 }
 
-pub fn famiq_plugin(app: &mut App) {
-    app.add_plugins(FrameTimeDiagnosticsPlugin::default());
-    app.insert_resource(Time::<Fixed>::from_seconds(0.30));
-    app.insert_resource(StylesKeyValueResource(StylesKeyValue::new()));
-    app.insert_resource(CanBeScrolledListView { entity: None });
-    app.insert_resource(SelectedChoicesResource {
-        choices: HashMap::new(),
-    });
-    app.insert_resource(FaTextInputResource {
-        inputs: HashMap::new(),
-    });
-    app.insert_resource(FaTextInputCursorBlinkTimer {
-        timer: Timer::from_seconds(0.5, TimerMode::Repeating),
-        is_transparent: false
-    });
-    app.insert_resource(FamiqWidgetBuilderResource::default());
+pub struct FamiqPlugin;
 
-    app.add_event::<event_writer::FaInteractionEvent>();
+impl Plugin for FamiqPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_plugins(FrameTimeDiagnosticsPlugin::default());
+        app.insert_resource(Time::<Fixed>::from_seconds(0.30));
+        app.insert_resource(StylesKeyValueResource(StylesKeyValue::new()));
+        app.insert_resource(CanBeScrolledListView { entity: None });
+        app.insert_resource(SelectedChoicesResource {
+            choices: HashMap::new(),
+        });
+        app.insert_resource(FaTextInputResource {
+            inputs: HashMap::new(),
+        });
+        app.insert_resource(FaTextInputCursorBlinkTimer {
+            timer: Timer::from_seconds(0.5, TimerMode::Repeating),
+            is_transparent: false
+        });
+        app.insert_resource(FamiqWidgetBuilderResource::default());
 
-    external_styles_file_systems(app);
-    fa_button_systems(app);
-    fa_text_systems(app);
-    fa_selection_systems(app);
-    fa_listview_systems(app);
-    fa_text_input_systems(app);
-    fa_fps_text_systems(app);
-    fa_circular_systems(app);
-    fa_modal_systems(app);
-    fa_image_systems(app);
-    fa_container_systems(app);
+        app.add_event::<event_writer::FaInteractionEvent>();
+
+        external_styles_file_systems(app);
+        fa_button_systems(app);
+        fa_text_systems(app);
+        fa_selection_systems(app);
+        fa_listview_systems(app);
+        fa_text_input_systems(app);
+        fa_fps_text_systems(app);
+        fa_circular_systems(app);
+        fa_modal_systems(app);
+        fa_image_systems(app);
+        fa_container_systems(app);
+    }
 }

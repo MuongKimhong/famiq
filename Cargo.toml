@@ -1,10 +1,10 @@
 [package]
 name = "famiq"
-version = "0.2.3"
+version = "0.2.4"
 edition = "2021"
 
 [dependencies]
-bevy = {version="0.15.0", features=["jpeg", "png"]}
+bevy = {version="0.15.1", features=["jpeg", "png"]}
 serde = "1.0.215"
 serde_json = "1.0.133"
 smol_str = "0.2.2"
