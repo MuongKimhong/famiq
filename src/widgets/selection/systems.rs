@@ -1,6 +1,6 @@
 use crate::widgets::selection::*;
 use crate::widgets::color::*;
-use crate::widgets::{WidgetType, FamiqWidgetBuilderResource};
+use crate::widgets::{WidgetType, FamiqWidgetResource};
 use crate::event_writer::FaInteractionEvent;
 use crate::utils;
 use bevy::prelude::*;
@@ -8,7 +8,7 @@ use bevy::prelude::*;
 pub fn update_selector_placeholder_color_system(
     selection_q: Query<(Entity, &BackgroundColor, &SelectorPlaceHolderEntity)>,
     mut text_q: Query<&mut TextColor>,
-    builder_res: Res<FamiqWidgetBuilderResource>
+    builder_res: Res<FamiqWidgetResource>
 ) {
     for (entity, bg_color, placeholder) in selection_q.iter() {
         if let Ok(mut text_color) = text_q.get_mut(placeholder.0) {
@@ -30,7 +30,7 @@ pub fn update_selector_placeholder_color_system(
 pub fn update_selector_arrow_icon_system(
     selection_q: Query<(Entity, &SelectorArrowIconEntity)>,
     mut text_q: Query<&mut Text>,
-    builder_res: Res<FamiqWidgetBuilderResource>
+    builder_res: Res<FamiqWidgetResource>
 ) {
     for (entity, arrow_icon_entity) in selection_q.iter() {
         if let Ok(mut text) = text_q.get_mut(arrow_icon_entity.0) {
@@ -46,7 +46,7 @@ pub fn update_selector_arrow_icon_system(
 pub fn update_selection_choices_panel_visibility_system(
     selection_q: Query<(Entity, &SelectionChoicesPanelEntity)>,
     mut visibility_q: Query<(&mut Visibility, &mut DefaultWidgetEntity, &IsFamiqSelectionChoicesPanel)>,
-    builder_res: Res<FamiqWidgetBuilderResource>
+    builder_res: Res<FamiqWidgetResource>
 ) {
     for (entity, choices_panel_entity) in selection_q.iter() {
         if let Ok((mut visibility, mut default_widget, _)) = visibility_q.get_mut(choices_panel_entity.0) {
@@ -83,7 +83,7 @@ pub fn update_choices_panel_position_and_width_system(
         Without<SelectionChoicesPanelEntity>
     >,
     label_q: Query<(&Node, &IsFamiqSelectionLabel), Without<IsFamiqSelectionChoicesPanel>>,
-    builder_res: Res<FamiqWidgetBuilderResource>
+    builder_res: Res<FamiqWidgetResource>
 ) {
     for (entity, selector_node, computed_node, panel_entity, label_entity) in selection_q.iter() {
         match builder_res.get_widget_focus_state(&entity) {
@@ -124,7 +124,7 @@ pub fn update_choices_panel_position_and_width_system(
 pub fn handle_selection_interaction_system(
     mut events: EventReader<FaInteractionEvent>,
     mut selector_q: Query<(&mut BoxShadow, &FamiqWidgetId, &DefaultWidgetEntity), With<Selection>>,
-    mut builder_res: ResMut<FamiqWidgetBuilderResource>,
+    mut builder_res: ResMut<FamiqWidgetResource>,
     mut selected_choices_res: ResMut<SelectedChoicesResource>,
 ) {
     for e in events.read() {
@@ -161,7 +161,7 @@ pub fn handle_selection_choice_interaction_system(
     mut selection_q: Query<(Entity, &Selection, &FamiqWidgetId, &mut SelectorPlaceHolderEntity)>,
     mut selected_choices_res: ResMut<SelectedChoicesResource>,
     mut text_q: Query<&mut Text>,
-    mut builder_res: ResMut<FamiqWidgetBuilderResource>
+    mut builder_res: ResMut<FamiqWidgetResource>
 ) {
     for e in events.read() {
         if e.widget == WidgetType::SelectionChoice {

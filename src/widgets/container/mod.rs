@@ -5,7 +5,10 @@ use bevy::prelude::*;
 
 use crate::utils;
 use crate::event_writer::FaInteractionEvent;
-use crate::widgets::{DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetClasses, FamiqWidgetBuilderResource, WidgetType};
+use crate::widgets::{
+    DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetClasses,
+    FamiqWidgetResource, WidgetType
+};
 use helper::default_container_node;
 
 #[derive(Component)]
@@ -54,7 +57,7 @@ impl<'a> FaContainer {
 
     pub fn handle_container_on_interaction_system(
         mut events: EventReader<FaInteractionEvent>,
-        mut builder_res: ResMut<FamiqWidgetBuilderResource>
+        mut builder_res: ResMut<FamiqWidgetResource>
     ) {
         for e in events.read() {
             if e.widget == WidgetType::Container && e.interaction == Interaction::Pressed {

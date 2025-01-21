@@ -7,7 +7,7 @@ pub mod widgets;
 pub mod prelude {
     pub use crate::plugin::FamiqPlugin;
     pub use crate::widgets::{
-        FamiqWidgetBuilder, FamiqWidgetBuilderResource, WidgetType, FamiqWidgetId,
+        FamiqWidgetBuilder, FamiqWidgetResource, WidgetType, FamiqWidgetId,
         DefaultTextEntity, DefaultWidgetEntity
     };
     pub use crate::widgets::button::{IsFamiqButton, IsFamiqButtonText};

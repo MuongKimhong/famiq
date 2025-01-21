@@ -119,7 +119,7 @@ impl DefaultTextEntity {
 }
 
 #[derive(Resource)]
-pub struct FamiqWidgetBuilderResource {
+pub struct FamiqWidgetResource {
     // font path relative to project root
     pub font_path: String,
 
@@ -134,7 +134,7 @@ pub struct FamiqWidgetBuilderResource {
     pub external_style_applied: bool
 }
 
-impl FamiqWidgetBuilderResource {
+impl FamiqWidgetResource {
     pub fn update_or_insert_focus_state(&mut self, entity: Entity, state: bool) {
         if let Some(old_value) = self.widget_focus_state.get_mut(&entity) {
             *old_value = state;
@@ -157,7 +157,7 @@ impl FamiqWidgetBuilderResource {
     }
 }
 
-impl Default for FamiqWidgetBuilderResource {
+impl Default for FamiqWidgetResource {
     fn default() -> Self {
         Self {
             font_path: String::new(),
@@ -236,7 +236,7 @@ pub struct FamiqWidgetBuilder<'a> {
 }
 
 impl<'a> FamiqWidgetBuilder<'a> {
-    fn _reset_builder_resource(builder_resource: &mut ResMut<FamiqWidgetBuilderResource>) {
+    fn _reset_builder_resource(builder_resource: &mut ResMut<FamiqWidgetResource>) {
         builder_resource.font_path = get_embedded_asset_path("embedded_assets/fonts/fira-mono-regular.ttf").to_string();
         builder_resource.style_path = "assets/styles.json".to_string();
         builder_resource.hot_reload_styles = true;
@@ -245,7 +245,7 @@ impl<'a> FamiqWidgetBuilder<'a> {
 
     pub fn new(
         commands: &'a mut Commands,
-        builder_resource: &mut ResMut<FamiqWidgetBuilderResource>,
+        builder_resource: &mut ResMut<FamiqWidgetResource>,
         asset_server: &'a ResMut<'a, AssetServer>,
     ) -> Self {
         Self::_reset_builder_resource(builder_resource);
@@ -259,7 +259,7 @@ impl<'a> FamiqWidgetBuilder<'a> {
 
     pub fn use_font_path(
         mut self,
-        builder_resource: &mut ResMut<FamiqWidgetBuilderResource>,
+        builder_resource: &mut ResMut<FamiqWidgetResource>,
         font_path: &str
     ) -> Self {
         self.font_path = Some(font_path.to_string());
@@ -269,7 +269,7 @@ impl<'a> FamiqWidgetBuilder<'a> {
 
     pub fn use_style_path(
         mut self,
-        builder_resource: &mut ResMut<FamiqWidgetBuilderResource>,
+        builder_resource: &mut ResMut<FamiqWidgetResource>,
         style_path: &str
     ) -> Self {
         self.style_path = Some(style_path.to_string());
@@ -279,7 +279,7 @@ impl<'a> FamiqWidgetBuilder<'a> {
 
     pub fn disable_hot_reload(
         self,
-        builder_resource: &mut ResMut<FamiqWidgetBuilderResource>
+        builder_resource: &mut ResMut<FamiqWidgetResource>
     ) -> Self {
         builder_resource.hot_reload_styles = false;
         self

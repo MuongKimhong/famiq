@@ -129,7 +129,7 @@ impl Plugin for FamiqPlugin {
             timer: Timer::from_seconds(0.5, TimerMode::Repeating),
             is_transparent: false
         });
-        app.insert_resource(FamiqWidgetBuilderResource::default());
+        app.insert_resource(FamiqWidgetResource::default());
 
         app.add_event::<event_writer::FaInteractionEvent>();
 

@@ -5,7 +5,7 @@ use crate::utils;
 use crate::widgets::color::WHITE_COLOR;
 use crate::widgets::{
     DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId,
-    FamiqWidgetClasses, WidgetType, FamiqWidgetBuilderResource
+    FamiqWidgetClasses, WidgetType, FamiqWidgetResource
 };
 use crate::event_writer::FaInteractionEvent;
 
@@ -287,7 +287,7 @@ impl<'a> FaTextInput {
             Without<CharacterSize>
         >,
         mut text_q: Query<(&Text, &mut TextColor, &TextLayoutInfo), With<IsFamiqTextInputPlaceholder>>,
-        builder_res: Res<FamiqWidgetBuilderResource>
+        builder_res: Res<FamiqWidgetResource>
     ) {
         for (input_entity, text_input_node, bg_color, cursor_entity, placeholder_entity, mut char_size) in input_q.iter_mut() {
             if let Ok((mut cursor_node, mut visibility, _)) = cursor_q.get_mut(cursor_entity.0) {
@@ -324,7 +324,7 @@ impl<'a> FaTextInput {
             (&mut BoxShadow, &FamiqWidgetId, &DefaultWidgetEntity),
             With<TextInput>
         >,
-        mut builder_res: ResMut<FamiqWidgetBuilderResource>,
+        mut builder_res: ResMut<FamiqWidgetResource>,
         mut input_resource: ResMut<FaTextInputResource>,
     ) {
         for e in events.read() {
@@ -361,7 +361,7 @@ impl<'a> FaTextInput {
         )>,
         mut text_q: Query<(&mut Text, &IsFamiqTextInputPlaceholder)>,
         mut cursor_q: Query<(&mut Node, &mut Visibility, &IsFamiqTextInputCursor)>,
-        builder_res: Res<FamiqWidgetBuilderResource>
+        builder_res: Res<FamiqWidgetResource>
     ) {
         for e in evr_kbd.read() {
             if e.state == ButtonState::Released {
@@ -436,7 +436,7 @@ impl<'a> FaTextInput {
         input_q: Query<(Entity, &FamiqTextInputCursorEntity, &BackgroundColor)>,
         mut cursor_q: Query<(&mut BackgroundColor, &IsFamiqTextInputCursor), Without<FamiqTextInputCursorEntity>>,
         mut cursor_blink_timer: ResMut<FaTextInputCursorBlinkTimer>,
-        builder_res: Res<FamiqWidgetBuilderResource>
+        builder_res: Res<FamiqWidgetResource>
     ) {
         for (entity, cursor_entity, input_bg_color) in input_q.iter() {
             match builder_res.get_widget_focus_state(&entity) {

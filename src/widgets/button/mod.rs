@@ -4,7 +4,7 @@ use crate::utils;
 use crate::widgets::{
     DefaultTextEntity, DefaultWidgetEntity,
     FamiqWidgetId, FamiqWidgetClasses,
-    FamiqWidgetBuilderResource
+    FamiqWidgetResource
 };
 use crate::event_writer::FaInteractionEvent;
 use bevy::ecs::system::EntityCommands;
@@ -147,7 +147,7 @@ impl<'a> FaButton {
     pub fn handle_button_on_interaction_system(
         mut events: EventReader<FaInteractionEvent>,
         mut button_q: Query<(&IsFamiqButton, &DefaultWidgetEntity, &mut BackgroundColor, &mut BorderColor)>,
-        mut builder_res: ResMut<FamiqWidgetBuilderResource>
+        mut builder_res: ResMut<FamiqWidgetResource>
     ) {
         for e in events.read() {
             if let Ok((_, default_style, mut bg_color, mut bd_color)) = button_q.get_mut(e.entity) {
