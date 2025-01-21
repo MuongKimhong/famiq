@@ -77,13 +77,13 @@ pub fn entity_add_children<'a>(
 // include assets/ prefix.
 //
 // if user provide assets/ prefix, remove it
-pub fn strip_assets_prefix(path: &String) -> Option<String> {
-    if let Some(normalized) = path.strip_prefix("assets/") {
-        Some(normalized.to_string())
-    } else {
-        None
-    }
-}
+// pub fn strip_assets_prefix(path: &String) -> Option<String> {
+//     if let Some(normalized) = path.strip_prefix("assets/") {
+//         Some(normalized.to_string())
+//     } else {
+//         None
+//     }
+// }
 
 pub fn lighten_color(percentage: f32, color: &Color) -> Option<Color> {
     let multiplier = percentage / 100.0;
