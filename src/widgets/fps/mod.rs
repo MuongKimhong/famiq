@@ -41,7 +41,7 @@ impl<'a> FaFpsText {
             node.right = Val::Px(6.0);
         }
 
-        root_node
+        let entity = root_node
             .commands()
             .spawn((
                 node.clone(),
@@ -63,7 +63,10 @@ impl<'a> FaFpsText {
                 Interaction::default(),
                 GlobalZIndex(6)
             ))
-            .id()
+            .id();
+
+        root_node.add_child(entity);
+        entity
     }
 
     fn _build_text(

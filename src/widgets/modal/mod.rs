@@ -88,6 +88,7 @@ impl<'a> FaModal {
         if let Some(class) = class {
             root_node.commands().entity(entity).insert(FamiqWidgetClasses(class));
         }
+        root_node.add_child(entity);
         entity
     }
 

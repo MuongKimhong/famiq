@@ -152,6 +152,7 @@ impl<'a> FaListView {
         let listview = Self::_build_listview(id, class, root_node, move_panel);
 
         utils::entity_add_child(root_node, move_panel, listview);
+        root_node.add_child(listview);
         listview
     }
 
