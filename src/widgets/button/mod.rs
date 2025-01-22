@@ -4,7 +4,7 @@ use crate::utils;
 use crate::widgets::{
     DefaultTextEntity, DefaultWidgetEntity,
     FamiqWidgetId, FamiqWidgetClasses,
-    FamiqWidgetResource
+    FamiqWidgetResource, FamiqWidgetBuilder
 };
 use crate::event_writer::FaInteractionEvent;
 use bevy::ecs::system::EntityCommands;
@@ -61,14 +61,13 @@ impl<'a> FaButton {
         id: &str,
         text: &str,
         root_node: &'a mut EntityCommands,
-        asset_server: &'a ResMut<'a, AssetServer>,
-        font_path: &String,
+        font_handle: Handle<Font>,
         color: &BtnColor,
         size: &BtnSize,
     ) -> Entity {
         let txt = Text::new(text);
         let txt_font = TextFont {
-            font: asset_server.load(font_path),
+            font: font_handle,
             font_size: get_text_size(size),
             ..default()
         };
@@ -92,16 +91,15 @@ impl<'a> FaButton {
 
     pub fn new(
         id: &str,
-        classes: &str,
+        class: Option<String>,
         text: &str,
         root_node: &'a mut EntityCommands,
-        asset_server: &'a ResMut<'a, AssetServer>,
-        font_path: &String,
+        font_handle: Handle<Font>,
         color: BtnColor,
         size: BtnSize,
         shape: BtnShape
     ) -> Entity {
-        let txt_entity = Self::_build_text(id, text, root_node, asset_server, font_path, &color, &size);
+        let txt_entity = Self::_build_text(&id, text, root_node, font_handle, &color, &size);
 
         let node = default_button_node();
         let border_color = get_button_border_color(&color);
@@ -124,9 +122,8 @@ impl<'a> FaButton {
                 border_radius.clone(),
                 z_index.clone(),
                 visibility.clone(),
-                FamiqWidgetId(id.to_string()),
-                FamiqWidgetClasses(classes.to_string()),
                 IsFamiqButton,
+                FamiqWidgetId(id.to_string()),
                 DefaultWidgetEntity::new(
                     node,
                     border_color,
@@ -140,6 +137,9 @@ impl<'a> FaButton {
             ))
             .id();
 
+        if let Some(class) = class {
+            root_node.commands().entity(btn_entity).insert(FamiqWidgetClasses(class));
+        }
         utils::entity_add_child(root_node, txt_entity, btn_entity);
         btn_entity
     }
@@ -172,4 +172,97 @@ impl<'a> FaButton {
             }
         }
     }
+}
+
+pub struct FaButtonBuilder<'a> {
+    pub id: String,
+    pub class: Option<String>,
+    pub text: String,
+    pub font_handle: Handle<Font>,
+    pub root_node: EntityCommands<'a>,
+}
+
+impl<'a> FaButtonBuilder<'a> {
+    pub fn new(
+        id: String,
+        text: String,
+        font_handle: Handle<Font>,
+        root_node: EntityCommands<'a>,
+    ) -> Self {
+        Self {
+            id,
+            class: None,
+            text,
+            font_handle,
+            root_node,
+        }
+    }
+
+    fn _process_built_in_classes(&self) -> (BtnColor, BtnSize, BtnShape) {
+        let mut use_color = BtnColor::Default;
+        let mut use_size = BtnSize::Normal;
+        let mut use_shape = BtnShape::Default;
+
+        if let Some(class) = self.class.as_ref() {
+            let class_split: Vec<&str> = class.split_whitespace().collect();
+
+            for class_name in class_split {
+                match class_name {
+                    // Check for colors
+                    "is-primary" => use_color = BtnColor::Primary,
+                    "is-primary-dark" => use_color = BtnColor::PrimaryDark,
+                    "is-secondary" => use_color = BtnColor::Secondary,
+                    "is-danger" => use_color = BtnColor::Danger,
+                    "is-danger-dark" => use_color = BtnColor::DangerDark,
+                    "is-success" => use_color = BtnColor::Success,
+                    "is-success-dark" => use_color = BtnColor::SuccessDark,
+                    "is-warning" => use_color = BtnColor::Warning,
+                    "is-warning-dark" => use_color = BtnColor::WarningDark,
+                    "is-info" => use_color = BtnColor::Info,
+                    "is-info-dark" => use_color = BtnColor::InfoDark,
+
+                    // Check for sizes
+                    "is-small" => use_size = BtnSize::Small,
+                    "is-large" => use_size = BtnSize::Large,
+                    "is-normal" => use_size = BtnSize::Normal,
+
+                    // check for shapes
+                    "is-round" => use_shape = BtnShape::Round,
+                    "is-rectangle" => use_shape = BtnShape::Rectangle,
+
+                        _ => (),
+                }
+            }
+        }
+        (use_color, use_size, use_shape)
+    }
+
+    pub fn class(mut self, class: &str) -> Self {
+        self.class = Some(class.to_string());
+        self
+    }
+
+    pub fn build(&mut self) -> Entity {
+        let (color, size, shape) = self._process_built_in_classes();
+        FaButton::new(
+            self.id.as_str(),
+            self.class.clone(),
+            self.text.as_str(),
+            &mut self.root_node,
+            self.font_handle.clone(),
+            color,
+            size,
+            shape
+        )
+    }
+}
+
+pub fn fa_button<'a>(builder: &'a mut FamiqWidgetBuilder, id: &str, text: &str) -> FaButtonBuilder<'a> {
+    let font_handle = builder.asset_server.load(builder.font_path.as_ref().unwrap());
+    FaButtonBuilder::new(
+        id.to_string(),
+        text.to_string(),
+        font_handle,
+        builder.ui_root_node.reborrow(),
+    )
 }

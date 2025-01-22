@@ -12,9 +12,10 @@ pub mod circular;
 pub mod modal;
 pub mod image;
 
+pub use button::fa_button;
+
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
-use button::{BtnSize, BtnColor, BtnShape, FaButton};
 use circular::{CircularColor, CircularSize, FaCircular};
 use fps::FaFpsText;
 use image::FaImage;
@@ -239,7 +240,7 @@ impl<'a> FamiqWidgetBuilder<'a> {
     fn _reset_builder_resource(builder_resource: &mut ResMut<FamiqWidgetResource>) {
         builder_resource.font_path = get_embedded_asset_path("embedded_assets/fonts/fira-mono-regular.ttf").to_string();
         builder_resource.style_path = "assets/styles.json".to_string();
-        builder_resource.hot_reload_styles = true;
+        builder_resource.hot_reload_styles = false;
         builder_resource.external_style_applied = false;
     }
 
@@ -272,16 +273,23 @@ impl<'a> FamiqWidgetBuilder<'a> {
         builder_resource: &mut ResMut<FamiqWidgetResource>,
         style_path: &str
     ) -> Self {
-        self.style_path = Some(style_path.to_string());
-        builder_resource.style_path = style_path.to_string();
+        let final_path = if style_path.starts_with("assets/") {
+            style_path.to_string()
+        } else {
+            format!("assets/{}", style_path)
+        };
+        self.style_path = Some(final_path.clone());
+        builder_resource.style_path = final_path;
         self
     }
 
-    pub fn disable_hot_reload(
-        self,
-        builder_resource: &mut ResMut<FamiqWidgetResource>
-    ) -> Self {
+    pub fn disable_hot_reload(self, builder_resource: &mut ResMut<FamiqWidgetResource>) -> Self {
         builder_resource.hot_reload_styles = false;
+        self
+    }
+
+    pub fn enable_hot_reload(self, builder_resource: &mut ResMut<FamiqWidgetResource>) -> Self {
+        builder_resource.hot_reload_styles = true;
         self
     }
 
@@ -325,54 +333,6 @@ impl<'a> FamiqWidgetBuilder<'a> {
         children: &Vec<Entity>,
     ) -> Entity {
         container::FaContainer::new(id, classes, &mut self.ui_root_node, children)
-    }
-
-    pub fn fa_button(&mut self, id: &str, classes: &str, text: &str) -> Entity {
-        let class_split: Vec<&str> = classes.split_whitespace().collect();
-
-        let mut use_color = BtnColor::Default;
-        let mut use_size = BtnSize::Normal;
-        let mut use_shape = BtnShape::Default;
-
-        for class_name in class_split {
-            match class_name {
-                // Check for colors
-                "is-primary" => use_color = BtnColor::Primary,
-                "is-primary-dark" => use_color = BtnColor::PrimaryDark,
-                "is-secondary" => use_color = BtnColor::Secondary,
-                "is-danger" => use_color = BtnColor::Danger,
-                "is-danger-dark" => use_color = BtnColor::DangerDark,
-                "is-success" => use_color = BtnColor::Success,
-                "is-success-dark" => use_color = BtnColor::SuccessDark,
-                "is-warning" => use_color = BtnColor::Warning,
-                "is-warning-dark" => use_color = BtnColor::WarningDark,
-                "is-info" => use_color = BtnColor::Info,
-                "is-info-dark" => use_color = BtnColor::InfoDark,
-
-                // Check for sizes
-                "is-small" => use_size = BtnSize::Small,
-                "is-large" => use_size = BtnSize::Large,
-                "is-normal" => use_size = BtnSize::Normal,
-
-                // check for shapes
-                "is-round" => use_shape = BtnShape::Round,
-                "is-rectangle" => use_shape = BtnShape::Rectangle,
-
-                 _ => (),
-            }
-        }
-
-        FaButton::new(
-            id,
-            classes,
-            text,
-            &mut self.ui_root_node,
-            self.asset_server,
-            &self.font_path.as_ref().unwrap(),
-            use_color,
-            use_size,
-            use_shape
-        )
     }
 
     pub fn fa_text(&mut self, id: &str, classes: &str, value: &str) -> Entity {
