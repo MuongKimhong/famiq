@@ -11,6 +11,7 @@ pub mod text_input;
 pub mod circular;
 pub mod modal;
 pub mod image;
+pub mod bg_image;
 
 pub use button::fa_button;
 pub use circular::fa_circular;
@@ -22,6 +23,7 @@ pub use modal::fa_modal;
 pub use text::fa_text;
 pub use text_input::fa_text_input;
 pub use selection::fa_selection;
+pub use bg_image::fa_bg_image;
 
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
@@ -35,17 +37,18 @@ pub type StylesKeyValue = Vec<StyleKeyValue>;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum WidgetType {
+    Root, // globalzindex 1
     Button,
     Container,
     Text,
-    FpsText,
+    FpsText, // globalzindex 6
     TextInput,
     ListView,
     ListViewItem,
     Selection,
-    SelectionChoice,
+    SelectionChoice, // choicepanel globalzindex 2
     Circular,
-    Modal,
+    Modal, // globalzindex 5
     Image
 }
 
