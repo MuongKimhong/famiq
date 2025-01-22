@@ -17,7 +17,8 @@ pub mod prelude {
         fa_listview,
         fa_modal,
         fa_text,
-        fa_text_input
+        fa_text_input,
+        fa_selection
     };
     pub use crate::widgets::modal::{IsFamiqModalContainer, IsFamiqModalBackground, FaModalState};
     pub use crate::widgets::text_input::{IsFamiqTextInput, FaTextInputResource};

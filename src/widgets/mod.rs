@@ -21,10 +21,10 @@ pub use list_view::fa_listview;
 pub use modal::fa_modal;
 pub use text::fa_text;
 pub use text_input::fa_text_input;
+pub use selection::fa_selection;
 
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
-use selection::{SelectionSize, SelectorVariant, SelectorShape, SelectorColor, FaSelection};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use crate::utils::get_embedded_asset_path;
@@ -327,57 +327,5 @@ impl<'a> FamiqWidgetBuilder<'a> {
     pub fn clean(&mut self) {
         let root_entity = self.get_entity();
         self.ui_root_node.commands().entity(root_entity).despawn_recursive();
-    }
-
-    pub fn fa_selection(
-        &mut self,
-        id: &str,
-        classes: &str,
-        placeholder: &str,
-        choices: &Vec<String>,
-    ) -> Entity {
-        let class_split: Vec<&str> = classes.split_whitespace().collect();
-
-        let mut use_variant = SelectorVariant::Default;
-        let mut use_size = SelectionSize::Normal;
-        let mut use_shape = SelectorShape::Default;
-        let mut use_color = SelectorColor::Default;
-
-        for class_name in class_split {
-            match class_name {
-                "is-underlined" => use_variant = SelectorVariant::Underlined,
-                "is-outlined" => use_variant = SelectorVariant::Outlined,
-
-                "is-small" => use_size = SelectionSize::Small,
-                "is-large" => use_size = SelectionSize::Large,
-
-                "is-round" => use_shape = SelectorShape::Round,
-                "is-rectangle" => use_shape = SelectorShape::Rectangle,
-
-                "is-primary" => use_color = SelectorColor::Primary,
-                "is-secondary" => use_color = SelectorColor::Secondary,
-                "is-danger" => use_color = SelectorColor::Danger,
-                "is-success" => use_color = SelectorColor::Success,
-                "is-warning" => use_color = SelectorColor::Warning,
-                "is-info" => use_color = SelectorColor::Info,
-
-                _ => ()
-            }
-        }
-
-        FaSelection::new(
-            id,
-            classes,
-            placeholder,
-            None,
-            &mut self.ui_root_node,
-            self.asset_server,
-            &self.font_path.as_ref().unwrap(),
-            use_variant,
-            use_color,
-            use_size,
-            use_shape,
-            choices,
-        )
     }
 }
