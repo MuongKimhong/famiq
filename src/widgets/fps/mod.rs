@@ -20,20 +20,26 @@ pub struct IsFamiqFPSTextCount;
 #[derive(Component)]
 pub struct IsFamiqFPSTextContainer;
 
+// whether fps change color. green > 100, orange < 100, red < 60
 #[derive(Component)]
-pub struct CanChangeColor(pub bool); // whether fps change color. green > 100, orange < 100, red < 60
+pub struct CanChangeColor(pub bool);
 
 pub struct FaFpsText;
 
 // Doesn't need container
 impl<'a> FaFpsText {
-    fn _build_container(id: &str, root_node: &'a mut EntityCommands) -> Entity {
-        let node = default_fps_text_container_node();
+    fn _build_container(id: &str, right_side: bool, root_node: &'a mut EntityCommands) -> Entity {
+        let mut node = default_fps_text_container_node();
         let border_color = BorderColor::default();
         let border_radius = BorderRadius::default();
         let bg_color = BackgroundColor::default();
-        let z_index = ZIndex(50);
+        let z_index = ZIndex::default();
         let visibility = Visibility::Visible;
+
+        if right_side {
+            node.left = Val::Auto;
+            node.right = Val::Px(6.0);
+        }
 
         root_node
             .commands()
@@ -54,7 +60,8 @@ impl<'a> FaFpsText {
                     z_index,
                     visibility,
                 ),
-                Interaction::default()
+                Interaction::default(),
+                GlobalZIndex(6)
             ))
             .id()
     }
@@ -115,9 +122,10 @@ impl<'a> FaFpsText {
         id: &str,
         root_node: &'a mut EntityCommands,
         font_handle: Handle<Font>,
-        change_color: bool
+        change_color: bool,
+        right_side: bool,
     ) -> Entity {
-        let container_entity = Self::_build_container(id, root_node);
+        let container_entity = Self::_build_container(id, right_side, root_node);
         let text_entity = Self::_build_text(id, root_node, font_handle, change_color);
 
         entity_add_child(root_node, text_entity, container_entity);
@@ -156,6 +164,7 @@ impl<'a> FaFpsText {
 pub struct FaFpsTextBuilder<'a> {
     pub id: String,
     pub change_color: Option<bool>,
+    pub right_side: Option<bool>,
     pub font_handle: Handle<Font>,
     pub root_node: EntityCommands<'a>
 }
@@ -166,12 +175,18 @@ impl<'a> FaFpsTextBuilder<'a> {
             id,
             root_node,
             font_handle,
-            change_color: Some(false)
+            change_color: Some(false),
+            right_side: Some(false)
         }
     }
 
-    pub fn can_change_color(mut self) -> Self {
+    pub fn change_color(mut self) -> Self {
         self.change_color = Some(true);
+        self
+    }
+
+    pub fn right_side(mut self) -> Self {
+        self.right_side = Some(true);
         self
     }
 
@@ -180,7 +195,8 @@ impl<'a> FaFpsTextBuilder<'a> {
             self.id.as_str(),
             &mut self.root_node,
             self.font_handle.clone(),
-            self.change_color.unwrap()
+            self.change_color.unwrap(),
+            self.right_side.unwrap()
         )
     }
 }
