@@ -81,7 +81,7 @@ impl<'a> FaCircular {
     }
 
     fn _build_outer_circle(
-        id: &str,
+        id: Option<String>,
         class: Option<String>,
         root_node: &'a mut EntityCommands,
         color: &CircularColor,
@@ -122,7 +122,6 @@ impl<'a> FaCircular {
                 bg_color.clone(),
                 z_index.clone(),
                 visibility.clone(),
-                FamiqWidgetId(id.to_string()),
                 DefaultWidgetEntity::new(
                     node,
                     border_color,
@@ -138,6 +137,9 @@ impl<'a> FaCircular {
             ))
             .id();
 
+        if let Some(id) = id {
+            root_node.commands().entity(outer_entity).insert(FamiqWidgetId(id.to_string()));
+        }
         if let Some(class) = class {
             root_node.commands().entity(outer_entity).insert(FamiqWidgetClasses(class));
         }
@@ -145,7 +147,7 @@ impl<'a> FaCircular {
     }
 
     pub fn new(
-        id: &str,
+        id: Option<String>,
         class: Option<String>,
         root_node: &'a mut EntityCommands,
         color: CircularColor,
@@ -197,16 +199,16 @@ impl<'a> FaCircular {
 }
 
 pub struct FaCircularBuilder<'a> {
-    pub id: String,
+    pub id: Option<String>,
     pub class: Option<String>,
     pub size: Option<f32>,
     pub root_node: EntityCommands<'a>
 }
 
 impl<'a> FaCircularBuilder<'a> {
-    pub fn new(id: String, root_node: EntityCommands<'a>) -> Self {
+    pub fn new(root_node: EntityCommands<'a>) -> Self {
         Self {
-            id,
+            id: None,
             class: None,
             size: None,
             root_node
@@ -260,11 +262,16 @@ impl<'a> FaCircularBuilder<'a> {
         self
     }
 
+    pub fn id(mut self, id: &str) -> Self {
+        self.id = Some(id.to_string());
+        self
+    }
+
     pub fn build(&mut self) -> Entity {
         let (color, size) = self._process_built_in_classes();
         let use_size = size.unwrap_or_else(|| self._process_custom_size() );
         FaCircular::new(
-            self.id.as_str(),
+            self.id.clone(),
             self.class.clone(),
             &mut self.root_node,
             color,
@@ -273,9 +280,6 @@ impl<'a> FaCircularBuilder<'a> {
     }
 }
 
-pub fn fa_circular<'a>(builder: &'a mut FamiqWidgetBuilder, id: &str) -> FaCircularBuilder<'a> {
-    FaCircularBuilder::new(
-        id.to_string(),
-        builder.ui_root_node.reborrow()
-    )
+pub fn fa_circular<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaCircularBuilder<'a> {
+    FaCircularBuilder::new(builder.ui_root_node.reborrow())
 }

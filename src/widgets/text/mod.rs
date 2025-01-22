@@ -11,7 +11,7 @@ pub struct FaText;
 
 impl<'a> FaText {
     pub fn new(
-        id: &str,
+        id: Option<String>,
         value: &str,
         class: Option<String>,
         root_node: &'a mut EntityCommands,
@@ -32,12 +32,14 @@ impl<'a> FaText {
                 txt_font.clone(),
                 txt_color.clone(),
                 txt_layout.clone(),
-                FamiqWidgetId(id.to_string()),
                 DefaultTextEntity::new(txt, txt_font, txt_color, txt_layout),
                 Interaction::default()
             ))
             .id();
 
+        if let Some(id) = id {
+            root_node.commands().entity(entity).insert(FamiqWidgetId(id));
+        }
         if let Some(class) = class {
             root_node.commands().entity(entity).insert(FamiqWidgetClasses(class));
         }
@@ -46,7 +48,7 @@ impl<'a> FaText {
 }
 
 pub struct FaTextBuilder<'a> {
-    pub id: String,
+    pub id: Option<String>,
     pub value: String,
     pub class: Option<String>,
     pub font_handle: Handle<Font>,
@@ -54,9 +56,9 @@ pub struct FaTextBuilder<'a> {
 }
 
 impl<'a> FaTextBuilder<'a> {
-    pub fn new(id: String, value: String, font_handle: Handle<Font>, root_node: EntityCommands<'a>) -> Self {
+    pub fn new(value: String, font_handle: Handle<Font>, root_node: EntityCommands<'a>) -> Self {
         Self {
-            id,
+            id: None,
             value,
             class: None,
             font_handle,
@@ -71,7 +73,7 @@ impl<'a> FaTextBuilder<'a> {
 
     pub fn build(&mut self) -> Entity {
         FaText::new(
-            self.id.as_str(),
+            self.id.clone(),
             self.value.as_str(),
             self.class.clone(),
             &mut self.root_node,
@@ -80,10 +82,9 @@ impl<'a> FaTextBuilder<'a> {
     }
 }
 
-pub fn fa_text<'a>(builder: &'a mut FamiqWidgetBuilder, id: &str, value: &str) -> FaTextBuilder<'a> {
+pub fn fa_text<'a>(builder: &'a mut FamiqWidgetBuilder, value: &str) -> FaTextBuilder<'a> {
     let font_handle = builder.asset_server.load(builder.font_path.as_ref().unwrap());
     FaTextBuilder::new(
-        id.to_string(),
         value.to_string(),
         font_handle,
         builder.ui_root_node.reborrow()

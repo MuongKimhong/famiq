@@ -25,7 +25,11 @@ pub struct FaModal;
 
 // Doesn't need container
 impl<'a> FaModal {
-    fn _build_modal_container(id: &str, root_node: &'a mut EntityCommands, items: &Vec<Entity>) -> Entity {
+    fn _build_modal_container(
+        id: &Option<String>,
+        root_node: &'a mut EntityCommands,
+        items: &Vec<Entity>
+    ) -> Entity {
         let node = default_modal_container_node();
         let border_color = BorderColor::default();
         let border_radius = BorderRadius::default();
@@ -42,7 +46,6 @@ impl<'a> FaModal {
                 bg_color.clone(),
                 z_index.clone(),
                 visibility.clone(),
-                FamiqWidgetId(format!("{id}_modal_container")),
                 DefaultWidgetEntity::new(
                     node,
                     border_color,
@@ -57,12 +60,16 @@ impl<'a> FaModal {
             ))
             .id();
 
+        if let Some(id) = id {
+            root_node.commands().entity(container_entity).insert(FamiqWidgetId(format!("{id}_modal_container")));
+        }
+
         utils::entity_add_children(root_node, items, container_entity);
         container_entity
     }
 
     fn _build_modal_background(
-        id: &str,
+        id: Option<String>,
         class: Option<String>,
         root_node: &'a mut EntityCommands,
         container_entity: Entity
@@ -79,12 +86,14 @@ impl<'a> FaModal {
                 Visibility::Hidden,
                 IsFamiqModalBackground,
                 FaModalState(false),
-                FamiqWidgetId(id.to_string()),
                 FocusPolicy::Block,
                 FaModalContainerEntity(container_entity)
             ))
             .id();
 
+        if let Some(id) = id {
+            root_node.commands().entity(entity).insert(FamiqWidgetId(id));
+        }
         if let Some(class) = class {
             root_node.commands().entity(entity).insert(FamiqWidgetClasses(class));
         }
@@ -93,12 +102,12 @@ impl<'a> FaModal {
     }
 
     pub fn new(
-        id: &str,
+        id: Option<String>,
         class: Option<String>,
         items: &Vec<Entity>,
         root_node: &'a mut EntityCommands
     ) -> Entity {
-        let container = Self::_build_modal_container(id, root_node, items);
+        let container = Self::_build_modal_container(&id, root_node, items);
         let background = Self::_build_modal_background(id, class, root_node, container);
 
         utils::entity_add_child(root_node, container, background);
@@ -129,16 +138,16 @@ impl<'a> FaModal {
 }
 
 pub struct FaModalBuilder<'a> {
-    pub id: String,
+    pub id: Option<String>,
     pub class: Option<String>,
     pub children: Option<Vec<Entity>>,
     pub root_node: EntityCommands<'a>
 }
 
 impl<'a> FaModalBuilder<'a> {
-    pub fn new(id: String, root_node: EntityCommands<'a>) -> Self {
+    pub fn new(root_node: EntityCommands<'a>) -> Self {
         Self {
-            id,
+            id: None,
             class: None,
             children: Some(Vec::new()),
             root_node
@@ -150,6 +159,11 @@ impl<'a> FaModalBuilder<'a> {
         self
     }
 
+    pub fn id(mut self, id: &str) -> Self {
+        self.id = Some(id.to_string());
+        self
+    }
+
     pub fn children(mut self, children: Vec<Entity>) -> Self {
         self.children = Some(children);
         self
@@ -157,7 +171,7 @@ impl<'a> FaModalBuilder<'a> {
 
     pub fn build(&mut self) -> Entity {
         FaModal::new(
-            self.id.as_str(),
+            self.id.clone(),
             self.class.clone(),
             self.children.as_ref().unwrap(),
             &mut self.root_node
@@ -165,9 +179,6 @@ impl<'a> FaModalBuilder<'a> {
     }
 }
 
-pub fn fa_modal<'a>(builder: &'a mut FamiqWidgetBuilder, id: &str) -> FaModalBuilder<'a> {
-    FaModalBuilder::new(
-        id.to_string(),
-        builder.ui_root_node.reborrow()
-    )
+pub fn fa_modal<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaModalBuilder<'a> {
+    FaModalBuilder::new(builder.ui_root_node.reborrow())
 }

@@ -11,7 +11,7 @@ pub struct FaImage;
 
 impl<'a> FaImage {
     pub fn new(
-        id: &str,
+        id: Option<String>,
         class: Option<String>,
         width: Option<Val>,
         height: Option<Val>,
@@ -40,7 +40,6 @@ impl<'a> FaImage {
             z_index.clone(),
             visibility.clone(),
             IsFamiqImage,
-            FamiqWidgetId(id.to_string()),
             DefaultWidgetEntity::new(
                 node,
                 border_color,
@@ -52,6 +51,9 @@ impl<'a> FaImage {
             Interaction::default()
         )).id();
 
+        if let Some(id) = id {
+            root_node.commands().entity(image_entity).insert(FamiqWidgetId(id));
+        }
         if let Some(class) = class {
             root_node.commands().entity(image_entity).insert(FamiqWidgetClasses(class));
         }
@@ -60,7 +62,7 @@ impl<'a> FaImage {
 }
 
 pub struct FaImageBuilder<'a> {
-    pub id: String,
+    pub id: Option<String>,
     pub image_handle: Handle<Image>,
     pub class: Option<String>,
     pub width: Option<Val>,
@@ -69,13 +71,9 @@ pub struct FaImageBuilder<'a> {
 }
 
 impl<'a> FaImageBuilder<'a> {
-    pub fn new(
-        id: String,
-        image_handle: Handle<Image>,
-        root_node: EntityCommands<'a>
-    ) -> Self {
+    pub fn new(image_handle: Handle<Image>, root_node: EntityCommands<'a>) -> Self {
         Self {
-            id,
+            id: None,
             class: None,
             width: None,
             height: None,
@@ -89,6 +87,11 @@ impl<'a> FaImageBuilder<'a> {
         self
     }
 
+    pub fn id(mut self, id: &str) -> Self {
+        self.id = Some(id.to_string());
+        self
+    }
+
     pub fn size(mut self, width: Val, height: Val) -> Self {
         self.width = Some(width);
         self.height = Some(height);
@@ -97,7 +100,7 @@ impl<'a> FaImageBuilder<'a> {
 
     pub fn build(&mut self) -> Entity {
         FaImage::new(
-            self.id.as_str(),
+            self.id.clone(),
             self.class.clone(),
             self.width.clone(),
             self.height.clone(),
@@ -107,10 +110,9 @@ impl<'a> FaImageBuilder<'a> {
     }
 }
 
-pub fn fa_image<'a>(builder: &'a mut FamiqWidgetBuilder, id: &str, path: &str) -> FaImageBuilder<'a> {
+pub fn fa_image<'a>(builder: &'a mut FamiqWidgetBuilder, path: &str) -> FaImageBuilder<'a> {
     let image_handle = builder.asset_server.load(path);
     FaImageBuilder::new(
-        id.to_string(),
         image_handle,
         builder.ui_root_node.reborrow()
     )

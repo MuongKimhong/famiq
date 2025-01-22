@@ -7,10 +7,11 @@ use crate::widgets::{
     button::*,
     circular::*,
     modal::*,
-    container::*,
     *
 };
 
+use bevy::utils::Duration;
+use bevy::time::common_conditions::on_timer;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::prelude::*;
 use bevy::asset::embedded_asset;
@@ -25,7 +26,7 @@ fn external_styles_file_systems(app: &mut App) {
             style::apply_text_style_system,
             style::finish_style_applying_system,
         )
-            .chain(),
+            .chain()
     );
 }
 
@@ -86,8 +87,11 @@ fn fa_listview_systems(app: &mut App) {
 }
 
 fn fa_fps_text_systems(app: &mut App) {
-    // run system every 30 millisecond, Update Scedule is too fast
-    app.add_systems(FixedUpdate, FaFpsText::update_fps_count_system);
+    // update fps every 450 millisecond, default Update schedule is too fast
+    app.add_systems(
+        Update,
+        FaFpsText::update_fps_count_system.run_if(on_timer(Duration::from_millis(450)))
+    );
 }
 
 fn fa_circular_systems(app: &mut App) {
@@ -102,10 +106,6 @@ fn fa_image_systems(app: &mut App) {
     app.add_systems(Update, event_writer::image_interaction_system);
 }
 
-fn fa_container_systems(app: &mut App) {
-    app.add_systems(Update, FaContainer::handle_container_on_interaction_system);
-}
-
 pub struct FamiqPlugin;
 
 impl Plugin for FamiqPlugin {
@@ -116,7 +116,6 @@ impl Plugin for FamiqPlugin {
         embedded_asset!(app, "embedded_assets/fonts/fira-mono-bold.ttf");
 
         app.add_plugins(FrameTimeDiagnosticsPlugin::default());
-        app.insert_resource(Time::<Fixed>::from_seconds(0.30));
         app.insert_resource(StylesKeyValueResource(StylesKeyValue::new()));
         app.insert_resource(CanBeScrolledListView { entity: None });
         app.insert_resource(SelectedChoicesResource {
@@ -143,6 +142,5 @@ impl Plugin for FamiqPlugin {
         fa_circular_systems(app);
         fa_modal_systems(app);
         fa_image_systems(app);
-        fa_container_systems(app);
     }
 }

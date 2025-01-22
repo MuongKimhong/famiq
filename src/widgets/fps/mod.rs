@@ -28,7 +28,7 @@ pub struct FaFpsText;
 
 // Doesn't need container
 impl<'a> FaFpsText {
-    fn _build_container(id: &str, right_side: bool, root_node: &'a mut EntityCommands) -> Entity {
+    fn _build_container(id: &Option<String>, right_side: bool, root_node: &'a mut EntityCommands) -> Entity {
         let mut node = default_fps_text_container_node();
         let border_color = BorderColor::default();
         let border_radius = BorderRadius::default();
@@ -50,7 +50,6 @@ impl<'a> FaFpsText {
                 bg_color.clone(),
                 z_index.clone(),
                 visibility.clone(),
-                FamiqWidgetId(format!("{id}_fps_text_container")),
                 IsFamiqFPSTextContainer,
                 DefaultWidgetEntity::new(
                     node,
@@ -65,12 +64,15 @@ impl<'a> FaFpsText {
             ))
             .id();
 
+        if let Some(id) = id {
+            root_node.commands().entity(entity).insert(FamiqWidgetId(format!("{id}_fps_text_container")));
+        }
         root_node.add_child(entity);
         entity
     }
 
     fn _build_text(
-        id: &str,
+        id: Option<String>,
         root_node: &'a mut EntityCommands,
         font_handle: Handle<Font>,
         change_color: bool
@@ -95,7 +97,6 @@ impl<'a> FaFpsText {
                 label_txt_font.clone(),
                 label_txt_color.clone(),
                 label_txt_layout.clone(),
-                FamiqWidgetId(id.to_string()),
                 DefaultTextEntity::new(
                     label_txt,
                     label_txt_font,
@@ -105,6 +106,10 @@ impl<'a> FaFpsText {
                 IsFamiqFPSTextLabel,
             ))
             .id();
+
+        if let Some(id) = id {
+            root_node.commands().entity(label_txt_entity).insert(FamiqWidgetId(id));
+        }
 
         let count_txt_entity = root_node
             .commands()
@@ -122,13 +127,13 @@ impl<'a> FaFpsText {
     }
 
     pub fn new(
-        id: &str,
+        id: Option<String>,
         root_node: &'a mut EntityCommands,
         font_handle: Handle<Font>,
         change_color: bool,
         right_side: bool,
     ) -> Entity {
-        let container_entity = Self::_build_container(id, right_side, root_node);
+        let container_entity = Self::_build_container(&id, right_side, root_node);
         let text_entity = Self::_build_text(id, root_node, font_handle, change_color);
 
         entity_add_child(root_node, text_entity, container_entity);
@@ -165,7 +170,7 @@ impl<'a> FaFpsText {
 }
 
 pub struct FaFpsTextBuilder<'a> {
-    pub id: String,
+    pub id: Option<String>,
     pub change_color: Option<bool>,
     pub right_side: Option<bool>,
     pub font_handle: Handle<Font>,
@@ -173,9 +178,9 @@ pub struct FaFpsTextBuilder<'a> {
 }
 
 impl<'a> FaFpsTextBuilder<'a> {
-    pub fn new(id: String, font_handle: Handle<Font>, root_node: EntityCommands<'a>) -> Self {
+    pub fn new(font_handle: Handle<Font>, root_node: EntityCommands<'a>) -> Self {
         Self {
-            id,
+            id: None,
             root_node,
             font_handle,
             change_color: Some(false),
@@ -188,6 +193,11 @@ impl<'a> FaFpsTextBuilder<'a> {
         self
     }
 
+    pub fn id(mut self, id: &str) -> Self {
+        self.id = Some(id.to_string());
+        self
+    }
+
     pub fn right_side(mut self) -> Self {
         self.right_side = Some(true);
         self
@@ -195,7 +205,7 @@ impl<'a> FaFpsTextBuilder<'a> {
 
     pub fn build(&mut self) -> Entity {
         FaFpsText::new(
-            self.id.as_str(),
+            self.id.clone(),
             &mut self.root_node,
             self.font_handle.clone(),
             self.change_color.unwrap(),
@@ -204,10 +214,9 @@ impl<'a> FaFpsTextBuilder<'a> {
     }
 }
 
-pub fn fa_fps<'a>(builder: &'a mut FamiqWidgetBuilder, id: &str) -> FaFpsTextBuilder<'a> {
+pub fn fa_fps<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaFpsTextBuilder<'a> {
     let font_handle = builder.asset_server.load(builder.font_path.as_ref().unwrap());
     FaFpsTextBuilder::new(
-        id.to_string(),
         font_handle,
         builder.ui_root_node.reborrow()
     )

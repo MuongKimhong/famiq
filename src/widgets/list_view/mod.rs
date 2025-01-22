@@ -53,7 +53,7 @@ pub struct FaListView;
 // Doesn't need container
 impl<'a> FaListView {
     fn _build_move_panel(
-        id: &str,
+        id: &Option<String>,
         items: &Vec<Entity>,
         root_node: &'a mut EntityCommands,
     ) -> Entity {
@@ -73,7 +73,6 @@ impl<'a> FaListView {
                 border_radius.clone(),
                 z_index.clone(),
                 visibility.clone(),
-                FamiqWidgetId(format!("{id}_move_panel")),
                 IsFamiqListViewMovePanel,
                 DefaultWidgetEntity::new(
                     node,
@@ -86,6 +85,10 @@ impl<'a> FaListView {
                 ScrollList::default()
             ))
             .id();
+
+        if let Some(id) = id {
+            root_node.commands().entity(move_panel_entity).insert(FamiqWidgetId(format!("{id}_move_panel")));
+        }
 
         // insert IsFamiqListViewItem component into user provided items's entities
         for (_index, item_entity) in items.iter().enumerate() {
@@ -100,7 +103,7 @@ impl<'a> FaListView {
     }
 
     fn _build_listview(
-        id: &str,
+        id: Option<String>,
         class: Option<String>,
         root_node: &'a mut EntityCommands,
         panel_entity: Entity,
@@ -121,7 +124,6 @@ impl<'a> FaListView {
                 bg_color.clone(),
                 z_index.clone(),
                 visibility.clone(),
-                FamiqWidgetId(id.to_string()),
                 IsFamiqListView,
                 DefaultWidgetEntity::new(
                     node,
@@ -136,6 +138,9 @@ impl<'a> FaListView {
             ))
             .id();
 
+        if let Some(id) = id {
+            root_node.commands().entity(listview_entity).insert(FamiqWidgetId(id));
+        }
         if let Some(class) = class {
             root_node.commands().entity(listview_entity).insert(FamiqWidgetClasses(class));
         }
@@ -143,12 +148,12 @@ impl<'a> FaListView {
     }
 
     pub fn new(
-        id: &str,
+        id: Option<String>,
         class: Option<String>,
         root_node: &'a mut EntityCommands,
         items: &Vec<Entity>
     ) -> Entity {
-        let move_panel = Self::_build_move_panel(id, items, root_node);
+        let move_panel = Self::_build_move_panel(&id, items, root_node);
         let listview = Self::_build_listview(id, class, root_node, move_panel);
 
         utils::entity_add_child(root_node, move_panel, listview);
@@ -234,16 +239,16 @@ impl<'a> FaListView {
 }
 
 pub struct FaListViewBuilder<'a> {
-    pub id: String,
+    pub id: Option<String>,
     pub class: Option<String>,
     pub children: Option<Vec<Entity>>,
     pub root_node: EntityCommands<'a>
 }
 
 impl<'a> FaListViewBuilder<'a> {
-    pub fn new(id: String, root_node: EntityCommands<'a>) -> Self {
+    pub fn new(root_node: EntityCommands<'a>) -> Self {
         Self {
-            id,
+            id: None,
             class: None,
             children: Some(Vec::new()),
             root_node
@@ -255,6 +260,11 @@ impl<'a> FaListViewBuilder<'a> {
         self
     }
 
+    pub fn id(mut self, id: &str) -> Self {
+        self.id = Some(id.to_string());
+        self
+    }
+
     pub fn children(mut self, children: Vec<Entity>) -> Self {
         self.children = Some(children);
         self
@@ -262,7 +272,7 @@ impl<'a> FaListViewBuilder<'a> {
 
     pub fn build(&mut self) -> Entity {
         FaListView::new(
-            self.id.as_str(),
+            self.id.clone(),
             self.class.clone(),
             &mut self.root_node,
             self.children.as_ref().unwrap()
@@ -270,9 +280,6 @@ impl<'a> FaListViewBuilder<'a> {
     }
 }
 
-pub fn fa_listview<'a>(builder: &'a mut FamiqWidgetBuilder, id: &str) -> FaListViewBuilder<'a> {
-    FaListViewBuilder::new(
-        id.to_string(),
-        builder.ui_root_node.reborrow()
-    )
+pub fn fa_listview<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaListViewBuilder<'a> {
+    FaListViewBuilder::new(builder.ui_root_node.reborrow())
 }

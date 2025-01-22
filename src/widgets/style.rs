@@ -9,7 +9,7 @@ type WidgetStyleQuery<'a, 'w, 's> = Query<
     'w,
     's,
     (
-        &'a FamiqWidgetId,
+        Option<&'a FamiqWidgetId>,
         Option<&'a FamiqWidgetClasses>,
         &'a Interaction,
         &'a mut Node,
@@ -83,16 +83,18 @@ pub fn apply_widgets_styles_system(
                 }
             }
 
-            if let Some(widget_style) = styles.get_style_by_id(&widget_id.0) {
-                apply_styles_from_external_json(
-                    &mut bg_color,
-                    &mut border_color,
-                    &mut border_radius,
-                    &mut visibility,
-                    &mut z_index,
-                    &mut node,
-                    &widget_style,
-                );
+            if let Some(id) = widget_id {
+                if let Some(widget_style) = styles.get_style_by_id(&id.0) {
+                    apply_styles_from_external_json(
+                        &mut bg_color,
+                        &mut border_color,
+                        &mut border_radius,
+                        &mut visibility,
+                        &mut z_index,
+                        &mut node,
+                        &widget_style,
+                    );
+                }
             }
         }
     }
@@ -415,7 +417,7 @@ pub fn apply_text_style_system(
     mut text_q: Query<(
         &mut TextFont,
         &mut TextColor,
-        &FamiqWidgetId,
+        Option<&FamiqWidgetId>,
         Option<&FamiqWidgetClasses>,
         &DefaultTextEntity
     )>,
@@ -448,18 +450,20 @@ pub fn apply_text_style_system(
                 }
             }
 
-            if let Some(text_style) = styles.get_style_by_id(&widget_id.0) {
-                // font size
-                if let Some(font_size) = &text_style.font_size {
-                    if let Ok(parsed_value) = font_size.trim().parse::<f32>() {
-                        text_font.font_size = parsed_value;
+            if let Some(id) = widget_id {
+                if let Some(text_style) = styles.get_style_by_id(&id.0) {
+                    // font size
+                    if let Some(font_size) = &text_style.font_size {
+                        if let Ok(parsed_value) = font_size.trim().parse::<f32>() {
+                            text_font.font_size = parsed_value;
+                        }
                     }
-                }
 
-                // color
-                if let Some(color) = &text_style.color {
-                    if let Some(v) = parse_color(color) {
-                        text_color.0 = v;
+                    // color
+                    if let Some(color) = &text_style.color {
+                        if let Some(v) = parse_color(color) {
+                            text_color.0 = v;
+                        }
                     }
                 }
             }

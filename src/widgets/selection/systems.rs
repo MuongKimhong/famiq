@@ -123,7 +123,7 @@ pub fn update_choices_panel_position_and_width_system(
 
 pub fn handle_selection_interaction_system(
     mut events: EventReader<FaInteractionEvent>,
-    mut selector_q: Query<(&mut BoxShadow, &FamiqWidgetId, &DefaultWidgetEntity), With<Selection>>,
+    mut selector_q: Query<(&mut BoxShadow, Option<&FamiqWidgetId>, &DefaultWidgetEntity), With<Selection>>,
     mut builder_res: ResMut<FamiqWidgetResource>,
     mut selected_choices_res: ResMut<SelectedChoicesResource>,
 ) {
@@ -144,7 +144,10 @@ pub fn handle_selection_interaction_system(
 
                         builder_res.update_all_focus_states(false);
                         builder_res.update_or_insert_focus_state(e.entity, true);
-                        selected_choices_res.update_or_insert(id.0.clone(), "-/-".to_string());
+
+                        if let Some(id) = id {
+                            selected_choices_res.update_or_insert(id.0.clone(), "-/-".to_string());
+                        }
                     },
                     _ => {
                         box_shadow.color = Color::NONE;
@@ -157,13 +160,16 @@ pub fn handle_selection_interaction_system(
 
 pub fn handle_selection_choice_interaction_system(
     mut events: EventReader<FaInteractionEvent>,
-    mut selection_choice_q: Query<(
-        &mut DefaultWidgetEntity,
-        &mut BackgroundColor,
-        &SelectionChoiceTextEntity,
-        &IsFamiqSelectionChoice
-    )>,
-    mut selection_q: Query<(Entity, &Selection, &FamiqWidgetId, &mut SelectorPlaceHolderEntity)>,
+    mut selection_choice_q: Query<
+        (
+            &mut DefaultWidgetEntity,
+            &mut BackgroundColor,
+            &SelectionChoiceTextEntity,
+
+        ),
+        With<IsFamiqSelectionChoice>
+    >,
+    mut selection_q: Query<(Entity, &Selection, Option<&FamiqWidgetId>, &mut SelectorPlaceHolderEntity)>,
     mut selected_choices_res: ResMut<SelectedChoicesResource>,
     mut text_q: Query<&mut Text>,
     mut builder_res: ResMut<FamiqWidgetResource>
@@ -175,7 +181,7 @@ pub fn handle_selection_choice_interaction_system(
             for (selection_entity, selection, selection_id, placeholder_entity) in selection_q.iter_mut() {
                 match builder_res.get_widget_focus_state(&selection_entity) {
                     Some(true) => {
-                        if let Ok((mut default_choice_widget, mut bg_color, choice_text_entity, _)) = selection_choice_q.get_mut(e.entity) {
+                        if let Ok((mut default_choice_widget, mut bg_color, choice_text_entity)) = selection_choice_q.get_mut(e.entity) {
                             match e.interaction {
                                 Interaction::Hovered => {
                                     *bg_color = BackgroundColor(ITEM_ON_HOVER_BG_COLOR);
@@ -189,7 +195,9 @@ pub fn handle_selection_choice_interaction_system(
                                         } else {
                                             text.0.clone()
                                         };
-                                        selected_choices_res.update_or_insert(selection_id.0.clone(), text.0.clone());
+                                        if let Some(id) = selection_id {
+                                            selected_choices_res.update_or_insert(id.0.clone(), text.0.clone());
+                                        }
                                     }
 
                                     // update placeholder value

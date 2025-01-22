@@ -58,7 +58,7 @@ pub struct FaButton;
 // Needs container
 impl<'a> FaButton {
     fn _build_text(
-        id: &str,
+        id: &Option<String>,
         text: &str,
         root_node: &'a mut EntityCommands,
         font_handle: Handle<Font>,
@@ -74,23 +74,27 @@ impl<'a> FaButton {
         let txt_color = TextColor(get_text_color(color));
         let txt_layout = TextLayout::new_with_justify(JustifyText::Center);
 
-        root_node
+        let entity = root_node
             .commands()
             .spawn((
                 txt.clone(),
                 txt_font.clone(),
                 txt_color.clone(),
                 txt_layout.clone(),
-                FamiqWidgetId(format!("{id}_btn_text")),
                 FaButtonText(text.to_string()),
                 DefaultTextEntity::new(txt, txt_font, txt_color, txt_layout),
                 IsFamiqButtonText
             ))
-            .id()
+            .id();
+
+        if let Some(id) = id {
+            root_node.commands().entity(entity).insert(FamiqWidgetId(format!("{id}_btn_text")));
+        }
+        entity
     }
 
     pub fn new(
-        id: &str,
+        id: Option<String>,
         class: Option<String>,
         text: &str,
         root_node: &'a mut EntityCommands,
@@ -123,7 +127,6 @@ impl<'a> FaButton {
                 z_index.clone(),
                 visibility.clone(),
                 IsFamiqButton,
-                FamiqWidgetId(id.to_string()),
                 DefaultWidgetEntity::new(
                     node,
                     border_color,
@@ -137,6 +140,9 @@ impl<'a> FaButton {
             ))
             .id();
 
+        if let Some(id) = id {
+            root_node.commands().entity(btn_entity).insert(FamiqWidgetId(id));
+        }
         if let Some(class) = class {
             root_node.commands().entity(btn_entity).insert(FamiqWidgetClasses(class));
         }
@@ -175,7 +181,7 @@ impl<'a> FaButton {
 }
 
 pub struct FaButtonBuilder<'a> {
-    pub id: String,
+    pub id: Option<String>,
     pub class: Option<String>,
     pub text: String,
     pub font_handle: Handle<Font>,
@@ -184,13 +190,12 @@ pub struct FaButtonBuilder<'a> {
 
 impl<'a> FaButtonBuilder<'a> {
     pub fn new(
-        id: String,
         text: String,
         font_handle: Handle<Font>,
         root_node: EntityCommands<'a>,
     ) -> Self {
         Self {
-            id,
+            id: None,
             class: None,
             text,
             font_handle,
@@ -242,10 +247,15 @@ impl<'a> FaButtonBuilder<'a> {
         self
     }
 
+    pub fn id(mut self, id: &str) -> Self {
+        self.id = Some(id.to_string());
+        self
+    }
+
     pub fn build(&mut self) -> Entity {
         let (color, size, shape) = self._process_built_in_classes();
         FaButton::new(
-            self.id.as_str(),
+            self.id.clone(),
             self.class.clone(),
             self.text.as_str(),
             &mut self.root_node,
@@ -257,10 +267,9 @@ impl<'a> FaButtonBuilder<'a> {
     }
 }
 
-pub fn fa_button<'a>(builder: &'a mut FamiqWidgetBuilder, id: &str, text: &str) -> FaButtonBuilder<'a> {
+pub fn fa_button<'a>(builder: &'a mut FamiqWidgetBuilder, text: &str) -> FaButtonBuilder<'a> {
     let font_handle = builder.asset_server.load(builder.font_path.as_ref().unwrap());
     FaButtonBuilder::new(
-        id.to_string(),
         text.to_string(),
         font_handle,
         builder.ui_root_node.reborrow(),

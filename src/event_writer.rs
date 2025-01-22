@@ -1,6 +1,5 @@
 use crate::widgets::{
     button::*,
-    container::*,
     list_view::*,
     selection::*,
     text::*,
@@ -16,7 +15,7 @@ use bevy::prelude::*;
 #[derive(Event, Debug)]
 pub struct FaInteractionEvent {
     pub entity: Entity,
-    pub widget_id: String,
+    pub widget_id: Option<String>,
     pub interaction: Interaction,
     pub widget: WidgetType,
 }
@@ -24,7 +23,7 @@ pub struct FaInteractionEvent {
 impl FaInteractionEvent {
     fn new(
         entity: Entity,
-        widget_id: String,
+        widget_id: Option<String>,
         interaction: Interaction,
         widget: WidgetType,
     ) -> Self {
@@ -37,7 +36,7 @@ impl FaInteractionEvent {
     }
 
     pub fn send_event<T>(
-        interaction_q: &mut Query<(Entity, &T, &FamiqWidgetId, &Interaction), Changed<Interaction>>,
+        interaction_q: &mut Query<(Entity, &T, Option<&FamiqWidgetId>, &Interaction), Changed<Interaction>>,
         writer: &mut EventWriter<FaInteractionEvent>,
         widget: WidgetType,
     ) where
@@ -46,7 +45,7 @@ impl FaInteractionEvent {
         for (entity, _, widget_id, interaction) in interaction_q {
             writer.send(FaInteractionEvent::new(
                 entity,
-                widget_id.0.clone(),
+                widget_id.map(|id| id.0.clone()), // return Option<String> or None
                 *interaction,
                 widget,
             ));
@@ -56,7 +55,7 @@ impl FaInteractionEvent {
 
 pub fn btn_interaction_system(
     mut interaction_q: Query<
-        (Entity, &IsFamiqButton, &FamiqWidgetId, &Interaction),
+        (Entity, &IsFamiqButton, Option<&FamiqWidgetId>, &Interaction),
         Changed<Interaction>,
     >,
     mut writer: EventWriter<FaInteractionEvent>,
@@ -66,7 +65,7 @@ pub fn btn_interaction_system(
 
 pub fn image_interaction_system(
     mut interaction_q: Query<
-        (Entity, &IsFamiqImage, &FamiqWidgetId, &Interaction),
+        (Entity, &IsFamiqImage, Option<&FamiqWidgetId>, &Interaction),
         Changed<Interaction>,
     >,
     mut writer: EventWriter<FaInteractionEvent>,
@@ -76,7 +75,7 @@ pub fn image_interaction_system(
 
 pub fn text_input_interaction_system(
     mut interaction_q: Query<
-        (Entity, &IsFamiqTextInput, &FamiqWidgetId, &Interaction),
+        (Entity, &IsFamiqTextInput, Option<&FamiqWidgetId>, &Interaction),
         Changed<Interaction>,
     >,
     mut writer: EventWriter<FaInteractionEvent>,
@@ -84,19 +83,9 @@ pub fn text_input_interaction_system(
     FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::TextInput);
 }
 
-pub fn container_interaction_system(
-    mut writer: EventWriter<FaInteractionEvent>,
-    mut interaction_q: Query<
-        (Entity, &IsFamiqContainer, &FamiqWidgetId, &Interaction),
-        Changed<Interaction>,
-    >,
-) {
-    FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::Container);
-}
-
 pub fn selection_interaction_system(
     mut interaction_q: Query<
-        (Entity, &IsFamiqSelectionSelector, &FamiqWidgetId, &Interaction),
+        (Entity, &IsFamiqSelectionSelector, Option<&FamiqWidgetId>, &Interaction),
         Changed<Interaction>,
     >,
     mut writer: EventWriter<FaInteractionEvent>,
@@ -106,7 +95,7 @@ pub fn selection_interaction_system(
 
 pub fn selection_choice_interaction_system(
     mut interaction_q: Query<
-        (Entity, &IsFamiqSelectionChoice, &FamiqWidgetId, &Interaction),
+        (Entity, &IsFamiqSelectionChoice, Option<&FamiqWidgetId>, &Interaction),
         Changed<Interaction>,
     >,
     mut writer: EventWriter<FaInteractionEvent>,
@@ -116,7 +105,7 @@ pub fn selection_choice_interaction_system(
 
 pub fn text_interaction_system(
     mut interaction_q: Query<
-        (Entity, &IsFamiqText, &FamiqWidgetId, &Interaction),
+        (Entity, &IsFamiqText, Option<&FamiqWidgetId>, &Interaction),
         Changed<Interaction>,
     >,
     mut writer: EventWriter<FaInteractionEvent>,
@@ -126,7 +115,7 @@ pub fn text_interaction_system(
 
 pub fn listview_interaction_system(
     mut interaction_q: Query<
-        (Entity, &IsFamiqListView, &FamiqWidgetId, &Interaction),
+        (Entity, &IsFamiqListView, Option<&FamiqWidgetId>, &Interaction),
         Changed<Interaction>,
     >,
     mut writer: EventWriter<FaInteractionEvent>,
@@ -136,7 +125,7 @@ pub fn listview_interaction_system(
 
 pub fn listview_item_interaction_system(
     mut interaction_q: Query<
-        (Entity, &IsFamiqListViewItem, &FamiqWidgetId, &Interaction),
+        (Entity, &IsFamiqListViewItem, Option<&FamiqWidgetId>, &Interaction),
         Changed<Interaction>,
     >,
     mut writer: EventWriter<FaInteractionEvent>,

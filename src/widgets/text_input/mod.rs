@@ -323,7 +323,7 @@ impl<'a> FaTextInput {
     pub fn handle_text_input_interaction_system(
         mut events: EventReader<FaInteractionEvent>,
         mut input_q_for_hover: Query<
-            (&mut BoxShadow, &FamiqWidgetId, &DefaultWidgetEntity),
+            (&mut BoxShadow, Option<&FamiqWidgetId>, &DefaultWidgetEntity),
             With<TextInput>
         >,
         mut builder_res: ResMut<FamiqWidgetResource>,
@@ -341,7 +341,9 @@ impl<'a> FaTextInput {
                             builder_res.update_all_focus_states(false);
                             builder_res.update_or_insert_focus_state(e.entity, true);
 
-                            input_resource.update_or_insert(id.0.clone(), "".to_string());
+                            if let Some(id) = id {
+                                input_resource.update_or_insert(id.0.clone(), "".to_string());
+                            }
                         },
                         _ => box_shadow.color = Color::NONE
                     }
@@ -359,7 +361,7 @@ impl<'a> FaTextInput {
             &CharacterSize,
             &FamiqTextInputPlaceholderEntity,
             &FamiqTextInputCursorEntity,
-            &FamiqWidgetId
+            Option<&FamiqWidgetId>
         )>,
         mut text_q: Query<(&mut Text, &IsFamiqTextInputPlaceholder)>,
         mut cursor_q: Query<(&mut Node, &mut Visibility, &IsFamiqTextInputCursor)>,
@@ -376,7 +378,10 @@ impl<'a> FaTextInput {
                         match builder_res.get_widget_focus_state(&entity) {
                             Some(true) => {
                                 text_input.text.push_str(input);
-                                input_resource.update_or_insert(id.0.clone(), text_input.text.clone());
+
+                                if let Some(id) = id {
+                                    input_resource.update_or_insert(id.0.clone(), text_input.text.clone());
+                                }
 
                                 if let Ok((mut text, _)) = text_q.get_mut(placeholder_entity.0) {
                                     text.0 = text_input.text.clone();
@@ -393,7 +398,10 @@ impl<'a> FaTextInput {
                         match builder_res.get_widget_focus_state(&entity) {
                             Some(true) => {
                                 text_input.text.push_str(&SmolStr::new(" "));
-                                input_resource.update_or_insert(id.0.clone(), text_input.text.clone());
+
+                                if let Some(id) = id {
+                                    input_resource.update_or_insert(id.0.clone(), text_input.text.clone());
+                                }
 
                                 if let Ok((mut text, _)) = text_q.get_mut(placeholder_entity.0) {
                                     text.0 = text_input.text.clone();
@@ -410,7 +418,10 @@ impl<'a> FaTextInput {
                         match builder_res.get_widget_focus_state(&entity) {
                             Some(true) => {
                                 text_input.text.pop();
-                                input_resource.update_or_insert(id.0.clone(), text_input.text.clone());
+
+                                if let Some(id) = id {
+                                    input_resource.update_or_insert(id.0.clone(), text_input.text.clone());
+                                }
 
                                 if let Ok((mut text, _)) = text_q.get_mut(placeholder_entity.0) {
                                     if text.0 != text_input.placeholder {
@@ -429,7 +440,7 @@ impl<'a> FaTextInput {
                     }
                 }
                 _ => continue
-            }
+                }
         }
     }
 
