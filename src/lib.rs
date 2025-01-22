@@ -15,7 +15,8 @@ pub mod prelude {
         fa_fps,
         fa_image,
         fa_listview,
-        fa_modal
+        fa_modal,
+        fa_text
     };
     pub use crate::widgets::modal::{IsFamiqModalContainer, IsFamiqModalBackground, FaModalState};
     pub use crate::widgets::text_input::{IsFamiqTextInput, FaTextInputResource};

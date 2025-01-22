@@ -19,6 +19,7 @@ pub use fps::fa_fps;
 pub use image::fa_image;
 pub use list_view::fa_listview;
 pub use modal::fa_modal;
+pub use text::fa_text;
 
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
@@ -326,17 +327,6 @@ impl<'a> FamiqWidgetBuilder<'a> {
     pub fn clean(&mut self) {
         let root_entity = self.get_entity();
         self.ui_root_node.commands().entity(root_entity).despawn_recursive();
-    }
-
-    pub fn fa_text(&mut self, id: &str, classes: &str, value: &str) -> Entity {
-        text::fa_text(
-            id,
-            classes,
-            value,
-            &mut self.ui_root_node,
-            self.asset_server,
-            &self.font_path.as_ref().unwrap(),
-        )
     }
 
     pub fn fa_text_input(
