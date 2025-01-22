@@ -5,7 +5,7 @@ use crate::utils;
 use crate::widgets::color::WHITE_COLOR;
 use crate::widgets::{
     DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId,
-    FamiqWidgetClasses, WidgetType, FamiqWidgetResource
+    FamiqWidgetClasses, WidgetType, FamiqWidgetResource, FamiqWidgetBuilder
 };
 use crate::event_writer::FaInteractionEvent;
 
@@ -114,13 +114,12 @@ impl<'a> FaTextInput {
     fn _build_placeholder(
         placeholder: &str,
         root_node: &'a mut EntityCommands,
-        asset_server: &'a ResMut<'a, AssetServer>,
-        font_path: &String,
+        font_handle: Handle<Font>,
         size: &TextInputSize,
     ) -> Entity {
         let txt = Text::new(placeholder);
         let txt_font = TextFont {
-            font: asset_server.load(font_path),
+            font: font_handle,
             font_size: get_text_size(size),
             ..default()
         };
@@ -168,7 +167,7 @@ impl<'a> FaTextInput {
 
     fn _build_input(
         id: &str,
-        classes: &str,
+        class: Option<String>,
         root_node: &'a mut EntityCommands,
         variant: TextInputVariant,
         color: TextInputColor,
@@ -203,7 +202,7 @@ impl<'a> FaTextInput {
             _ => (),
         }
 
-        root_node
+        let entity = root_node
             .commands()
             .spawn((
                 node.clone(),
@@ -220,7 +219,6 @@ impl<'a> FaTextInput {
                     blur_radius: Val::Px(1.0)
                 },
                 FamiqWidgetId(id.to_string()),
-                FamiqWidgetClasses(classes.to_string()),
                 IsFamiqTextInput,
                 DefaultWidgetEntity::new(
                     node,
@@ -236,31 +234,35 @@ impl<'a> FaTextInput {
                 FamiqTextInputCursorEntity(cursor_entity),
             ))
             .insert(CharacterSize { width: 0.0, height: 0.0 })
-            .id()
+            .id();
+
+        if let Some(class) = class {
+            root_node.commands().entity(entity).insert(FamiqWidgetClasses(class));
+        }
+        entity
     }
 
     pub fn new(
         id: &str,
-        classes: &str,
-        ph: &str, // placeholder
+        class: Option<String>,
+        placeholder: &str, // placeholder
         root_node: &'a mut EntityCommands,
-        asset_server: &'a ResMut<'a, AssetServer>,
-        font_path: &String,
+        font_handle: Handle<Font>,
         size: TextInputSize,
         variant: TextInputVariant,
         color: TextInputColor,
         shape: TextInputShape
     ) -> Entity {
         let cursor_entity = Self::_build_cursor(root_node, &color);
-        let ph_entity = Self::_build_placeholder(ph, root_node, asset_server, font_path, &size);
+        let ph_entity = Self::_build_placeholder(placeholder, root_node, font_handle, &size);
         let input_entity = Self::_build_input(
             id,
-            classes,
+            class,
             root_node,
             variant,
             color,
             shape,
-            ph,
+            placeholder,
             ph_entity,
             cursor_entity
         );
@@ -465,4 +467,97 @@ impl<'a> FaTextInput {
             }
         }
     }
+}
+
+pub struct FaTextInputBuilder<'a> {
+    pub id: String,
+    pub placeholder: String,
+    pub class: Option<String>,
+    pub font_handle: Handle<Font>,
+    pub root_node: EntityCommands<'a>
+}
+
+impl<'a> FaTextInputBuilder<'a> {
+    pub fn new(
+        id: String,
+        placeholder: String,
+        font_handle: Handle<Font>,
+        root_node: EntityCommands<'a>
+    ) -> Self {
+        Self {
+            id,
+            placeholder,
+            class: None,
+            font_handle,
+            root_node
+        }
+    }
+
+    fn _process_built_in_classes(&self) -> (TextInputVariant, TextInputColor, TextInputSize, TextInputShape) {
+        let mut use_color = TextInputColor::Default;
+        let mut use_size = TextInputSize::Normal;
+        let mut use_shape = TextInputShape::Default;
+        let mut use_variant = TextInputVariant::Default;
+
+        if let Some(class) = self.class.as_ref() {
+            let class_split: Vec<&str> = class.split_whitespace().collect();
+
+            for class_name in class_split {
+                match class_name {
+                    "is-underlined" => use_variant = TextInputVariant::Underlined,
+                    "is-outlined" => use_variant = TextInputVariant::Outlined,
+
+                    "is-small" => use_size = TextInputSize::Small,
+                    "is-large" => use_size = TextInputSize::Large,
+
+                    "is-round" => use_shape = TextInputShape::Round,
+                    "is-rectangle" => use_shape = TextInputShape::Rectangle,
+
+                    "is-primary" => use_color = TextInputColor::Primary,
+                    "is-secondary" => use_color = TextInputColor::Secondary,
+                    "is-danger" => use_color = TextInputColor::Danger,
+                    "is-success" => use_color = TextInputColor::Success,
+                    "is-warning" => use_color = TextInputColor::Warning,
+                    "is-info" => use_color = TextInputColor::Info,
+                    _ => ()
+                }
+            }
+        }
+        (use_variant, use_color, use_size, use_shape)
+    }
+
+    pub fn class(mut self, class: &str) -> Self {
+        self.class = Some(class.to_string());
+        self
+    }
+
+    pub fn build(&mut self) -> Entity {
+        let (variant, color, size, shape) = self._process_built_in_classes();
+        FaTextInput::new(
+            self.id.as_str(),
+            self.class.clone(),
+            self.placeholder.as_str(),
+            &mut self.root_node,
+            self.font_handle.clone(),
+            size,
+            variant,
+            color,
+            shape
+        )
+    }
+}
+
+pub fn fa_text_input<'a>(
+    builder: &'a mut FamiqWidgetBuilder,
+    id: &str,
+    placeholder: &str
+) -> FaTextInputBuilder<'a> {
+    let font_handle = builder.asset_server.load(builder.font_path.as_ref().unwrap());
+
+    FaTextInputBuilder::new(
+        id.to_string(),
+        placeholder.to_string(),
+        font_handle,
+        builder.ui_root_node.reborrow()
+    )
 }

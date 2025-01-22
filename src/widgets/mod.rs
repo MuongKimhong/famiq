@@ -20,13 +20,13 @@ pub use image::fa_image;
 pub use list_view::fa_listview;
 pub use modal::fa_modal;
 pub use text::fa_text;
+pub use text_input::fa_text_input;
 
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 use selection::{SelectionSize, SelectorVariant, SelectorShape, SelectorColor, FaSelection};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use text_input::{TextInputSize, TextInputVariant, TextInputShape, TextInputColor, FaTextInput};
 use crate::utils::get_embedded_asset_path;
 
 // key-value of "#widget-id"/".class-name" and all its styles in styles.json
@@ -327,54 +327,6 @@ impl<'a> FamiqWidgetBuilder<'a> {
     pub fn clean(&mut self) {
         let root_entity = self.get_entity();
         self.ui_root_node.commands().entity(root_entity).despawn_recursive();
-    }
-
-    pub fn fa_text_input(
-        &mut self,
-        id: &str,
-        classes: &str,
-        placeholder: &str,
-    ) -> Entity {
-        let class_split: Vec<&str> = classes.split_whitespace().collect();
-
-        let mut use_variant = TextInputVariant::Default;
-        let mut use_size = TextInputSize::Normal;
-        let mut use_shape = TextInputShape::Default;
-        let mut use_color = TextInputColor::Default;
-
-        for class_name in class_split {
-            match class_name {
-                "is-underlined" => use_variant = TextInputVariant::Underlined,
-                "is-outlined" => use_variant = TextInputVariant::Outlined,
-
-                "is-small" => use_size = TextInputSize::Small,
-                "is-large" => use_size = TextInputSize::Large,
-
-                "is-round" => use_shape = TextInputShape::Round,
-                "is-rectangle" => use_shape = TextInputShape::Rectangle,
-
-                "is-primary" => use_color = TextInputColor::Primary,
-                "is-secondary" => use_color = TextInputColor::Secondary,
-                "is-danger" => use_color = TextInputColor::Danger,
-                "is-success" => use_color = TextInputColor::Success,
-                "is-warning" => use_color = TextInputColor::Warning,
-                "is-info" => use_color = TextInputColor::Info,
-                _ => ()
-            }
-        }
-
-        FaTextInput::new(
-            id,
-            classes,
-            placeholder,
-            &mut self.ui_root_node,
-            self.asset_server,
-            &self.font_path.as_ref().unwrap(),
-            use_size,
-            use_variant,
-            use_color,
-            use_shape
-        )
     }
 
     pub fn fa_selection(
