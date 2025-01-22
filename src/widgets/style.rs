@@ -10,7 +10,7 @@ type WidgetStyleQuery<'a, 'w, 's> = Query<
     's,
     (
         &'a FamiqWidgetId,
-        &'a FamiqWidgetClasses,
+        Option<&'a FamiqWidgetClasses>,
         &'a Interaction,
         &'a mut Node,
         &'a mut BackgroundColor,
@@ -66,19 +66,20 @@ pub fn apply_widgets_styles_system(
                 *node = default_widget_entity.node.clone();
             }
             // styles from id will override styles from class
-
-            let classes_split: Vec<&str> = widget_classes.0.split_whitespace().collect();
-            for class_name in classes_split{
-                if let Some(widget_style) = styles.get_style_by_class_name(format!(".{class_name}").as_str()) {
-                    apply_styles_from_external_json(
-                        &mut bg_color,
-                        &mut border_color,
-                        &mut border_radius,
-                        &mut visibility,
-                        &mut z_index,
-                        &mut node,
-                        &widget_style,
-                    );
+            if let Some(classes) = widget_classes {
+                let classes_split: Vec<&str> = classes.0.split_whitespace().collect();
+                for class_name in classes_split{
+                    if let Some(widget_style) = styles.get_style_by_class_name(format!(".{class_name}").as_str()) {
+                        apply_styles_from_external_json(
+                            &mut bg_color,
+                            &mut border_color,
+                            &mut border_radius,
+                            &mut visibility,
+                            &mut z_index,
+                            &mut node,
+                            &widget_style,
+                        );
+                    }
                 }
             }
 
@@ -415,7 +416,7 @@ pub fn apply_text_style_system(
         &mut TextFont,
         &mut TextColor,
         &FamiqWidgetId,
-        &FamiqWidgetClasses,
+        Option<&FamiqWidgetClasses>,
         &DefaultTextEntity
     )>,
 ) {
@@ -426,21 +427,22 @@ pub fn apply_text_style_system(
             *text_color = default_text.text_color.clone();
 
             // styles from id will override styles from class
-
-            let classes_split: Vec<&str> = widget_classes.0.split_whitespace().collect();
-            for class_name in classes_split{
-                if let Some(text_style) = styles.get_style_by_class_name(format!(".{class_name}").as_str()) {
-                    // font size
-                    if let Some(font_size) = &text_style.font_size {
-                        if let Ok(parsed_value) = font_size.trim().parse::<f32>() {
-                            text_font.font_size = parsed_value;
+            if let Some(classes) = widget_classes {
+                let classes_split: Vec<&str> = classes.0.split_whitespace().collect();
+                for class_name in classes_split{
+                    if let Some(text_style) = styles.get_style_by_class_name(format!(".{class_name}").as_str()) {
+                        // font size
+                        if let Some(font_size) = &text_style.font_size {
+                            if let Ok(parsed_value) = font_size.trim().parse::<f32>() {
+                                text_font.font_size = parsed_value;
+                            }
                         }
-                    }
 
-                    // color
-                    if let Some(color) = &text_style.color {
-                        if let Some(v) = parse_color(color) {
-                            text_color.0 = v;
+                        // color
+                        if let Some(color) = &text_style.color {
+                            if let Some(v) = parse_color(color) {
+                                text_color.0 = v;
+                            }
                         }
                     }
                 }
