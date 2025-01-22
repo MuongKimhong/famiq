@@ -16,10 +16,10 @@ pub use button::fa_button;
 pub use circular::fa_circular;
 pub use container::fa_container;
 pub use fps::fa_fps;
+pub use image::fa_image;
 
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
-use image::FaImage;
 use modal::FaModal;
 use selection::{SelectionSize, SelectorVariant, SelectorShape, SelectorColor, FaSelection};
 use serde::{Deserialize, Serialize};
@@ -440,17 +440,6 @@ impl<'a> FamiqWidgetBuilder<'a> {
             use_shape,
             choices,
         )
-    }
-
-    pub fn fa_image(
-        &mut self,
-        id: &str,
-        classes: &str,
-        width: &str,
-        height: &str,
-        path: &str
-    ) -> Entity {
-        FaImage::new(id, classes, path, width, height, &mut self.ui_root_node, self.asset_server)
     }
 
     // doesn't need to return Entity
