@@ -1,7 +1,7 @@
 pub mod helper;
 
 use bevy::prelude::*;
-use crate::widgets::{FamiqWidgetId, FamiqWidgetClasses, DefaultWidgetEntity};
+use crate::widgets::{FamiqWidgetId, FamiqWidgetClasses, DefaultWidgetEntity, FamiqWidgetBuilder};
 use crate::utils::{entity_add_child, lighten_color, darken_color};
 use helper::*;
 
@@ -25,7 +25,8 @@ pub struct CircularSpinnerEntity(pub Entity);
 pub enum CircularSize {
     Small,
     Normal,
-    Large
+    Large,
+    CustomSize(f32)
 }
 
 pub enum CircularColor {
@@ -81,7 +82,7 @@ impl<'a> FaCircular {
 
     fn _build_outer_circle(
         id: &str,
-        classes: &str,
+        class: Option<String>,
         root_node: &'a mut EntityCommands,
         color: &CircularColor,
         size: &CircularSize,
@@ -112,8 +113,7 @@ impl<'a> FaCircular {
 
         let border_color = BorderColor(use_border_color);
 
-
-        root_node
+        let outer_entity = root_node
             .commands()
             .spawn((
                 node.clone(),
@@ -123,7 +123,6 @@ impl<'a> FaCircular {
                 z_index.clone(),
                 visibility.clone(),
                 FamiqWidgetId(id.to_string()),
-                FamiqWidgetClasses(classes.to_string()),
                 DefaultWidgetEntity::new(
                     node,
                     border_color,
@@ -137,12 +136,17 @@ impl<'a> FaCircular {
                 Interaction::default(),
 
             ))
-            .id()
+            .id();
+
+        if let Some(class) = class {
+            root_node.commands().entity(outer_entity).insert(FamiqWidgetClasses(class));
+        }
+        outer_entity
     }
 
     pub fn new(
         id: &str,
-        classes: &str,
+        class: Option<String>,
         root_node: &'a mut EntityCommands,
         color: CircularColor,
         size: CircularSize,
@@ -150,7 +154,7 @@ impl<'a> FaCircular {
         let spinner = Self::_build_spinner(root_node, &color, &size);
         let outer = Self::_build_outer_circle(
             id,
-            classes,
+            class,
             root_node,
             &color,
             &size,
@@ -190,4 +194,88 @@ impl<'a> FaCircular {
             }
         }
     }
+}
+
+pub struct FaCircularBuilder<'a> {
+    pub id: String,
+    pub class: Option<String>,
+    pub size: Option<f32>,
+    pub root_node: EntityCommands<'a>
+}
+
+impl<'a> FaCircularBuilder<'a> {
+    pub fn new(id: String, root_node: EntityCommands<'a>) -> Self {
+        Self {
+            id,
+            class: None,
+            size: None,
+            root_node
+        }
+    }
+
+    fn _process_built_in_classes(&self) -> (CircularColor, Option<CircularSize>) {
+        let mut use_color = CircularColor::Default;
+        let mut use_size = None;
+
+        if let Some(class) = self.class.as_ref() {
+            let class_split: Vec<&str> = class.split_whitespace().collect();
+
+            for class_name in class_split {
+                match class_name {
+                    "is-primary" => use_color = CircularColor::Primary,
+                    "is-secondary" => use_color = CircularColor::Secondary,
+                    "is-danger" => use_color = CircularColor::Danger,
+                    "is-success" => use_color = CircularColor::Success,
+                    "is-warning" => use_color = CircularColor::Warning,
+                    "is-info" => use_color = CircularColor::Info,
+
+                    "is-small" => use_size = Some(CircularSize::Small),
+                    "is-large" => use_size = Some(CircularSize::Large),
+
+                    _ => ()
+                }
+            }
+        }
+        (use_color, use_size)
+    }
+
+    fn _process_custom_size(&self) -> CircularSize {
+        let mut use_size = CircularSize::Normal;
+
+        if let Some(size) = self.size.as_ref() {
+            if *size > 0.0 {
+                use_size = CircularSize::CustomSize(*size);
+            }
+        }
+        use_size
+    }
+
+    pub fn size(mut self, size: f32) -> Self {
+        self.size = Some(size);
+        self
+    }
+
+    pub fn class(mut self, class: &str) -> Self {
+        self.class = Some(class.to_string());
+        self
+    }
+
+    pub fn build(&mut self) -> Entity {
+        let (color, size) = self._process_built_in_classes();
+        let use_size = size.unwrap_or_else(|| self._process_custom_size() );
+        FaCircular::new(
+            self.id.as_str(),
+            self.class.clone(),
+            &mut self.root_node,
+            color,
+            use_size
+        )
+    }
+}
+
+pub fn fa_circular<'a>(builder: &'a mut FamiqWidgetBuilder, id: &str) -> FaCircularBuilder<'a> {
+    FaCircularBuilder::new(
+        id.to_string(),
+        builder.ui_root_node.reborrow()
+    )
 }

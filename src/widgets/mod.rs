@@ -13,10 +13,10 @@ pub mod modal;
 pub mod image;
 
 pub use button::fa_button;
+pub use circular::fa_circular;
 
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
-use circular::{CircularColor, CircularSize, FaCircular};
 use fps::FaFpsText;
 use image::FaImage;
 use modal::FaModal;
@@ -458,34 +458,6 @@ impl<'a> FamiqWidgetBuilder<'a> {
             use_shape,
             choices,
         )
-    }
-
-    pub fn fa_circular(
-        &mut self,
-        id: &str,
-        classes: &str
-    ) -> Entity {
-        let class_split: Vec<&str> = classes.split_whitespace().collect();
-
-        let mut use_variant = CircularColor::Default;
-        let mut use_size = CircularSize::Normal;
-
-        for class_name in class_split {
-            match class_name {
-                "is-primary" => use_variant = CircularColor::Primary,
-                "is-secondary" => use_variant = CircularColor::Secondary,
-                "is-danger" => use_variant = CircularColor::Danger,
-                "is-success" => use_variant = CircularColor::Success,
-                "is-warning" => use_variant = CircularColor::Warning,
-                "is-info" => use_variant = CircularColor::Info,
-
-                "is-small" => use_size = CircularSize::Small,
-                "is-large" => use_size = CircularSize::Large,
-
-                _ => ()
-            }
-        }
-        FaCircular::new(id, classes, &mut self.ui_root_node, use_variant, use_size)
     }
 
     pub fn fa_image(

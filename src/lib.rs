@@ -8,14 +8,14 @@ pub mod prelude {
     pub use crate::plugin::FamiqPlugin;
     pub use crate::widgets::{
         FamiqWidgetBuilder, FamiqWidgetResource, WidgetType, FamiqWidgetId,
-        DefaultTextEntity, DefaultWidgetEntity
+        DefaultTextEntity, DefaultWidgetEntity,
+        fa_button,
+        fa_circular
     };
-    pub use crate::widgets::button::{IsFamiqButton, IsFamiqButtonText};
     pub use crate::widgets::modal::{IsFamiqModalContainer, IsFamiqModalBackground, FaModalState};
     pub use crate::widgets::text_input::{IsFamiqTextInput, FaTextInputResource};
     pub use crate::widgets::selection::{IsFamiqSelectionSelector, SelectedChoicesResource};
     pub use crate::widgets::container::IsFamiqContainer;
-    pub use crate::widgets::circular::IsFamiqCircular;
     pub use crate::widgets::fps::IsFamiqFPSTextCount;
     pub use crate::widgets::text::IsFamiqText;
     pub use crate::widgets::list_view::IsFamiqListView;
