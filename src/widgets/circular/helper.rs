@@ -11,6 +11,7 @@ pub fn get_outer_circle_size(size: &CircularSize) -> (Val, Val) {
     match size {
         CircularSize::Small => (size_small, size_small),
         CircularSize::Large => (size_large, size_large),
+        CircularSize::CustomSize(v) => (Val::Px(*v), Val::Px(*v)),
         _ => (size_normal, size_normal)
     }
 }

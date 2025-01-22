@@ -69,9 +69,9 @@ impl<'a> FaCircular {
                 visibility,
                 IsFamiqCircularSpinner,
                 RotatingSequence {
-                    speed: 160.0,
+                    speed: 250.0,
                     timer: Timer::from_seconds(1.0, TimerMode::Repeating), // every 1 secs
-                    speed_sequence: vec![200.0, 400.0, 200.0], // Sequence of speeds
+                    speed_sequence: vec![250.0, 450.0, 250.0], // Sequence of speeds
                     current_index: 0,
                 }
             ))
