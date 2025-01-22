@@ -18,10 +18,10 @@ pub use container::fa_container;
 pub use fps::fa_fps;
 pub use image::fa_image;
 pub use list_view::fa_listview;
+pub use modal::fa_modal;
 
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
-use modal::FaModal;
 use selection::{SelectionSize, SelectorVariant, SelectorShape, SelectorColor, FaSelection};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -437,10 +437,5 @@ impl<'a> FamiqWidgetBuilder<'a> {
             use_shape,
             choices,
         )
-    }
-
-    // doesn't need to return Entity
-    pub fn fa_modal(&mut self, id: &str, classes: &str, items: &Vec<Entity>) {
-        FaModal::new(id, classes, items, &mut self.ui_root_node);
     }
 }

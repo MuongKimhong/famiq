@@ -1,6 +1,6 @@
 pub mod helper;
 
-use crate::widgets::{FamiqWidgetId, FamiqWidgetClasses, DefaultWidgetEntity};
+use crate::widgets::{FamiqWidgetId, FamiqWidgetClasses, DefaultWidgetEntity, FamiqWidgetBuilder};
 use crate::utils;
 use bevy::prelude::*;
 use bevy::ui::FocusPolicy;
@@ -63,11 +63,11 @@ impl<'a> FaModal {
 
     fn _build_modal_background(
         id: &str,
-        classes: &str,
+        class: Option<String>,
         root_node: &'a mut EntityCommands,
         container_entity: Entity
     ) -> Entity {
-        root_node
+        let entity = root_node
             .commands()
             .spawn((
                 default_modal_background_node(),
@@ -80,21 +80,25 @@ impl<'a> FaModal {
                 IsFamiqModalBackground,
                 FaModalState(false),
                 FamiqWidgetId(id.to_string()),
-                FamiqWidgetClasses(classes.to_string()),
                 FocusPolicy::Block,
                 FaModalContainerEntity(container_entity)
             ))
-            .id()
+            .id();
+
+        if let Some(class) = class {
+            root_node.commands().entity(entity).insert(FamiqWidgetClasses(class));
+        }
+        entity
     }
 
     pub fn new(
         id: &str,
-        classes: &str,
+        class: Option<String>,
         items: &Vec<Entity>,
         root_node: &'a mut EntityCommands
     ) -> Entity {
         let container = Self::_build_modal_container(id, root_node, items);
-        let background = Self::_build_modal_background(id, classes, root_node, container);
+        let background = Self::_build_modal_background(id, class, root_node, container);
 
         utils::entity_add_child(root_node, container, background);
         container
@@ -121,4 +125,48 @@ impl<'a> FaModal {
             }
         }
     }
+}
+
+pub struct FaModalBuilder<'a> {
+    pub id: String,
+    pub class: Option<String>,
+    pub children: Option<Vec<Entity>>,
+    pub root_node: EntityCommands<'a>
+}
+
+impl<'a> FaModalBuilder<'a> {
+    pub fn new(id: String, root_node: EntityCommands<'a>) -> Self {
+        Self {
+            id,
+            class: None,
+            children: Some(Vec::new()),
+            root_node
+        }
+    }
+
+    pub fn class(mut self, class: &str) -> Self {
+        self.class = Some(class.to_string());
+        self
+    }
+
+    pub fn children(mut self, children: Vec<Entity>) -> Self {
+        self.children = Some(children);
+        self
+    }
+
+    pub fn build(&mut self) -> Entity {
+        FaModal::new(
+            self.id.as_str(),
+            self.class.clone(),
+            self.children.as_ref().unwrap(),
+            &mut self.root_node
+        )
+    }
+}
+
+pub fn fa_modal<'a>(builder: &'a mut FamiqWidgetBuilder, id: &str) -> FaModalBuilder<'a> {
+    FaModalBuilder::new(
+        id.to_string(),
+        builder.ui_root_node.reborrow()
+    )
 }
