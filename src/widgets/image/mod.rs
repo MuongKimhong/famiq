@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use crate::widgets::style_parse::parse_val;
 use crate::widgets::{
     DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetClasses,
     FamiqWidgetBuilder

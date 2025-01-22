@@ -17,6 +17,7 @@ pub use circular::fa_circular;
 pub use container::fa_container;
 pub use fps::fa_fps;
 pub use image::fa_image;
+pub use list_view::fa_listview;
 
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
@@ -384,10 +385,6 @@ impl<'a> FamiqWidgetBuilder<'a> {
             use_color,
             use_shape
         )
-    }
-
-    pub fn fa_list_view(&mut self, id: &str, classes: &str, items: &Vec<Entity>) -> Entity {
-        list_view::FaListView::new(id, classes, &mut self.ui_root_node, items)
     }
 
     pub fn fa_selection(

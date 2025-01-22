@@ -2,7 +2,7 @@ pub mod helper;
 
 // use crate::event_writer::FaInteractionEvent;
 use crate::utils;
-use crate::widgets::{DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetClasses, WidgetType};
+use crate::widgets::{DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetClasses, WidgetType, FamiqWidgetBuilder};
 use crate::event_writer::FaInteractionEvent;
 use bevy::ecs::system::EntityCommands;
 use bevy::input::mouse::{MouseScrollUnit, MouseWheel};
@@ -101,7 +101,7 @@ impl<'a> FaListView {
 
     fn _build_listview(
         id: &str,
-        classes: &str,
+        class: Option<String>,
         root_node: &'a mut EntityCommands,
         panel_entity: Entity,
     ) -> Entity {
@@ -122,7 +122,6 @@ impl<'a> FaListView {
                 z_index.clone(),
                 visibility.clone(),
                 FamiqWidgetId(id.to_string()),
-                FamiqWidgetClasses(classes.to_string()),
                 IsFamiqListView,
                 DefaultWidgetEntity::new(
                     node,
@@ -136,12 +135,21 @@ impl<'a> FaListView {
                 ListViewMovePanelEntity(panel_entity),
             ))
             .id();
+
+        if let Some(class) = class {
+            root_node.commands().entity(listview_entity).insert(FamiqWidgetClasses(class));
+        }
         listview_entity
     }
 
-    pub fn new(id: &str, classes: &str, root_node: &'a mut EntityCommands, items: &Vec<Entity>) -> Entity {
+    pub fn new(
+        id: &str,
+        class: Option<String>,
+        root_node: &'a mut EntityCommands,
+        items: &Vec<Entity>
+    ) -> Entity {
         let move_panel = Self::_build_move_panel(id, items, root_node);
-        let listview = Self::_build_listview(id, classes, root_node, move_panel);
+        let listview = Self::_build_listview(id, class, root_node, move_panel);
 
         utils::entity_add_child(root_node, move_panel, listview);
         listview
@@ -222,4 +230,48 @@ impl<'a> FaListView {
             }
         }
     }
+}
+
+pub struct FaListViewBuilder<'a> {
+    pub id: String,
+    pub class: Option<String>,
+    pub children: Option<Vec<Entity>>,
+    pub root_node: EntityCommands<'a>
+}
+
+impl<'a> FaListViewBuilder<'a> {
+    pub fn new(id: String, root_node: EntityCommands<'a>) -> Self {
+        Self {
+            id,
+            class: None,
+            children: Some(Vec::new()),
+            root_node
+        }
+    }
+
+    pub fn class(mut self, class: &str) -> Self {
+        self.class = Some(class.to_string());
+        self
+    }
+
+    pub fn children(mut self, children: Vec<Entity>) -> Self {
+        self.children = Some(children);
+        self
+    }
+
+    pub fn build(&mut self) -> Entity {
+        FaListView::new(
+            self.id.as_str(),
+            self.class.clone(),
+            &mut self.root_node,
+            self.children.as_ref().unwrap()
+        )
+    }
+}
+
+pub fn fa_listview<'a>(builder: &'a mut FamiqWidgetBuilder, id: &str) -> FaListViewBuilder<'a> {
+    FaListViewBuilder::new(
+        id.to_string(),
+        builder.ui_root_node.reborrow()
+    )
 }
