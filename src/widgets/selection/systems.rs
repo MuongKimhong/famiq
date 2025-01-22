@@ -135,10 +135,15 @@ pub fn handle_selection_interaction_system(
                         box_shadow.color = default_style.border_color.0.clone();
                     },
                     Interaction::Pressed => {
-                        // global focus
+                        if let Some(state) = builder_res.get_widget_focus_state(&e.entity) {
+                            if state {
+                                builder_res.update_or_insert_focus_state(e.entity, false);
+                                break;
+                            }
+                        }
+
                         builder_res.update_all_focus_states(false);
                         builder_res.update_or_insert_focus_state(e.entity, true);
-
                         selected_choices_res.update_or_insert(id.0.clone(), "-/-".to_string());
                     },
                     _ => {
