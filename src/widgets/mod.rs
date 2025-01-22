@@ -15,10 +15,10 @@ pub mod image;
 pub use button::fa_button;
 pub use circular::fa_circular;
 pub use container::fa_container;
+pub use fps::fa_fps;
 
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
-use fps::FaFpsText;
 use image::FaImage;
 use modal::FaModal;
 use selection::{SelectionSize, SelectorVariant, SelectorShape, SelectorColor, FaSelection};
@@ -335,16 +335,6 @@ impl<'a> FamiqWidgetBuilder<'a> {
             &mut self.ui_root_node,
             self.asset_server,
             &self.font_path.as_ref().unwrap(),
-        )
-    }
-
-    pub fn fa_fps(&mut self, id: &str, change_color: bool) -> Entity {
-        FaFpsText::new(
-            id,
-            &mut self.ui_root_node,
-            self.asset_server,
-            &self.font_path.as_ref().unwrap(),
-            change_color
         )
     }
 

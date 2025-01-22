@@ -11,7 +11,8 @@ pub mod prelude {
         DefaultTextEntity, DefaultWidgetEntity,
         fa_button,
         fa_circular,
-        fa_container
+        fa_container,
+        fa_fps
     };
     pub use crate::widgets::modal::{IsFamiqModalContainer, IsFamiqModalBackground, FaModalState};
     pub use crate::widgets::text_input::{IsFamiqTextInput, FaTextInputResource};

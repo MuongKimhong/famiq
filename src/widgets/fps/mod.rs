@@ -1,7 +1,7 @@
 pub mod helper;
 
 use crate::utils::entity_add_child;
-use crate::widgets::{DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId};
+use crate::widgets::{DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetBuilder};
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
@@ -62,13 +62,12 @@ impl<'a> FaFpsText {
     fn _build_text(
         id: &str,
         root_node: &'a mut EntityCommands,
-        asset_server: &'a ResMut<'a, AssetServer>,
-        font_path: &String,
+        font_handle: Handle<Font>,
         change_color: bool
     ) -> Entity {
         let label_txt = Text::new("FPS:");
         let label_txt_font = TextFont {
-            font: asset_server.load(font_path),
+            font: font_handle,
             font_size: DEFAULT_FPS_TEXT_SIZE,
             ..default()
         };
@@ -115,12 +114,11 @@ impl<'a> FaFpsText {
     pub fn new(
         id: &str,
         root_node: &'a mut EntityCommands,
-        asset_server: &'a ResMut<'a, AssetServer>,
-        font_path: &String,
+        font_handle: Handle<Font>,
         change_color: bool
     ) -> Entity {
         let container_entity = Self::_build_container(id, root_node);
-        let text_entity = Self::_build_text(id, root_node, asset_server, font_path, change_color);
+        let text_entity = Self::_build_text(id, root_node, font_handle, change_color);
 
         entity_add_child(root_node, text_entity, container_entity);
         text_entity
@@ -153,4 +151,45 @@ impl<'a> FaFpsText {
             }
         }
     }
+}
+
+pub struct FaFpsTextBuilder<'a> {
+    pub id: String,
+    pub change_color: Option<bool>,
+    pub font_handle: Handle<Font>,
+    pub root_node: EntityCommands<'a>
+}
+
+impl<'a> FaFpsTextBuilder<'a> {
+    pub fn new(id: String, font_handle: Handle<Font>, root_node: EntityCommands<'a>) -> Self {
+        Self {
+            id,
+            root_node,
+            font_handle,
+            change_color: Some(false)
+        }
+    }
+
+    pub fn can_change_color(mut self) -> Self {
+        self.change_color = Some(true);
+        self
+    }
+
+    pub fn build(&mut self) -> Entity {
+        FaFpsText::new(
+            self.id.as_str(),
+            &mut self.root_node,
+            self.font_handle.clone(),
+            self.change_color.unwrap()
+        )
+    }
+}
+
+pub fn fa_fps<'a>(builder: &'a mut FamiqWidgetBuilder, id: &str) -> FaFpsTextBuilder<'a> {
+    let font_handle = builder.asset_server.load(builder.font_path.as_ref().unwrap());
+    FaFpsTextBuilder::new(
+        id.to_string(),
+        font_handle,
+        builder.ui_root_node.reborrow()
+    )
 }
