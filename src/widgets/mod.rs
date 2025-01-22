@@ -14,6 +14,7 @@ pub mod image;
 
 pub use button::fa_button;
 pub use circular::fa_circular;
+pub use container::fa_container;
 
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
@@ -324,15 +325,6 @@ impl<'a> FamiqWidgetBuilder<'a> {
     pub fn clean(&mut self) {
         let root_entity = self.get_entity();
         self.ui_root_node.commands().entity(root_entity).despawn_recursive();
-    }
-
-    pub fn fa_container(
-        &mut self,
-        id: &str,
-        classes: &str,
-        children: &Vec<Entity>,
-    ) -> Entity {
-        container::FaContainer::new(id, classes, &mut self.ui_root_node, children)
     }
 
     pub fn fa_text(&mut self, id: &str, classes: &str, value: &str) -> Entity {

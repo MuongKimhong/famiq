@@ -10,7 +10,8 @@ pub mod prelude {
         FamiqWidgetBuilder, FamiqWidgetResource, WidgetType, FamiqWidgetId,
         DefaultTextEntity, DefaultWidgetEntity,
         fa_button,
-        fa_circular
+        fa_circular,
+        fa_container
     };
     pub use crate::widgets::modal::{IsFamiqModalContainer, IsFamiqModalBackground, FaModalState};
     pub use crate::widgets::text_input::{IsFamiqTextInput, FaTextInputResource};
