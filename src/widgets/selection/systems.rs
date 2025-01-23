@@ -3,6 +3,7 @@ use crate::widgets::color::*;
 use crate::widgets::{WidgetType, FamiqWidgetResource};
 use crate::event_writer::FaInteractionEvent;
 use crate::utils;
+use super::FaSelection;
 use bevy::prelude::*;
 
 pub fn update_selector_placeholder_color_system(
@@ -21,44 +22,6 @@ pub fn update_selector_placeholder_color_system(
                     }
                 },
                 _ => text_color.0 = PLACEHOLDER_COLOR_UNFOCUSED
-            }
-        }
-    }
-}
-
-// on focus use arrow up else use arrow down
-pub fn update_selector_arrow_icon_system(
-    selection_q: Query<(Entity, &SelectorArrowIconEntity)>,
-    mut text_q: Query<&mut Text>,
-    builder_res: Res<FamiqWidgetResource>
-) {
-    for (entity, arrow_icon_entity) in selection_q.iter() {
-        if let Ok(mut text) = text_q.get_mut(arrow_icon_entity.0) {
-            match builder_res.get_widget_focus_state(&entity) {
-                Some(true) =>  text.0 = "▲".to_string(),
-                _ => text.0 = "▼".to_string()
-            }
-        }
-    }
-}
-
-// on focus show panel else hide
-pub fn update_selection_choices_panel_visibility_system(
-    selection_q: Query<(Entity, &SelectionChoicesPanelEntity)>,
-    mut visibility_q: Query<(&mut Visibility, &mut DefaultWidgetEntity, &IsFamiqSelectionChoicesPanel)>,
-    builder_res: Res<FamiqWidgetResource>
-) {
-    for (entity, choices_panel_entity) in selection_q.iter() {
-        if let Ok((mut visibility, mut default_widget, _)) = visibility_q.get_mut(choices_panel_entity.0) {
-            match builder_res.get_widget_focus_state(&entity) {
-                Some(true) => {
-                    *visibility = Visibility::Visible;
-                    default_widget.visibility = Visibility::Visible;
-                },
-                _ => {
-                    *visibility = Visibility::Hidden;
-                    default_widget.visibility = Visibility::Hidden;
-                }
             }
         }
     }
@@ -123,27 +86,51 @@ pub fn update_choices_panel_position_and_width_system(
 
 pub fn handle_selection_interaction_system(
     mut events: EventReader<FaInteractionEvent>,
-    mut selector_q: Query<(&mut BoxShadow, Option<&FamiqWidgetId>, &DefaultWidgetEntity), With<Selection>>,
+    mut selector_q: Query<
+        (
+            &mut BoxShadow,
+            Option<&FamiqWidgetId>,
+            &DefaultWidgetEntity,
+            &SelectorArrowIconEntity,
+            &SelectionChoicesPanelEntity
+        ),
+        (With<Selection>, Without<IsFamiqSelectionChoicesPanel>)
+    >,
     mut builder_res: ResMut<FamiqWidgetResource>,
     mut selected_choices_res: ResMut<SelectedChoicesResource>,
+    mut arrow_q: Query<&mut Text, With<ArrowIcon>>,
+    mut panel_q: Query<
+        (
+            &mut Visibility,
+            &mut DefaultWidgetEntity
+        ),
+        With<IsFamiqSelectionChoicesPanel>
+    >,
+
 ) {
     for e in events.read() {
         if e.widget == WidgetType::Selection {
-            if let Ok((mut box_shadow, id, default_style)) = selector_q.get_mut(e.entity) {
+            if let Ok((mut box_shadow, id, default_style, arrow_entity, panel_entity)) = selector_q.get_mut(e.entity) {
                 match e.interaction {
                     Interaction::Hovered => {
                         box_shadow.color = default_style.border_color.0.clone();
                     },
                     Interaction::Pressed => {
+                        // currently true, set back to false
                         if let Some(state) = builder_res.get_widget_focus_state(&e.entity) {
                             if state {
                                 builder_res.update_or_insert_focus_state(e.entity, false);
+                                FaSelection::arrow_down(&mut arrow_q, arrow_entity.0);
+                                FaSelection::hide_choice_panel(&mut panel_q, panel_entity.0);
                                 break;
                             }
                         }
 
+                        // currently false, set back to true
                         builder_res.update_all_focus_states(false);
                         builder_res.update_or_insert_focus_state(e.entity, true);
+                        FaSelection::arrow_up(&mut arrow_q, arrow_entity.0);
+                        FaSelection::show_choice_panel(&mut panel_q, panel_entity.0);
 
                         if let Some(id) = id {
                             selected_choices_res.update_or_insert(id.0.clone(), "-/-".to_string());
@@ -167,18 +154,33 @@ pub fn handle_selection_choice_interaction_system(
             &SelectionChoiceTextEntity,
 
         ),
-        With<IsFamiqSelectionChoice>
+        (With<IsFamiqSelectionChoice>, Without<IsFamiqSelectionChoicesPanel>)
     >,
-    mut selection_q: Query<(Entity, &Selection, Option<&FamiqWidgetId>, &mut SelectorPlaceHolderEntity)>,
+    mut selection_q: Query<(
+        Entity,
+        &Selection,
+        Option<&FamiqWidgetId>,
+        &mut SelectorPlaceHolderEntity,
+        &SelectorArrowIconEntity,
+        &SelectionChoicesPanelEntity
+    )>,
     mut selected_choices_res: ResMut<SelectedChoicesResource>,
-    mut text_q: Query<&mut Text>,
+    mut text_q: Query<&mut Text, Without<ArrowIcon>>,
+    mut arrow_q: Query<&mut Text, With<ArrowIcon>>,
+    mut panel_q: Query<
+        (
+            &mut Visibility,
+            &mut DefaultWidgetEntity
+        ),
+        With<IsFamiqSelectionChoicesPanel>
+    >,
     mut builder_res: ResMut<FamiqWidgetResource>
 ) {
     for e in events.read() {
         if e.widget == WidgetType::SelectionChoice {
             let mut selected_choice = String::new();
 
-            for (selection_entity, selection, selection_id, placeholder_entity) in selection_q.iter_mut() {
+            for (selection_entity, selection, selection_id, placeholder_entity, arrow_entity, panel_entity) in selection_q.iter_mut() {
                 match builder_res.get_widget_focus_state(&selection_entity) {
                     Some(true) => {
                         if let Ok((mut default_choice_widget, mut bg_color, choice_text_entity)) = selection_choice_q.get_mut(e.entity) {
@@ -210,8 +212,9 @@ pub fn handle_selection_choice_interaction_system(
                                     }
 
                                     // set selection to unfocus after choice is selected
-                                    // selection.focused = false;
                                     builder_res.update_or_insert_focus_state(selection_entity, false);
+                                    FaSelection::arrow_down(&mut arrow_q, arrow_entity.0);
+                                    FaSelection::hide_choice_panel(&mut panel_q, panel_entity.0);
 
                                     *bg_color = BackgroundColor(ITEM_NORMAL_BG_COLOR);
                                     default_choice_widget.background_color = BackgroundColor(ITEM_NORMAL_BG_COLOR);

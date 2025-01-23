@@ -6,7 +6,8 @@ pub mod systems;
 use crate::utils;
 use crate::widgets::{
     DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetResource,
-    FamiqWidgetId, FamiqWidgetClasses, FamiqWidgetBuilder
+    FamiqWidgetId, FamiqWidgetClasses, FamiqWidgetBuilder, WidgetStyle,
+    ExternalStyleHasChanged
 };
 use bevy::ecs::system::EntityCommands;
 use bevy::ui::FocusPolicy;
@@ -98,7 +99,9 @@ impl<'a> FaSelection {
                     z_index,
                     visibility,
                 ),
-                Interaction::default()
+                Interaction::default(),
+                WidgetStyle::default(),
+                ExternalStyleHasChanged(false)
             ))
             .id();
 
@@ -161,6 +164,7 @@ impl<'a> FaSelection {
                 txt_color.clone(),
                 txt_layout.clone(),
                 DefaultTextEntity::new(txt, txt_font, txt_color, txt_layout),
+                ArrowIcon
             ))
             .id()
     }
@@ -233,6 +237,7 @@ impl<'a> FaSelection {
                 SelectorArrowIconEntity(arrow_icon_entity),
                 SelectionChoicesPanelEntity(choices_panel_entity)
             ))
+            .insert((WidgetStyle::default(), ExternalStyleHasChanged(false)))
             .id();
 
         if let Some(id) = id {
@@ -325,7 +330,9 @@ impl<'a> FaSelection {
                 ),
                 IsFamiqSelectionChoice,
                 SelectionChoiceTextEntity(text_entity),
-                Interaction::default()
+                Interaction::default(),
+                WidgetStyle::default(),
+                ExternalStyleHasChanged(false)
             ))
             .id();
 
@@ -417,6 +424,44 @@ impl<'a> FaSelection {
         utils::entity_add_children(root_node, &vec![selector, choices_panel], container);
 
         container
+    }
+
+    pub fn arrow_up(text_q: &mut Query<&mut Text, With<ArrowIcon>>, arrow_entity: Entity) {
+        if let Ok(mut text) = text_q.get_mut(arrow_entity) {
+            text.0 = "▲".to_string()
+        }
+    }
+
+    pub fn arrow_down(text_q: &mut Query<&mut Text, With<ArrowIcon>>, arrow_entity: Entity) {
+        if let Ok(mut text) = text_q.get_mut(arrow_entity) {
+            text.0 = "▼".to_string()
+        }
+    }
+
+    pub fn show_choice_panel(
+        panel_q: &mut Query<
+            (&mut Visibility, &mut DefaultWidgetEntity),
+            With<IsFamiqSelectionChoicesPanel>
+        >,
+        panel_entity: Entity
+    ) {
+        if let Ok((mut visibility, mut default_widget)) = panel_q.get_mut(panel_entity) {
+            *visibility = Visibility::Visible;
+            default_widget.visibility = Visibility::Visible;
+        }
+    }
+
+    pub fn hide_choice_panel(
+        panel_q: &mut Query<
+            (&mut Visibility, &mut DefaultWidgetEntity),
+            With<IsFamiqSelectionChoicesPanel>
+        >,
+        panel_entity: Entity
+    ) {
+        if let Ok((mut visibility, mut default_widget)) = panel_q.get_mut(panel_entity) {
+            *visibility = Visibility::Hidden;
+            default_widget.visibility = Visibility::Hidden;
+        }
     }
 }
 

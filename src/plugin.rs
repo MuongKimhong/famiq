@@ -50,8 +50,6 @@ fn fa_selection_systems(app: &mut App) {
             event_writer::selection_interaction_system,
             event_writer::selection_choice_interaction_system,
             update_selector_placeholder_color_system,
-            update_selector_arrow_icon_system,
-            update_selection_choices_panel_visibility_system,
             update_choices_panel_position_and_width_system,
             handle_selection_interaction_system,
             handle_selection_choice_interaction_system,
