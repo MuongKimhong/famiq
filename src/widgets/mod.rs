@@ -125,6 +125,31 @@ impl DefaultTextEntity {
     }
 }
 
+// only widget type with flag true can have all its systems run
+pub struct CanRunSystems {
+    pub fps: bool,
+    pub button: bool,
+    pub text_input: bool,
+    pub selection: bool,
+    pub circular: bool,
+    pub list_view: bool,
+    pub modal: bool
+}
+
+impl Default for CanRunSystems {
+    fn default() -> Self {
+        Self {
+            fps: false,
+            button: false,
+            text_input: false,
+            selection: false,
+            circular: false,
+            list_view: false,
+            modal: false
+        }
+    }
+}
+
 #[derive(Resource)]
 pub struct FamiqWidgetResource {
     // font path relative to project root
@@ -138,7 +163,9 @@ pub struct FamiqWidgetResource {
 
     pub widget_focus_state: HashMap<Entity, bool>,
 
-    pub external_style_applied: bool
+    pub external_style_applied: bool,
+
+    pub can_run_systems: CanRunSystems
 }
 
 impl FamiqWidgetResource {
@@ -171,7 +198,8 @@ impl Default for FamiqWidgetResource {
             style_path: String::new(),
             hot_reload_styles: false,
             widget_focus_state: HashMap::new(),
-            external_style_applied: false
+            external_style_applied: false,
+            can_run_systems: CanRunSystems::default()
         }
     }
 }
@@ -239,7 +267,8 @@ pub struct FamiqWidgetBuilder<'a> {
     pub asset_server: &'a ResMut<'a, AssetServer>,
     pub ui_root_node: EntityCommands<'a>,
     pub font_path: Option<String>,
-    pub style_path: Option<String>
+    pub style_path: Option<String>,
+    pub resource: Mut<'a, FamiqWidgetResource>
 }
 
 impl<'a> FamiqWidgetBuilder<'a> {
@@ -252,7 +281,7 @@ impl<'a> FamiqWidgetBuilder<'a> {
 
     pub fn new(
         commands: &'a mut Commands,
-        builder_resource: &mut ResMut<FamiqWidgetResource>,
+        builder_resource: &'a mut ResMut<FamiqWidgetResource>,
         asset_server: &'a ResMut<'a, AssetServer>,
     ) -> Self {
         Self::_reset_builder_resource(builder_resource);
@@ -260,42 +289,30 @@ impl<'a> FamiqWidgetBuilder<'a> {
             asset_server,
             ui_root_node: Self::create_ui_root_node(commands),
             font_path: Some(get_embedded_asset_path("embedded_assets/fonts/fira-mono-regular.ttf").to_string()),
-            style_path: Some("assets/styles.json".to_string())
+            style_path: Some("assets/styles.json".to_string()),
+            resource: builder_resource.reborrow()
         }
     }
 
-    pub fn use_font_path(
-        mut self,
-        builder_resource: &mut ResMut<FamiqWidgetResource>,
-        font_path: &str
-    ) -> Self {
+    pub fn use_font_path(mut self, font_path: &str) -> Self {
         self.font_path = Some(font_path.to_string());
-        builder_resource.font_path = font_path.to_string();
+        self.resource.font_path = font_path.to_string();
         self
     }
 
-    pub fn use_style_path(
-        mut self,
-        builder_resource: &mut ResMut<FamiqWidgetResource>,
-        style_path: &str
-    ) -> Self {
+    pub fn use_style_path(mut self, style_path: &str) -> Self {
         let final_path = if style_path.starts_with("assets/") {
             style_path.to_string()
         } else {
             format!("assets/{}", style_path)
         };
         self.style_path = Some(final_path.clone());
-        builder_resource.style_path = final_path;
+        self.resource.style_path = final_path;
         self
     }
 
-    pub fn disable_hot_reload(self, builder_resource: &mut ResMut<FamiqWidgetResource>) -> Self {
-        builder_resource.hot_reload_styles = false;
-        self
-    }
-
-    pub fn enable_hot_reload(self, builder_resource: &mut ResMut<FamiqWidgetResource>) -> Self {
-        builder_resource.hot_reload_styles = true;
+    pub fn hot_reload(mut self) -> Self {
+        self.resource.hot_reload_styles = true;
         self
     }
 

@@ -269,9 +269,15 @@ impl<'a> FaButtonBuilder<'a> {
 
 pub fn fa_button<'a>(builder: &'a mut FamiqWidgetBuilder, text: &str) -> FaButtonBuilder<'a> {
     let font_handle = builder.asset_server.load(builder.font_path.as_ref().unwrap());
+    builder.resource.can_run_systems.button = true;
+
     FaButtonBuilder::new(
         text.to_string(),
         font_handle,
         builder.ui_root_node.reborrow(),
     )
+}
+
+pub fn can_run_button_systems(builder_res: Res<FamiqWidgetResource>) -> bool {
+    builder_res.can_run_systems.button
 }

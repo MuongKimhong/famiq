@@ -2,7 +2,10 @@ pub mod helper;
 
 // use crate::event_writer::FaInteractionEvent;
 use crate::utils;
-use crate::widgets::{DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetClasses, WidgetType, FamiqWidgetBuilder};
+use crate::widgets::{
+    DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetResource,
+    FamiqWidgetClasses, WidgetType, FamiqWidgetBuilder
+};
 use crate::event_writer::FaInteractionEvent;
 use bevy::ecs::system::EntityCommands;
 use bevy::input::mouse::{MouseScrollUnit, MouseWheel};
@@ -281,5 +284,10 @@ impl<'a> FaListViewBuilder<'a> {
 }
 
 pub fn fa_listview<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaListViewBuilder<'a> {
+    builder.resource.can_run_systems.list_view = true;
     FaListViewBuilder::new(builder.ui_root_node.reborrow())
+}
+
+pub fn can_run_list_view_systems(builder_res: Res<FamiqWidgetResource>) -> bool {
+    builder_res.can_run_systems.list_view
 }

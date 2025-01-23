@@ -569,10 +569,15 @@ pub fn fa_text_input<'a>(
     placeholder: &str
 ) -> FaTextInputBuilder<'a> {
     let font_handle = builder.asset_server.load(builder.font_path.as_ref().unwrap());
+    builder.resource.can_run_systems.text_input = true;
 
     FaTextInputBuilder::new(
         placeholder.to_string(),
         font_handle,
         builder.ui_root_node.reborrow()
     )
+}
+
+pub fn can_run_text_input_systems(builder_res: Res<FamiqWidgetResource>) -> bool {
+    builder_res.can_run_systems.text_input
 }

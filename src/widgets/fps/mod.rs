@@ -1,7 +1,10 @@
 pub mod helper;
 
 use crate::utils::entity_add_child;
-use crate::widgets::{DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetBuilder};
+use crate::widgets::{
+    DefaultTextEntity, DefaultWidgetEntity,
+    FamiqWidgetId, FamiqWidgetBuilder, FamiqWidgetResource
+};
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
@@ -216,8 +219,14 @@ impl<'a> FaFpsTextBuilder<'a> {
 
 pub fn fa_fps<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaFpsTextBuilder<'a> {
     let font_handle = builder.asset_server.load(builder.font_path.as_ref().unwrap());
+    builder.resource.can_run_systems.fps = true;
+
     FaFpsTextBuilder::new(
         font_handle,
         builder.ui_root_node.reborrow()
     )
+}
+
+pub fn can_run_fps_systems(builder_res: Res<FamiqWidgetResource>) -> bool {
+    builder_res.can_run_systems.fps
 }

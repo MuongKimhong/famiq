@@ -1,6 +1,9 @@
 pub mod helper;
 
-use crate::widgets::{FamiqWidgetId, FamiqWidgetClasses, DefaultWidgetEntity, FamiqWidgetBuilder};
+use crate::widgets::{
+    FamiqWidgetId, FamiqWidgetClasses, FamiqWidgetResource,
+    DefaultWidgetEntity, FamiqWidgetBuilder
+};
 use crate::utils;
 use bevy::prelude::*;
 use bevy::ui::FocusPolicy;
@@ -180,5 +183,10 @@ impl<'a> FaModalBuilder<'a> {
 }
 
 pub fn fa_modal<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaModalBuilder<'a> {
+    builder.resource.can_run_systems.modal = true;
     FaModalBuilder::new(builder.ui_root_node.reborrow())
+}
+
+pub fn can_run_modal_systems(builder_res: Res<FamiqWidgetResource>) -> bool {
+    builder_res.can_run_systems.modal
 }

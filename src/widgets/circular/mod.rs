@@ -1,7 +1,10 @@
 pub mod helper;
 
 use bevy::prelude::*;
-use crate::widgets::{FamiqWidgetId, FamiqWidgetClasses, DefaultWidgetEntity, FamiqWidgetBuilder};
+use crate::widgets::{
+    FamiqWidgetId, FamiqWidgetClasses, FamiqWidgetResource,
+    DefaultWidgetEntity, FamiqWidgetBuilder
+};
 use crate::utils::{entity_add_child, lighten_color, darken_color};
 use helper::*;
 
@@ -281,5 +284,10 @@ impl<'a> FaCircularBuilder<'a> {
 }
 
 pub fn fa_circular<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaCircularBuilder<'a> {
+    builder.resource.can_run_systems.circular = true;
     FaCircularBuilder::new(builder.ui_root_node.reborrow())
+}
+
+pub fn can_run_circular_systems(builder_res: Res<FamiqWidgetResource>) -> bool {
+    builder_res.can_run_systems.circular
 }

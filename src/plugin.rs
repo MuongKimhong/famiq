@@ -42,7 +42,8 @@ fn fa_selection_systems(app: &mut App) {
             update_choices_panel_position_and_width_system,
             handle_selection_interaction_system,
             handle_selection_choice_interaction_system,
-        ),
+        )
+        .run_if(can_run_selection_systems)
     );
 }
 
@@ -55,7 +56,8 @@ fn fa_text_input_systems(app: &mut App) {
             FaTextInput::handle_text_input_interaction_system,
             FaTextInput::handle_text_input_cursor_on_focused_system,
             FaTextInput::handle_cursor_blink_system
-        ),
+        )
+        .run_if(can_run_text_input_systems)
     );
 }
 
@@ -66,6 +68,7 @@ fn fa_button_systems(app: &mut App) {
             event_writer::btn_interaction_system,
             FaButton::handle_button_on_interaction_system
         )
+        .run_if(can_run_button_systems)
     );
 }
 
@@ -74,7 +77,7 @@ fn fa_text_systems(app: &mut App) {
 }
 
 fn fa_listview_systems(app: &mut App) {
-    app.add_systems(FixedUpdate, FaListView::on_hover_system);
+    app.add_systems(Update, FaListView::on_hover_system.run_if(on_timer(Duration::from_millis(300))));
     app.add_systems(
         Update,
         (
@@ -82,7 +85,9 @@ fn fa_listview_systems(app: &mut App) {
             event_writer::listview_item_interaction_system,
             FaListView::on_scroll_system,
         )
-            .chain(),
+            .chain()
+            .run_if(can_run_list_view_systems)
+        ,
     );
 }
 
@@ -90,16 +95,29 @@ fn fa_fps_text_systems(app: &mut App) {
     // update fps every 450 millisecond, default Update schedule is too fast
     app.add_systems(
         Update,
-        FaFpsText::update_fps_count_system.run_if(on_timer(Duration::from_millis(450)))
+        FaFpsText::update_fps_count_system.run_if(
+            on_timer(Duration::from_millis(450)).and(can_run_fps_systems)
+
+        )
     );
 }
 
 fn fa_circular_systems(app: &mut App) {
-    app.add_systems(Update, (FaCircular::rotate_spinner, FaCircular::update_spinner_speed));
+    app.add_systems(
+        Update,
+        (
+            FaCircular::rotate_spinner,
+            FaCircular::update_spinner_speed
+        )
+        .run_if(can_run_circular_systems)
+    );
 }
 
 fn fa_modal_systems(app: &mut App) {
-    app.add_systems(Update, FaModal::hide_or_display_modal_system);
+    app.add_systems(
+        Update,
+        FaModal::hide_or_display_modal_system.run_if(can_run_modal_systems)
+    );
 }
 
 fn fa_image_systems(app: &mut App) {

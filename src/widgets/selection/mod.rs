@@ -5,7 +5,7 @@ pub mod systems;
 
 use crate::utils;
 use crate::widgets::{
-    DefaultTextEntity, DefaultWidgetEntity,
+    DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetResource,
     FamiqWidgetId, FamiqWidgetClasses, FamiqWidgetBuilder
 };
 use bevy::ecs::system::EntityCommands;
@@ -516,9 +516,15 @@ pub fn fa_selection<'a>(
     placeholder: &str
 ) -> FaSelectionBuilder<'a> {
     let font_handle = builder.asset_server.load(builder.font_path.as_ref().unwrap());
+    builder.resource.can_run_systems.selection = true;
+
     FaSelectionBuilder::new(
         placeholder.to_string(),
         font_handle,
         builder.ui_root_node.reborrow()
     )
+}
+
+pub fn can_run_selection_systems(builder_res: Res<FamiqWidgetResource>) -> bool {
+    builder_res.can_run_systems.selection
 }
