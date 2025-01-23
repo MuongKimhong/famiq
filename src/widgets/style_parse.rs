@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use super::color::built_in_color_parser;
 
 // parse string of styles from json file to bevy ui style
 // example:
@@ -53,12 +54,15 @@ fn parse_hsla(value: &str) -> Option<Color> {
 pub fn parse_color(value: &str) -> Option<Color> {
     if value.starts_with("srgba ") {
         parse_srgba(value.strip_prefix("srgba ").unwrap())
-    } else if value.starts_with("linear_rgba ") {
+    }
+    else if value.starts_with("linear_rgba ") {
         parse_linear_rgba(value.strip_prefix("linear_rgba ").unwrap())
-    } else if value.starts_with("hsla ") {
+    }
+    else if value.starts_with("hsla ") {
         parse_hsla(value.strip_prefix("hsla ").unwrap())
-    } else {
-        None
+    }
+    else {
+        built_in_color_parser(value)
     }
 }
 

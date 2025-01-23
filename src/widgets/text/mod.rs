@@ -71,6 +71,11 @@ impl<'a> FaTextBuilder<'a> {
         self
     }
 
+    pub fn id(mut self, id: &str) -> Self {
+        self.id = Some(id.to_string());
+        self
+    }
+
     pub fn build(&mut self) -> Entity {
         FaText::new(
             self.id.clone(),
