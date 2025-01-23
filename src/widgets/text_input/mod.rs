@@ -5,7 +5,8 @@ use crate::utils;
 use crate::widgets::color::WHITE_COLOR;
 use crate::widgets::{
     DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId,
-    FamiqWidgetClasses, WidgetType, FamiqWidgetResource, FamiqWidgetBuilder
+    FamiqWidgetClasses, WidgetType, FamiqWidgetResource, FamiqWidgetBuilder,
+    WidgetStyle, ExternalStyleHasChanged
 };
 use crate::event_writer::FaInteractionEvent;
 
@@ -232,7 +233,11 @@ impl<'a> FaTextInput {
                 FamiqTextInputPlaceholderEntity(placeholder_entity),
                 FamiqTextInputCursorEntity(cursor_entity),
             ))
-            .insert(CharacterSize { width: 0.0, height: 0.0 })
+            .insert((
+                CharacterSize { width: 0.0, height: 0.0 },
+                WidgetStyle::default(),
+                ExternalStyleHasChanged(false)
+            ))
             .id();
 
         if let Some(id) = id {

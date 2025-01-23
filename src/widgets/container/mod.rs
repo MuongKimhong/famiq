@@ -5,7 +5,8 @@ use bevy::prelude::*;
 
 use crate::utils;
 use crate::widgets::{
-    DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetClasses, FamiqWidgetBuilder
+    DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetClasses,
+    FamiqWidgetBuilder, WidgetStyle, ExternalStyleHasChanged
 };
 use helper::default_container_node;
 
@@ -47,7 +48,9 @@ impl<'a> FaContainer {
                     z_index,
                     visibility,
                 ),
-                Interaction::default()
+                Interaction::default(),
+                WidgetStyle::default(),
+                ExternalStyleHasChanged(false)
             ))
             .id();
 

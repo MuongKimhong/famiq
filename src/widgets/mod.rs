@@ -125,6 +125,9 @@ impl DefaultTextEntity {
     }
 }
 
+#[derive(Component)]
+pub struct ExternalStyleHasChanged(pub bool);
+
 // only widget type with flag true can have all its systems run
 pub struct CanRunSystems {
     pub fps: bool,
@@ -207,7 +210,7 @@ impl Default for FamiqWidgetResource {
 #[derive(Component)]
 pub struct IsFaWidgetRoot;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Default, Debug, Serialize, Deserialize, Clone, Component)]
 pub struct WidgetStyle {
     pub color: Option<String>,     // for fa_text, fa_fps, Text color only
     pub font_size: Option<String>, // for fa_text, fa_fps, Text font_size only
@@ -262,6 +265,37 @@ pub struct WidgetStyle {
     pub border_radius_bottom_left: Option<String>,
     pub border_radius_bottom_right: Option<String>
 }
+
+impl WidgetStyle {
+    // assign external to self no matter what
+    pub fn from_external(&mut self, external: &WidgetStyle) {
+        *self = external.clone();
+    }
+
+    // update only fields with different value betwen self & external
+    pub fn update_from(&mut self, external: &WidgetStyle) -> bool {
+        let mut has_changed = false;
+
+        let self_json = serde_json::to_value(&mut *self).unwrap();
+        let external_json = serde_json::to_value(external).unwrap();
+
+        if let serde_json::Value::Object(mut self_map) = self_json {
+            if let serde_json::Value::Object(external_map) = external_json {
+                for (key, external_value) in external_map {
+                    if self_map.get(&key) != Some(&external_value) {
+                        // Update only if different
+                        self_map.insert(key, external_value);
+                        has_changed = true;
+                    }
+                }
+            }
+            *self = serde_json::from_value(serde_json::Value::Object(self_map)).unwrap();
+        }
+
+        has_changed
+    }
+}
+
 
 pub struct FamiqWidgetBuilder<'a> {
     pub asset_server: &'a ResMut<'a, AssetServer>,
@@ -347,5 +381,77 @@ impl<'a> FamiqWidgetBuilder<'a> {
     pub fn clean(&mut self) {
         let root_entity = self.get_entity();
         self.ui_root_node.commands().entity(root_entity).despawn_recursive();
+    }
+}
+
+pub fn hot_reload_is_enabled(builder_res: Res<FamiqWidgetResource>) -> bool {
+    builder_res.hot_reload_styles
+}
+
+pub fn hot_reload_is_disabled(builder_res: Res<FamiqWidgetResource>) -> bool {
+    !builder_res.hot_reload_styles
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_widget_style_from_external() {
+        let mut local_style = WidgetStyle {
+            color: Some("red".to_string()),
+            ..default()
+        };
+
+        let external_style = WidgetStyle {
+            color: Some("blue".to_string()),
+            background_color: Some("yellow".to_string()),
+            ..default()
+        };
+
+        // Update the local style with the external style
+        local_style.from_external(&external_style);
+
+        assert_eq!(
+            local_style.color,
+            Some("blue".to_string())
+        );
+        assert_eq!(
+            local_style.background_color,
+            Some("yellow".to_string()),
+        );
+    }
+
+    #[test]
+    fn test_widget_style_update_from() {
+        let mut local_style = WidgetStyle {
+            color: Some("red".to_string()),
+            font_size: None,
+            background_color: Some("white".to_string()),
+            ..default()
+        };
+
+        let external_style = WidgetStyle {
+            color: Some("blue".to_string()),
+            font_size: Some("16px".to_string()),
+            background_color: None,
+            ..default()
+        };
+
+        // Update the local style with the external style
+        local_style.update_from(&external_style);
+
+        assert_eq!(
+            local_style.color,
+            Some("blue".to_string())
+        );
+        assert_eq!(
+            local_style.font_size,
+            Some("16px".to_string())
+        );
+        assert_eq!(
+            local_style.background_color,
+            None,
+        );
     }
 }

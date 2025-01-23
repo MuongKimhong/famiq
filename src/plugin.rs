@@ -22,11 +22,24 @@ fn external_styles_file_systems(app: &mut App) {
         Update,
         (
             style::read_styles_from_file_system,
+            style::detect_external_style_changes,
             style::apply_widgets_styles_system,
-            style::apply_text_style_system,
-            style::finish_style_applying_system,
+            style::apply_text_style_system
         )
             .chain()
+            .run_if(hot_reload_is_enabled)
+    );
+    app.add_systems(
+        Update,
+        (
+            style::read_styles_from_file_system,
+            style::inject_external_style,
+            style::apply_widgets_styles_system,
+            style::apply_text_style_system,
+            style::finish_style_applying_system
+        )
+            .chain()
+            .run_if(hot_reload_is_disabled)
     );
 }
 

@@ -4,7 +4,8 @@ pub mod helper;
 use crate::utils;
 use crate::widgets::{
     DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetResource,
-    FamiqWidgetClasses, WidgetType, FamiqWidgetBuilder
+    FamiqWidgetClasses, WidgetType, FamiqWidgetBuilder,
+    WidgetStyle, ExternalStyleHasChanged
 };
 use crate::event_writer::FaInteractionEvent;
 use bevy::ecs::system::EntityCommands;
@@ -138,6 +139,8 @@ impl<'a> FaListView {
                 ),
                 Interaction::default(),
                 ListViewMovePanelEntity(panel_entity),
+                WidgetStyle::default(),
+                ExternalStyleHasChanged(false)
             ))
             .id();
 

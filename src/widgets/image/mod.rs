@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use crate::widgets::{
     DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetClasses,
-    FamiqWidgetBuilder
+    FamiqWidgetBuilder, WidgetStyle, ExternalStyleHasChanged
 };
 
 #[derive(Component)]
@@ -48,7 +48,9 @@ impl<'a> FaImage {
                 z_index,
                 visibility
             ),
-            Interaction::default()
+            Interaction::default(),
+            WidgetStyle::default(),
+            ExternalStyleHasChanged(false)
         )).id();
 
         if let Some(id) = id {

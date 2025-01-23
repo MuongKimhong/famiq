@@ -1,5 +1,8 @@
 use super::color::WHITE_COLOR;
-use crate::widgets::{DefaultTextEntity, FamiqWidgetId, FamiqWidgetClasses, FamiqWidgetBuilder};
+use crate::widgets::{
+    DefaultTextEntity, FamiqWidgetId, FamiqWidgetClasses,
+    FamiqWidgetBuilder, WidgetStyle, ExternalStyleHasChanged
+};
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 
@@ -33,7 +36,9 @@ impl<'a> FaText {
                 txt_color.clone(),
                 txt_layout.clone(),
                 DefaultTextEntity::new(txt, txt_font, txt_color, txt_layout),
-                Interaction::default()
+                Interaction::default(),
+                WidgetStyle::default(),
+                ExternalStyleHasChanged(false)
             ))
             .id();
 

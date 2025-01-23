@@ -3,7 +3,8 @@ pub mod helper;
 use bevy::prelude::*;
 use crate::widgets::{
     FamiqWidgetId, FamiqWidgetClasses, FamiqWidgetResource,
-    DefaultWidgetEntity, FamiqWidgetBuilder
+    DefaultWidgetEntity, FamiqWidgetBuilder, WidgetStyle,
+    ExternalStyleHasChanged
 };
 use crate::utils::{entity_add_child, lighten_color, darken_color};
 use helper::*;
@@ -136,6 +137,8 @@ impl<'a> FaCircular {
                 IsFamiqCircular,
                 CircularSpinnerEntity(spinner_entity),
                 Interaction::default(),
+                WidgetStyle::default(),
+                ExternalStyleHasChanged(false)
 
             ))
             .id();

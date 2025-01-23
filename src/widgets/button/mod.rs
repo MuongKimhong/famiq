@@ -4,7 +4,8 @@ use crate::utils;
 use crate::widgets::{
     DefaultTextEntity, DefaultWidgetEntity,
     FamiqWidgetId, FamiqWidgetClasses,
-    FamiqWidgetResource, FamiqWidgetBuilder
+    FamiqWidgetResource, FamiqWidgetBuilder,
+    WidgetStyle, ExternalStyleHasChanged
 };
 use crate::event_writer::FaInteractionEvent;
 use bevy::ecs::system::EntityCommands;
@@ -136,7 +137,9 @@ impl<'a> FaButton {
                     visibility,
                 ),
                 Interaction::default(),
-                ButtonTextEntity(txt_entity)
+                ButtonTextEntity(txt_entity),
+                WidgetStyle::default(),
+                ExternalStyleHasChanged(false)
             ))
             .id();
 

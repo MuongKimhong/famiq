@@ -3,7 +3,8 @@ pub mod helper;
 use crate::utils::entity_add_child;
 use crate::widgets::{
     DefaultTextEntity, DefaultWidgetEntity,
-    FamiqWidgetId, FamiqWidgetBuilder, FamiqWidgetResource
+    FamiqWidgetId, FamiqWidgetBuilder, FamiqWidgetResource,
+    WidgetStyle, ExternalStyleHasChanged
 };
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::ecs::system::EntityCommands;
@@ -63,7 +64,9 @@ impl<'a> FaFpsText {
                     visibility,
                 ),
                 Interaction::default(),
-                GlobalZIndex(6)
+                GlobalZIndex(6),
+                WidgetStyle::default(),
+                ExternalStyleHasChanged(false)
             ))
             .id();
 
