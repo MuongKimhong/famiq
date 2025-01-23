@@ -166,7 +166,7 @@ impl<'a> FaTextInput {
     }
 
     fn _build_input(
-        id: &str,
+        id: &Option<String>,
         class: Option<String>,
         root_node: &'a mut EntityCommands,
         variant: TextInputVariant,
@@ -218,7 +218,6 @@ impl<'a> FaTextInput {
                     spread_radius: Val::Px(0.5),
                     blur_radius: Val::Px(1.0)
                 },
-                FamiqWidgetId(id.to_string()),
                 IsFamiqTextInput,
                 DefaultWidgetEntity::new(
                     node,
@@ -236,6 +235,9 @@ impl<'a> FaTextInput {
             .insert(CharacterSize { width: 0.0, height: 0.0 })
             .id();
 
+        if let Some(id) = id {
+            root_node.commands().entity(entity).insert(FamiqWidgetId(id.to_string()));
+        }
         if let Some(class) = class {
             root_node.commands().entity(entity).insert(FamiqWidgetClasses(class));
         }
@@ -243,7 +245,7 @@ impl<'a> FaTextInput {
     }
 
     pub fn new(
-        id: &str,
+        id: Option<String>,
         class: Option<String>,
         placeholder: &str, // placeholder
         root_node: &'a mut EntityCommands,
@@ -256,7 +258,7 @@ impl<'a> FaTextInput {
         let cursor_entity = Self::_build_cursor(root_node, &color);
         let ph_entity = Self::_build_placeholder(placeholder, root_node, font_handle, &size);
         let input_entity = Self::_build_input(
-            id,
+            &id,
             class,
             root_node,
             variant,
@@ -481,7 +483,7 @@ impl<'a> FaTextInput {
 }
 
 pub struct FaTextInputBuilder<'a> {
-    pub id: String,
+    pub id: Option<String>,
     pub placeholder: String,
     pub class: Option<String>,
     pub font_handle: Handle<Font>,
@@ -490,13 +492,12 @@ pub struct FaTextInputBuilder<'a> {
 
 impl<'a> FaTextInputBuilder<'a> {
     pub fn new(
-        id: String,
         placeholder: String,
         font_handle: Handle<Font>,
         root_node: EntityCommands<'a>
     ) -> Self {
         Self {
-            id,
+            id: None,
             placeholder,
             class: None,
             font_handle,
@@ -542,10 +543,15 @@ impl<'a> FaTextInputBuilder<'a> {
         self
     }
 
+    pub fn id(mut self, id: &str) -> Self {
+        self.id = Some(id.to_string());
+        self
+    }
+
     pub fn build(&mut self) -> Entity {
         let (variant, color, size, shape) = self._process_built_in_classes();
         FaTextInput::new(
-            self.id.as_str(),
+            self.id.clone(),
             self.class.clone(),
             self.placeholder.as_str(),
             &mut self.root_node,
@@ -560,13 +566,11 @@ impl<'a> FaTextInputBuilder<'a> {
 
 pub fn fa_text_input<'a>(
     builder: &'a mut FamiqWidgetBuilder,
-    id: &str,
     placeholder: &str
 ) -> FaTextInputBuilder<'a> {
     let font_handle = builder.asset_server.load(builder.font_path.as_ref().unwrap());
 
     FaTextInputBuilder::new(
-        id.to_string(),
         placeholder.to_string(),
         font_handle,
         builder.ui_root_node.reborrow()
