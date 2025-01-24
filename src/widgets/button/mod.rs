@@ -288,19 +288,7 @@ pub fn can_run_button_systems(builder_res: Res<FamiqWidgetResource>) -> bool {
 #[cfg(test)]
 mod tests {
     use crate::plugin::FamiqPlugin;
-    use bevy::asset::AssetPlugin;
     use super::*;
-
-    fn create_test_app() -> App {
-        let mut app = App::new();
-        // Note the use of `MinimalPlugins` instead of `DefaultPlugins`, as described above.
-        app.add_plugins(MinimalPlugins);
-        app.add_plugins(AssetPlugin::default());
-        app.init_asset::<Font>();
-        // Spawning a fake window allows testing systems that require a window.
-        app.world_mut().spawn(Window::default());
-        app
-    }
 
     fn setup_test_default_button(
         mut commands: Commands,
@@ -325,7 +313,7 @@ mod tests {
 
     #[test]
     fn test_create_default_button() {
-        let mut app = create_test_app();
+        let mut app = utils::create_test_app();
         app.add_plugins(FamiqPlugin);
         app.insert_resource(FamiqWidgetResource::default());
         app.add_systems(Startup, setup_test_default_button);
@@ -351,7 +339,7 @@ mod tests {
 
     #[test]
     fn test_create_button_with_built_in_class() {
-        let mut app = create_test_app();
+        let mut app = utils::create_test_app();
         app.add_plugins(FamiqPlugin);
         app.insert_resource(FamiqWidgetResource::default());
         app.add_systems(Startup, setup_test_button_with_built_in_class);

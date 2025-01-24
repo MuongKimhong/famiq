@@ -1,5 +1,5 @@
 use bevy::ecs::system::EntityCommands;
-use bevy::asset::{io::AssetSourceId, AssetPath};
+use bevy::asset::{io::AssetSourceId, AssetPath, AssetPlugin};
 use bevy::prelude::*;
 use std::path::Path;
 use std::fs::File;
@@ -135,4 +135,16 @@ pub fn get_embedded_asset_path(file_path: &str) -> AssetPath {
     let path = Path::new("famiq").join(file_path);
     let source = AssetSourceId::from("embedded");
     AssetPath::from_path(&path).with_source(source).into_owned()
+}
+
+pub fn create_test_app() -> App {
+    let mut app = App::new();
+    // Note the use of `MinimalPlugins` instead of `DefaultPlugins`, as described above.
+    app.add_plugins(MinimalPlugins);
+    app.add_plugins(AssetPlugin::default());
+    app.init_asset::<Font>();
+    app.init_asset::<Image>();
+    // Spawning a fake window allows testing systems that require a window.
+    app.world_mut().spawn(Window::default());
+    app
 }
