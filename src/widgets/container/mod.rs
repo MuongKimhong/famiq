@@ -117,7 +117,6 @@ pub fn fa_container<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaContainerBuild
 #[cfg(test)]
 mod tests {
     use crate::plugin::FamiqPlugin;
-    use crate::utils::create_test_app;
     use crate::widgets::button::fa_button;
     use crate::widgets::FamiqWidgetResource;
     use super::*;

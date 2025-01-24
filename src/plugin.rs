@@ -143,6 +143,7 @@ impl Plugin for FamiqPlugin {
         embedded_asset!(app, "embedded_assets/fonts/fira-mono-regular.ttf");
         embedded_asset!(app, "embedded_assets/fonts/fira-mono-medium.ttf");
         embedded_asset!(app, "embedded_assets/fonts/fira-mono-bold.ttf");
+        embedded_asset!(app, "embedded_assets/logo.jpeg"); // for testing
 
         app.add_plugins(FrameTimeDiagnosticsPlugin::default());
         app.insert_resource(StylesKeyValueResource(StylesKeyValue::new()));
