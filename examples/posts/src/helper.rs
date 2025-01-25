@@ -13,7 +13,7 @@ pub fn create_post(
     let title = fa_text(builder, caption).class("title").build();
     let title_wrapper = fa_container(builder)
         .class("title-wrapper")
-        .children(vec![title])
+        .children([title])
         .build();
 
     let image = fa_image(builder, image_path)
@@ -32,12 +32,12 @@ pub fn create_post(
 
     let action_container = fa_container(builder)
         .class("action-container")
-        .children(vec![like_txt, like_btn])
+        .children([like_txt, like_btn])
         .build();
 
     fa_container(builder)
         .class("post-container")
-        .children(vec![user, title_wrapper, image, action_container])
+        .children([user, title_wrapper, image, action_container])
         .build()
 }
 

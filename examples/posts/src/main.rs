@@ -37,7 +37,7 @@ fn setup(
 
     fa_listview(&mut builder)
         .id("#container")
-        .children(vec![post_1, post_2, post_3, post_4])
+        .children([post_1, post_2, post_3, post_4])
         .build();
 }
 

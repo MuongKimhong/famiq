@@ -29,7 +29,7 @@ fn setup(
 
     fa_container(&mut builder)
         .id("#container")
-        .children(vec![name, done_btn])
+        .children([name, done_btn])
         .build();
 
     let close_btn = fa_button(&mut builder, "Close").id("#close-btn").class("is-small").build();
@@ -39,10 +39,10 @@ fn setup(
 
     let modal_container = fa_container(&mut builder)
         .id("#modal-container")
-        .children(vec![welcome_txt, close_btn])
+        .children([welcome_txt, close_btn])
         .build();
 
-    fa_modal(&mut builder).id("#modal").children(vec![modal_container]).build();
+    fa_modal(&mut builder).id("#modal").children([modal_container]).build();
 }
 
 fn handle_btn_press(

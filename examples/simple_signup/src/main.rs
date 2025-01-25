@@ -26,19 +26,19 @@ fn setup(
     let l_name = fa_text_input(&mut builder, "Last name").id("#last-name").build();
     let name_container = fa_container(&mut builder)
         .id("#name-container")
-        .children(vec![f_name, l_name])
+        .children([f_name, l_name])
         .build();
 
     let ask = fa_selection(&mut builder, "Select your subscription")
-        .choices(vec!["Personal", "Team"])
+        .choices(["Personal", "Team"])
         .build();
     let ask_container = fa_container(&mut builder).id("#ask-container")
-        .children(vec![ask])
+        .children([ask])
         .build();
 
     let btn = fa_button(&mut builder, "Confirm").build();
 
     fa_container(&mut builder).id("#container")
-        .children(vec![txt, name_container, ask_container, btn])
+        .children([txt, name_container, ask_container, btn])
         .build();
 }
