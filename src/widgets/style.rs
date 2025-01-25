@@ -1,6 +1,8 @@
 use crate::utils;
 use crate::widgets::{
-    style_parse::*, DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetResource,
+    style_parse::*,
+    helper::*,
+    DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetResource,
     FamiqWidgetId, FamiqWidgetClasses, StylesKeyValueResource, WidgetStyle,
     ExternalStyleHasChanged
 };
@@ -175,6 +177,11 @@ pub fn apply_styles_from_external_json(
     widget_style: &WidgetStyle,
     default_widget_entity: &DefaultWidgetEntity
 ) {
+    handle_apply_padding(widget_style, default_widget_entity, node);
+    handle_apply_margin(widget_style, default_widget_entity, node);
+    handle_apply_border(widget_style, default_widget_entity, node);
+    handle_apply_border_radius(widget_style, default_widget_entity, border_radius);
+
     if let Some(bg_color_value) = &widget_style.background_color {
         if let Some(v) = parse_background_color(&bg_color_value) {
             *bg_color = v;
@@ -183,53 +190,12 @@ pub fn apply_styles_from_external_json(
         *bg_color = default_widget_entity.background_color.clone();
     }
 
-
     if let Some(border_color_value) = &widget_style.border_color {
         if let Some(v) = parse_border_color(&border_color_value) {
             *border_color = v;
         }
     } else {
         *border_color = default_widget_entity.border_color.clone();
-    }
-
-    if let Some(border_radius_value) = &widget_style.border_radius {
-        if let Some(v) = parse_border_radius(&border_radius_value) {
-            *border_radius = v;
-        }
-    } else {
-        *border_radius = default_widget_entity.border_radius.clone();
-    }
-
-    if let Some(border_radius_top_left) = &widget_style.border_radius_top_left {
-        if let Some(v) = parse_val(border_radius_top_left) {
-            border_radius.top_left = v;
-        }
-    } else {
-        border_radius.top_left = default_widget_entity.border_radius.top_left.clone();
-    }
-
-    if let Some(border_radius_top_right) = &widget_style.border_radius_top_right {
-        if let Some(v) = parse_val(border_radius_top_right) {
-            border_radius.top_right = v;
-        }
-    } else {
-        border_radius.top_right = default_widget_entity.border_radius.top_right.clone();
-    }
-
-    if let Some(border_radius_bottom_left) = &widget_style.border_radius_bottom_left {
-        if let Some(v) = parse_val(border_radius_bottom_left) {
-            border_radius.bottom_left = v;
-        }
-    } else {
-        border_radius.bottom_left = default_widget_entity.border_radius.bottom_left.clone();
-    }
-
-    if let Some(border_radius_bottom_right) = &widget_style.border_radius_bottom_right {
-        if let Some(v) = parse_val(border_radius_bottom_right) {
-            border_radius.bottom_right = v;
-        }
-    } else {
-        border_radius.bottom_right = default_widget_entity.border_radius.bottom_right.clone();
     }
 
     if let Some(visibility_value) = &widget_style.visibility {
@@ -392,30 +358,6 @@ pub fn apply_styles_from_external_json(
         node.justify_content = default_widget_entity.node.justify_content.clone();
     }
 
-    if let Some(padding) = &widget_style.padding {
-        if let Some(v) = parse_ui_rect(&padding) {
-            node.padding = v;
-        }
-    } else {
-        node.padding = default_widget_entity.node.padding.clone();
-    }
-
-    if let Some(margin) = &widget_style.margin {
-        if let Some(v) = parse_ui_rect(&margin) {
-            node.margin = v;
-        }
-    } else {
-        node.margin = default_widget_entity.node.margin.clone();
-    }
-
-    if let Some(border) = &widget_style.border {
-        if let Some(v) = parse_ui_rect(&border) {
-            node.border = v;
-        }
-    } else {
-        node.border = default_widget_entity.node.border.clone();
-    }
-
     if let Some(flex_direction) = &widget_style.flex_direction {
         if let Some(v) = parse_flex_direction(flex_direction) {
             node.flex_direction = v;
@@ -478,102 +420,6 @@ pub fn apply_styles_from_external_json(
         }
     } else {
         node.grid_auto_flow = default_widget_entity.node.grid_auto_flow.clone();
-    }
-
-    if let Some(margin_left) = &widget_style.margin_left {
-        if let Some(v) = parse_val(margin_left) {
-            node.margin.left = v;
-        }
-    } else {
-        node.margin.left = default_widget_entity.node.margin.left.clone();
-    }
-
-    if let Some(margin_right) = &widget_style.margin_right {
-        if let Some(v) = parse_val(margin_right) {
-            node.margin.right = v;
-        }
-    } else {
-        node.margin.right = default_widget_entity.node.margin.right.clone();
-    }
-
-    if let Some(margin_top) = &widget_style.margin_top {
-        if let Some(v) = parse_val(margin_top) {
-            node.margin.top = v;
-        }
-    } else {
-        node.margin.top = default_widget_entity.node.margin.top.clone();
-    }
-
-    if let Some(margin_bottom) = &widget_style.margin_bottom {
-        if let Some(v) = parse_val(margin_bottom) {
-            node.margin.bottom = v;
-        }
-    } else {
-        node.margin.bottom = default_widget_entity.node.margin.bottom.clone();
-    }
-
-    if let Some(padding_left) = &widget_style.padding_left {
-        if let Some(v) = parse_val(padding_left) {
-            node.padding.left = v;
-        }
-    } else {
-        node.padding.left = default_widget_entity.node.padding.left.clone();
-    }
-
-    if let Some(padding_right) = &widget_style.padding_right {
-        if let Some(v) = parse_val(padding_right) {
-            node.padding.right = v;
-        }
-    } else {
-        node.padding.right = default_widget_entity.node.padding.right.clone();
-    }
-
-    if let Some(padding_top) = &widget_style.padding_top {
-        if let Some(v) = parse_val(padding_top) {
-            node.padding.top = v;
-        }
-    } else {
-        node.padding.top = default_widget_entity.node.padding.top.clone();
-    }
-
-    if let Some(padding_bottom) = &widget_style.padding_bottom {
-        if let Some(v) = parse_val(padding_bottom) {
-            node.padding.bottom = v;
-        }
-    } else {
-        node.padding.bottom = default_widget_entity.node.padding.bottom.clone();
-    }
-
-    if let Some(border_left) = &widget_style.border_left {
-        if let Some(v) = parse_val(border_left) {
-            node.border.left = v;
-        }
-    } else {
-        node.border.left = default_widget_entity.node.border.left.clone();
-    }
-
-    if let Some(border_right) = &widget_style.border_right {
-        if let Some(v) = parse_val(border_right) {
-            node.border.right = v;
-        }
-    } else {
-        node.border.right = default_widget_entity.node.border.right.clone();
-    }
-
-    if let Some(border_top) = &widget_style.border_top {
-        if let Some(v) = parse_val(border_top) {
-            node.border.top = v;
-        }
-    } else {
-        node.border.top = default_widget_entity.node.border.top.clone();
-    }
-
-    if let Some(border_bottom) = &widget_style.border_bottom {
-        if let Some(v) = parse_val(border_bottom) {
-            node.border.bottom = v;
-        }
-    } else {
-        node.border.bottom = default_widget_entity.node.border.bottom.clone();
     }
 }
 

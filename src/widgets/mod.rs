@@ -12,6 +12,7 @@ pub mod circular;
 pub mod modal;
 pub mod image;
 pub mod bg_image;
+pub mod helper;
 
 pub use button::fa_button;
 pub use circular::fa_circular;
