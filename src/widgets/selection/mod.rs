@@ -534,8 +534,12 @@ impl<'a> FaSelectionBuilder<'a> {
         self
     }
 
-    pub fn choices(mut self, choices: Vec<&str>) -> Self {
-        self.choices = Some(choices.into_iter().map(String::from).collect());
+    pub fn choices<I>(mut self, choices: I) -> Self
+    where
+        I: IntoIterator,
+        I::Item: Into<String>,
+    {
+        self.choices = Some(choices.into_iter().map(Into::into).collect());
         self
     }
 

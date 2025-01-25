@@ -271,8 +271,8 @@ impl<'a> FaListViewBuilder<'a> {
         self
     }
 
-    pub fn children(mut self, children: Vec<Entity>) -> Self {
-        self.children = Some(children);
+    pub fn children<I: IntoIterator<Item = Entity>>(mut self, children: I) -> Self {
+        self.children = Some(children.into_iter().collect());
         self
     }
 
