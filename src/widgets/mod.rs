@@ -390,7 +390,7 @@ pub fn hot_reload_is_enabled(builder_res: Res<FamiqWidgetResource>) -> bool {
 }
 
 pub fn hot_reload_is_disabled(builder_res: Res<FamiqWidgetResource>) -> bool {
-    !builder_res.hot_reload_styles
+    !builder_res.hot_reload_styles && !builder_res.external_style_applied
 }
 
 #[cfg(test)]

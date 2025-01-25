@@ -2,7 +2,7 @@ pub mod helper;
 
 use crate::widgets::{
     FamiqWidgetId, FamiqWidgetClasses, FamiqWidgetResource,
-    DefaultWidgetEntity, FamiqWidgetBuilder
+    DefaultWidgetEntity, FamiqWidgetBuilder, WidgetStyle, ExternalStyleHasChanged
 };
 use crate::utils;
 use bevy::prelude::*;
@@ -90,7 +90,9 @@ impl<'a> FaModal {
                 IsFamiqModalBackground,
                 FaModalState(false),
                 FocusPolicy::Block,
-                FaModalContainerEntity(container_entity)
+                FaModalContainerEntity(container_entity),
+                WidgetStyle::default(),
+                ExternalStyleHasChanged(false)
             ))
             .id();
 
@@ -118,10 +120,7 @@ impl<'a> FaModal {
     }
 
     pub fn hide_or_display_modal_system(
-        mut modal_bg_q: Query<
-            (&mut Visibility, &FaModalState, &FaModalContainerEntity),
-            Changed<FaModalState>
-        >,
+        mut modal_bg_q: Query<(&mut Visibility, &FaModalState, &FaModalContainerEntity)>,
         mut modal_container_q: Query<(&mut AnimationProgress, &mut Transform), With<IsFamiqModalContainer>>,
         time: Res<Time>
     ) {
