@@ -88,12 +88,12 @@ fn fa_text_systems(app: &mut App) {
 }
 
 fn fa_listview_systems(app: &mut App) {
-    app.add_systems(Update, FaListView::on_hover_system.run_if(on_timer(Duration::from_millis(300))));
     app.add_systems(
         Update,
         (
             event_writer::listview_interaction_system,
-            event_writer::listview_item_interaction_system,
+            FaListView::on_hover_system,
+            // event_writer::listview_item_interaction_system,
             FaListView::on_scroll_system,
         )
             .chain()

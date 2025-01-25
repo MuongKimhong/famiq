@@ -62,7 +62,8 @@ impl StylesKeyValueResource {
     }
 
     pub fn get_style_by_class_name(&self, class_name: &str) -> Option<&WidgetStyle> {
-        self.0.iter().flat_map(|map| map.get(class_name)).next()
+        let classname = format!(".{class_name}");
+        self.0.iter().flat_map(|map| map.get(&classname)).next()
     }
 }
 
