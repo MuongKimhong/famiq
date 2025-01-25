@@ -591,7 +591,6 @@ pub fn can_run_text_input_systems(builder_res: Res<FamiqWidgetResource>) -> bool
 mod tests {
     use crate::plugin::FamiqPlugin;
     use crate::widgets::color::PRIMARY_DARK_COLOR;
-    use crate::utils::create_test_app;
     use bevy::input::InputPlugin;
     use super::*;
 
