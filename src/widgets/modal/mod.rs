@@ -118,7 +118,10 @@ impl<'a> FaModal {
     }
 
     pub fn hide_or_display_modal_system(
-        mut modal_bg_q: Query<(&mut Visibility, &FaModalState, &FaModalContainerEntity)>,
+        mut modal_bg_q: Query<
+            (&mut Visibility, &FaModalState, &FaModalContainerEntity),
+            Changed<FaModalState>
+        >,
         mut modal_container_q: Query<(&mut AnimationProgress, &mut Transform), With<IsFamiqModalContainer>>,
         time: Res<Time>
     ) {
