@@ -186,9 +186,8 @@ That means all those widgets will emit <code>FaInteractionEvent</code> to bevy's
     for e in events.read() {
         if e.widget == WidgetType::Button &amp;&amp; e.interaction == Interaction::Pressed {
             // make sure this works only with widgets that have id provided
-            if e.widget_id.is_some() {
-                // handle specific button using its id
-                match e.widget_id.as_ref().as_str() {
+            if let Some(id) = e.widget_id {
+                match id.as_str() {
                     "#my-login-btn" =&gt; {
                         // do something with login
                     },

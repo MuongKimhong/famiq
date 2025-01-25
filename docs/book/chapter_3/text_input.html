@@ -198,12 +198,15 @@ impl FaTextInputResource {
         // ..
     }
 }</code></pre>
-<h3 id="api"><a class="header" href="#api">API</a></h3>
-<pre><code class="language-rust">pub fn fa_text_input(&amp;mut self, id: &amp;str, classes: &amp;str, placeholder: &amp;str) -&gt; Entity {
+<h3 id="widget-api"><a class="header" href="#widget-api">Widget API</a></h3>
+<pre><code class="language-rust">pub fn fa_text_input&lt;'a&gt;(
+    builder: &amp;'a mut FamiqWidgetBuilder,
+    placeholder: &amp;str
+) -&gt; FaTextInputBuilder&lt;'a&gt; {
     // ..
 }</code></pre>
-<h3 id="usage-via-builder"><a class="header" href="#usage-via-builder">Usage via builder</a></h3>
-<pre><code class="language-rust">let input = builder.fa_text_input(..);</code></pre>
+<h3 id="usage"><a class="header" href="#usage">Usage</a></h3>
+<pre><code class="language-rust">let input = fa_text_input(&amp;mut builder, "Enter your name").build();</code></pre>
 <p>Return <code>Entity</code> of the widget which must be used as child of <code>FaContainer</code> widget.</p>
 <h3 id="built-in-classes"><a class="header" href="#built-in-classes">Built-in classes</a></h3>
 <ul>
@@ -221,23 +224,22 @@ impl FaTextInputResource {
 </li>
 </ul>
 <h3 id="example"><a class="header" href="#example">Example</a></h3>
-<pre><code class="language-rust">let input = builder.fa_text_input(
-    "#input",
-    "",
-    "Enter your name"
-);
-let input_warning = builder.fa_text_input(
-    "#input-warning",
-    "is-warning",
-    "Enter your name"
-);
-let input_round = builder.fa_text_input(
-    "#input-round",
-    "is-round",
-    "Enter your name"
-);
+<pre><code class="language-rust">// default
+let input_default = fa_text_input(&amp;mut builder, "Enter your name").build();
 
-builder.fa_container("#container", "", &amp;vec![input, input_warning, input_round]);</code></pre>
+// info &amp; large
+let input_info_large = fa_text_input(&amp;mut builder, "Enter your name")
+    .class("is-info is-large")
+    .build();
+
+// warning &amp; round
+let input_warning_round = fa_text_input(&amp;mut builder, "Enter your name")
+    .class("is-warning is-round")
+    .build();
+
+fa_container(&amp;mut builder)
+    .children(vec![input_default, input_info_large, input_warning_round])
+    .build();</code></pre>
 <p><img src="../images/input_example_1.png" alt="Example 1" /></p>
 <h3 id="getting-input-data"><a class="header" href="#getting-input-data">Getting input data</a></h3>
 <p>The input data can be read from <code>FaTextInputResource</code> within system.</p>

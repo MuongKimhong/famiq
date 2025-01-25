@@ -5,21 +5,22 @@
 🟡 Doesn't accept child/children
 ```
 
-### API
+### Widget API
 ```rust
-pub fn fa_fps(&mut self, id: &str, change_color: bool) -> Entity {
+pub fn fa_fps<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaFpsTextBuilder<'a> {
     // ..
 }
 ```
-- `change_color` if `true` it changes color based on number.
 
 ### Usage via builder
 ```rust
-builder.fa_fps(..);
+fa_fps(&mut builder).build();
 ```
+return `Entity` which can be used as a child of a `FaContainer`.
+-  `change_color()`: change number color based on the value.
+- `right_side()`: make fps text appears at the top right corner.
 
 ### Example
 ```rust
-builder.fa_fps("#fps", true);
+fa_fps(&mut builder).change_color().right_side().build();
 ```
-![Example 1](../images/fps_example_1.png)

@@ -199,17 +199,16 @@ impl SelectedChoicesResource {
     }
 }</code></pre>
 <h3 id="api"><a class="header" href="#api">API</a></h3>
-<pre><code class="language-rust">pub fn fa_selection(
-    &amp;mut self,
-    id: &amp;str,
-    classes: &amp;str,
-    placeholder: &amp;str,
-    choices: &amp;Vec&lt;String&gt;
-) -&gt; Entity {
+<pre><code class="language-rust">pub fn fa_selection&lt;'a&gt;(
+    builder: &amp;'a mut FamiqWidgetBuilder,
+    placeholder: &amp;str
+) -&gt; FaSelectionBuilder&lt;'a&gt; {
     // ..
 }</code></pre>
 <h3 id="usage-via-builder"><a class="header" href="#usage-via-builder">Usage via builder</a></h3>
-<pre><code class="language-rust">let selection = builder.fa_selection(..);</code></pre>
+<pre><code class="language-rust">let selection = fa_selection(&amp;mut builder, "Select choice")
+    .choices(vec!["Choice 1", "Choice 2"])
+    .build();</code></pre>
 <p>Return <code>Entity</code> of the widget which must be used as child of <code>FaContainer</code> widget.</p>
 <h3 id="built-in-classes"><a class="header" href="#built-in-classes">Built-in classes</a></h3>
 <ul>
@@ -227,21 +226,21 @@ impl SelectedChoicesResource {
 </li>
 </ul>
 <h3 id="example"><a class="header" href="#example">Example</a></h3>
-<pre><code class="language-rust">let plans = builder.fa_selection(
-    "#plans",
-    "is-info",
-    "Select plan",
-    &amp;vec!["Personal".to_string(), "Team".to_string(), "Enterprise".to_string()],
+<pre><code class="language-rust">let plans = fa_selection(&amp;mut builder, "Select plan")
+    .class("is-info")
+    .choices(vec!["Personal", "Team", "Enterprise"])
+    .build();
 );
 
-let subscriptions = builder.fa_selection(
-    "#subscriptions",
-    "is-rectangle",
-    "Select subscription payment",
-    &amp;vec!["Weekly".to_string(), "Monthly".to_string(), "Annually".to_string()],
+let subscriptions = fa_selection(&amp;mut builder, "Select subscription payment")
+    .class("is-rectangle")
+    .choices(vec!["Weekly", "Monthly", "Annually"])
+    .build();
 );
 
-builder.fa_container("#container", "", &amp;vec![plans, subscriptions]);</code></pre>
+fa_container(&amp;mut builder)
+    .children(vec![plans, subscriptions])
+    .build();</code></pre>
 <p><img src="../images/selection_example_1.png" alt="Example 1" /></p>
 <h3 id="getting-selected-choice"><a class="header" href="#getting-selected-choice">Getting selected choice</a></h3>
 <p>The selected choice of a selection can be read from <code>SelectedItemsResource</code> within system.</p>

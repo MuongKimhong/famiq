@@ -160,11 +160,17 @@
 🟢 Accepts child/children
 </code></pre>
 <h3 id="api"><a class="header" href="#api">API</a></h3>
-<pre><code class="language-rust">pub fn fa_list_view(&amp;mut self, id: &amp;str, classes: &amp;str, items: &amp;Vec&lt;Entity&gt;) -&gt; Entity {
+<pre><code class="language-rust">pub fn fa_listview&lt;'a&gt;(builder: &amp;'a mut FamiqWidgetBuilder) -&gt; FaListViewBuilder&lt;'a&gt; {
     // ..
 }</code></pre>
-<h3 id="usage-via-builder"><a class="header" href="#usage-via-builder">Usage via builder</a></h3>
-<pre><code class="language-rust">builder.fa_list_view(..);</code></pre>
+<p>return <code>Entity</code> which can be used as child of <code>FaContainer</code>.</p>
+<h3 id="usage"><a class="header" href="#usage">Usage</a></h3>
+<pre><code class="language-rust">let button = fa_button(&amp;mut builder, "Press me").build();
+let input = fa_text_input(&amp;mut builder, "Enter your name").build();
+
+fa_listview(&amp;mut builder)
+    .children(vec![input, button])
+    .build();</code></pre>
 
                     </main>
 

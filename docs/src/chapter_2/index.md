@@ -38,9 +38,8 @@ fn handle_button_press_system(mut events: EventReader<FaInteractionEvent>) {
     for e in events.read() {
         if e.widget == WidgetType::Button && e.interaction == Interaction::Pressed {
             // make sure this works only with widgets that have id provided
-            if e.widget_id.is_some() {
-                // handle specific button using its id
-                match e.widget_id.as_ref().as_str() {
+            if let Some(id) = e.widget_id {
+                match id.as_str() {
                     "#my-login-btn" => {
                         // do something with login
                     },

@@ -7,12 +7,18 @@
 
 ### API
 ```rust
-pub fn fa_list_view(&mut self, id: &str, classes: &str, items: &Vec<Entity>) -> Entity {
+pub fn fa_listview<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaListViewBuilder<'a> {
     // ..
 }
 ```
+return `Entity` which can be used as child of `FaContainer`.
 
-### Usage via builder
+### Usage
 ```rust
-builder.fa_list_view(..);
+let button = fa_button(&mut builder, "Press me").build();
+let input = fa_text_input(&mut builder, "Enter your name").build();
+
+fa_listview(&mut builder)
+    .children(vec![input, button])
+    .build();
 ```

@@ -30,14 +30,14 @@ pub enum CircularSize {
 
 ### API
 ```rust
-pub fn fa_circular(&mut self, id: &str, classes: &str) -> Entity {
+pub fn fa_circular<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaCircularBuilder<'a> {
     // ..
 }
 ```
 
-### Usage via builder
+### Usage
 ```rust
-let circular = builder.fa_circular(..);
+let circular = fa_circular(&mut builder).build();
 ```
 Return `Entity` of the widget which must be used inside `FaContainer` widget.
 
@@ -49,18 +49,20 @@ Return `Entity` of the widget which must be used inside `FaContainer` widget.
 ### Example
 ```rust
 // default
-let cir = builder.fa_circular("#cir", "");
+let cir = fa_circular(&mut builder).build();
 
 // warning & small
-let warning_cir = builder.fa_circular("#warning-cir", "is-warning is-small");
+let warning_cir = fa_circular(&mut builder)
+    .class("is-warning is-small")
+    .build();
 
 // primary & large
-let primary_cir = builder.fa_circular("#primary-cir", "is-primary is-large");
+let primary_cir = fa_circular(&mut builder)
+    .class("is-primary is-large")
+    .build();
 
-builder.fa_container("#container", "", &vec![
-    cir,
-    warning_cir,
-    primary_cir
-]);
+fa_container(&mut builder)
+    .children(vec![cir, warning_cir, primary_cir])
+    .build();
 ```
 ![Example 1](../images/circular_example_1.png)

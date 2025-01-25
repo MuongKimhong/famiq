@@ -61,20 +61,19 @@ impl SelectedChoicesResource {
 
 ### API
 ```rust
-pub fn fa_selection(
-    &mut self,
-    id: &str,
-    classes: &str,
-    placeholder: &str,
-    choices: &Vec<String>
-) -> Entity {
+pub fn fa_selection<'a>(
+    builder: &'a mut FamiqWidgetBuilder,
+    placeholder: &str
+) -> FaSelectionBuilder<'a> {
     // ..
 }
 ```
 
 ### Usage via builder
 ```rust
-let selection = builder.fa_selection(..);
+let selection = fa_selection(&mut builder, "Select choice")
+    .choices(vec!["Choice 1", "Choice 2"])
+    .build();
 ```
 Return `Entity` of the widget which must be used as child of `FaContainer` widget.
 
@@ -89,21 +88,21 @@ Return `Entity` of the widget which must be used as child of `FaContainer` widge
 
 ### Example
 ```rust
-let plans = builder.fa_selection(
-    "#plans",
-    "is-info",
-    "Select plan",
-    &vec!["Personal".to_string(), "Team".to_string(), "Enterprise".to_string()],
+let plans = fa_selection(&mut builder, "Select plan")
+    .class("is-info")
+    .choices(vec!["Personal", "Team", "Enterprise"])
+    .build();
 );
 
-let subscriptions = builder.fa_selection(
-    "#subscriptions",
-    "is-rectangle",
-    "Select subscription payment",
-    &vec!["Weekly".to_string(), "Monthly".to_string(), "Annually".to_string()],
+let subscriptions = fa_selection(&mut builder, "Select subscription payment")
+    .class("is-rectangle")
+    .choices(vec!["Weekly", "Monthly", "Annually"])
+    .build();
 );
 
-builder.fa_container("#container", "", &vec![plans, subscriptions]);
+fa_container(&mut builder)
+    .children(vec![plans, subscriptions])
+    .build();
 ```
 ![Example 1](../images/selection_example_1.png)
 

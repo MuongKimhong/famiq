@@ -618,9 +618,8 @@ That means all those widgets will emit <code>FaInteractionEvent</code> to bevy's
     for e in events.read() {
         if e.widget == WidgetType::Button &amp;&amp; e.interaction == Interaction::Pressed {
             // make sure this works only with widgets that have id provided
-            if e.widget_id.is_some() {
-                // handle specific button using its id
-                match e.widget_id.as_ref().as_str() {
+            if let Some(id) = e.widget_id {
+                match id.as_str() {
                     "#my-login-btn" =&gt; {
                         // do something with login
                     },
@@ -771,9 +770,8 @@ fa_container(&amp;mut builder)
     for e in events.read() {
         if e.widget == WidgetType::Button &amp;&amp; e.interaction == Interaction::Pressed {
             // make sure this works only with widgets that have id provided
-            if e.widget_id.is_some() {
-                // handle specific button using its id
-                match e.widget_id.as_ref().as_str() {
+            if let Some(id) = e.widget_id {
+                match ud.as_str() {
                     "#my-btn" =&gt; {
                         // do something with my button
                     },
@@ -791,34 +789,37 @@ fa_container(&amp;mut builder)
 🟡 Doesn't accept child/children
 </code></pre>
 <h3 id="api"><a class="header" href="#api">API</a></h3>
-<pre><code class="language-rust">pub fn fa_text(&amp;mut self, id: &amp;str, classes: &amp;str, value: &amp;str) -&gt; Entity {
+<pre><code class="language-rust">pub fn fa_text&lt;'a&gt;(builder: &amp;'a mut FamiqWidgetBuilder, value: &amp;str) -&gt; FaTextBuilder&lt;'a&gt; {
     // ..
 }</code></pre>
 <h3 id="usage-via-builder"><a class="header" href="#usage-via-builder">Usage via builder</a></h3>
-<pre><code class="language-rust">let text = builder.fa_text(..);</code></pre>
+<pre><code class="language-rust">let text = fa_text(&amp;mut builder, "Some text").build();</code></pre>
 <p>Return <code>Entity</code> of the widget which must be used inside <code>FaContainer</code> widget.</p>
 <h3 id="example-3"><a class="header" href="#example-3">Example</a></h3>
-<pre><code class="language-rust">let boss = builder.fa_text("#boss", "", "Hello Boss");
-let mom = builder.fa_text("#mom", "", "Hello Mom");
+<pre><code class="language-rust">let boss = fa_text(&amp;mut builder, "Hello Boss").build();
+let mom = fa_text(&amp;mut builder, "Hello Mom").build();
 
-builder.fa_container("#container", "", &amp;vec![boss, mom]);</code></pre>
-<p><img src="chapter_3/../images/container_example_2.png" alt="Example 1" /></p>
+fa_container(&amp;mut builder)
+    .children(vec![boss, mom])
+    .build();</code></pre>
+<p><img src="chapter_3/../images/container_example_2.png" alt="Example 2" /></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="fafpstext"><a class="header" href="#fafpstext">FaFpsText</a></h1>
 <pre><code>🟢 Doesn't need container
 🟡 Doesn't accept child/children
 </code></pre>
-<h3 id="api-1"><a class="header" href="#api-1">API</a></h3>
-<pre><code class="language-rust">pub fn fa_fps(&amp;mut self, id: &amp;str, change_color: bool) -&gt; Entity {
+<h3 id="widget-api-2"><a class="header" href="#widget-api-2">Widget API</a></h3>
+<pre><code class="language-rust">pub fn fa_fps&lt;'a&gt;(builder: &amp;'a mut FamiqWidgetBuilder) -&gt; FaFpsTextBuilder&lt;'a&gt; {
     // ..
 }</code></pre>
-<ul>
-<li><code>change_color</code> if <code>true</code> it changes color based on number.</li>
-</ul>
 <h3 id="usage-via-builder-1"><a class="header" href="#usage-via-builder-1">Usage via builder</a></h3>
-<pre><code class="language-rust">builder.fa_fps(..);</code></pre>
+<pre><code class="language-rust">fa_fps(&amp;mut builder).build();</code></pre>
+<p>return <code>Entity</code> which can be used as a child of a <code>FaContainer</code>.</p>
+<ul>
+<li><code>change_color()</code>: change number color based on the value.</li>
+<li><code>right_side()</code>: make fps text appears at the top right corner.</li>
+</ul>
 <h3 id="example-4"><a class="header" href="#example-4">Example</a></h3>
-<pre><code class="language-rust">builder.fa_fps("#fps", true);</code></pre>
-<p><img src="chapter_3/../images/fps_example_1.png" alt="Example 1" /></p>
+<pre><code class="language-rust">fa_fps(&amp;mut builder).change_color().right_side().build();</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="fatextinput"><a class="header" href="#fatextinput">FaTextInput</a></h1>
 <pre><code>🟡 Needs container
 🟡 Doesn't accept child/children
@@ -862,12 +863,15 @@ impl FaTextInputResource {
         // ..
     }
 }</code></pre>
-<h3 id="api-2"><a class="header" href="#api-2">API</a></h3>
-<pre><code class="language-rust">pub fn fa_text_input(&amp;mut self, id: &amp;str, classes: &amp;str, placeholder: &amp;str) -&gt; Entity {
+<h3 id="widget-api-3"><a class="header" href="#widget-api-3">Widget API</a></h3>
+<pre><code class="language-rust">pub fn fa_text_input&lt;'a&gt;(
+    builder: &amp;'a mut FamiqWidgetBuilder,
+    placeholder: &amp;str
+) -&gt; FaTextInputBuilder&lt;'a&gt; {
     // ..
 }</code></pre>
-<h3 id="usage-via-builder-2"><a class="header" href="#usage-via-builder-2">Usage via builder</a></h3>
-<pre><code class="language-rust">let input = builder.fa_text_input(..);</code></pre>
+<h3 id="usage-2"><a class="header" href="#usage-2">Usage</a></h3>
+<pre><code class="language-rust">let input = fa_text_input(&amp;mut builder, "Enter your name").build();</code></pre>
 <p>Return <code>Entity</code> of the widget which must be used as child of <code>FaContainer</code> widget.</p>
 <h3 id="built-in-classes-1"><a class="header" href="#built-in-classes-1">Built-in classes</a></h3>
 <ul>
@@ -885,23 +889,22 @@ impl FaTextInputResource {
 </li>
 </ul>
 <h3 id="example-5"><a class="header" href="#example-5">Example</a></h3>
-<pre><code class="language-rust">let input = builder.fa_text_input(
-    "#input",
-    "",
-    "Enter your name"
-);
-let input_warning = builder.fa_text_input(
-    "#input-warning",
-    "is-warning",
-    "Enter your name"
-);
-let input_round = builder.fa_text_input(
-    "#input-round",
-    "is-round",
-    "Enter your name"
-);
+<pre><code class="language-rust">// default
+let input_default = fa_text_input(&amp;mut builder, "Enter your name").build();
 
-builder.fa_container("#container", "", &amp;vec![input, input_warning, input_round]);</code></pre>
+// info &amp; large
+let input_info_large = fa_text_input(&amp;mut builder, "Enter your name")
+    .class("is-info is-large")
+    .build();
+
+// warning &amp; round
+let input_warning_round = fa_text_input(&amp;mut builder, "Enter your name")
+    .class("is-warning is-round")
+    .build();
+
+fa_container(&amp;mut builder)
+    .children(vec![input_default, input_info_large, input_warning_round])
+    .build();</code></pre>
 <p><img src="chapter_3/../images/input_example_1.png" alt="Example 1" /></p>
 <h3 id="getting-input-data"><a class="header" href="#getting-input-data">Getting input data</a></h3>
 <p>The input data can be read from <code>FaTextInputResource</code> within system.</p>
@@ -953,18 +956,17 @@ impl SelectedChoicesResource {
         // ..
     }
 }</code></pre>
-<h3 id="api-3"><a class="header" href="#api-3">API</a></h3>
-<pre><code class="language-rust">pub fn fa_selection(
-    &amp;mut self,
-    id: &amp;str,
-    classes: &amp;str,
-    placeholder: &amp;str,
-    choices: &amp;Vec&lt;String&gt;
-) -&gt; Entity {
+<h3 id="api-1"><a class="header" href="#api-1">API</a></h3>
+<pre><code class="language-rust">pub fn fa_selection&lt;'a&gt;(
+    builder: &amp;'a mut FamiqWidgetBuilder,
+    placeholder: &amp;str
+) -&gt; FaSelectionBuilder&lt;'a&gt; {
     // ..
 }</code></pre>
-<h3 id="usage-via-builder-3"><a class="header" href="#usage-via-builder-3">Usage via builder</a></h3>
-<pre><code class="language-rust">let selection = builder.fa_selection(..);</code></pre>
+<h3 id="usage-via-builder-2"><a class="header" href="#usage-via-builder-2">Usage via builder</a></h3>
+<pre><code class="language-rust">let selection = fa_selection(&amp;mut builder, "Select choice")
+    .choices(vec!["Choice 1", "Choice 2"])
+    .build();</code></pre>
 <p>Return <code>Entity</code> of the widget which must be used as child of <code>FaContainer</code> widget.</p>
 <h3 id="built-in-classes-2"><a class="header" href="#built-in-classes-2">Built-in classes</a></h3>
 <ul>
@@ -982,21 +984,21 @@ impl SelectedChoicesResource {
 </li>
 </ul>
 <h3 id="example-6"><a class="header" href="#example-6">Example</a></h3>
-<pre><code class="language-rust">let plans = builder.fa_selection(
-    "#plans",
-    "is-info",
-    "Select plan",
-    &amp;vec!["Personal".to_string(), "Team".to_string(), "Enterprise".to_string()],
+<pre><code class="language-rust">let plans = fa_selection(&amp;mut builder, "Select plan")
+    .class("is-info")
+    .choices(vec!["Personal", "Team", "Enterprise"])
+    .build();
 );
 
-let subscriptions = builder.fa_selection(
-    "#subscriptions",
-    "is-rectangle",
-    "Select subscription payment",
-    &amp;vec!["Weekly".to_string(), "Monthly".to_string(), "Annually".to_string()],
+let subscriptions = fa_selection(&amp;mut builder, "Select subscription payment")
+    .class("is-rectangle")
+    .choices(vec!["Weekly", "Monthly", "Annually"])
+    .build();
 );
 
-builder.fa_container("#container", "", &amp;vec![plans, subscriptions]);</code></pre>
+fa_container(&amp;mut builder)
+    .children(vec![plans, subscriptions])
+    .build();</code></pre>
 <p><img src="chapter_3/../images/selection_example_1.png" alt="Example 1" /></p>
 <h3 id="getting-selected-choice"><a class="header" href="#getting-selected-choice">Getting selected choice</a></h3>
 <p>The selected choice of a selection can be read from <code>SelectedItemsResource</code> within system.</p>
@@ -1026,12 +1028,12 @@ builder.fa_container("#container", "", &amp;vec![plans, subscriptions]);</code><
     Normal,
     Large
 }</code></pre>
-<h3 id="api-4"><a class="header" href="#api-4">API</a></h3>
-<pre><code class="language-rust">pub fn fa_circular(&amp;mut self, id: &amp;str, classes: &amp;str) -&gt; Entity {
+<h3 id="api-2"><a class="header" href="#api-2">API</a></h3>
+<pre><code class="language-rust">pub fn fa_circular&lt;'a&gt;(builder: &amp;'a mut FamiqWidgetBuilder) -&gt; FaCircularBuilder&lt;'a&gt; {
     // ..
 }</code></pre>
-<h3 id="usage-via-builder-4"><a class="header" href="#usage-via-builder-4">Usage via builder</a></h3>
-<pre><code class="language-rust">let circular = builder.fa_circular(..);</code></pre>
+<h3 id="usage-3"><a class="header" href="#usage-3">Usage</a></h3>
+<pre><code class="language-rust">let circular = fa_circular(&amp;mut builder).build();</code></pre>
 <p>Return <code>Entity</code> of the widget which must be used inside <code>FaContainer</code> widget.</p>
 <h3 id="built-in-classes-3"><a class="header" href="#built-in-classes-3">Built-in classes</a></h3>
 <ul>
@@ -1044,29 +1046,31 @@ builder.fa_container("#container", "", &amp;vec![plans, subscriptions]);</code><
 </ul>
 <h3 id="example-7"><a class="header" href="#example-7">Example</a></h3>
 <pre><code class="language-rust">// default
-let cir = builder.fa_circular("#cir", "");
+let cir = fa_circular(&amp;mut builder).build();
 
 // warning &amp; small
-let warning_cir = builder.fa_circular("#warning-cir", "is-warning is-small");
+let warning_cir = fa_circular(&amp;mut builder)
+    .class("is-warning is-small")
+    .build();
 
 // primary &amp; large
-let primary_cir = builder.fa_circular("#primary-cir", "is-primary is-large");
+let primary_cir = fa_circular(&amp;mut builder)
+    .class("is-primary is-large")
+    .build();
 
-builder.fa_container("#container", "", &amp;vec![
-    cir,
-    warning_cir,
-    primary_cir
-]);</code></pre>
+fa_container(&amp;mut builder)
+    .children(vec![cir, warning_cir, primary_cir])
+    .build();</code></pre>
 <p><img src="chapter_3/../images/circular_example_1.png" alt="Example 1" /></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="famodal"><a class="header" href="#famodal">FaModal</a></h1>
 <pre><code>🟢 Doesn't need container
 🟢 Accepts child/children
 </code></pre>
-<h3 id="api-5"><a class="header" href="#api-5">API</a></h3>
+<h3 id="api-3"><a class="header" href="#api-3">API</a></h3>
 <pre><code class="language-rust">pub fn fa_modal(&amp;mut self, id: &amp;str, classes: &amp;str, items: &amp;Vec&lt;Entity&gt;) {
     // ..
 }</code></pre>
-<h3 id="usage-via-builder-5"><a class="header" href="#usage-via-builder-5">Usage via builder</a></h3>
+<h3 id="usage-via-builder-3"><a class="header" href="#usage-via-builder-3">Usage via builder</a></h3>
 <pre><code class="language-rust">builder.fa_modal(..);</code></pre>
 <h3 id="showhide-modal"><a class="header" href="#showhide-modal">Show/Hide modal</a></h3>
 <p>Modals can be shown or hided by updating <code>FaModalState</code> component.</p>
@@ -1083,32 +1087,67 @@ builder.fa_container("#container", "", &amp;vec![
 <pre><code>🟢 Doesn't need container
 🟢 Accepts child/children
 </code></pre>
-<h3 id="api-6"><a class="header" href="#api-6">API</a></h3>
-<pre><code class="language-rust">pub fn fa_list_view(&amp;mut self, id: &amp;str, classes: &amp;str, items: &amp;Vec&lt;Entity&gt;) -&gt; Entity {
+<h3 id="api-4"><a class="header" href="#api-4">API</a></h3>
+<pre><code class="language-rust">pub fn fa_listview&lt;'a&gt;(builder: &amp;'a mut FamiqWidgetBuilder) -&gt; FaListViewBuilder&lt;'a&gt; {
     // ..
 }</code></pre>
-<h3 id="usage-via-builder-6"><a class="header" href="#usage-via-builder-6">Usage via builder</a></h3>
-<pre><code class="language-rust">builder.fa_list_view(..);</code></pre>
+<p>return <code>Entity</code> which can be used as child of <code>FaContainer</code>.</p>
+<h3 id="usage-4"><a class="header" href="#usage-4">Usage</a></h3>
+<pre><code class="language-rust">let button = fa_button(&amp;mut builder, "Press me").build();
+let input = fa_text_input(&amp;mut builder, "Enter your name").build();
+
+fa_listview(&amp;mut builder)
+    .children(vec![input, button])
+    .build();</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="faimage"><a class="header" href="#faimage">FaImage</a></h1>
 <pre><code>🟡 Needs container
 🟡 Doesn't accept child/children
 </code></pre>
-<h3 id="api-7"><a class="header" href="#api-7">API</a></h3>
-<pre><code class="language-rust">pub fn fa_image(&amp;mut self, id: &amp;str, classes: &amp;str, path: &amp;str) -&gt; Entity {
+<h3 id="api-5"><a class="header" href="#api-5">API</a></h3>
+<pre><code class="language-rust">pub fn fa_image&lt;'a&gt;(builder: &amp;'a mut FamiqWidgetBuilder, path: &amp;str) -&gt; FaImageBuilder&lt;'a&gt; {
     // ..
 }</code></pre>
 <ul>
 <li><code>path</code>: Path to image relative to <code>assets</code> folder.</li>
 <li>Return entity of the widget which must be used as child of <code>FaContainer</code> widget.</li>
+<li>Support only <code>jpg</code> and <code>png</code> format.</li>
 </ul>
-<h3 id="usage-via-builder-7"><a class="header" href="#usage-via-builder-7">Usage via builder</a></h3>
-<pre><code class="language-rust">let image = builder.fa_image(..);</code></pre>
+<h3 id="usage-5"><a class="header" href="#usage-5">Usage</a></h3>
+<pre><code class="language-rust">let image = fa_image(&amp;mut builder, "path/to/image.jpg").build();</code></pre>
+<h3 id="custom-size"><a class="header" href="#custom-size">Custom size</a></h3>
+<p>By default, <code>fa_image</code> will load image at the original size. To use custom size, simply call <code>size()</code> method.</p>
+<pre><code class="language-rust">let image = fa_image(&amp;mut builder, "path/to/image.jpg")
+    .size(Val::Px(200.0), Val::Px(200.0))
+    .build();</code></pre>
 <h3 id="example-8"><a class="header" href="#example-8">Example</a></h3>
-<pre><code class="language-rust">let man = builder.fa_image("#bevy-logo", "", "300px", "300px", "man.JPG");
+<pre><code class="language-rust">let famiq_logo = fa_image(&amp;mut builder, "logo.jpeg")
+    .size(Val::Px(100.0), Val::Px(100.0))
+    .build();
 
-builder.fa_container("#container", "", &amp;vec![man]);</code></pre>
+fa_container(&amp;mut builder).children(vec![famiq_logo]).build();</code></pre>
 <p><img src="chapter_3/../images/image_example_1.png" alt="Example 1" /></p>
-<div style="break-before: page; page-break-before: always;"></div>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="fabgimage"><a class="header" href="#fabgimage">FaBgImage</a></h1>
+<p>A widget use to create background image that covers the entire window in UI world.</p>
+<pre><code>🟢 Doesn't need container
+🟡 Doesn't accept child/children
+</code></pre>
+<h3 id="api-6"><a class="header" href="#api-6">API</a></h3>
+<pre><code class="language-rust">pub fn fa_bg_image&lt;'a&gt;(builder: &amp;'a mut FamiqWidgetBuilder, path: &amp;str) -&gt; FaBgImageBuilder&lt;'a&gt; {
+    // ..
+}</code></pre>
+<ul>
+<li><code>path</code>: Path to image relative to <code>assets</code> folder.</li>
+<li>Support only <code>jpg</code> and <code>png</code> format.</li>
+</ul>
+<h3 id="usage-6"><a class="header" href="#usage-6">Usage</a></h3>
+<pre><code class="language-rust">fa_bg_image(&amp;mut builder, "path/to/image.jpg").build();</code></pre>
+<h3 id="example-9"><a class="header" href="#example-9">Example</a></h3>
+<pre><code class="language-rust">fa_bg_image(&amp;mut builder, "logo.jpeg").build();
+
+let btn = fa_button(&amp;mut builder, "Press me").class("is-primary").build();
+fa_container(&amp;mut builder).children(vec![btn]).build();</code></pre>
+<p><img src="chapter_3/../images/bg_image_example_1.png" alt="Example 1" /></p>
+
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

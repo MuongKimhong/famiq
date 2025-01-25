@@ -7,22 +7,24 @@
 
 ### API
 ```rust
-pub fn fa_text(&mut self, id: &str, classes: &str, value: &str) -> Entity {
+pub fn fa_text<'a>(builder: &'a mut FamiqWidgetBuilder, value: &str) -> FaTextBuilder<'a> {
     // ..
 }
 ```
 
 ### Usage via builder
 ```rust
-let text = builder.fa_text(..);
+let text = fa_text(&mut builder, "Some text").build();
 ```
 Return `Entity` of the widget which must be used inside `FaContainer` widget.
 
 ### Example
 ```rust
-let boss = builder.fa_text("#boss", "", "Hello Boss");
-let mom = builder.fa_text("#mom", "", "Hello Mom");
+let boss = fa_text(&mut builder, "Hello Boss").build();
+let mom = fa_text(&mut builder, "Hello Mom").build();
 
-builder.fa_container("#container", "", &vec![boss, mom]);
+fa_container(&mut builder)
+    .children(vec![boss, mom])
+    .build();
 ```
-![Example 1](../images/container_example_2.png)
+![Example 2](../images/container_example_2.png)

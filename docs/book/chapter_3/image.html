@@ -160,19 +160,27 @@
 🟡 Doesn't accept child/children
 </code></pre>
 <h3 id="api"><a class="header" href="#api">API</a></h3>
-<pre><code class="language-rust">pub fn fa_image(&amp;mut self, id: &amp;str, classes: &amp;str, path: &amp;str) -&gt; Entity {
+<pre><code class="language-rust">pub fn fa_image&lt;'a&gt;(builder: &amp;'a mut FamiqWidgetBuilder, path: &amp;str) -&gt; FaImageBuilder&lt;'a&gt; {
     // ..
 }</code></pre>
 <ul>
 <li><code>path</code>: Path to image relative to <code>assets</code> folder.</li>
 <li>Return entity of the widget which must be used as child of <code>FaContainer</code> widget.</li>
+<li>Support only <code>jpg</code> and <code>png</code> format.</li>
 </ul>
-<h3 id="usage-via-builder"><a class="header" href="#usage-via-builder">Usage via builder</a></h3>
-<pre><code class="language-rust">let image = builder.fa_image(..);</code></pre>
+<h3 id="usage"><a class="header" href="#usage">Usage</a></h3>
+<pre><code class="language-rust">let image = fa_image(&amp;mut builder, "path/to/image.jpg").build();</code></pre>
+<h3 id="custom-size"><a class="header" href="#custom-size">Custom size</a></h3>
+<p>By default, <code>fa_image</code> will load image at the original size. To use custom size, simply call <code>size()</code> method.</p>
+<pre><code class="language-rust">let image = fa_image(&amp;mut builder, "path/to/image.jpg")
+    .size(Val::Px(200.0), Val::Px(200.0))
+    .build();</code></pre>
 <h3 id="example"><a class="header" href="#example">Example</a></h3>
-<pre><code class="language-rust">let man = builder.fa_image("#bevy-logo", "", "300px", "300px", "man.JPG");
+<pre><code class="language-rust">let famiq_logo = fa_image(&amp;mut builder, "logo.jpeg")
+    .size(Val::Px(100.0), Val::Px(100.0))
+    .build();
 
-builder.fa_container("#container", "", &amp;vec![man]);</code></pre>
+fa_container(&amp;mut builder).children(vec![famiq_logo]).build();</code></pre>
 <p><img src="../images/image_example_1.png" alt="Example 1" /></p>
 
                     </main>

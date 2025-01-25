@@ -59,16 +59,19 @@ impl FaTextInputResource {
 }
 ```
 
-### API
+### Widget API
 ```rust
-pub fn fa_text_input(&mut self, id: &str, classes: &str, placeholder: &str) -> Entity {
+pub fn fa_text_input<'a>(
+    builder: &'a mut FamiqWidgetBuilder,
+    placeholder: &str
+) -> FaTextInputBuilder<'a> {
     // ..
 }
 ```
 
-### Usage via builder
+### Usage
 ```rust
-let input = builder.fa_text_input(..);
+let input = fa_text_input(&mut builder, "Enter your name").build();
 ```
 Return `Entity` of the widget which must be used as child of `FaContainer` widget.
 
@@ -83,23 +86,22 @@ Return `Entity` of the widget which must be used as child of `FaContainer` widge
 
 ### Example
 ```rust
-let input = builder.fa_text_input(
-    "#input",
-    "",
-    "Enter your name"
-);
-let input_warning = builder.fa_text_input(
-    "#input-warning",
-    "is-warning",
-    "Enter your name"
-);
-let input_round = builder.fa_text_input(
-    "#input-round",
-    "is-round",
-    "Enter your name"
-);
+// default
+let input_default = fa_text_input(&mut builder, "Enter your name").build();
 
-builder.fa_container("#container", "", &vec![input, input_warning, input_round]);
+// info & large
+let input_info_large = fa_text_input(&mut builder, "Enter your name")
+    .class("is-info is-large")
+    .build();
+
+// warning & round
+let input_warning_round = fa_text_input(&mut builder, "Enter your name")
+    .class("is-warning is-round")
+    .build();
+
+fa_container(&mut builder)
+    .children(vec![input_default, input_info_large, input_warning_round])
+    .build();
 ```
 ![Example 1](../images/input_example_1.png)
 
