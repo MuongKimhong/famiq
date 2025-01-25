@@ -8,53 +8,37 @@ pub fn create_post(
     caption: &str,
     image_path: &str
 ) -> Entity {
-    let user = builder.fa_text(
-        format!("#post-{username}").as_str(),
-        "username",
-        username
-    );
-    let title = builder.fa_text(
-        format!("#post-{caption}").as_str(),
-        "title",
-        caption
-    );
-    let title_wrapper = builder.fa_container(
-        format!("#post-{caption}-wrapper").as_str(),
-        "title-wrapper",
-        &vec![title]
-    );
-    let image = builder.fa_image(
-        format!("#post-{image_path}").as_str(),
-        "image",
-        "100%",
-        "450px",
-        image_path
-    );
-    let like_txt = builder.fa_text(
-        format!("#post-{username}-like-txt").as_str(),
-        "like-txt",
-        "0"
-    );
+    let user = fa_text(builder, username).class("username").build();
+
+    let title = fa_text(builder, caption).class("title").build();
+    let title_wrapper = fa_container(builder)
+        .class("title-wrapper")
+        .children(vec![title])
+        .build();
+
+    let image = fa_image(builder, image_path)
+        .class("image")
+        .size(Val::Percent(100.0), Val::Px(450.0))
+        .build();
+
+    let like_txt = fa_text(builder, "0").class("like-txt").build();
     builder.insert_component(like_txt, LikeCount(0));
 
-    let like_btn = builder.fa_button(
-        format!("#post-{username}-like-btn").as_str(),
-        "like-btn is-small is-primary-dark",
-        "♥"
-    );
+
+    let like_btn = fa_button(builder, "♥")
+        .class("like-btn is-small is-primary-dark")
+        .build();
     builder.insert_component(like_btn, LikeTextEntity(like_txt));
 
-    let action_container = builder.fa_container(
-        format!("#post-{username}-action-container").as_str(),
-        "action-container",
-        &vec![like_txt, like_btn]
-    );
+    let action_container = fa_container(builder)
+        .class("action-container")
+        .children(vec![like_txt, like_btn])
+        .build();
 
-    builder.fa_container(
-        format!("#post-{username}-container").as_str(),
-        "post-container",
-        &vec![user, title_wrapper, image, action_container]
-    )
+    fa_container(builder)
+        .class("post-container")
+        .children(vec![user, title_wrapper, image, action_container])
+        .build()
 }
 
 pub fn set_window() -> WindowPlugin {
