@@ -158,11 +158,11 @@
                         <h1 id="installation"><a class="header" href="#installation">Installation</a></h1>
 <p>Famiq can be installed by adding this line into <code>Cargo.toml</code> file.</p>
 <pre><code class="language-toml">[dependencies]
-famiq = { git = "https://github.com/muongkimhong/famiq", tag = "v0.2.3" }
+famiq = { git = "https://github.com/muongkimhong/famiq", tag = "v0.2.4" }
 </code></pre>
 <ul>
 <li>
-<p>It's recommended to use the latest version which is <code>0.2.3</code>.</p>
+<p>It's recommended to use the latest version which is <code>0.2.4</code>.</p>
 </li>
 <li>
 <p><strong>Crate and rustdoc are not available yet.</strong></p>
@@ -198,6 +198,22 @@ famiq = { git = "https://github.com/muongkimhong/famiq", tag = "v0.2.3" }
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 

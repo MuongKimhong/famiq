@@ -162,54 +162,46 @@ use famiq::prelude::*;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugins(famiq_plugin) // add plugin
+        .add_plugins(FamiqPlugin) // add plugin
         .add_systems(Startup, setup)
         .run();
 }
 
 fn setup(
     mut commands: Commands,
-    mut builder_resource: ResMut&lt;FamiqWidgetBuilderResource&gt;, // required
+    mut builder_res: ResMut&lt;FamiqWidgetResource&gt;, // required
     asset_server: ResMut&lt;AssetServer&gt;, // required
 ) {
     // create a widget builder
     let mut builder = FamiqWidgetBuilder::new(
         &amp;mut commands,
+        &amp;mut builder_res
         &amp;asset_server,
-        &amp;mut builder_resource,
-        "assets/fonts/some_font.ttf", // font_path
-        "assets/my_styles.json",      // style_path
-        true,                         // hot_reload_styles
     );
 
     // create simple texts using the builder
-    let hello_boss = builder.fa_text("#boss", "", "Hello Boss");
-    let hello_mom = builder.fa_text("#mom", "", "Hello Mom");
+    let hello_boss = fa_text(&amp;mut builder, "Hello Boss").build();
+    let hello_mom = fa_text(&amp;mut builder, "Hello Mom").build();
 
     // add texts to container
-    builder.fa_container("#my-container", "", &amp;vec![hello_boss, hello_mom]);
+    fa_container(&amp;mut builder)
+        .children(vec![hello_boss, hello_mom])
+        .build();
 }</code></pre>
-<ul>
-<li><code>font_path</code>: Path to font source file. Must be inside <code>assets</code> folder &amp; outside <code>src</code> folder.</li>
-<li><code>style_path</code>: Path to style json file. Must be inside <code>assets</code> folder &amp; outside <code>src</code> folder.</li>
-<li><code>hot_reload_styles</code>: If <code>true</code> all changes in json file will reflect running app without needing
-to re-compile. Should be enabled only during development.</li>
-</ul>
-<h3 id="result"><a class="header" href="#result">Result</a></h3>
 <p><img src="images/helloboss_img.png" alt="Hello Boss Screenshot" /></p>
-<h3 id="widget-argument-patterns"><a class="header" href="#widget-argument-patterns">Widget argument patterns</a></h3>
-<p>From <code>0.2.2</code> onward, the first 2 arguments of the widgets are <code>id</code> and <code>classes</code>.
-Just like in <code>HTML/CSS</code>, you can provide styles to widget via either <code>id</code> or <code>classes</code>.</p>
-<h3 id="apply-styles"><a class="header" href="#apply-styles">Apply styles</a></h3>
-<p>my_styles.json</p>
-<pre><code class="language-json">{
-  "#mom": {
-    "color": "srgba 0.961, 0.0, 0.784, 0.961"
-  }
-}
-</code></pre>
-<h3 id="result-1"><a class="header" href="#result-1">Result</a></h3>
-<p><img src="images/helloboss_2_img.png" alt="Hello Boss 2 screenshot" /></p>
+<h3 id="custom-font"><a class="header" href="#custom-font">Custom font</a></h3>
+<p>By default, Famiq uses <code>Fira mono regular</code> as font. To use custom font, you can simply call
+<code>use_font_path()</code> method.</p>
+<pre><code class="language-rust">// path is relative to assets folder outside src directory.
+builder.use_font_path("path/to/font.ttf");</code></pre>
+<p>⚠️ some fonts might cause rendering issue including positioning and styling.</p>
+<h3 id="custom-json-file-for-styling"><a class="header" href="#custom-json-file-for-styling">Custom json file for styling</a></h3>
+<p>By default, Famiq will look for json file for styling at <code>assets/styles.json</code>. If you want to use another path or name, for example <code>assets/styles/widget_styles.json</code>, you can simply call <code>use_style_path()</code> method.</p>
+<pre><code class="language-rust">builder.use_style_path("assets/styles/widget_styles.json");</code></pre>
+<h3 id="hot-reload"><a class="header" href="#hot-reload">Hot reload</a></h3>
+<p>Hot-reload can be enabled during development. When it's enabled, every changes in json
+file will reflect the running app immediately without needing to re-compile the app.</p>
+<pre><code class="language-rust">builder.hot_reload();</code></pre>
 
                     </main>
 
@@ -240,6 +232,22 @@ Just like in <code>HTML/CSS</code>, you can provide styles to widget via either 
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 

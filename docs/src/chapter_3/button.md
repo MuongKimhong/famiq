@@ -41,16 +41,16 @@ pub enum BtnSize {
 }
 ```
 
-### API
+### Widget API
 ```rust
-pub fn fa_button(&mut self, id: &str, classes: &str, text: &str) -> Entity {
+pub fn fa_button<'a>(builder: &'a mut FamiqWidgetBuilder, text: &str) -> FaButtonBuilder<'a> {
     // ..
 }
 ```
 
-### Usage via builder
+### Usage
 ```rust
-let button = builder.fa_button(..);
+let button = fa_button(&mut builder, "Press me").build();
 ```
 Return `Entity` of the widget which must be used inside `FaContainer` widget.
 
@@ -65,23 +65,29 @@ Return `Entity` of the widget which must be used inside `FaContainer` widget.
 ### Example
 ```rust
 // default
-let my_btn = builder.fa_button("#my-btn", "", "Press me");
+let my_btn = fa_button(&mut builder, "Press me")
+    .id("#my-btn")
+    .build();
 
 // info
-let info_btn = builder.fa_button("#info-btn", "is-info", "Press me");
+let info_btn = fa_button(&mut builder, "Press me")
+    .id("#info-btn")
+    .class("is-info")
+    .build();
 
-// small
-let small_btn = builder.fa_button("#small-btn", "is-success, is-small", "Press me");
+// success & small
+let small_btn = fa_button(&mut builder, "Press me")
+    .class("is-success is-small")
+    .build();
 
 // warning & large
-let warning_btn = builder.fa_button("#warning-btn", "is-warning is-large", "Press me");
+let large_btn = fa_button(&mut builder, "Press me")
+    .class("is-warning is-large")
+    .build();
 
-builder.fa_container("#container", "", &vec![
-    my_btn,
-    info_btn,
-    small_btn,
-    warning_btn
-]);
+fa_container(&mut builder)
+    .children(vec![my_btn, info_btn, small_btn, large_btn])
+    .build();
 ```
 ![Example 1](../images/btn_example_1.png)
 
@@ -90,18 +96,19 @@ builder.fa_container("#container", "", &vec![
 fn handle_button_press_system(mut events: EventReader<FaInteractionEvent>) {
     for e in events.read() {
         if e.widget == WidgetType::Button && e.interaction == Interaction::Pressed {
-
-            // handle specific button using its id
-            match e.widget_id.as_str() {
-                "#my-btn" => {
-                    // do something with my button
-                },
-                "#info-btn" => {
-                    // do something with info button
+            // make sure this works only with widgets that have id provided
+            if e.widget_id.is_some() {
+                // handle specific button using its id
+                match e.widget_id.as_ref().as_str() {
+                    "#my-btn" => {
+                        // do something with my button
+                    },
+                    "#info-btn" => {
+                        // do something with info button
+                    }
+                    _ => ()
                 }
-                _ => ()
             }
-
         }
     }
 }

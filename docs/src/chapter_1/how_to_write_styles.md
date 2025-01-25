@@ -18,9 +18,11 @@
 - `class_name` must starts with dot `.`.
 
 ### For text widgets
-- `color`: text color. Supports only `srgba`, `linear_rgba` and `hsla`.
+- `color`: text color. Supports only `srgba`, `linear_rgba`, `hsla` and basic colors.
 
-  Example, `"color": "srgba 0.961, 0, 0.784, 0.961"`
+  Examples,
+  - `"color": "srgba 0.961, 0, 0.784, 0.961"`
+  - `"color": "yellow"`
 
   [https://docs.rs/bevy/latest/bevy/prelude/struct.TextColor.html](https://docs.rs/bevy/latest/bevy/prelude/struct.TextColor.html)
 
@@ -33,15 +35,19 @@
 Can be used for `fa_text` and `fa_fps` widgets.
 
 ### For node widgets
-- `background_color`: supports only `srgba`, `linear_rgba` and `hsla`.
+- `background_color`: supports only `srgba`, `linear_rgba`, `hsla` and basic colors.
 
-  Example, `"background_color": "srgba 0.961, 0, 0.784, 0.961"`
+  Examples,
+  - `"background_color": "srgba 0.961, 0, 0.784, 0.961"`
+  - `"background_color": "green"`
 
   [https://docs.rs/bevy/latest/bevy/prelude/struct.BackgroundColor.html](https://docs.rs/bevy/latest/bevy/prelude/struct.BackgroundColor.html)
 
-- `border_color`: supports only `srgba`, `linear_rgba` and `hsla`.
+- `border_color`: supports only `srgba`, `linear_rgba`, `hsla` and basic colors.
 
-  Example, `"border_color": "linear_rgba 0.961, 0, 0.784, 0.961"`
+  Examples,
+  - `"border_color": "linear_rgba 0.961, 0, 0.784, 0.961"`
+  - `"border_color": "pink"`
 
   [https://docs.rs/bevy/latest/bevy/prelude/struct.BorderColor.html](https://docs.rs/bevy/latest/bevy/prelude/struct.BorderColor.html)
 

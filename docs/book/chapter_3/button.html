@@ -186,12 +186,12 @@
     Normal,
     Large,
 }</code></pre>
-<h3 id="api"><a class="header" href="#api">API</a></h3>
-<pre><code class="language-rust">pub fn fa_button(&amp;mut self, id: &amp;str, classes: &amp;str, text: &amp;str) -&gt; Entity {
+<h3 id="widget-api"><a class="header" href="#widget-api">Widget API</a></h3>
+<pre><code class="language-rust">pub fn fa_button&lt;'a&gt;(builder: &amp;'a mut FamiqWidgetBuilder, text: &amp;str) -&gt; FaButtonBuilder&lt;'a&gt; {
     // ..
 }</code></pre>
-<h3 id="usage-via-builder"><a class="header" href="#usage-via-builder">Usage via builder</a></h3>
-<pre><code class="language-rust">let button = builder.fa_button(..);</code></pre>
+<h3 id="usage"><a class="header" href="#usage">Usage</a></h3>
+<pre><code class="language-rust">let button = fa_button(&amp;mut builder, "Press me").build();</code></pre>
 <p>Return <code>Entity</code> of the widget which must be used inside <code>FaContainer</code> widget.</p>
 <h3 id="built-in-classes"><a class="header" href="#built-in-classes">Built-in classes</a></h3>
 <ul>
@@ -208,40 +208,47 @@
 </ul>
 <h3 id="example"><a class="header" href="#example">Example</a></h3>
 <pre><code class="language-rust">// default
-let my_btn = builder.fa_button("#my-btn", "", "Press me");
+let my_btn = fa_button(&amp;mut builder, "Press me")
+    .id("#my-btn")
+    .build();
 
 // info
-let info_btn = builder.fa_button("#info-btn", "is-info", "Press me");
+let info_btn = fa_button(&amp;mut builder, "Press me")
+    .id("#info-btn")
+    .class("is-info")
+    .build();
 
-// small
-let small_btn = builder.fa_button("#small-btn", "is-success, is-small", "Press me");
+// success &amp; small
+let small_btn = fa_button(&amp;mut builder, "Press me")
+    .class("is-success is-small")
+    .build();
 
 // warning &amp; large
-let warning_btn = builder.fa_button("#warning-btn", "is-warning is-large", "Press me");
+let large_btn = fa_button(&amp;mut builder, "Press me")
+    .class("is-warning is-large")
+    .build();
 
-builder.fa_container("#container", "", &amp;vec![
-    my_btn,
-    info_btn,
-    small_btn,
-    warning_btn
-]);</code></pre>
+fa_container(&amp;mut builder)
+    .children(vec![my_btn, info_btn, small_btn, large_btn])
+    .build();</code></pre>
 <p><img src="../images/btn_example_1.png" alt="Example 1" /></p>
 <h3 id="handle-button-press"><a class="header" href="#handle-button-press">Handle button press</a></h3>
 <pre><code class="language-rust">fn handle_button_press_system(mut events: EventReader&lt;FaInteractionEvent&gt;) {
     for e in events.read() {
         if e.widget == WidgetType::Button &amp;&amp; e.interaction == Interaction::Pressed {
-
-            // handle specific button using its id
-            match e.widget_id.as_str() {
-                "#my-btn" =&gt; {
-                    // do something with my button
-                },
-                "#info-btn" =&gt; {
-                    // do something with info button
+            // make sure this works only with widgets that have id provided
+            if e.widget_id.is_some() {
+                // handle specific button using its id
+                match e.widget_id.as_ref().as_str() {
+                    "#my-btn" =&gt; {
+                        // do something with my button
+                    },
+                    "#info-btn" =&gt; {
+                        // do something with info button
+                    }
+                    _ =&gt; ()
                 }
-                _ =&gt; ()
             }
-
         }
     }
 }</code></pre>
@@ -275,6 +282,22 @@ builder.fa_container("#container", "", &amp;vec![
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 

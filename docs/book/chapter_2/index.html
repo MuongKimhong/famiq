@@ -160,12 +160,13 @@
 That means all those widgets will emit <code>FaInteractionEvent</code> to bevy's <code>EventReader</code> with either <code>Pressed</code>, <code>Hovered</code> or <code>None</code>.</p>
 <pre><code class="language-rust">pub struct FaInteractionEvent {
     pub entity: Entity,
-    pub widget_id: String,
+    pub widget_id: Option&lt;String&gt;,
     pub interaction: Interaction,
     pub widget: WidgetType,
 }</code></pre>
 <p>Available widget types</p>
 <pre><code class="language-rust">pub enum WidgetType {
+    Root,
     Button,
     Container,
     Text,
@@ -176,25 +177,27 @@ That means all those widgets will emit <code>FaInteractionEvent</code> to bevy's
     Selection,
     SelectionChoice,
     Circular,
-    Modal
+    Modal,
+    Image
 }</code></pre>
 <h2 id="handle-interaction"><a class="header" href="#handle-interaction">Handle interaction</a></h2>
 <p>You can write a bevy system to handle Famiq’s widgets interaction.</p>
 <pre><code class="language-rust">fn handle_button_press_system(mut events: EventReader&lt;FaInteractionEvent&gt;) {
     for e in events.read() {
         if e.widget == WidgetType::Button &amp;&amp; e.interaction == Interaction::Pressed {
-
-            // handle specific button using its id
-            match e.widget_id.as_str() {
-                "#my-login-btn" =&gt; {
-                    // do something with login
-                },
-                "#my-forgot-password-btn" =&gt; {
-                    // do something with forgot password
+            // make sure this works only with widgets that have id provided
+            if e.widget_id.is_some() {
+                // handle specific button using its id
+                match e.widget_id.as_ref().as_str() {
+                    "#my-login-btn" =&gt; {
+                        // do something with login
+                    },
+                    "#my-forgot-password-btn" =&gt; {
+                        // do something with forgot password
+                    }
+                    _ =&gt; ()
                 }
-                _ =&gt; ()
             }
-
         }
     }
 }</code></pre>
@@ -228,6 +231,22 @@ That means all those widgets will emit <code>FaInteractionEvent</code> to bevy's
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 

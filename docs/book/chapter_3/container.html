@@ -160,30 +160,36 @@
 🟢 Accepts child/children
 </code></pre>
 <p>An empty and stylyable widget. Think of it as a div inside HTML.</p>
-<h3 id="api"><a class="header" href="#api">API</a></h3>
-<pre><code class="language-rust">pub fn fa_container(&amp;mut self, id: &amp;str, classes: &amp;str, children: &amp;Vec&lt;Entity&gt;) -&gt; Entity {
+<h3 id="widget-api"><a class="header" href="#widget-api">Widget API</a></h3>
+<pre><code class="language-rust">pub fn fa_container&lt;'a&gt;(builder: &amp;'a mut FamiqWidgetBuilder) -&gt; FaContainerBuilder&lt;'a&gt; {
     // ..
 }</code></pre>
-<h3 id="usage-via-builder"><a class="header" href="#usage-via-builder">usage via builder</a></h3>
-<pre><code class="language-rust">let container = builder.fa_container(..);</code></pre>
+<h3 id="usage"><a class="header" href="#usage">usage</a></h3>
+<pre><code class="language-rust">let container = fa_container(&amp;mut builder).build();</code></pre>
 <p>Return <code>Entity</code> of the widget which can be used as child for another widget.</p>
 <h3 id="example"><a class="header" href="#example">Example</a></h3>
 <p>Texts without container</p>
-<pre><code class="language-rust">let boss = builder.fa_text("#boss", "", "Hello Boss");
-let mom = builder.fa_text("#mom", "", "Hello Mom");</code></pre>
+<pre><code class="language-rust">let boss = fa_text(&amp;mut builder, "Hello Boss").build();
+let mom = fa_text(&amp;mut builder, "Hello Mom").build();</code></pre>
 <p><img src="../images/container_example_1.png" alt="Example 1" /></p>
 <p>Texts inside container</p>
-<pre><code class="language-rust">let boss = builder.fa_text("#boss", "", "Hello Boss");
-let mom = builder.fa_text("#mom", "", "Hello Mom");
+<pre><code class="language-rust">let boss = fa_text(&amp;mut builder, "Hello Boss").build();
+let mom = fa_text(&amp;mut builder, "Hello Mom").build();
 
-builder.fa_container("#container", "", &amp;vec![boss, mom]);</code></pre>
+fa_container(&amp;mut builder)
+    .children(vec![boss, mom])
+    .build();</code></pre>
 <p><img src="../images/container_example_2.png" alt="Example 2" /></p>
 <h3 id="styling"><a class="header" href="#styling">Styling</a></h3>
-<p>Example of styling in json file</p>
+<p><code>id</code> and <code>classes</code> can be provided to container to be able to style it from json file.</p>
+<pre><code class="language-rust">fa_container(&amp;mut builder)
+    .id("#container")
+    .children(vec![boss, mom])
+    .build();</code></pre>
 <pre><code class="language-json">{
   "#container": {
-    "background_color": "srgba 0.929, 0.918, 0.075, 0.639",
-    "border_color": "srgba 0.929, 0.918, 0.075, 0.639",
+    "background_color": "yellow",
+    "border_color": "yellow",
     "border_radius": "10px 10px 10px 10px"
   }
 }
@@ -219,6 +225,22 @@ builder.fa_container("#container", "", &amp;vec![boss, mom]);</code></pre>
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 

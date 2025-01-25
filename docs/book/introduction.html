@@ -162,17 +162,26 @@ developers can define styles in a well known JSON file. These styles are then pa
 into Bevy's native UI styles, significantly reducing boilerplate code.</p>
 <p>Just like in <code>HTML/CSS</code>, you can provide styles to widget via either <code>id</code> or <code>classes</code>.</p>
 <h3 id="simple-button"><a class="header" href="#simple-button">Simple button</a></h3>
-<pre><code class="language-rust">let my_btn = builder.fa_button("#my-btn", "", "Press me");</code></pre>
-<p>If you want to change background color</p>
+<pre><code class="language-rust">let my_btn = fa_button(&amp;mut builder, "Press me").build();</code></pre>
+<p>. <code>&amp;mut builder</code> is a mutable reference of <code>FamiqWidgetBuilder</code>.</p>
+<p>If you want to make changes to the widget, you can simply give it an <code>id</code> or <code>classes</code>.</p>
+<pre><code class="language-rust">let my_btn = fa_button(&amp;mut builder, "Press me").id("#my-btn").build();</code></pre>
 <pre><code class="language-json">{
   "#my-btn": {
-    "background_color": "srgba 0.357, 0.565, 0.941, 0.902"
+    "background_color": "yellow"
   }
 }
 </code></pre>
 <h3 id="hot-reload"><a class="header" href="#hot-reload">Hot reload</a></h3>
 <p>Hot-reload can be enabled during development. When it's enabled, every changes in json
 file will reflect the running app immediately without needing to re-compile the app.</p>
+<pre><code class="language-rust">let mut builder = FamiqWidgetBuilder::new(
+    &amp;mut commands,
+    &amp;mut builder_res,
+    &amp;asset_server
+);
+
+builder.hot_reload();</code></pre>
 <h3 id="bevy-versions-support"><a class="header" href="#bevy-versions-support">Bevy versions support</a></h3>
 <p>Famiq is new and still in early stage of development. Currently, it supports only 0.15.x onward.</p>
 
@@ -199,6 +208,22 @@ file will reflect the running app immediately without needing to re-compile the 
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 

@@ -9,13 +9,19 @@ Just like in `HTML/CSS`, you can provide styles to widget via either `id` or `cl
 
 ### Simple button
 ```rust
-let my_btn = builder.fa_button("#my-btn", "", "Press me");
+let my_btn = fa_button(&mut builder, "Press me").build();
 ```
-If you want to change background color
+. `&mut builder` is a mutable reference of `FamiqWidgetBuilder`.
+
+
+If you want to make changes to the widget, you can simply give it an `id` or `classes`.
+```rust
+let my_btn = fa_button(&mut builder, "Press me").id("#my-btn").build();
+```
 ```json
 {
   "#my-btn": {
-    "background_color": "srgba 0.357, 0.565, 0.941, 0.902"
+    "background_color": "yellow"
   }
 }
 ```
@@ -23,6 +29,15 @@ If you want to change background color
 ### Hot reload
 Hot-reload can be enabled during development. When it's enabled, every changes in json
 file will reflect the running app immediately without needing to re-compile the app.
+```rust
+let mut builder = FamiqWidgetBuilder::new(
+    &mut commands,
+    &mut builder_res,
+    &asset_server
+);
+
+builder.hot_reload();
+```
 
 ### Bevy versions support
 Famiq is new and still in early stage of development. Currently, it supports only 0.15.x onward.

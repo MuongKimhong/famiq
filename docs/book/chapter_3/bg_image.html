@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Interaction - Famiq documentation</title>
+        <title>Background Image - Famiq documentation</title>
 
 
         <!-- Custom HTML head -->
@@ -155,61 +155,15 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="interaction"><a class="header" href="#interaction">Interaction</a></h1>
-<p>All widgets provided by <strong>Famiq</strong> have <code>Interaction</code> component attached by default.
-That means all those widgets will emit <code>FaInteractionEvent</code> to bevy's <code>EventReader</code> with either <code>Pressed</code>, <code>Hovered</code> or <code>None</code>.</p>
-<pre><code class="language-rust">pub struct FaInteractionEvent {
-    pub entity: Entity,
-    pub widget_id: String,
-    pub interaction: Interaction,
-    pub widget: WidgetType,
-}</code></pre>
-<p>Available widget types</p>
-<pre><code class="language-rust">pub enum WidgetType {
-    Button,
-    Container,
-    Text,
-    FpsText,
-    TextInput,
-    ListView,
-    ListViewItem,
-    Selection,
-    SelectionChoice,
-    Circular,
-    Modal
-}</code></pre>
-<h2 id="handle-interaction"><a class="header" href="#handle-interaction">Handle interaction</a></h2>
-<p>You can write a bevy system to handle Famiq’s widgets interaction.</p>
-<pre><code class="language-rust">fn handle_button_press_system(mut events: EventReader&lt;FaInteractionEvent&gt;) {
-    for e in events.read() {
-        if e.widget == WidgetType::Button &amp;&amp; e.interaction == Interaction::Pressed {
-
-            // handle specific button using its id
-            match e.widget_id.as_str() {
-                "#my-login-btn" =&gt; {
-                    // do something with login
-                },
-                "#my-forgot-password-btn" =&gt; {
-                    // do something with forgot password
-                }
-                _ =&gt; ()
-            }
-
-        }
-    }
-}</code></pre>
-
+                        
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../chapter_1/how_to_write_styles.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../chapter_3/image.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../chapter_3/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
-                            </a>
 
                         <div style="clear: both"></div>
                     </nav>
@@ -217,17 +171,30 @@ That means all those widgets will emit <code>FaInteractionEvent</code> to bevy's
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../chapter_1/how_to_write_styles.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../chapter_3/image.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../chapter_3/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
-                    </a>
             </nav>
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 

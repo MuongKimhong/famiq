@@ -174,8 +174,12 @@
 <h3 id="for-text-widgets"><a class="header" href="#for-text-widgets">For text widgets</a></h3>
 <ul>
 <li>
-<p><code>color</code>: text color. Supports only <code>srgba</code>, <code>linear_rgba</code> and <code>hsla</code>.</p>
-<p>Example, <code>"color": "srgba 0.961, 0, 0.784, 0.961"</code></p>
+<p><code>color</code>: text color. Supports only <code>srgba</code>, <code>linear_rgba</code>, <code>hsla</code> and basic colors.</p>
+<p>Examples,</p>
+<ul>
+<li><code>"color": "srgba 0.961, 0, 0.784, 0.961"</code></li>
+<li><code>"color": "yellow"</code></li>
+</ul>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.TextColor.html">https://docs.rs/bevy/latest/bevy/prelude/struct.TextColor.html</a></p>
 </li>
 <li>
@@ -188,13 +192,21 @@
 <h3 id="for-node-widgets"><a class="header" href="#for-node-widgets">For node widgets</a></h3>
 <ul>
 <li>
-<p><code>background_color</code>: supports only <code>srgba</code>, <code>linear_rgba</code> and <code>hsla</code>.</p>
-<p>Example, <code>"background_color": "srgba 0.961, 0, 0.784, 0.961"</code></p>
+<p><code>background_color</code>: supports only <code>srgba</code>, <code>linear_rgba</code>, <code>hsla</code> and basic colors.</p>
+<p>Examples,</p>
+<ul>
+<li><code>"background_color": "srgba 0.961, 0, 0.784, 0.961"</code></li>
+<li><code>"background_color": "green"</code></li>
+</ul>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.BackgroundColor.html">https://docs.rs/bevy/latest/bevy/prelude/struct.BackgroundColor.html</a></p>
 </li>
 <li>
-<p><code>border_color</code>: supports only <code>srgba</code>, <code>linear_rgba</code> and <code>hsla</code>.</p>
-<p>Example, <code>"border_color": "linear_rgba 0.961, 0, 0.784, 0.961"</code></p>
+<p><code>border_color</code>: supports only <code>srgba</code>, <code>linear_rgba</code>, <code>hsla</code> and basic colors.</p>
+<p>Examples,</p>
+<ul>
+<li><code>"border_color": "linear_rgba 0.961, 0, 0.784, 0.961"</code></li>
+<li><code>"border_color": "pink"</code></li>
+</ul>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.BorderColor.html">https://docs.rs/bevy/latest/bevy/prelude/struct.BorderColor.html</a></p>
 </li>
 <li>
@@ -412,6 +424,22 @@
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 

@@ -7,55 +7,54 @@ use famiq::prelude::*;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugins(famiq_plugin) // add plugin
+        .add_plugins(FamiqPlugin) // add plugin
         .add_systems(Startup, setup)
         .run();
 }
 
 fn setup(
     mut commands: Commands,
-    mut builder_resource: ResMut<FamiqWidgetBuilderResource>, // required
+    mut builder_res: ResMut<FamiqWidgetResource>, // required
     asset_server: ResMut<AssetServer>, // required
 ) {
     // create a widget builder
     let mut builder = FamiqWidgetBuilder::new(
         &mut commands,
+        &mut builder_res
         &asset_server,
-        &mut builder_resource,
-        "assets/fonts/some_font.ttf", // font_path
-        "assets/my_styles.json",      // style_path
-        true,                         // hot_reload_styles
     );
 
     // create simple texts using the builder
-    let hello_boss = builder.fa_text("#boss", "", "Hello Boss");
-    let hello_mom = builder.fa_text("#mom", "", "Hello Mom");
+    let hello_boss = fa_text(&mut builder, "Hello Boss").build();
+    let hello_mom = fa_text(&mut builder, "Hello Mom").build();
 
     // add texts to container
-    builder.fa_container("#my-container", "", &vec![hello_boss, hello_mom]);
+    fa_container(&mut builder)
+        .children(vec![hello_boss, hello_mom])
+        .build();
 }
 ```
-- `font_path`: Path to font source file. Must be inside `assets` folder & outside `src` folder.
-- `style_path`: Path to style json file. Must be inside `assets` folder & outside `src` folder.
-- `hot_reload_styles`: If `true` all changes in json file will reflect running app without needing
-  to re-compile. Should be enabled only during development.
 
-### Result
 ![Hello Boss Screenshot](images/helloboss_img.png)
 
-### Widget argument patterns
-From `0.2.2` onward, the first 2 arguments of the widgets are `id` and `classes`.
-Just like in `HTML/CSS`, you can provide styles to widget via either `id` or `classes`.
+### Custom font
+By default, Famiq uses `Fira mono regular` as font. To use custom font, you can simply call
+`use_font_path()` method.
+```rust
+// path is relative to assets folder outside src directory.
+builder.use_font_path("path/to/font.ttf");
+```
+⚠️ some fonts might cause rendering issue including positioning and styling.
 
-### Apply styles
-my_styles.json
-```json
-{
-  "#mom": {
-    "color": "srgba 0.961, 0.0, 0.784, 0.961"
-  }
-}
+### Custom json file for styling
+By default, Famiq will look for json file for styling at `assets/styles.json`. If you want to use another path or name, for example `assets/styles/widget_styles.json`, you can simply call `use_style_path()` method.
+```rust
+builder.use_style_path("assets/styles/widget_styles.json");
 ```
 
-### Result
-![Hello Boss 2 screenshot](images/helloboss_2_img.png)
+### Hot reload
+Hot-reload can be enabled during development. When it's enabled, every changes in json
+file will reflect the running app immediately without needing to re-compile the app.
+```rust
+builder.hot_reload();
+```

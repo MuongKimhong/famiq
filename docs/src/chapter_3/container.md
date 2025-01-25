@@ -6,43 +6,51 @@
 ```
 An empty and stylyable widget. Think of it as a div inside HTML.
 
-### API
+### Widget API
 ```rust
-pub fn fa_container(&mut self, id: &str, classes: &str, children: &Vec<Entity>) -> Entity {
+pub fn fa_container<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaContainerBuilder<'a> {
     // ..
 }
 ```
 
-### usage via builder
+### usage
 ```rust
-let container = builder.fa_container(..);
+let container = fa_container(&mut builder).build();
 ```
 Return `Entity` of the widget which can be used as child for another widget.
 
 ### Example
 Texts without container
 ```rust
-let boss = builder.fa_text("#boss", "", "Hello Boss");
-let mom = builder.fa_text("#mom", "", "Hello Mom");
+let boss = fa_text(&mut builder, "Hello Boss").build();
+let mom = fa_text(&mut builder, "Hello Mom").build();
 ```
 ![Example 1](../images/container_example_1.png)
 
 Texts inside container
 ```rust
-let boss = builder.fa_text("#boss", "", "Hello Boss");
-let mom = builder.fa_text("#mom", "", "Hello Mom");
+let boss = fa_text(&mut builder, "Hello Boss").build();
+let mom = fa_text(&mut builder, "Hello Mom").build();
 
-builder.fa_container("#container", "", &vec![boss, mom]);
+fa_container(&mut builder)
+    .children(vec![boss, mom])
+    .build();
 ```
 ![Example 2](../images/container_example_2.png)
 
 ### Styling
-Example of styling in json file
+`id` and `classes` can be provided to container to be able to style it from json file.
+```rust
+fa_container(&mut builder)
+    .id("#container")
+    .children(vec![boss, mom])
+    .build();
+```
 ```json
 {
   "#container": {
-    "background_color": "srgba 0.929, 0.918, 0.075, 0.639",
-    "border_color": "srgba 0.929, 0.918, 0.075, 0.639",
+    "background_color": "yellow",
+    "border_color": "yellow",
     "border_radius": "10px 10px 10px 10px"
   }
 }

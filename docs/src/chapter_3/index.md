@@ -13,3 +13,4 @@ Famiq provides some default widgets that are likely required in any UI developme
   - [Modal](./modal.md)
   - [ListView](./list_view.md)
   - [Image](./image.md)
+  - [Background Image](./bg_image.md)
