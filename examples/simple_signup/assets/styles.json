@@ -4,8 +4,9 @@
     "align_items": "center",
     "padding": "20px 20px 20px 20px",
     "border": "3px 3px 3px 3px",
-    "border_color": "srgba 1.0, 1.0, 1.0, 0.3",
-    "border_radius": "10px 10px 10px 10px",
+    "border_color": "gray",
+    "background_color": "gray",
+    "border_radius": "5px 5px 5px 5px",
     "width": "80%",
     "margin": "auto auto auto auto"
   },

@@ -4,47 +4,41 @@ use famiq::prelude::*;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugins(famiq_plugin) // add plugin
+        .add_plugins(FamiqPlugin) // add plugin
         .add_systems(Startup, setup)
         .run();
 }
 
 fn setup(
     mut commands: Commands,
+    mut builder_res: ResMut<FamiqWidgetResource>, // required
     asset_server: ResMut<AssetServer>, // required
-    mut builder_resource: ResMut<FamiqWidgetBuilderResource>, // required
 ) {
     commands.spawn(Camera2d::default());
 
     // create a widget builder
-    let mut builder = FamiqWidgetBuilder::new(
-        &mut commands,
-        &asset_server,
-        &mut builder_resource,
-        "assets/fonts/fira-mono-regular.ttf",
-        "assets/styles.json",
-        false,
-    );
+    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server)
+        .hot_reload();
 
-    let txt = builder.fa_text("#signup-txt", "", "SIGN UP");
+    let txt = fa_text(&mut builder, "SIGN UP").build();
 
-    let f_name = builder.fa_text_input("#first-name", "", "First name");
-    let l_name = builder.fa_text_input("#last-name", "", "Last name");
-    let name_container = builder.fa_container("#name-container", "", &vec![f_name, l_name]);
+    let f_name = fa_text_input(&mut builder, "First name").id("#first-name").build();
+    let l_name = fa_text_input(&mut builder, "Last name").id("#last-name").build();
+    let name_container = fa_container(&mut builder)
+        .id("#name-container")
+        .children(vec![f_name, l_name])
+        .build();
 
-    let ask = builder.fa_selection(
-        "#ask",
-        "",
-        "Select your subscription",
-        &vec!["Personal".to_string(), "Team".to_string()],
-    );
-    let ask_container = builder.fa_container("#ask-container", "", &vec![ask]);
+    let ask = fa_selection(&mut builder, "Select your subscription")
+        .choices(vec!["Personal", "Team"])
+        .build();
+    let ask_container = fa_container(&mut builder).id("#ask-container")
+        .children(vec![ask])
+        .build();
 
-    let btn = builder.fa_button("#btn", "is-secondary", "Confirm");
+    let btn = fa_button(&mut builder, "Confirm").build();
 
-    builder.fa_container(
-        "#container",
-        "",
-        &vec![txt, name_container, ask_container, btn],
-    );
+    fa_container(&mut builder).id("#container")
+        .children(vec![txt, name_container, ask_container, btn])
+        .build();
 }
