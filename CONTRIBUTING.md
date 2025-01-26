@@ -27,9 +27,7 @@ If you want make any changes to source code, you can do so by:
   cargo new my_project
   cd my_project
   ```
-   then install `Famiq` by adding this line to `Cargo.toml`
-
-  ```toml
-  [dependencies]
-  famiq = { git = "https://github.com/muongkimhong/famiq", tag = "v0.2.3" }
+   then install `Famiq`.
+  ```
+  cargo add famiq
   ```
