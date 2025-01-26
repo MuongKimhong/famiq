@@ -51,10 +51,6 @@ cargo add famiq
 ```
 or
 ```toml
-famiq = { git = "https://github.com/muongkimhong/famiq", tag = "v0.2.4" }
-
-# or
-
 famiq = "0.2.4"
 ```
 
