@@ -20,6 +20,7 @@ use smol_str::SmolStr;
 
 use super::color::BLACK_COLOR;
 
+/// Represents the text input field containing the user-entered text and placeholder.
 #[derive(Component)]
 pub struct TextInput {
     pub text: String,
@@ -35,12 +36,18 @@ impl TextInput {
     }
 }
 
+/// Stores the text input values in a `HashMap` where keys are IDs of the inputs.
 #[derive(Resource, Debug)]
 pub struct FaTextInputResource {
     pub inputs: HashMap<String, String>,
 }
 
 impl FaTextInputResource {
+    /// Updates an existing input value or inserts a new one if it doesn't exist.
+    ///
+    /// # Parameters
+    /// - `id`: The ID of the input field.
+    /// - `new_value`: The new text value for the input.
     pub fn update_or_insert(&mut self, id: String, new_value: String) {
         if let Some(old_value) = self.inputs.get_mut(&id) {
             *old_value = new_value;
@@ -50,35 +57,44 @@ impl FaTextInputResource {
     }
 }
 
+/// Handles the blinking behavior of the text input cursor.
 #[derive(Resource, Debug)]
 pub struct FaTextInputCursorBlinkTimer {
     pub timer: Timer, // change bg color every 0.5 second
     pub is_transparent: bool
 }
 
+/// Marker component for identifying a text input widget.
 #[derive(Component)]
 pub struct IsFamiqTextInput;
 
+/// Marker component for identifying a placeholder text in a text input widget.
 #[derive(Component)]
 pub struct IsFamiqTextInputPlaceholder;
 
+/// Marker component for identifying the cursor in a text input widget.
 #[derive(Component)]
 pub struct IsFamiqTextInputCursor;
 
+/// Links a placeholder entity to its corresponding text input entity.
 #[derive(Component)]
 pub struct FamiqTextInputPlaceholderEntity(pub Entity);
 
+/// Links a cursor entity to its corresponding text input entity.
 #[derive(Component)]
 pub struct FamiqTextInputCursorEntity(pub Entity);
 
+/// Represents the size of a single character in the text input field.
 #[derive(Component)]
 pub struct CharacterSize {
     pub width: f32,
     pub height: f32
 }
 
+/// The width of the text input cursor.
 pub const CURSOR_WIDTH: f32 = 2.0;
 
+/// Color options for the text input widget.
 #[derive(PartialEq)]
 pub enum TextInputColor {
     Default,
@@ -90,24 +106,28 @@ pub enum TextInputColor {
     Info,
 }
 
+/// Appearance variants for the text input widget.
 pub enum TextInputVariant {
     Default,
     Outlined,
     Underlined,
 }
 
+/// Size options for the text input widget.
 pub enum TextInputSize {
     Small,
     Normal,
     Large,
 }
 
+/// Shape options for the text input widget.
 pub enum TextInputShape {
     Default,
     Round,
     Rectangle
 }
 
+/// Represents the Famiq text input widget, which includes placeholder text, a blinking cursor, and customizable styles.
 pub struct FaTextInput;
 
 // Needs container
@@ -487,6 +507,7 @@ impl<'a> FaTextInput {
     }
 }
 
+/// Builder for creating and customizing `FaTextInput` widgets.
 pub struct FaTextInputBuilder<'a> {
     pub id: Option<String>,
     pub placeholder: String,
@@ -543,16 +564,19 @@ impl<'a> FaTextInputBuilder<'a> {
         (use_variant, use_color, use_size, use_shape)
     }
 
+    /// Method to add class to text_input
     pub fn class(mut self, class: &str) -> Self {
         self.class = Some(class.to_string());
         self
     }
 
+    /// Method to add id to text_input
     pub fn id(mut self, id: &str) -> Self {
         self.id = Some(id.to_string());
         self
     }
 
+    /// Spawn text input into UI World.
     pub fn build(&mut self) -> Entity {
         let (variant, color, size, shape) = self._process_built_in_classes();
         FaTextInput::new(
@@ -569,6 +593,7 @@ impl<'a> FaTextInputBuilder<'a> {
     }
 }
 
+/// API to create `FaTextInputBuilder`
 pub fn fa_text_input<'a>(
     builder: &'a mut FamiqWidgetBuilder,
     placeholder: &str
@@ -583,6 +608,9 @@ pub fn fa_text_input<'a>(
     )
 }
 
+/// Determines if text_input internal system(s) can run.
+///
+/// True only if there is a text_input widget created.
 pub fn can_run_text_input_systems(builder_res: Res<FamiqWidgetResource>) -> bool {
     builder_res.can_run_systems.text_input
 }

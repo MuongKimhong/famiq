@@ -27,6 +27,7 @@ pub struct FaModalState(pub bool);
 #[derive(Component)]
 pub struct FaModalContainerEntity(pub Entity);
 
+/// Component that keep tracking of modal show/hide animation.
 #[derive(Component)]
 pub struct AnimationProgress(pub f32);
 
@@ -148,6 +149,7 @@ impl<'a> FaModal {
     }
 }
 
+/// Builder for creating modal widgets.
 pub struct FaModalBuilder<'a> {
     pub id: Option<String>,
     pub class: Option<String>,
@@ -165,21 +167,28 @@ impl<'a> FaModalBuilder<'a> {
         }
     }
 
+    /// Method to add class to modal.
     pub fn class(mut self, class: &str) -> Self {
         self.class = Some(class.to_string());
         self
     }
 
+    /// Method to add id to modal.
     pub fn id(mut self, id: &str) -> Self {
         self.id = Some(id.to_string());
         self
     }
 
+    /// Sets the child entities for the modal.
+    ///
+    /// # Parameters
+    /// - `children`: An iterable collection of entities to add as children.
     pub fn children<I: IntoIterator<Item = Entity>>(mut self, children: I) -> Self {
         self.children = Some(children.into_iter().collect());
         self
     }
 
+    /// Spawn modal into UI World.
     pub fn build(&mut self) -> Entity {
         FaModal::new(
             self.id.clone(),
@@ -190,11 +199,15 @@ impl<'a> FaModalBuilder<'a> {
     }
 }
 
+/// API to create `FaModalBuilder`
 pub fn fa_modal<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaModalBuilder<'a> {
     builder.resource.can_run_systems.modal = true;
     FaModalBuilder::new(builder.ui_root_node.reborrow())
 }
 
+/// Determines if modal internal system(s) can run.
+///
+/// True only if there is a modal widget created.
 pub fn can_run_modal_systems(builder_res: Res<FamiqWidgetResource>) -> bool {
     builder_res.can_run_systems.modal
 }

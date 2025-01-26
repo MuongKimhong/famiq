@@ -14,27 +14,27 @@ developers can define styles in a well known JSON file. These styles are then pa
 into Bevy's native UI styles, significantly reducing boilerplate code.
 
 ```rust
-let txt = builder.fa_text("#signup-txt", "", "SIGN UP");
+let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
 
-let f_name = builder.fa_text_input("#f_name", "", "First name");
-let l_name = builder.fa_text_input("#l_name", "", "Last name");
-let name_container = builder.fa_container("#name-container", "", &vec![f_name, l_name]);
+let txt = fa_text(&mut builder, "SIGN UP").build();
 
-let ask = builder.fa_selection(
-    "#ask",
-    "",
-    "Select your subscription",
-    &vec!["Personal".to_string(), "Team".to_string()],
-);
-let ask_container = builder.fa_container("#ask-container", "", &vec![ask]);
+let f_name = fa_text_input(&mut builder, "First name").build();
+let l_name = fa_text_input(&mut builder, "Last name").build();
+let name_container = fa_container(&mut builder)
+    .id("#name-container")
+    .children([f_name, l_name])
+    .build();
 
-let btn = builder.fa_button("#btn", "", "Confirm");
+let ask = fa_selection(&mut builder, "Select your subscription").choices(["Personal", "Team"]).build();
+let ask_container = fa_container(&mut builder).id("#ask-container")
+    .children([ask])
+    .build();
 
-builder.fa_container(
-    "#container",
-    "",
-    &vec![txt, name_container, ask_container, btn],
-);
+let btn = fa_button(&mut builder, "Confirm").build();
+
+fa_container(&mut builder).id("#container")
+    .children([txt, name_container, ask_container, btn])
+    .build();
 ```
 <p align="center">
   <img src="screenshot.png">
@@ -48,7 +48,7 @@ are reflected immediately in the running app, no need to re-compile.
 Get latest version of `Famiq` by adding this line to `Cargo.toml`. Currently, crate & rustdoc are not available yet.
 ```toml
 [dependencies]
-famiq = { git = "https://github.com/muongkimhong/famiq", tag = "v0.2.3" }
+famiq = { git = "https://github.com/muongkimhong/famiq", tag = "v0.2.4" }
 ```
 
 ## Documentation

@@ -8,6 +8,7 @@ license = "MIT"
 repository = "https://github.com/MuongKimhong/famiq"
 homepage = "https://github.com/MuongKimhong/famiq"
 documentation = "https://docs.rs/famiq"
+keywords = ["bevy engine", "ui", "bevy ui"]
 
 [dependencies]
 bevy = {version="0.15.1", features=["jpeg", "png"]}

@@ -6,10 +6,11 @@ use crate::widgets::{
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 
+/// Marker component for identifying Famiq text widgets.
 #[derive(Component)]
 pub struct IsFamiqText;
 
-// Needs container
+/// Represents a Famiq text widget for displaying styled text.
 pub struct FaText;
 
 impl<'a> FaText {
@@ -53,6 +54,7 @@ impl<'a> FaText {
     }
 }
 
+/// Builder for creating `FaText` entities with customizable options.
 pub struct FaTextBuilder<'a> {
     pub id: Option<String>,
     pub value: String,
@@ -72,16 +74,19 @@ impl<'a> FaTextBuilder<'a> {
         }
     }
 
+    /// Method to add class to text.
     pub fn class(mut self, class: &str) -> Self {
         self.class = Some(class.to_string());
         self
     }
 
+    /// Method to add id to text.
     pub fn id(mut self, id: &str) -> Self {
         self.id = Some(id.to_string());
         self
     }
 
+    /// Spawn text into UI World.
     pub fn build(&mut self) -> Entity {
         FaText::new(
             self.id.clone(),
@@ -93,6 +98,7 @@ impl<'a> FaTextBuilder<'a> {
     }
 }
 
+/// API to create `FaTextBuilder`.
 pub fn fa_text<'a>(builder: &'a mut FamiqWidgetBuilder, value: &str) -> FaTextBuilder<'a> {
     let font_handle = builder.asset_server.load(builder.font_path.as_ref().unwrap());
     FaTextBuilder::new(
