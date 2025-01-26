@@ -2,7 +2,7 @@
 name = "famiq"
 version = "0.2.4"
 edition = "2021"
-authors = ["Kimhong Muong <mail@kimhongmuong.com>"]
+authors = ["Kimhong Muong <muongkimhong086@gmail.com>"]
 description = "UI Library wrapped around Bevy UI module"
 license = "MIT"
 repository = "https://github.com/MuongKimhong/famiq"
