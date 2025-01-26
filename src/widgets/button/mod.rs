@@ -1,4 +1,6 @@
+pub mod components;
 pub mod helper;
+pub mod tests;
 
 use crate::utils;
 use crate::widgets::{
@@ -10,23 +12,11 @@ use crate::widgets::{
 use crate::event_writer::FaInteractionEvent;
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
+
+pub use components::*;
 use helper::*;
 
-#[derive(Component)]
-pub struct IsFamiqButton;
-
-#[derive(Component)]
-pub struct IsFamiqButtonText;
-
-#[derive(Component)]
-pub struct ButtonTextEntity(pub Entity);
-
-#[derive(Component)]
-pub struct ButtonTextContainerEntity(pub Entity);
-
-#[derive(Component)]
-pub struct FaButtonText(pub String);
-
+/// Represents built-in button color options for a `FaButton`.
 pub enum BtnColor {
     Default,
     Primary,
@@ -42,12 +32,13 @@ pub enum BtnColor {
     InfoDark
 }
 
+/// Represents built-in button size options for a `FaButton`.
 pub enum BtnSize {
     Small,
     Normal,
     Large,
 }
-
+/// Represents a custom button shape for Famiq widgets.
 pub enum BtnShape {
     Default,
     Round,
@@ -58,6 +49,18 @@ pub struct FaButton;
 
 // Needs container
 impl<'a> FaButton {
+    /// Builds the text entity for the button.
+    ///
+    /// # Parameters
+    /// - `id`: Optional ID for the text entity.
+    /// - `text`: The text to display on the button.
+    /// - `root_node`: A mutable reference to the root node's `EntityCommands`.
+    /// - `font_handle`: Handle to the font to use for the button text.
+    /// - `color`: Button color configuration.
+    /// - `size`: Button size configuration.
+    ///
+    /// # Returns
+    /// - The `Entity` of the created text component.
     fn _build_text(
         id: &Option<String>,
         text: &str,
@@ -82,7 +85,6 @@ impl<'a> FaButton {
                 txt_font.clone(),
                 txt_color.clone(),
                 txt_layout.clone(),
-                FaButtonText(text.to_string()),
                 DefaultTextEntity::new(txt, txt_font, txt_color, txt_layout),
                 IsFamiqButtonText
             ))
@@ -94,6 +96,20 @@ impl<'a> FaButton {
         entity
     }
 
+    /// Creates a new `FaButton` entity.
+    ///
+    /// # Parameters
+    /// - `id`: Optional ID for the button.
+    /// - `class`: Optional CSS-like class for styling.
+    /// - `text`: The text to display on the button.
+    /// - `root_node`: A mutable reference to the root node's `EntityCommands`.
+    /// - `font_handle`: Handle to the font to use for the button text.
+    /// - `color`: Button color configuration.
+    /// - `size`: Button size configuration.
+    /// - `shape`: Button shape configuration.
+    ///
+    /// # Returns
+    /// - The `Entity` of the created button.
     pub fn new(
         id: Option<String>,
         class: Option<String>,
@@ -153,6 +169,12 @@ impl<'a> FaButton {
         btn_entity
     }
 
+    /// System to handle internal button interaction events and apply styles accordingly.
+    ///
+    /// # Parameters
+    /// - `events`: Event reader for `FaInteractionEvent`.
+    /// - `button_q`: Query for buttons and their components.
+    /// - `builder_res`: Mutable reference to `FamiqWidgetResource` for managing focus states.
     pub fn handle_button_on_interaction_system(
         mut events: EventReader<FaInteractionEvent>,
         mut button_q: Query<(&IsFamiqButton, &DefaultWidgetEntity, &mut BackgroundColor, &mut BorderColor)>,
@@ -183,6 +205,7 @@ impl<'a> FaButton {
     }
 }
 
+/// Builder for creating `FaButton` entities with customizable options.
 pub struct FaButtonBuilder<'a> {
     pub id: Option<String>,
     pub class: Option<String>,
@@ -192,6 +215,10 @@ pub struct FaButtonBuilder<'a> {
 }
 
 impl<'a> FaButtonBuilder<'a> {
+    /// Create a new FaButtonBuilder
+    ///
+    /// # Returns
+    /// - A new instance of `FaButtonBuilder`.
     pub fn new(
         text: String,
         font_handle: Handle<Font>,
@@ -245,16 +272,19 @@ impl<'a> FaButtonBuilder<'a> {
         (use_color, use_size, use_shape)
     }
 
+    /// Method to add class to button entity
     pub fn class(mut self, class: &str) -> Self {
         self.class = Some(class.to_string());
         self
     }
 
+    /// Method to add id to button entity
     pub fn id(mut self, id: &str) -> Self {
         self.id = Some(id.to_string());
         self
     }
 
+    /// Spawn the button to UI world.
     pub fn build(&mut self) -> Entity {
         let (color, size, shape) = self._process_built_in_classes();
         FaButton::new(
@@ -270,6 +300,7 @@ impl<'a> FaButtonBuilder<'a> {
     }
 }
 
+/// API to create a `FaButtonBuilder`.
 pub fn fa_button<'a>(builder: &'a mut FamiqWidgetBuilder, text: &str) -> FaButtonBuilder<'a> {
     let font_handle = builder.asset_server.load(builder.font_path.as_ref().unwrap());
     builder.resource.can_run_systems.button = true;
@@ -281,74 +312,9 @@ pub fn fa_button<'a>(builder: &'a mut FamiqWidgetBuilder, text: &str) -> FaButto
     )
 }
 
+/// Checks if the button internal system(s) can run.
+///
+/// `True` only if there is a button widget created.
 pub fn can_run_button_systems(builder_res: Res<FamiqWidgetResource>) -> bool {
     builder_res.can_run_systems.button
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::plugin::FamiqPlugin;
-    use super::*;
-
-    fn setup_test_default_button(
-        mut commands: Commands,
-        asset_server: ResMut<AssetServer>,
-        mut builder_res: ResMut<FamiqWidgetResource>,
-    ) {
-        let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-        fa_button(&mut builder, "Press me").id("#test-btn").build();
-    }
-
-    fn setup_test_button_with_built_in_class(
-        mut commands: Commands,
-        asset_server: ResMut<AssetServer>,
-        mut builder_res: ResMut<FamiqWidgetResource>,
-    ) {
-        let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-        fa_button(&mut builder, "Press me")
-            .id("#test-btn")
-            .class("is-primary is-large is-round")
-            .build();
-    }
-
-    #[test]
-    fn test_create_default_button() {
-        let mut app = utils::create_test_app();
-        app.add_plugins(FamiqPlugin);
-        app.insert_resource(FamiqWidgetResource::default());
-        app.add_systems(Startup, setup_test_default_button);
-        app.update();
-
-        let btn_q = app.world_mut().query::<(&FamiqWidgetId, &IsFamiqButton)>().get_single(app.world());
-        assert!(btn_q.is_ok(), "There should be only 1 button");
-
-        let btn_id = btn_q.unwrap().0;
-        assert_eq!(
-            "#test-btn".to_string(),
-            btn_id.0
-        );
-
-        let btn_text_q = app.world_mut().query::<(&Text, &IsFamiqButtonText)>()
-                        .get_single(app.world());
-
-        assert_eq!(
-            "Press me".to_string(),
-            btn_text_q.unwrap().0.0
-        );
-    }
-
-    #[test]
-    fn test_create_button_with_built_in_class() {
-        let mut app = utils::create_test_app();
-        app.add_plugins(FamiqPlugin);
-        app.insert_resource(FamiqWidgetResource::default());
-        app.add_systems(Startup, setup_test_button_with_built_in_class);
-        app.update();
-
-        let btn_q = app.world_mut().query::<(&FamiqWidgetClasses, &IsFamiqButton)>().get_single(app.world());
-        assert_eq!(
-            "is-primary is-large is-round".to_string(),
-            btn_q.unwrap().0.0
-        );
-    }
 }

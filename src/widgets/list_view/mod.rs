@@ -14,27 +14,15 @@ use bevy::prelude::*;
 
 use helper::*;
 
-#[derive(Component, Debug)]
-pub struct ListView {
-    pub focused: bool,
-    pub items: Vec<Entity>,
-}
-
-impl ListView {
-    pub fn new(items: &Vec<Entity>) -> Self {
-        Self {
-            focused: false,
-            items: items.clone(),
-        }
-    }
-}
-
+/// Marker component indentifying Famiq Listview widget.
 #[derive(Component)]
 pub struct IsFamiqListView;
 
+/// Marker component indentifying Famiq Listview's items.
 #[derive(Component)]
 pub struct IsFamiqListViewItem;
 
+/// Marker component identifying Listview move panel.
 #[derive(Component)]
 pub struct IsFamiqListViewMovePanel;
 
@@ -46,12 +34,13 @@ pub struct ScrollList {
     pub position: f32,
 }
 
-// only listview with entity inside this resource can be scrolled
+/// only listview with entity inside this resource can be scrolled
 #[derive(Resource)]
 pub struct CanBeScrolledListView {
     pub entity: Option<Entity>,
 }
 
+/// Represents Famiq Image widget.
 pub struct FaListView;
 
 // Doesn't need container
@@ -190,6 +179,11 @@ impl<'a> FaListView {
         max_scroll.max(0.0)
     }
 
+    /// System to track hover interactions on ListView widgets.
+    ///
+    /// # Parameters
+    /// - `interaction_events`: A reader for `FaInteractionEvent` events.
+    /// - `can_be_scrolled_listview`: A mutable resource tracking the currently hovered ListView entity.
     pub fn on_hover_system(
         mut interaction_events: EventReader<FaInteractionEvent>,
         mut can_be_scrolled_listview: ResMut<CanBeScrolledListView>,
@@ -202,6 +196,14 @@ impl<'a> FaListView {
         }
     }
 
+
+    /// System to handle scrolling interactions on ListView widgets.
+    ///
+    /// # Parameters
+    /// - `mouse_wheel_events`: A reader for mouse wheel scroll events.
+    /// - `listview_q`: A query for ListView components.
+    /// - `panel_q`: A query for move panel components.
+    /// - `can_be_scrolled_listview`: A resource tracking the currently hovered ListView entity.
     pub fn on_scroll_system(
         mut mouse_wheel_events: EventReader<MouseWheel>,
         mut listview_q: Query<(&mut Node, &ComputedNode, &ListViewMovePanelEntity), Without<ScrollList>>,
@@ -244,6 +246,7 @@ impl<'a> FaListView {
     }
 }
 
+/// Builder for creating `FaListView` entities with customizable options.
 pub struct FaListViewBuilder<'a> {
     pub id: Option<String>,
     pub class: Option<String>,
@@ -261,21 +264,25 @@ impl<'a> FaListViewBuilder<'a> {
         }
     }
 
+    /// Method to add class to listview.
     pub fn class(mut self, class: &str) -> Self {
         self.class = Some(class.to_string());
         self
     }
 
+    /// Method to add id to listview.
     pub fn id(mut self, id: &str) -> Self {
         self.id = Some(id.to_string());
         self
     }
 
+    /// Adds child entities to the ListView.
     pub fn children<I: IntoIterator<Item = Entity>>(mut self, children: I) -> Self {
         self.children = Some(children.into_iter().collect());
         self
     }
 
+    /// Spawn listview into UI World.
     pub fn build(&mut self) -> Entity {
         FaListView::new(
             self.id.clone(),
@@ -286,11 +293,15 @@ impl<'a> FaListViewBuilder<'a> {
     }
 }
 
+/// API to create `FaListViewBuilder`.
 pub fn fa_listview<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaListViewBuilder<'a> {
     builder.resource.can_run_systems.list_view = true;
     FaListViewBuilder::new(builder.ui_root_node.reborrow())
 }
 
+/// Determines if ListView internal system(s) can run.
+///
+/// True only if there is a listview widget created.
 pub fn can_run_list_view_systems(builder_res: Res<FamiqWidgetResource>) -> bool {
     builder_res.can_run_systems.list_view
 }

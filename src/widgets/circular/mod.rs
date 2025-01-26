@@ -1,4 +1,6 @@
+pub mod components;
 pub mod helper;
+pub mod tests;
 
 use bevy::prelude::*;
 use crate::widgets::{
@@ -7,25 +9,11 @@ use crate::widgets::{
     ExternalStyleHasChanged
 };
 use crate::utils::{entity_add_child, lighten_color, darken_color};
+
+pub use components::*;
 use helper::*;
 
-#[derive(Component)]
-pub struct IsFamiqCircular;
-
-#[derive(Component)]
-pub struct IsFamiqCircularSpinner;
-
-#[derive(Component)]
-pub struct RotatingSequence {
-    speed: f32,        // Current rotation speed in degrees per second
-    timer: Timer,
-    speed_sequence: Vec<f32>, // Sequence of speeds
-    current_index: usize,     // Current index in the sequence
-}
-
-#[derive(Component)]
-pub struct CircularSpinnerEntity(pub Entity);
-
+/// Represents built-in size of a circular UI element.
 pub enum CircularSize {
     Small,
     Normal,
@@ -33,6 +21,7 @@ pub enum CircularSize {
     CustomSize(f32)
 }
 
+/// Represents built-in color options for a circular UI element.
 pub enum CircularColor {
     Default,
     Primary,
@@ -43,6 +32,7 @@ pub enum CircularColor {
     Info,
 }
 
+/// Represents a Famiq circular UI element, such as a spinner or loading indicator.
 pub struct FaCircular;
 
 // Needs container
@@ -173,6 +163,11 @@ impl<'a> FaCircular {
         outer
     }
 
+    /// System to rotate spinner entities based on their rotation speed.
+    ///
+    /// # Parameters
+    /// - `time`: Resource containing the time delta.
+    /// - `query`: Query for spinner entities and their `RotatingSequence` components.
     pub fn rotate_spinner(
         time: Res<Time>,
         mut query: Query<(&mut Transform, &RotatingSequence)>,
@@ -187,6 +182,11 @@ impl<'a> FaCircular {
         }
     }
 
+    /// System to update spinner rotation speeds based on a predefined sequence.
+    ///
+    /// # Parameters
+    /// - `time`: Resource containing the time delta.
+    /// - `query`: Query for spinner entities and their `RotatingSequence` components.
     pub fn update_spinner_speed(
         time: Res<Time>,
         mut query: Query<&mut RotatingSequence>,
@@ -204,6 +204,7 @@ impl<'a> FaCircular {
     }
 }
 
+/// Builder for creating Famiq circular elements.
 pub struct FaCircularBuilder<'a> {
     pub id: Option<String>,
     pub class: Option<String>,
@@ -258,21 +259,25 @@ impl<'a> FaCircularBuilder<'a> {
         use_size
     }
 
+    /// Method to set circular's custom size.
     pub fn size(mut self, size: f32) -> Self {
         self.size = Some(size);
         self
     }
 
+    /// Method to add class to circular.
     pub fn class(mut self, class: &str) -> Self {
         self.class = Some(class.to_string());
         self
     }
 
+    /// Method to add id to circular
     pub fn id(mut self, id: &str) -> Self {
         self.id = Some(id.to_string());
         self
     }
 
+    /// Spawn circular to UI world
     pub fn build(&mut self) -> Entity {
         let (color, size) = self._process_built_in_classes();
         let use_size = size.unwrap_or_else(|| self._process_custom_size() );
@@ -286,134 +291,15 @@ impl<'a> FaCircularBuilder<'a> {
     }
 }
 
+/// API to create `FaCircularBuilder`
 pub fn fa_circular<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaCircularBuilder<'a> {
     builder.resource.can_run_systems.circular = true;
     FaCircularBuilder::new(builder.ui_root_node.reborrow())
 }
 
+/// Determines if circular internal system(s) can run.
+///
+/// True only if circular widget is created.
 pub fn can_run_circular_systems(builder_res: Res<FamiqWidgetResource>) -> bool {
     builder_res.can_run_systems.circular
-}
-
-#[cfg(test)]
-mod test {
-    use crate::plugin::FamiqPlugin;
-    use crate::utils::create_test_app;
-    use super::*;
-
-    fn setup_test_default_circular(
-        mut commands: Commands,
-        asset_server: ResMut<AssetServer>,
-        mut builder_res: ResMut<FamiqWidgetResource>,
-    ) {
-        let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-        fa_circular(&mut builder).id("#test-circular").build();
-    }
-
-    fn setup_test_circular_with_built_in_class(
-        mut commands: Commands,
-        asset_server: ResMut<AssetServer>,
-        mut builder_res: ResMut<FamiqWidgetResource>,
-    ) {
-        let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-        fa_circular(&mut builder)
-            .id("#test-circular")
-            .class("is-primary is-large")
-            .build();
-    }
-
-    fn set_up_circular_with_custom_size(
-        mut commands: Commands,
-        asset_server: ResMut<AssetServer>,
-        mut builder_res: ResMut<FamiqWidgetResource>,
-    ) {
-        let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-        fa_circular(&mut builder)
-            .size(90.0)
-            .build();
-    }
-
-    #[test]
-    fn test_create_default_circular() {
-        let mut app = create_test_app();
-        app.add_plugins(FamiqPlugin);
-        app.insert_resource(FamiqWidgetResource::default());
-        app.add_systems(Startup, setup_test_default_circular);
-        app.update();
-
-        let circular_q = app.world_mut().query::<(&FamiqWidgetId, &Node, &IsFamiqCircular)>().get_single(app.world());
-        assert!(circular_q.is_ok(), "There should be only 1 circular");
-
-        let circular_id = circular_q.as_ref().unwrap().0;
-        assert_eq!(
-            "#test-circular".to_string(),
-            circular_id.0
-        );
-
-        // default width & height is 46px or Val::Px(46.0)
-        let circular_node = circular_q.unwrap().1;
-        assert_eq!(
-            Val::Px(46.0),
-            circular_node.width,
-            "Default width should be 46px"
-        );
-        assert_eq!(
-            Val::Px(46.0),
-            circular_node.height,
-            "Default height should be 46px"
-        );
-    }
-
-    #[test]
-    fn test_create_circular_with_built_in_class() {
-        let mut app = create_test_app();
-        app.add_plugins(FamiqPlugin);
-        app.insert_resource(FamiqWidgetResource::default());
-        app.add_systems(Startup, setup_test_circular_with_built_in_class);
-        app.update();
-
-        let circular_q = app.world_mut().query::<(&FamiqWidgetClasses, &Node, &IsFamiqCircular)>().get_single(app.world());
-
-        let circular_class = circular_q.as_ref().unwrap().0;
-        assert_eq!(
-            "is-primary is-large".to_string(),
-            circular_class.0
-        );
-
-        // default width & height is 46px or Val::Px(46.0)
-        let circular_node = circular_q.unwrap().1;
-        assert_eq!(
-            Val::Px(52.0),
-            circular_node.width,
-            "Circular with class is-large has width of 52px"
-        );
-        assert_eq!(
-            Val::Px(52.0),
-            circular_node.height,
-            "Circular with class is-large has height of 52px"
-        );
-    }
-
-    #[test]
-    fn test_create_circular_with_custom_size() {
-        let mut app = create_test_app();
-        app.add_plugins(FamiqPlugin);
-        app.insert_resource(FamiqWidgetResource::default());
-        app.add_systems(Startup, set_up_circular_with_custom_size);
-        app.update();
-
-        let circular_q = app.world_mut().query::<(&Node, &IsFamiqCircular)>().get_single(app.world());
-
-        let circular_node = circular_q.unwrap().0;
-        assert_eq!(
-            Val::Px(90.0),
-            circular_node.width,
-            "Custom size width is 90.0"
-        );
-        assert_eq!(
-            Val::Px(90.0),
-            circular_node.height,
-            "Custom size height is 90.0"
-        );
-    }
 }

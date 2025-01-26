@@ -4,9 +4,11 @@ use crate::widgets::{
     FamiqWidgetBuilder, WidgetStyle, ExternalStyleHasChanged
 };
 
+/// Marker component identifyijng Famiq Image widget.
 #[derive(Component)]
 pub struct IsFamiqImage;
 
+/// Represents Famiq Image widget.
 pub struct FaImage;
 
 impl<'a> FaImage {
@@ -63,6 +65,7 @@ impl<'a> FaImage {
     }
 }
 
+/// Builder for creating image widget.
 pub struct FaImageBuilder<'a> {
     pub id: Option<String>,
     pub image_handle: Handle<Image>,
@@ -84,22 +87,26 @@ impl<'a> FaImageBuilder<'a> {
         }
     }
 
+    /// Method to add class to image.
     pub fn class(mut self, class: &str) -> Self {
         self.class = Some(class.to_string());
         self
     }
 
+    /// Method to add id to image.
     pub fn id(mut self, id: &str) -> Self {
         self.id = Some(id.to_string());
         self
     }
 
+    /// set custom size for image
     pub fn size(mut self, width: Val, height: Val) -> Self {
         self.width = Some(width);
         self.height = Some(height);
         self
     }
 
+    /// Spawn image into UI World.
     pub fn build(&mut self) -> Entity {
         FaImage::new(
             self.id.clone(),
@@ -112,6 +119,7 @@ impl<'a> FaImageBuilder<'a> {
     }
 }
 
+/// API to create `FaImageBuilder`
 pub fn fa_image<'a>(builder: &'a mut FamiqWidgetBuilder, path: &str) -> FaImageBuilder<'a> {
     let image_handle = builder.asset_server.load(path);
     FaImageBuilder::new(

@@ -1,4 +1,5 @@
 pub mod helper;
+pub mod tests;
 
 use crate::utils::entity_add_child;
 use crate::widgets::{
@@ -15,19 +16,27 @@ use super::color::{GREEN_COLOR, WHITE_COLOR, WARNING_COLOR, DANGER_COLOR};
 
 const DEFAULT_FPS_TEXT_SIZE: f32 = 20.0;
 
+/// Marker component for identifying the label part of the FPS text (e.g., "FPS:").
 #[derive(Component)]
 pub struct IsFamiqFPSTextLabel;
 
+/// Marker component for identifying the FPS count text (e.g., "60.0").
 #[derive(Component)]
 pub struct IsFamiqFPSTextCount;
 
+/// Marker component for identifying the FPS text container that holds
+/// both label & text count (eg. FPS: 60.0).
 #[derive(Component)]
 pub struct IsFamiqFPSTextContainer;
 
-// whether fps change color. green > 100, orange < 100, red < 60
+/// Component to indicate whether the FPS text color can change dynamically.
+/// - `true`: The FPS text will change color based on the FPS value.
+/// - `false`: The FPS text color remains constant.
 #[derive(Component)]
 pub struct CanChangeColor(pub bool);
 
+
+/// Represents the Famiq FPS text widget.
 pub struct FaFpsText;
 
 // Doesn't need container
@@ -146,6 +155,11 @@ impl<'a> FaFpsText {
         text_entity
     }
 
+    /// System to update the FPS count and optionally change its color based on the value.
+    ///
+    /// # Parameters
+    /// - `diagnostics`: Diagnostics resource containing FPS data.
+    /// - `text_q`: Query to retrieve FPS count text entities.
     pub fn update_fps_count_system(
         diagnostics: Res<DiagnosticsStore>,
         mut text_q: Query<(&mut TextSpan, &mut TextColor, &CanChangeColor, &IsFamiqFPSTextCount)>
@@ -175,6 +189,7 @@ impl<'a> FaFpsText {
     }
 }
 
+/// Builder for creating an FPS text widget.
 pub struct FaFpsTextBuilder<'a> {
     pub id: Option<String>,
     pub change_color: Option<bool>,
@@ -194,21 +209,25 @@ impl<'a> FaFpsTextBuilder<'a> {
         }
     }
 
+    /// Enables dynamic color changes based on FPS value.
     pub fn change_color(mut self) -> Self {
         self.change_color = Some(true);
         self
     }
 
+    /// Method to add id to fps
     pub fn id(mut self, id: &str) -> Self {
         self.id = Some(id.to_string());
         self
     }
 
+    /// Aligns the FPS widget to the right top corner of the screen.
     pub fn right_side(mut self) -> Self {
         self.right_side = Some(true);
         self
     }
 
+    /// Spawn fps into UI World
     pub fn build(&mut self) -> Entity {
         FaFpsText::new(
             self.id.clone(),
@@ -220,6 +239,7 @@ impl<'a> FaFpsTextBuilder<'a> {
     }
 }
 
+/// API to create an `FaFpsTextBuilder`.
 pub fn fa_fps<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaFpsTextBuilder<'a> {
     let font_handle = builder.asset_server.load(builder.font_path.as_ref().unwrap());
     builder.resource.can_run_systems.fps = true;
@@ -230,92 +250,10 @@ pub fn fa_fps<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaFpsTextBuilder<'a> {
     )
 }
 
+
+/// Determines if FPS internal system(s) can run.
+///
+/// True only if fps widget is created.
 pub fn can_run_fps_systems(builder_res: Res<FamiqWidgetResource>) -> bool {
     builder_res.can_run_systems.fps
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::plugin::FamiqPlugin;
-    use crate::utils::create_test_app;
-    use super::*;
-
-    fn setup_test_default_fps(
-        mut commands: Commands,
-        asset_server: ResMut<AssetServer>,
-        mut builder_res: ResMut<FamiqWidgetResource>,
-    ) {
-        let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-        fa_fps(&mut builder)
-            .id("#test-fps")
-            .build();
-    }
-
-    fn setup_test_fps_with_change_color(
-        mut commands: Commands,
-        asset_server: ResMut<AssetServer>,
-        mut builder_res: ResMut<FamiqWidgetResource>,
-    ) {
-        let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-        fa_fps(&mut builder)
-            .change_color()
-            .build();
-    }
-
-    fn setup_test_fps_with_right_side(
-        mut commands: Commands,
-        asset_server: ResMut<AssetServer>,
-        mut builder_res: ResMut<FamiqWidgetResource>,
-    ) {
-        let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-        fa_fps(&mut builder)
-            .right_side()
-            .build();
-    }
-
-    #[test]
-    fn test_create_default_fps() {
-        let mut app = create_test_app();
-        app.add_plugins(FamiqPlugin);
-        app.insert_resource(FamiqWidgetResource::default());
-        app.add_systems(Startup, setup_test_default_fps);
-        app.update();
-
-        let fps_q = app.world_mut().query::<(&FamiqWidgetId, &IsFamiqFPSTextLabel)>().get_single(app.world());
-        assert!(fps_q.is_ok(), "There should be only 1 fps widget");
-
-        let fps_id = fps_q.unwrap().0;
-        assert_eq!("#test-fps".to_string(), fps_id.0);
-    }
-
-    #[test]
-    fn test_create_fps_with_change_color() {
-        let mut app = create_test_app();
-        app.add_plugins(FamiqPlugin);
-        app.insert_resource(FamiqWidgetResource::default());
-        app.add_systems(Startup, setup_test_fps_with_change_color);
-        app.update();
-
-        let fps_q = app.world_mut().query::<(&CanChangeColor, &IsFamiqFPSTextCount)>().get_single(app.world());
-
-        let fps_can_change_color_flag = fps_q.unwrap().0;
-        assert_eq!(true, fps_can_change_color_flag.0);
-    }
-
-    #[test]
-    fn test_create_fps_with_right_side() {
-        let mut app = create_test_app();
-        app.add_plugins(FamiqPlugin);
-        app.insert_resource(FamiqWidgetResource::default());
-        app.add_systems(Startup, setup_test_fps_with_right_side);
-        app.update();
-
-        let fps_q = app.world_mut().query::<(&Node, &IsFamiqFPSTextContainer)>().get_single(app.world());
-
-        let fps_node = fps_q.unwrap().0;
-
-        // when right_side is true, right is Val::Px(6.0) and left is Val::Auto by default
-        assert_eq!(Val::Px(6.0), fps_node.right);
-        assert_eq!(Val::Auto, fps_node.left);
-    }
 }

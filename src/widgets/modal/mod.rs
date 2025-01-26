@@ -9,15 +9,21 @@ use bevy::prelude::*;
 use bevy::ui::FocusPolicy;
 use helper::*;
 
+/// Marker component for identifying the modal background.
 #[derive(Component)]
 pub struct IsFamiqModalBackground;
 
+/// Marker component for identifying the modal container that hold all the items provided.
 #[derive(Component)]
 pub struct IsFamiqModalContainer;
 
+/// Component representing the modal's state (visible or hidden).
+/// - `true`: Modal is visible.
+/// - `false`: Modal is hidden.
 #[derive(Component)]
 pub struct FaModalState(pub bool);
 
+/// Component associating a modal background with its container entity.
 #[derive(Component)]
 pub struct FaModalContainerEntity(pub Entity);
 

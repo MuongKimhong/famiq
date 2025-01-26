@@ -1,4 +1,5 @@
 pub mod helper;
+pub mod tests;
 
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
@@ -10,9 +11,12 @@ use crate::widgets::{
 };
 use helper::default_container_node;
 
+/// Marker component for identifying a Famiq container.
 #[derive(Component)]
 pub struct IsFamiqContainer;
 
+/// Represents a Famiq container widget.
+/// Think of it as a Div element in HTML.
 pub struct FaContainer;
 
 // Doesn't need container
@@ -66,6 +70,7 @@ impl<'a> FaContainer {
     }
 }
 
+/// Builder for creating `FaContainer` entities with customizable options.
 pub struct FaContainerBuilder<'a> {
     pub id: Option<String>,
     pub class: Option<String>,
@@ -83,21 +88,28 @@ impl<'a> FaContainerBuilder<'a> {
         }
     }
 
+    /// Method to add class to container
     pub fn class(mut self, class: &str) -> Self {
         self.class = Some(class.to_string());
         self
     }
 
+    /// Method to add id to container
     pub fn id(mut self, id: &str) -> Self {
         self.id = Some(id.to_string());
         self
     }
 
+    /// Sets the child entities for the container.
+    ///
+    /// # Parameters
+    /// - `children`: An iterable collection of entities to add as children.
     pub fn children<I: IntoIterator<Item = Entity>>(mut self, children: I) -> Self {
         self.children = Some(children.into_iter().collect());
         self
     }
 
+    /// Spawn container into UI World
     pub fn build(&mut self) -> Entity {
         FaContainer::new(
             self.id.clone(),
@@ -108,98 +120,9 @@ impl<'a> FaContainerBuilder<'a> {
     }
 }
 
+/// API to create `FaContainerBuilder`
 pub fn fa_container<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaContainerBuilder<'a> {
     FaContainerBuilder::new(
         builder.ui_root_node.reborrow()
     )
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::plugin::FamiqPlugin;
-    use crate::widgets::button::fa_button;
-    use crate::widgets::FamiqWidgetResource;
-    use super::*;
-
-    fn setup_test_default_container(
-        mut commands: Commands,
-        asset_server: ResMut<AssetServer>,
-        mut builder_res: ResMut<FamiqWidgetResource>,
-    ) {
-        let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-        fa_container(&mut builder).id("#test-container").build();
-    }
-
-    fn setup_test_container_with_class(
-        mut commands: Commands,
-        asset_server: ResMut<AssetServer>,
-        mut builder_res: ResMut<FamiqWidgetResource>,
-    ) {
-        let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-        fa_container(&mut builder)
-            .id("#test-container")
-            .class("test-class-one test-class-two")
-            .build();
-    }
-
-    fn setup_test_container_with_children(
-        mut commands: Commands,
-        asset_server: ResMut<AssetServer>,
-        mut builder_res: ResMut<FamiqWidgetResource>,
-    ) {
-        let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-
-        let test_btn_1 = fa_button(&mut builder, "Button 1").build();
-        let test_btn_2 = fa_button(&mut builder, "Button 2").build();
-
-        fa_container(&mut builder)
-            .id("#test-container")
-            .children(vec![test_btn_1, test_btn_2])
-            .build();
-    }
-
-    #[test]
-    fn test_create_default_container() {
-        let mut app = utils::create_test_app();
-        app.add_plugins(FamiqPlugin);
-        app.insert_resource(FamiqWidgetResource::default());
-        app.add_systems(Startup, setup_test_default_container);
-        app.update();
-
-        let container_q = app.world_mut().query::<(&FamiqWidgetId, &IsFamiqContainer)>().get_single(app.world());
-        assert!(container_q.is_ok(), "There should be only 1 container");
-
-        let container_id = container_q.unwrap().0;
-        assert_eq!("#test-container".to_string(), container_id.0);
-    }
-
-    #[test]
-    fn test_create_container_with_class() {
-        let mut app = utils::create_test_app();
-        app.add_plugins(FamiqPlugin);
-        app.insert_resource(FamiqWidgetResource::default());
-        app.add_systems(Startup, setup_test_container_with_class);
-        app.update();
-
-        let container_q = app.world_mut().query::<(&FamiqWidgetClasses, &IsFamiqContainer)>().get_single(app.world());
-        assert!(container_q.is_ok(), "There should be only 1 container");
-
-        let container_class = container_q.unwrap().0;
-        assert_eq!("test-class-one test-class-two".to_string(), container_class.0);
-    }
-
-    #[test]
-    fn test_create_container_with_children() {
-        let mut app = utils::create_test_app();
-        app.add_plugins(FamiqPlugin);
-        app.insert_resource(FamiqWidgetResource::default());
-        app.add_systems(Startup, setup_test_container_with_children);
-        app.update();
-
-        let container_q = app.world_mut()
-            .query::<(&Children, &IsFamiqContainer)>()
-            .get_single(app.world());
-
-        assert_eq!(2 as usize, container_q.unwrap().0.len());
-    }
 }

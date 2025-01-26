@@ -2,6 +2,12 @@
 name = "famiq"
 version = "0.2.4"
 edition = "2021"
+authors = ["Kimhong Muong <mail@kimhongmuong.com>"]
+description = "UI Library wrapped around Bevy UI module"
+license = "MIT"
+repository = "https://github.com/MuongKimhong/famiq"
+homepage = "https://github.com/MuongKimhong/famiq"
+documentation = "https://docs.rs/famiq"
 
 [dependencies]
 bevy = {version="0.15.1", features=["jpeg", "png"]}
