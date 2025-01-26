@@ -45,13 +45,21 @@ hot-reload can be enabled during development so that any changes made to the jso
 are reflected immediately in the running app, no need to re-compile.
 
 ## Installation
-Get latest version of `Famiq` by adding this line to `Cargo.toml`. Currently, crate & rustdoc are not available yet.
+Get latest version of `Famiq`
+```
+cargo add famiq
+```
+or
 ```toml
-[dependencies]
 famiq = { git = "https://github.com/muongkimhong/famiq", tag = "v0.2.4" }
+
+# or
+
+famiq = "0.2.4"
 ```
 
 ## Documentation
+- [Rustdoc](https://docs.rs/crate/famiq/latest)
 - [See the docs](https://muongkimhong.github.io/famiq/)
 
 ## Contributing
