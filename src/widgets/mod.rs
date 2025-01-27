@@ -130,31 +130,6 @@ impl DefaultTextEntity {
 #[derive(Component)]
 pub struct ExternalStyleHasChanged(pub bool);
 
-// only widget type with flag true can have all its systems run
-pub struct CanRunSystems {
-    pub fps: bool,
-    pub button: bool,
-    pub text_input: bool,
-    pub selection: bool,
-    pub circular: bool,
-    pub list_view: bool,
-    pub modal: bool
-}
-
-impl Default for CanRunSystems {
-    fn default() -> Self {
-        Self {
-            fps: false,
-            button: false,
-            text_input: false,
-            selection: false,
-            circular: false,
-            list_view: false,
-            modal: false
-        }
-    }
-}
-
 #[derive(Resource)]
 pub struct FamiqWidgetResource {
     // font path relative to project root
@@ -168,9 +143,7 @@ pub struct FamiqWidgetResource {
 
     pub widget_focus_state: HashMap<Entity, bool>,
 
-    pub external_style_applied: bool,
-
-    pub can_run_systems: CanRunSystems
+    pub external_style_applied: bool
 }
 
 impl FamiqWidgetResource {
@@ -203,8 +176,7 @@ impl Default for FamiqWidgetResource {
             style_path: String::new(),
             hot_reload_styles: false,
             widget_focus_state: HashMap::new(),
-            external_style_applied: false,
-            can_run_systems: CanRunSystems::default()
+            external_style_applied: false
         }
     }
 }

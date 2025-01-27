@@ -293,13 +293,12 @@ impl<'a> FaCircularBuilder<'a> {
 
 /// API to create `FaCircularBuilder`
 pub fn fa_circular<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaCircularBuilder<'a> {
-    builder.resource.can_run_systems.circular = true;
     FaCircularBuilder::new(builder.ui_root_node.reborrow())
 }
 
 /// Determines if circular internal system(s) can run.
 ///
 /// True only if circular widget is created.
-pub fn can_run_circular_systems(builder_res: Res<FamiqWidgetResource>) -> bool {
-    builder_res.can_run_systems.circular
+pub fn can_run_circular_systems(circular_q: Query<&IsFamiqCircular>) -> bool {
+    circular_q.iter().count() > 0
 }

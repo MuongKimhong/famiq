@@ -295,15 +295,14 @@ impl<'a> FaListViewBuilder<'a> {
 
 /// API to create `FaListViewBuilder`.
 pub fn fa_listview<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaListViewBuilder<'a> {
-    builder.resource.can_run_systems.list_view = true;
     FaListViewBuilder::new(builder.ui_root_node.reborrow())
 }
 
 /// Determines if ListView internal system(s) can run.
 ///
 /// True only if there is a listview widget created.
-pub fn can_run_list_view_systems(builder_res: Res<FamiqWidgetResource>) -> bool {
-    builder_res.can_run_systems.list_view
+pub fn can_run_list_view_systems(listview_q: Query<&IsFamiqListView>) -> bool {
+    listview_q.iter().count() > 0
 }
 
 #[cfg(test)]

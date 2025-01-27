@@ -565,8 +565,6 @@ pub fn fa_selection<'a>(
     placeholder: &str
 ) -> FaSelectionBuilder<'a> {
     let font_handle = builder.asset_server.load(builder.font_path.as_ref().unwrap());
-    builder.resource.can_run_systems.selection = true;
-
     FaSelectionBuilder::new(
         placeholder.to_string(),
         font_handle,
@@ -574,8 +572,8 @@ pub fn fa_selection<'a>(
     )
 }
 
-pub fn can_run_selection_systems(builder_res: Res<FamiqWidgetResource>) -> bool {
-    builder_res.can_run_systems.selection
+pub fn can_run_selection_systems(selection_q: Query<&IsFamiqSelectionContainer>) -> bool {
+    selection_q.iter().count() > 0
 }
 
 #[cfg(test)]

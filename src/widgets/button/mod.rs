@@ -303,8 +303,6 @@ impl<'a> FaButtonBuilder<'a> {
 /// API to create a `FaButtonBuilder`.
 pub fn fa_button<'a>(builder: &'a mut FamiqWidgetBuilder, text: &str) -> FaButtonBuilder<'a> {
     let font_handle = builder.asset_server.load(builder.font_path.as_ref().unwrap());
-    builder.resource.can_run_systems.button = true;
-
     FaButtonBuilder::new(
         text.to_string(),
         font_handle,
@@ -315,6 +313,6 @@ pub fn fa_button<'a>(builder: &'a mut FamiqWidgetBuilder, text: &str) -> FaButto
 /// Checks if the button internal system(s) can run.
 ///
 /// `True` only if there is a button widget created.
-pub fn can_run_button_systems(builder_res: Res<FamiqWidgetResource>) -> bool {
-    builder_res.can_run_systems.button
+pub fn can_run_button_systems(button_q: Query<&IsFamiqButton>) -> bool {
+    button_q.iter().count() > 0
 }
