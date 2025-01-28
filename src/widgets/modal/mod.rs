@@ -81,16 +81,22 @@ impl<'a> FaModal {
     fn _build_modal_background(
         id: Option<String>,
         class: Option<String>,
+        clear_bg: bool,
         root_node: &'a mut EntityCommands,
         container_entity: Entity
     ) -> Entity {
+        let mut bg = BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.6));
+        if clear_bg {
+            bg = BackgroundColor::default();
+        }
+
         let entity = root_node
             .commands()
             .spawn((
                 default_modal_background_node(),
                 BorderColor(Color::srgba(0.0, 0.0, 0.0, 0.6)),
                 BorderRadius::default(),
-                BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.6)),
+                bg,
                 ZIndex::default(),
                 GlobalZIndex(5),
                 Visibility::Hidden,
@@ -116,11 +122,12 @@ impl<'a> FaModal {
     pub fn new(
         id: Option<String>,
         class: Option<String>,
+        clear_bg: bool,
         items: &Vec<Entity>,
         root_node: &'a mut EntityCommands
     ) -> Entity {
         let container = Self::_build_modal_container(&id, root_node, items);
-        let background = Self::_build_modal_background(id, class, root_node, container);
+        let background = Self::_build_modal_background(id, class, clear_bg, root_node, container);
 
         utils::entity_add_child(root_node, container, background);
         container
@@ -153,6 +160,7 @@ impl<'a> FaModal {
 pub struct FaModalBuilder<'a> {
     pub id: Option<String>,
     pub class: Option<String>,
+    pub clear_bg: bool,
     pub children: Option<Vec<Entity>>,
     pub root_node: EntityCommands<'a>
 }
@@ -162,6 +170,7 @@ impl<'a> FaModalBuilder<'a> {
         Self {
             id: None,
             class: None,
+            clear_bg: false,
             children: Some(Vec::new()),
             root_node
         }
@@ -179,6 +188,12 @@ impl<'a> FaModalBuilder<'a> {
         self
     }
 
+    /// Method to make modal background full transparent
+    pub fn clear_bg(mut self) -> Self {
+        self.clear_bg = true;
+        self
+    }
+
     /// Sets the child entities for the modal.
     ///
     /// # Parameters
@@ -193,6 +208,7 @@ impl<'a> FaModalBuilder<'a> {
         FaModal::new(
             self.id.clone(),
             self.class.clone(),
+            self.clear_bg,
             self.children.as_ref().unwrap(),
             &mut self.root_node
         )

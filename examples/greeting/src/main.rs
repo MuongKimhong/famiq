@@ -42,7 +42,7 @@ fn setup(
         .children([welcome_txt, close_btn])
         .build();
 
-    fa_modal(&mut builder).id("#modal").children([modal_container]).build();
+    fa_modal(&mut builder).id("#modal").clear_bg().children([modal_container]).build();
 }
 
 fn handle_btn_press(
