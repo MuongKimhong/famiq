@@ -130,7 +130,7 @@ impl<'a> FaModal {
         let background = Self::_build_modal_background(id, class, clear_bg, root_node, container);
 
         utils::entity_add_child(root_node, container, background);
-        container
+        background
     }
 
     pub fn hide_or_display_modal_system(

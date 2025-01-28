@@ -1,8 +1,9 @@
 use super::color::WHITE_COLOR;
 use crate::widgets::{
-    DefaultTextEntity, FamiqWidgetId, FamiqWidgetClasses,
+    DefaultTextEntity, FamiqWidgetId, FamiqWidgetClasses, DefaultWidgetEntity,
     FamiqWidgetBuilder, WidgetStyle, ExternalStyleHasChanged
 };
+use crate::utils::entity_add_child;
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 
@@ -10,18 +11,33 @@ use bevy::prelude::*;
 #[derive(Component)]
 pub struct IsFamiqText;
 
+/// Marker component for identifying Famiq text container.
+#[derive(Component)]
+pub struct IsFamiqTextContainer;
+
 /// Represents a Famiq text widget for displaying styled text.
 pub struct FaText;
 
+fn _default_text_container_node() -> Node {
+    Node {
+        width: Val::Auto,
+        height: Val::Auto,
+        justify_content: JustifyContent::Center,
+        align_items: AlignItems::Center,
+        border: UiRect::all(Val::Px(1.0)),
+        ..default()
+    }
+}
+
 impl<'a> FaText {
-    pub fn new(
-        id: Option<String>,
-        value: &str,
-        class: Option<String>,
+    fn _build_text(
+        id: &Option<String>,
+        class: &Option<String>,
+        text: &str,
         root_node: &'a mut EntityCommands,
         font_handle: Handle<Font>
     ) -> Entity {
-        let txt = Text::new(value);
+        let txt = Text::new(text);
         let txt_font = TextFont {
             font: font_handle,
             ..default()
@@ -45,12 +61,70 @@ impl<'a> FaText {
             .id();
 
         if let Some(id) = id {
-            root_node.commands().entity(entity).insert(FamiqWidgetId(id));
+            root_node.commands().entity(entity).insert(FamiqWidgetId(id.to_owned()));
         }
         if let Some(class) = class {
-            root_node.commands().entity(entity).insert(FamiqWidgetClasses(class));
+            root_node.commands().entity(entity).insert(FamiqWidgetClasses(class.to_owned()));
         }
         entity
+    }
+
+    fn _build_container(
+        id: Option<String>,
+        class: Option<String>,
+        root_node: &'a mut EntityCommands
+    ) -> Entity {
+        let node = _default_text_container_node();
+        let border_color = BorderColor::default();
+        let bg_color = BackgroundColor::default();
+        let z_index = ZIndex::default();
+        let visibility = Visibility::Inherited;
+        let border_radius = BorderRadius::default();
+
+        let container_entity = root_node
+            .commands()
+            .spawn((
+                node.clone(),
+                border_color.clone(),
+                bg_color.clone(),
+                border_radius.clone(),
+                z_index.clone(),
+                visibility.clone(),
+                IsFamiqTextContainer,
+                DefaultWidgetEntity::new(
+                    node,
+                    border_color,
+                    border_radius,
+                    bg_color,
+                    z_index,
+                    visibility,
+                ),
+                Interaction::default(),
+                WidgetStyle::default(),
+                ExternalStyleHasChanged(false)
+            ))
+            .id();
+
+        if let Some(id) = id {
+            root_node.commands().entity(container_entity).insert(FamiqWidgetId(id));
+        }
+        if let Some(class) = class {
+            root_node.commands().entity(container_entity).insert(FamiqWidgetClasses(class));
+        }
+        container_entity
+    }
+
+    pub fn new(
+        id: Option<String>,
+        text: &str,
+        class: Option<String>,
+        root_node: &'a mut EntityCommands,
+        font_handle: Handle<Font>
+    ) -> Entity {
+        let txt_entity = Self::_build_text(&id, &class, text, root_node, font_handle);
+        let container = Self::_build_container(id, class, root_node);
+        entity_add_child(root_node, txt_entity, container);
+        container
     }
 }
 
