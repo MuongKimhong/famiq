@@ -8,6 +8,8 @@ use crate::widgets::{
 };
 use bevy::prelude::*;
 
+use super::DefaultTextSpanEntity;
+
 type WidgetStyleQuery<'a, 'w, 's> = Query<
     'w,
     's,
@@ -57,7 +59,7 @@ pub fn detect_external_style_changes(
             let classes_split: Vec<&str> = classes.0.split_whitespace().collect();
             for class_name in classes_split {
                 if let Some(external_style) = styles.get_style_by_class_name(class_name) {
-                    has_changed.0 = widget_style.update_from(external_style);
+                    has_changed.0 = widget_style.merge_external(external_style);
                 }
             }
         }
@@ -83,7 +85,7 @@ pub fn inject_external_style(
             let classes_split: Vec<&str> = classes.0.split_whitespace().collect();
             for class_name in classes_split {
                 if let Some(external_style) = styles.get_style_by_class_name(class_name) {
-                    widget_style.from_external(external_style);
+                    widget_style.merge_external(external_style);
                 }
             }
         }
@@ -146,7 +148,8 @@ pub fn apply_widgets_styles_system(
 
 pub fn apply_text_styles_from_external_json(
     local_style: &WidgetStyle,
-    default_text_entity: &DefaultTextEntity,
+    default_text_entity: Option<&DefaultTextEntity>,
+    default_text_span_entity: Option<&DefaultTextSpanEntity>,
     text_font: &mut TextFont,
     text_color: &mut TextColor,
 ) {
@@ -155,7 +158,12 @@ pub fn apply_text_styles_from_external_json(
             text_font.font_size = parsed_value;
         }
     } else {
-        text_font.font_size = default_text_entity.text_font.font_size.clone();
+        if let Some(default_text) = default_text_entity {
+            text_font.font_size = default_text.text_font.font_size.clone();
+        }
+        else if let Some(default_text_span) = default_text_span_entity {
+            text_font.font_size = default_text_span.text_font.font_size.clone();
+        }
     }
 
     if let Some(color) = &local_style.color {
@@ -163,7 +171,12 @@ pub fn apply_text_styles_from_external_json(
             text_color.0 = v;
         }
     } else {
-        text_color.0 = default_text_entity.text_color.0.clone();
+        if let Some(default_text) = default_text_entity {
+            text_color.0 = default_text.text_color.0.clone();
+        }
+        else if let Some(default_text_span) = default_text_span_entity {
+            text_color.0 = default_text_span.text_color.0.clone();
+        }
     }
 }
 
@@ -433,7 +446,8 @@ pub fn apply_text_style_system(
         Option<&FamiqWidgetClasses>,
         &WidgetStyle,
         &ExternalStyleHasChanged,
-        &DefaultTextEntity
+        Option<&DefaultTextEntity>,
+        Option<&DefaultTextSpanEntity>
     )>,
 ) {
     for (
@@ -443,30 +457,17 @@ pub fn apply_text_style_system(
         widget_classes,
         local_widget_style,
         has_external_changed,
-        default_text_entity
+        default_text_entity,
+        default_text_span_entity
     )
     in text_q.iter_mut() {
 
         if builder_res.hot_reload_styles {
             if has_external_changed.0 && (widget_id.is_some() || widget_classes.is_some()) {
-                // if let Some(font_size) = &local_widget_style.font_size {
-                //     if let Ok(parsed_value) = font_size.trim().parse::<f32>() {
-                //         text_font.font_size = parsed_value;
-                //     }
-                // } else {
-                //     text_font.font_size = default_text_entity.text_font.font_size.clone();
-                // }
-
-                // if let Some(color) = &local_widget_style.color {
-                //     if let Some(v) = parse_color(color) {
-                //         text_color.0 = v;
-                //     }
-                // } else {
-                //     text_color.0 = default_text_entity.text_color.0.clone();
-                // }
                 apply_text_styles_from_external_json(
                     local_widget_style,
                     default_text_entity,
+                    default_text_span_entity,
                     &mut text_font,
                     &mut text_color
                 );
@@ -478,6 +479,7 @@ pub fn apply_text_style_system(
                 apply_text_styles_from_external_json(
                     local_widget_style,
                     default_text_entity,
+                    default_text_span_entity,
                     &mut text_font,
                     &mut text_color
                 );

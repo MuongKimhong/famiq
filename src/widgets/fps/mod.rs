@@ -3,8 +3,8 @@ pub mod tests;
 
 use crate::utils::entity_add_child;
 use crate::widgets::{
-    DefaultTextEntity, DefaultWidgetEntity,
-    FamiqWidgetId, FamiqWidgetBuilder, FamiqWidgetResource,
+    DefaultTextEntity, DefaultWidgetEntity, DefaultTextSpanEntity,
+    FamiqWidgetId, FamiqWidgetBuilder, FamiqWidgetClasses,
     WidgetStyle, ExternalStyleHasChanged
 };
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
@@ -41,7 +41,12 @@ pub struct FaFpsText;
 
 // Doesn't need container
 impl<'a> FaFpsText {
-    fn _build_container(id: &Option<String>, right_side: bool, root_node: &'a mut EntityCommands) -> Entity {
+    fn _build_container(
+        id: Option<String>,
+        class: Option<String>,
+        right_side: bool,
+        root_node: &'a mut EntityCommands
+    ) -> Entity {
         let mut node = default_fps_text_container_node();
         let border_color = BorderColor::default();
         let border_radius = BorderRadius::default();
@@ -80,14 +85,18 @@ impl<'a> FaFpsText {
             .id();
 
         if let Some(id) = id {
-            root_node.commands().entity(entity).insert(FamiqWidgetId(format!("{id}_fps_text_container")));
+            root_node.commands().entity(entity).insert(FamiqWidgetId(id));
+        }
+        if let Some(class) = class {
+            root_node.commands().entity(entity).insert(FamiqWidgetClasses(class));
         }
         root_node.add_child(entity);
         entity
     }
 
     fn _build_text(
-        id: Option<String>,
+        id: &Option<String>,
+        class: &Option<String>,
         root_node: &'a mut EntityCommands,
         font_handle: Handle<Font>,
         change_color: bool
@@ -119,23 +128,38 @@ impl<'a> FaFpsText {
                     label_txt_layout,
                 ),
                 IsFamiqFPSTextLabel,
+                Visibility::Inherited,
+                WidgetStyle::default(),
+                ExternalStyleHasChanged(false)
             ))
             .id();
-
-        if let Some(id) = id {
-            root_node.commands().entity(label_txt_entity).insert(FamiqWidgetId(id));
-        }
 
         let count_txt_entity = root_node
             .commands()
             .spawn((
-                count_txt,
-                count_txt_font,
-                count_txt_color,
+                count_txt.clone(),
+                count_txt_font.clone(),
+                count_txt_color.clone(),
                 IsFamiqFPSTextCount,
-                CanChangeColor(change_color)
+                CanChangeColor(change_color),
+                WidgetStyle::default(),
+                ExternalStyleHasChanged(false),
+                DefaultTextSpanEntity::new(
+                    count_txt,
+                    count_txt_font,
+                    count_txt_color,
+                )
             ))
             .id();
+
+        if let Some(id) = id {
+            root_node.commands().entity(label_txt_entity).insert(FamiqWidgetId(id.to_owned()));
+            root_node.commands().entity(count_txt_entity).insert(FamiqWidgetId(id.to_owned()));
+        }
+        if let Some(class) = class {
+            root_node.commands().entity(label_txt_entity).insert(FamiqWidgetClasses(class.to_owned()));
+            root_node.commands().entity(count_txt_entity).insert(FamiqWidgetClasses(class.to_owned()));
+        }
 
         entity_add_child(root_node, count_txt_entity, label_txt_entity);
         label_txt_entity
@@ -143,13 +167,14 @@ impl<'a> FaFpsText {
 
     pub fn new(
         id: Option<String>,
+        class: Option<String>,
         root_node: &'a mut EntityCommands,
         font_handle: Handle<Font>,
         change_color: bool,
         right_side: bool,
     ) -> Entity {
-        let container_entity = Self::_build_container(&id, right_side, root_node);
-        let text_entity = Self::_build_text(id, root_node, font_handle, change_color);
+        let text_entity = Self::_build_text(&id, &class, root_node, font_handle, change_color);
+        let container_entity = Self::_build_container(id, class, right_side, root_node);
 
         entity_add_child(root_node, text_entity, container_entity);
         text_entity
@@ -192,6 +217,7 @@ impl<'a> FaFpsText {
 /// Builder for creating an FPS text widget.
 pub struct FaFpsTextBuilder<'a> {
     pub id: Option<String>,
+    pub class: Option<String>,
     pub change_color: Option<bool>,
     pub right_side: Option<bool>,
     pub font_handle: Handle<Font>,
@@ -202,6 +228,7 @@ impl<'a> FaFpsTextBuilder<'a> {
     pub fn new(font_handle: Handle<Font>, root_node: EntityCommands<'a>) -> Self {
         Self {
             id: None,
+            class: None,
             root_node,
             font_handle,
             change_color: Some(false),
@@ -221,6 +248,11 @@ impl<'a> FaFpsTextBuilder<'a> {
         self
     }
 
+    pub fn class(mut self, class: &str) -> Self {
+        self.class = Some(class.to_string());
+        self
+    }
+
     /// Aligns the FPS widget to the right top corner of the screen.
     pub fn right_side(mut self) -> Self {
         self.right_side = Some(true);
@@ -231,6 +263,7 @@ impl<'a> FaFpsTextBuilder<'a> {
     pub fn build(&mut self) -> Entity {
         FaFpsText::new(
             self.id.clone(),
+            self.class.clone(),
             &mut self.root_node,
             self.font_handle.clone(),
             self.change_color.unwrap(),

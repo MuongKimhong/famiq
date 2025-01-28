@@ -128,6 +128,27 @@ impl DefaultTextEntity {
 }
 
 #[derive(Component)]
+pub struct DefaultTextSpanEntity {
+    pub text: TextSpan,
+    pub text_font: TextFont,
+    pub text_color: TextColor,
+}
+
+impl DefaultTextSpanEntity {
+    pub fn new(
+        text: TextSpan,
+        text_font: TextFont,
+        text_color: TextColor
+    ) -> Self {
+        Self {
+            text,
+            text_font,
+            text_color,
+        }
+    }
+}
+
+#[derive(Component)]
 pub struct ExternalStyleHasChanged(pub bool);
 
 #[derive(Resource)]
@@ -246,7 +267,26 @@ impl WidgetStyle {
         *self = external.clone();
     }
 
-    // update only fields with different value betwen self & external
+    // merge external into self and only overwrite fields that are `null` in `self`
+    pub fn merge_external(&mut self, external: &WidgetStyle) -> bool {
+        let mut has_changed = false;
+
+        let mut self_map = serde_json::to_value(&mut *self).unwrap();
+        let external_map = serde_json::to_value(external).unwrap();
+
+        let merged_map = self_map.as_object_mut().unwrap();
+        for (key, value) in external_map.as_object().unwrap() {
+            if merged_map.get(key).unwrap().is_null() && !external_map.get(key).unwrap().is_null() {
+                merged_map.insert(key.clone(), value.clone());
+                has_changed = true;
+            }
+        }
+
+        *self = serde_json::from_value(serde_json::Value::Object(merged_map.clone())).unwrap();
+        has_changed
+    }
+
+    // override fields self that are different from external fields
     pub fn update_from(&mut self, external: &WidgetStyle) -> bool {
         let mut has_changed = false;
 

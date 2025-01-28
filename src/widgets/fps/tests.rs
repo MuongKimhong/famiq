@@ -2,6 +2,7 @@
 
 use crate::plugin::FamiqPlugin;
 use crate::utils::create_test_app;
+use crate::widgets::FamiqWidgetResource;
 use super::*;
 
 fn setup_test_default_fps(
@@ -12,6 +13,7 @@ fn setup_test_default_fps(
     let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
     fa_fps(&mut builder)
         .id("#test-fps")
+        .class("test-class")
         .build();
 }
 
@@ -45,11 +47,15 @@ fn test_create_default_fps() {
     app.add_systems(Startup, setup_test_default_fps);
     app.update();
 
-    let fps_q = app.world_mut().query::<(&FamiqWidgetId, &IsFamiqFPSTextLabel)>().get_single(app.world());
-    assert!(fps_q.is_ok(), "There should be only 1 fps widget");
+    let fps_q = app.world_mut()
+        .query::<(&FamiqWidgetId, &FamiqWidgetClasses, &IsFamiqFPSTextContainer)>()
+        .get_single(app.world());
 
-    let fps_id = fps_q.unwrap().0;
+    let fps_id = fps_q.as_ref().unwrap().0;
     assert_eq!("#test-fps".to_string(), fps_id.0);
+
+    let fps_class = fps_q.unwrap().1;
+    assert_eq!("test-class".to_string(), fps_class.0);
 }
 
 #[test]
