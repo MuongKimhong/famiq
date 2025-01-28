@@ -599,8 +599,6 @@ pub fn fa_text_input<'a>(
     placeholder: &str
 ) -> FaTextInputBuilder<'a> {
     let font_handle = builder.asset_server.load(builder.font_path.as_ref().unwrap());
-    builder.resource.can_run_systems.text_input = true;
-
     FaTextInputBuilder::new(
         placeholder.to_string(),
         font_handle,
@@ -611,8 +609,8 @@ pub fn fa_text_input<'a>(
 /// Determines if text_input internal system(s) can run.
 ///
 /// True only if there is a text_input widget created.
-pub fn can_run_text_input_systems(builder_res: Res<FamiqWidgetResource>) -> bool {
-    builder_res.can_run_systems.text_input
+pub fn can_run_text_input_systems(input_q: Query<&IsFamiqTextInput>) -> bool {
+    input_q.iter().count() > 0
 }
 
 #[cfg(test)]

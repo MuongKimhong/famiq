@@ -242,18 +242,15 @@ impl<'a> FaFpsTextBuilder<'a> {
 /// API to create an `FaFpsTextBuilder`.
 pub fn fa_fps<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaFpsTextBuilder<'a> {
     let font_handle = builder.asset_server.load(builder.font_path.as_ref().unwrap());
-    builder.resource.can_run_systems.fps = true;
-
     FaFpsTextBuilder::new(
         font_handle,
         builder.ui_root_node.reborrow()
     )
 }
 
-
-/// Determines if FPS internal system(s) can run.
+/// a system to check if FPS internal system(s) can run.
 ///
 /// True only if fps widget is created.
-pub fn can_run_fps_systems(builder_res: Res<FamiqWidgetResource>) -> bool {
-    builder_res.can_run_systems.fps
+pub fn can_run_fps_systems(fps_q: Query<&IsFamiqFPSTextContainer>) -> bool {
+    fps_q.iter().count() > 0
 }
