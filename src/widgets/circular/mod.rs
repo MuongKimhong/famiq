@@ -70,7 +70,7 @@ impl<'a> FaCircular {
                 RotatingSequence {
                     speed: 300.0,
                     timer: Timer::from_seconds(1.0, TimerMode::Repeating), // every 1 secs
-                    speed_sequence: vec![300.0, 5000.0, 300.0], // Sequence of speeds
+                    speed_sequence: vec![300.0, 500.0, 300.0], // Sequence of speeds
                     current_index: 0,
                 }
             ))

@@ -15,6 +15,16 @@ pub struct IsFamiqText;
 #[derive(Component)]
 pub struct IsFamiqTextContainer;
 
+pub enum TextSize {
+    Default,
+    TitleH1,
+    TitleH2,
+    TitleH3,
+    TitleH4,
+    TitleH5,
+    TitleH6,
+}
+
 /// Represents a Famiq text widget for displaying styled text.
 pub struct FaText;
 
@@ -35,13 +45,24 @@ impl<'a> FaText {
         class: &Option<String>,
         text: &str,
         root_node: &'a mut EntityCommands,
-        font_handle: Handle<Font>
+        font_handle: Handle<Font>,
+        size: TextSize
     ) -> Entity {
         let txt = Text::new(text);
-        let txt_font = TextFont {
+        let mut txt_font = TextFont {
             font: font_handle,
             ..default()
         };
+        match size {
+            TextSize::TitleH1 => txt_font.font_size = 40.0,
+            TextSize::TitleH2 => txt_font.font_size = 32.0,
+            TextSize::TitleH3 => txt_font.font_size = 28.0,
+            TextSize::TitleH4 => txt_font.font_size = 24.0,
+            TextSize::TitleH5 => txt_font.font_size = 20.0,
+            TextSize::TitleH6 => txt_font.font_size = 16.0,
+            _ => {}
+        }
+
         let txt_color = TextColor(WHITE_COLOR);
         let txt_layout = TextLayout::new_with_justify(JustifyText::Center);
 
@@ -72,7 +93,7 @@ impl<'a> FaText {
     fn _build_container(
         id: Option<String>,
         class: Option<String>,
-        root_node: &'a mut EntityCommands
+        root_node: &'a mut EntityCommands,
     ) -> Entity {
         let mut node = _default_text_container_node();
         process_spacing_built_in_class(&mut node, &class);
@@ -121,9 +142,10 @@ impl<'a> FaText {
         text: &str,
         class: Option<String>,
         root_node: &'a mut EntityCommands,
-        font_handle: Handle<Font>
+        font_handle: Handle<Font>,
+        size: TextSize
     ) -> Entity {
-        let txt_entity = Self::_build_text(&id, &class, text, root_node, font_handle);
+        let txt_entity = Self::_build_text(&id, &class, text, root_node, font_handle, size);
         let container = Self::_build_container(id, class, root_node);
         entity_add_child(root_node, txt_entity, container);
         container
@@ -150,6 +172,26 @@ impl<'a> FaTextBuilder<'a> {
         }
     }
 
+    fn _process_built_in_size_class(&self) -> TextSize {
+        let mut use_size = TextSize::Default;
+
+        if let Some(class) = self.class.as_ref() {
+            let class_split: Vec<&str> = class.split_whitespace().collect();
+
+            for class_name in class_split {
+                match class_name {
+                    "h1" => use_size = TextSize::TitleH1,
+                    "h2" => use_size = TextSize::TitleH2,
+                    "h3" => use_size = TextSize::TitleH3,
+                    "h4" => use_size = TextSize::TitleH4,
+                    "h5" => use_size = TextSize::TitleH5,
+                    _ => {}
+                }
+            }
+        }
+        use_size
+    }
+
     /// Method to add class to text.
     pub fn class(mut self, class: &str) -> Self {
         self.class = Some(class.to_string());
@@ -164,12 +206,14 @@ impl<'a> FaTextBuilder<'a> {
 
     /// Spawn text into UI World.
     pub fn build(&mut self) -> Entity {
+        let size = self._process_built_in_size_class();
         FaText::new(
             self.id.clone(),
             self.value.as_str(),
             self.class.clone(),
             &mut self.root_node,
             self.font_handle.clone(),
+            size
         )
     }
 }
