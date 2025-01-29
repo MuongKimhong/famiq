@@ -63,6 +63,7 @@ impl<'a> FaButton {
     /// - The `Entity` of the created text component.
     fn _build_text(
         id: &Option<String>,
+        class: &Option<String>,
         text: &str,
         root_node: &'a mut EntityCommands,
         font_handle: Handle<Font>,
@@ -86,12 +87,17 @@ impl<'a> FaButton {
                 txt_color.clone(),
                 txt_layout.clone(),
                 DefaultTextEntity::new(txt, txt_font, txt_color, txt_layout),
-                IsFamiqButtonText
+                IsFamiqButtonText,
+                WidgetStyle::default(),
+                ExternalStyleHasChanged(false)
             ))
             .id();
 
         if let Some(id) = id {
-            root_node.commands().entity(entity).insert(FamiqWidgetId(format!("{id}_btn_text")));
+            root_node.commands().entity(entity).insert(FamiqWidgetId(id.to_owned()));
+        }
+        if let Some(class) = class {
+            root_node.commands().entity(entity).insert(FamiqWidgetClasses(class.to_owned()));
         }
         entity
     }
@@ -120,7 +126,7 @@ impl<'a> FaButton {
         size: BtnSize,
         shape: BtnShape
     ) -> Entity {
-        let txt_entity = Self::_build_text(&id, text, root_node, font_handle, &color, &size);
+        let txt_entity = Self::_build_text(&id, &class, text, root_node, font_handle, &color, &size);
 
         let node = default_button_node();
         let border_color = get_button_border_color(&color);
