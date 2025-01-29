@@ -148,3 +148,46 @@ pub fn create_test_app() -> App {
     app.world_mut().spawn(Window::default());
     app
 }
+
+pub fn process_spacing_built_in_class(node: &mut Node, class: &Option<String>) {
+    if let Some(class) = class {
+        for class_name in class.split_whitespace() {
+            if let Some((prefix, value)) = class_name.split_once('-') {
+                if let Ok(num) = value.parse::<f32>() {
+                    let px_value = Val::Px(num * 5.0);
+
+                    match prefix {
+                        // Margin classes
+                        "mt" => node.margin.top = px_value,
+                        "mb" => node.margin.bottom = px_value,
+                        "ml" => node.margin.left = px_value,
+                        "mr" => node.margin.right = px_value,
+                        "my" => {
+                            node.margin.top = px_value;
+                            node.margin.bottom = px_value;
+                        }
+                        "mx" => {
+                            node.margin.left = px_value;
+                            node.margin.right = px_value;
+                        }
+
+                        // Padding classes
+                        "pt" => node.padding.top = px_value,
+                        "pb" => node.padding.bottom = px_value,
+                        "pl" => node.padding.left = px_value,
+                        "pr" => node.padding.right = px_value,
+                        "py" => {
+                            node.padding.top = px_value;
+                            node.padding.bottom = px_value;
+                        }
+                        "px" => {
+                            node.padding.left = px_value;
+                            node.padding.right = px_value;
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+    }
+}

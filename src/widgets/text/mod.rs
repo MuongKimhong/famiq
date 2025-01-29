@@ -3,7 +3,7 @@ use crate::widgets::{
     DefaultTextEntity, FamiqWidgetId, FamiqWidgetClasses, DefaultWidgetEntity,
     FamiqWidgetBuilder, WidgetStyle, ExternalStyleHasChanged
 };
-use crate::utils::entity_add_child;
+use crate::utils::{entity_add_child, process_spacing_built_in_class};
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 
@@ -74,7 +74,9 @@ impl<'a> FaText {
         class: Option<String>,
         root_node: &'a mut EntityCommands
     ) -> Entity {
-        let node = _default_text_container_node();
+        let mut node = _default_text_container_node();
+        process_spacing_built_in_class(&mut node, &class);
+
         let border_color = BorderColor::default();
         let bg_color = BackgroundColor::default();
         let z_index = ZIndex::default();

@@ -1,7 +1,7 @@
 pub mod helper;
 
 use helper::*;
-use crate::utils;
+use crate::utils::{self, process_spacing_built_in_class};
 use crate::widgets::color::WHITE_COLOR;
 use crate::widgets::{
     DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId,
@@ -198,6 +198,8 @@ impl<'a> FaTextInput {
         cursor_entity: Entity
     ) -> Entity {
         let mut node = default_input_node();
+        process_spacing_built_in_class(&mut node, &class);
+
         let border_color = get_input_border_color(&color);
         let bg_color = get_input_background_color(&color);
         let z_index = ZIndex::default();

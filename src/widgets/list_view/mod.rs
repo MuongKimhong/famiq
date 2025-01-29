@@ -101,7 +101,9 @@ impl<'a> FaListView {
         root_node: &'a mut EntityCommands,
         panel_entity: Entity,
     ) -> Entity {
-        let node = default_listview_node();
+        let mut node = default_listview_node();
+        utils::process_spacing_built_in_class(&mut node, &class);
+
         let bg_color = BackgroundColor::default();
         let border_color = BorderColor::default();
         let border_radius = BorderRadius::default();

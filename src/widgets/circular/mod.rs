@@ -8,7 +8,12 @@ use crate::widgets::{
     DefaultWidgetEntity, FamiqWidgetBuilder, WidgetStyle,
     ExternalStyleHasChanged
 };
-use crate::utils::{entity_add_child, lighten_color, darken_color};
+use crate::utils::{
+    entity_add_child,
+    lighten_color,
+    darken_color,
+    process_spacing_built_in_class
+};
 
 pub use components::*;
 use helper::*;
@@ -63,9 +68,9 @@ impl<'a> FaCircular {
                 visibility,
                 IsFamiqCircularSpinner,
                 RotatingSequence {
-                    speed: 250.0,
+                    speed: 300.0,
                     timer: Timer::from_seconds(1.0, TimerMode::Repeating), // every 1 secs
-                    speed_sequence: vec![250.0, 450.0, 250.0], // Sequence of speeds
+                    speed_sequence: vec![300.0, 5000.0, 300.0], // Sequence of speeds
                     current_index: 0,
                 }
             ))
@@ -82,7 +87,9 @@ impl<'a> FaCircular {
         size: &CircularSize,
         spinner_entity: Entity
     ) -> Entity {
-        let node = default_outer_circle_node(size);
+        let mut node = default_outer_circle_node(size);
+        process_spacing_built_in_class(&mut node, &class);
+
         let border_radius = BorderRadius::all(Val::Percent(50.0));
         let bg_color = BackgroundColor(Color::NONE);
         let z_index = ZIndex::default();

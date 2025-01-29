@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use crate::utils::process_spacing_built_in_class;
 use crate::widgets::{
     DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetClasses,
     FamiqWidgetBuilder, WidgetStyle, ExternalStyleHasChanged
@@ -21,6 +22,8 @@ impl<'a> FaImage {
         image_handle: Handle<Image>
     ) -> Entity {
         let mut node = Node::default();
+        process_spacing_built_in_class(&mut node, &class);
+
         let bg_color = BackgroundColor::default();
         let border_color = BorderColor::default();
         let border_radius = BorderRadius::default();

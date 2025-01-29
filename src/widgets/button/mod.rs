@@ -128,7 +128,9 @@ impl<'a> FaButton {
     ) -> Entity {
         let txt_entity = Self::_build_text(&id, &class, text, root_node, font_handle, &color, &size);
 
-        let node = default_button_node();
+        let mut node = default_button_node();
+        utils::process_spacing_built_in_class(&mut node, &class);
+
         let border_color = get_button_border_color(&color);
         let bg_color = get_button_background_color(&color);
         let z_index = ZIndex::default();

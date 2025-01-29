@@ -1,7 +1,7 @@
 pub mod helper;
 pub mod tests;
 
-use crate::utils::entity_add_child;
+use crate::utils::{entity_add_child, process_spacing_built_in_class};
 use crate::widgets::{
     DefaultTextEntity, DefaultWidgetEntity, DefaultTextSpanEntity,
     FamiqWidgetId, FamiqWidgetBuilder, FamiqWidgetClasses,
@@ -48,6 +48,8 @@ impl<'a> FaFpsText {
         root_node: &'a mut EntityCommands
     ) -> Entity {
         let mut node = default_fps_text_container_node();
+        process_spacing_built_in_class(&mut node, &class);
+
         let border_color = BorderColor::default();
         let border_radius = BorderRadius::default();
         let bg_color = BackgroundColor::default();
