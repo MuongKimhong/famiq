@@ -127,7 +127,10 @@ fn fa_circular_systems(app: &mut App) {
 fn fa_modal_systems(app: &mut App) {
     app.add_systems(
         Update,
-        FaModal::hide_or_display_modal_system.run_if(can_run_modal_systems)
+        (
+            FaModal::hide_or_display_modal_system
+        )
+        .run_if(can_run_modal_systems)
     );
 }
 
@@ -158,6 +161,7 @@ impl Plugin for FamiqPlugin {
             timer: Timer::from_seconds(0.5, TimerMode::Repeating),
             is_transparent: false
         });
+        app.insert_resource(FaModalState::default());
         app.insert_resource(FamiqWidgetResource::default());
 
         app.add_event::<event_writer::FaInteractionEvent>();
