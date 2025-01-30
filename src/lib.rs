@@ -26,7 +26,7 @@ pub mod prelude {
     pub use crate::widgets::selection::{IsFamiqSelectionSelector, SelectedChoicesResource};
     pub use crate::widgets::container::IsFamiqContainer;
     pub use crate::widgets::fps::IsFamiqFPSTextCount;
-    pub use crate::widgets::text::IsFamiqText;
+    pub use crate::widgets::text::{IsFamiqText, FaTextResource};
     pub use crate::widgets::list_view::IsFamiqListView;
     pub use crate::event_writer::FaInteractionEvent;
 }

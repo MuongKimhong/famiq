@@ -6,6 +6,8 @@ use crate::widgets::{
 use crate::utils::{entity_add_child, process_spacing_built_in_class};
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
+use bevy::utils::HashMap;
+use bevy::utils::hashbrown::HashSet;
 
 /// Marker component for identifying Famiq text widgets.
 #[derive(Component)]
@@ -23,6 +25,25 @@ pub enum TextSize {
     TitleH4,
     TitleH5,
     TitleH6,
+}
+
+/// Resource use to store & update fa_text's value
+#[derive(Resource, Default, Debug)]
+pub struct FaTextResource {
+    pub text_value: HashMap<String, String>,
+    pub changed_texts: HashSet<String>, // Tracks which text IDs changed
+}
+
+impl FaTextResource {
+    pub fn update_value(&mut self, id: &str, new_value: &str) {
+        if let Some(existing) = self.text_value.get(id) {
+            if existing == new_value {
+                return;
+            }
+        }
+        self.text_value.insert(id.to_string(), new_value.to_string());
+        self.changed_texts.insert(id.to_string()); // Mark as changed
+    }
 }
 
 /// Represents a Famiq text widget for displaying styled text.
@@ -149,6 +170,22 @@ impl<'a> FaText {
         let container = Self::_build_container(id, class, root_node);
         entity_add_child(root_node, txt_entity, container);
         container
+    }
+
+    pub fn update_text_value_system(
+        mut text_q: Query<(&mut Text, &FamiqWidgetId), With<IsFamiqText>>,
+        mut text_res: ResMut<FaTextResource>
+    ) {
+        if text_res.is_changed() {
+            for (mut text, id) in text_q.iter_mut() {
+                if text_res.changed_texts.contains(&id.0) {
+                    if let Some(value) = text_res.text_value.get(&id.0) {
+                        text.0 = value.clone();
+                    }
+                }
+            }
+            text_res.changed_texts.clear(); // clear changed list after updates
+        }
     }
 }
 

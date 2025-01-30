@@ -7,6 +7,7 @@ use crate::widgets::{
     button::*,
     circular::*,
     modal::*,
+    text::*,
     *
 };
 
@@ -84,7 +85,13 @@ fn fa_button_systems(app: &mut App) {
 }
 
 fn fa_text_systems(app: &mut App) {
-    app.add_systems(Update, event_writer::text_interaction_system);
+    app.add_systems(
+        Update,
+        (
+            event_writer::text_interaction_system,
+            FaText::update_text_value_system
+        )
+    );
 }
 
 fn fa_listview_systems(app: &mut App) {
@@ -162,6 +169,7 @@ impl Plugin for FamiqPlugin {
             is_transparent: false
         });
         app.insert_resource(FaModalState::default());
+        app.insert_resource(FaTextResource::default());
         app.insert_resource(FamiqWidgetResource::default());
 
         app.add_event::<event_writer::FaInteractionEvent>();
