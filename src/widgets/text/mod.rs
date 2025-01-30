@@ -299,4 +299,33 @@ mod tests {
         assert_eq!("#test-text".to_string(), id.0);
         assert_eq!("Test Text".to_string(), txt.0);
     }
+
+    #[test]
+    fn test_update_text_value() {
+        let mut app = create_test_app();
+        app.add_plugins(FamiqPlugin);
+        app.insert_resource(FamiqWidgetResource::default());
+        app.insert_resource(FaTextResource::default());
+        app.add_systems(Startup, setup_test_default_text);
+        app.add_systems(Update, FaText::update_text_value_system); // internal system that handle updating the text
+        app.update();
+
+        let mut text_res = app.world_mut().resource_mut::<FaTextResource>();
+
+        text_res.update_value("#test-text", "New test text Hello World");
+
+        app.update(); // update again so update_text_value_system run again
+
+        let txt_q = app.world_mut()
+            .query::<(&FamiqWidgetId, &Text, &IsFamiqText)>()
+            .get_single(app.world());
+
+        let id = txt_q.as_ref().unwrap().0;
+        let txt = txt_q.as_ref().unwrap().1;
+
+        assert_eq!("#test-text".to_string(), id.0);
+
+        // original text is "Test Text"
+        assert_eq!("New test text Hello World".to_string(), txt.0);
+    }
 }
