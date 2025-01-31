@@ -51,6 +51,11 @@ impl FaInteractionEvent {
             ));
         }
     }
+
+    /// Check if emitted event is a button pressed event.
+    pub fn is_button_pressed(&self) -> bool {
+        self.widget == WidgetType::Button && self.interaction == Interaction::Pressed
+    }
 }
 
 pub fn btn_interaction_system(
