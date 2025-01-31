@@ -342,20 +342,61 @@ impl<'a> FamiqWidgetBuilder<'a> {
         }
     }
 
+    /// Method to use custom font
+    ///
+    /// # Arguments
+    ///
+    /// * `font_path` - A path to the font, relative to Bevy's `assets/` folder.
+    ///
+    /// # Examples
+    ///
+    /// ## Normal Project Structure
+    ///
+    /// ```text
+    /// my_project/
+    /// ├── assets/
+    /// │   ├── fonts/
+    /// │   │   ├── Some-font.ttf
+    /// ├── src/
+    /// ```
+    ///
+    /// ```rust
+    /// builder.use_font_path("fonts/Some-font.ttf");
+    /// ```
+    ///
+    /// ## Multi-Crate / Workspace Structure
+    ///
+    /// In a multi-crate workspace, the custom font path is read from the subcrate/member's `assets/` folder:
+    ///
+    /// ```text
+    /// my_project/
+    /// ├── sub_crate_1/
+    /// │   ├── assets/
+    /// │   │   ├── fonts/
+    /// │   │   │   ├── Some-font.ttf
+    /// │   ├── src/
+    /// ├── sub_crate_2/
+    /// │   ├── assets/
+    /// │   ├── src/
+    /// ```
+    ///
+    /// ```rust
+    /// // Inside subcrate 1
+    /// builder.use_font_path("fonts/Some-font.ttf");
+    /// ```
     pub fn use_font_path(mut self, font_path: &str) -> Self {
         self.font_path = Some(font_path.to_string());
         self.resource.font_path = font_path.to_string();
         self
     }
 
+    /// Method to use custom style file path.
+    ///
+    /// # Argument
+    /// * style_path: Full path to the json file, relative to root directory.
     pub fn use_style_path(mut self, style_path: &str) -> Self {
-        let final_path = if style_path.starts_with("assets/") {
-            style_path.to_string()
-        } else {
-            format!("assets/{}", style_path)
-        };
-        self.style_path = Some(final_path.clone());
-        self.resource.style_path = final_path;
+        self.style_path = Some(style_path.to_string());
+        self.resource.style_path = style_path.to_string();
         self
     }
 
