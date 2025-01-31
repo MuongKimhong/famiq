@@ -23,7 +23,7 @@ pub mod prelude {
     };
     pub use crate::widgets::modal::{IsFamiqModalContainer, IsFamiqModalBackground, FaModalState};
     pub use crate::widgets::text_input::{IsFamiqTextInput, FaTextInputResource};
-    pub use crate::widgets::selection::{IsFamiqSelectionSelector, SelectedChoicesResource};
+    pub use crate::widgets::selection::{IsFamiqSelectionSelector, FaSelectionResource};
     pub use crate::widgets::container::IsFamiqContainer;
     pub use crate::widgets::fps::IsFamiqFPSTextCount;
     pub use crate::widgets::text::{IsFamiqText, FaTextResource};

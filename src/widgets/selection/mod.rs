@@ -21,17 +21,26 @@ use super::color::{BLACK_COLOR, WHITE_COLOR};
 pub use styling::*;
 pub use systems::*;
 
-#[derive(Resource, Debug)]
-pub struct SelectedChoicesResource {
+#[derive(Resource, Default, Debug)]
+pub struct FaSelectionResource {
     pub choices: HashMap<String, String>, // id - choice
 }
 
-impl SelectedChoicesResource {
-    pub fn update_or_insert(&mut self, id: String, selected_choice: String) {
-        if let Some(item_value) = self.choices.get_mut(&id) {
-            *item_value = selected_choice;
+impl FaSelectionResource {
+    pub fn _update_or_insert(&mut self, id: String, selected_choice: String) {
+        self.choices.insert(id, selected_choice);
+    }
+
+    /// Get selection value by id
+    pub fn get_value(&self, id: &str) -> String {
+        if let Some(v) = self.choices.get(id) {
+            if v == "-/-" {
+                return String::from("")
+            } else {
+                v.to_owned()
+            }
         } else {
-            self.choices.insert(id, selected_choice);
+            String::from("")
         }
     }
 }
@@ -136,7 +145,7 @@ impl<'a> FaSelection {
                 txt_font.clone(),
                 txt_color.clone(),
                 txt_layout.clone(),
-                // FamiqWidgetId(format!("{id}_selection_placeholder")),
+                SelectorPlaceHolder,
                 DefaultTextEntity::new(txt, txt_font, txt_color, txt_layout),
             ))
             .id()
@@ -241,7 +250,7 @@ impl<'a> FaSelection {
             .id();
 
         if let Some(id) = id {
-            root_node.commands().entity(selector_entity).insert(FamiqWidgetId(format!("{id}_selection_selector")));
+            root_node.commands().entity(selector_entity).insert(FamiqWidgetId(id.to_owned()));
         }
         selector_entity
     }
@@ -461,6 +470,25 @@ impl<'a> FaSelection {
         if let Ok((mut visibility, mut default_widget)) = panel_q.get_mut(panel_entity) {
             *visibility = Visibility::Hidden;
             default_widget.visibility = Visibility::Hidden;
+        }
+    }
+
+    pub fn set_placeholder_color(
+        is_focused: bool,
+        text_q: &mut Query<&mut TextColor, With<SelectorPlaceHolder>>,
+        placeholder_entity: Entity,
+        selector_bg_color: &Color
+    ) {
+        if let Ok(mut text_color) = text_q.get_mut(placeholder_entity) {
+            if is_focused {
+                if *selector_bg_color == WHITE_COLOR {
+                    text_color.0 = BLACK_COLOR
+                } else {
+                    text_color.0 = PLACEHOLDER_COLOR_FOCUSED;
+                }
+            } else {
+                text_color.0 = PLACEHOLDER_COLOR_UNFOCUSED;
+            }
         }
     }
 }

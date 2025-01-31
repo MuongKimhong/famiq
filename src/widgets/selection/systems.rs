@@ -5,28 +5,7 @@ use crate::event_writer::FaInteractionEvent;
 use crate::utils;
 use super::FaSelection;
 use bevy::prelude::*;
-
-pub fn update_selector_placeholder_color_system(
-    selection_q: Query<(Entity, &BackgroundColor, &SelectorPlaceHolderEntity)>,
-    mut text_q: Query<&mut TextColor>,
-    builder_res: Res<FamiqWidgetResource>
-) {
-    for (entity, bg_color, placeholder) in selection_q.iter() {
-        if let Ok(mut text_color) = text_q.get_mut(placeholder.0) {
-            match builder_res.get_widget_focus_state(&entity) {
-                Some(true) => {
-                    if bg_color.0 == WHITE_COLOR {
-                        text_color.0 = BLACK_COLOR
-                    } else {
-                        text_color.0 = PLACEHOLDER_COLOR_FOCUSED;
-                    }
-                },
-                _ => text_color.0 = PLACEHOLDER_COLOR_UNFOCUSED
-            }
-        }
-    }
-}
-
+use std::time::Instant;
 pub fn update_choices_panel_position_and_width_system(
     selection_q: Query<
         (
@@ -48,6 +27,7 @@ pub fn update_choices_panel_position_and_width_system(
     label_q: Query<(&Node, &IsFamiqSelectionLabel), Without<IsFamiqSelectionChoicesPanel>>,
     builder_res: Res<FamiqWidgetResource>
 ) {
+    let now = Instant::now();
     for (entity, selector_node, computed_node, panel_entity, label_entity) in selection_q.iter() {
         match builder_res.get_widget_focus_state(&entity) {
             Some(true) => {
@@ -82,6 +62,8 @@ pub fn update_choices_panel_position_and_width_system(
             _ => {}
         }
     }
+    let elapsed = now.elapsed();
+    println!("Elapsed: {:.2?}", elapsed);
 }
 
 pub fn handle_selection_interaction_system(
@@ -90,15 +72,18 @@ pub fn handle_selection_interaction_system(
         (
             &mut BoxShadow,
             Option<&FamiqWidgetId>,
+            &BackgroundColor,
             &DefaultWidgetEntity,
             &SelectorArrowIconEntity,
-            &SelectionChoicesPanelEntity
+            &SelectionChoicesPanelEntity,
+            &SelectorPlaceHolderEntity
         ),
-        (With<Selection>, Without<IsFamiqSelectionChoicesPanel>)
+        Without<IsFamiqSelectionChoicesPanel>
     >,
     mut builder_res: ResMut<FamiqWidgetResource>,
-    mut selected_choices_res: ResMut<SelectedChoicesResource>,
+    mut selected_choices_res: ResMut<FaSelectionResource>,
     mut arrow_q: Query<&mut Text, With<ArrowIcon>>,
+    mut placeholder_q: Query<&mut TextColor, With<SelectorPlaceHolder>>,
     mut panel_q: Query<
         (
             &mut Visibility,
@@ -110,7 +95,16 @@ pub fn handle_selection_interaction_system(
 ) {
     for e in events.read() {
         if e.widget == WidgetType::Selection {
-            if let Ok((mut box_shadow, id, default_style, arrow_entity, panel_entity)) = selector_q.get_mut(e.entity) {
+            if let Ok((
+                mut box_shadow,
+                id,
+                bg_color,
+                default_style,
+                arrow_entity,
+                panel_entity,
+                placeholder_entity
+            )) = selector_q.get_mut(e.entity)
+            {
                 match e.interaction {
                     Interaction::Hovered => {
                         box_shadow.color = default_style.border_color.0.clone();
@@ -122,6 +116,12 @@ pub fn handle_selection_interaction_system(
                                 builder_res.update_or_insert_focus_state(e.entity, false);
                                 FaSelection::arrow_down(&mut arrow_q, arrow_entity.0);
                                 FaSelection::hide_choice_panel(&mut panel_q, panel_entity.0);
+                                FaSelection::set_placeholder_color(
+                                    false,
+                                    &mut placeholder_q,
+                                    placeholder_entity.0,
+                                    &bg_color.0
+                                );
                                 break;
                             }
                         }
@@ -131,9 +131,15 @@ pub fn handle_selection_interaction_system(
                         builder_res.update_or_insert_focus_state(e.entity, true);
                         FaSelection::arrow_up(&mut arrow_q, arrow_entity.0);
                         FaSelection::show_choice_panel(&mut panel_q, panel_entity.0);
+                        FaSelection::set_placeholder_color(
+                            true,
+                            &mut placeholder_q,
+                            placeholder_entity.0,
+                            &bg_color.0
+                        );
 
                         if let Some(id) = id {
-                            selected_choices_res.update_or_insert(id.0.clone(), "-/-".to_string());
+                            selected_choices_res._update_or_insert(id.0.clone(), "-/-".to_string());
                         }
                     },
                     _ => {
@@ -154,19 +160,21 @@ pub fn handle_selection_choice_interaction_system(
             &SelectionChoiceTextEntity,
 
         ),
-        (With<IsFamiqSelectionChoice>, Without<IsFamiqSelectionChoicesPanel>)
+        (With<IsFamiqSelectionChoice>, Without<IsFamiqSelectionChoicesPanel>, Without<SelectorPlaceHolderEntity>)
     >,
     mut selection_q: Query<(
         Entity,
         &Selection,
         Option<&FamiqWidgetId>,
+        &BackgroundColor,
         &mut SelectorPlaceHolderEntity,
         &SelectorArrowIconEntity,
         &SelectionChoicesPanelEntity
     )>,
-    mut selected_choices_res: ResMut<SelectedChoicesResource>,
+    mut selected_choices_res: ResMut<FaSelectionResource>,
     mut text_q: Query<&mut Text, Without<ArrowIcon>>,
     mut arrow_q: Query<&mut Text, With<ArrowIcon>>,
+    mut placeholder_q: Query<&mut TextColor, With<SelectorPlaceHolder>>,
     mut panel_q: Query<
         (
             &mut Visibility,
@@ -180,10 +188,25 @@ pub fn handle_selection_choice_interaction_system(
         if e.widget == WidgetType::SelectionChoice {
             let mut selected_choice = String::new();
 
-            for (selection_entity, selection, selection_id, placeholder_entity, arrow_entity, panel_entity) in selection_q.iter_mut() {
+            for (
+                selection_entity,
+                selection,
+                selection_id,
+                selection_bg_color,
+                placeholder_entity,
+                arrow_entity,
+                panel_entity
+            )
+            in selection_q.iter_mut()
+            {
                 match builder_res.get_widget_focus_state(&selection_entity) {
                     Some(true) => {
-                        if let Ok((mut default_choice_widget, mut bg_color, choice_text_entity)) = selection_choice_q.get_mut(e.entity) {
+                        if let Ok((
+                            mut default_choice_widget,
+                            mut bg_color,
+                            choice_text_entity
+                        ))
+                        = selection_choice_q.get_mut(e.entity) {
                             match e.interaction {
                                 Interaction::Hovered => {
                                     *bg_color = BackgroundColor(ITEM_ON_HOVER_BG_COLOR);
@@ -198,7 +221,7 @@ pub fn handle_selection_choice_interaction_system(
                                             text.0.clone()
                                         };
                                         if let Some(id) = selection_id {
-                                            selected_choices_res.update_or_insert(id.0.clone(), text.0.clone());
+                                            selected_choices_res._update_or_insert(id.0.clone(), text.0.clone());
                                         }
                                     }
 
@@ -215,6 +238,12 @@ pub fn handle_selection_choice_interaction_system(
                                     builder_res.update_or_insert_focus_state(selection_entity, false);
                                     FaSelection::arrow_down(&mut arrow_q, arrow_entity.0);
                                     FaSelection::hide_choice_panel(&mut panel_q, panel_entity.0);
+                                    FaSelection::set_placeholder_color(
+                                        false,
+                                        &mut placeholder_q,
+                                        placeholder_entity.0,
+                                        &selection_bg_color.0
+                                    );
 
                                     *bg_color = BackgroundColor(ITEM_NORMAL_BG_COLOR);
                                     default_choice_widget.background_color = BackgroundColor(ITEM_NORMAL_BG_COLOR);

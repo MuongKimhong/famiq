@@ -27,14 +27,18 @@ pub enum TextSize {
     TitleH6,
 }
 
-/// Resource use to store & update fa_text's value
+/// Resource use to store & update fa_text's value by id
 #[derive(Resource, Default, Debug)]
 pub struct FaTextResource {
+    /// id-value
     pub text_value: HashMap<String, String>,
-    pub changed_texts: HashSet<String>, // Tracks which text IDs changed
+
+    /// Tracks which text IDs changed
+    pub changed_texts: HashSet<String>,
 }
 
 impl FaTextResource {
+    /// Update fa_text's value by id
     pub fn update_value(&mut self, id: &str, new_value: &str) {
         if let Some(existing) = self.text_value.get(id) {
             if existing == new_value {
@@ -172,6 +176,7 @@ impl<'a> FaText {
         container
     }
 
+    /// Internal system that reads `FaTextResource` and update the corresponding text widget's value
     pub fn update_text_value_system(
         mut text_q: Query<(&mut Text, &FamiqWidgetId), With<IsFamiqText>>,
         mut text_res: ResMut<FaTextResource>

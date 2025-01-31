@@ -37,22 +37,23 @@ impl TextInput {
 }
 
 /// Stores the text input values in a `HashMap` where keys are IDs of the inputs.
-#[derive(Resource, Debug)]
+#[derive(Resource, Default, Debug)]
 pub struct FaTextInputResource {
     pub inputs: HashMap<String, String>,
 }
 
 impl FaTextInputResource {
     /// Updates an existing input value or inserts a new one if it doesn't exist.
-    ///
-    /// # Parameters
-    /// - `id`: The ID of the input field.
-    /// - `new_value`: The new text value for the input.
-    pub fn update_or_insert(&mut self, id: String, new_value: String) {
-        if let Some(old_value) = self.inputs.get_mut(&id) {
-            *old_value = new_value;
+    fn _update_or_insert(&mut self, id: String, new_value: String) {
+        self.inputs.insert(id, new_value);
+    }
+
+    /// Get text input value by id
+    pub fn get_value(&self, id: &str) -> String {
+        if let Some(v) = self.inputs.get(id) {
+            v.to_owned()
         } else {
-            self.inputs.insert(id, "".to_string());
+            String::from("")
         }
     }
 }
@@ -371,7 +372,7 @@ impl<'a> FaTextInput {
                             builder_res.update_or_insert_focus_state(e.entity, true);
 
                             if let Some(id) = id {
-                                input_resource.update_or_insert(id.0.clone(), "".to_string());
+                                input_resource._update_or_insert(id.0.clone(), "".to_string());
                             }
                         },
                         _ => box_shadow.color = Color::NONE
@@ -409,7 +410,7 @@ impl<'a> FaTextInput {
                                 text_input.text.push_str(input);
 
                                 if let Some(id) = id {
-                                    input_resource.update_or_insert(id.0.clone(), text_input.text.clone());
+                                    input_resource._update_or_insert(id.0.clone(), text_input.text.clone());
                                 }
 
                                 if let Ok((mut text, _)) = text_q.get_mut(placeholder_entity.0) {
@@ -429,7 +430,7 @@ impl<'a> FaTextInput {
                                 text_input.text.push_str(&SmolStr::new(" "));
 
                                 if let Some(id) = id {
-                                    input_resource.update_or_insert(id.0.clone(), text_input.text.clone());
+                                    input_resource._update_or_insert(id.0.clone(), text_input.text.clone());
                                 }
 
                                 if let Ok((mut text, _)) = text_q.get_mut(placeholder_entity.0) {
@@ -449,7 +450,7 @@ impl<'a> FaTextInput {
                                 text_input.text.pop();
 
                                 if let Some(id) = id {
-                                    input_resource.update_or_insert(id.0.clone(), text_input.text.clone());
+                                    input_resource._update_or_insert(id.0.clone(), text_input.text.clone());
                                 }
 
                                 if let Ok((mut text, _)) = text_q.get_mut(placeholder_entity.0) {

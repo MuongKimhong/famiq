@@ -16,7 +16,6 @@ use bevy::time::common_conditions::on_timer;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::prelude::*;
 use bevy::asset::embedded_asset;
-use bevy::utils::HashMap;
 
 fn external_styles_file_systems(app: &mut App) {
     app.add_systems(
@@ -50,7 +49,6 @@ fn fa_selection_systems(app: &mut App) {
         (
             event_writer::selection_interaction_system,
             event_writer::selection_choice_interaction_system,
-            update_selector_placeholder_color_system,
             update_choices_panel_position_and_width_system,
             handle_selection_interaction_system,
             handle_selection_choice_interaction_system,
@@ -158,12 +156,8 @@ impl Plugin for FamiqPlugin {
         app.add_plugins(FrameTimeDiagnosticsPlugin::default());
         app.insert_resource(StylesKeyValueResource(StylesKeyValue::new()));
         app.insert_resource(CanBeScrolledListView { entity: None });
-        app.insert_resource(SelectedChoicesResource {
-            choices: HashMap::new(),
-        });
-        app.insert_resource(FaTextInputResource {
-            inputs: HashMap::new(),
-        });
+        app.insert_resource(FaSelectionResource::default());
+        app.insert_resource(FaTextInputResource::default());
         app.insert_resource(FaTextInputCursorBlinkTimer {
             timer: Timer::from_seconds(0.5, TimerMode::Repeating),
             is_transparent: false
