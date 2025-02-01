@@ -186,8 +186,7 @@ impl<'a> FaSelection {
         color: &SelectorColor,
         placeholder: &str,
         placeholder_entity: Entity,
-        arrow_icon_entity: Entity,
-        choices_panel_entity: Entity
+        arrow_icon_entity: Entity
     ) -> Entity {
         let mut border_width = UiRect::all(Val::Px(2.0));
         let mut border_radius = outlined_border_radius();
@@ -243,8 +242,7 @@ impl<'a> FaSelection {
                 Interaction::default(),
                 Selection::new(placeholder.to_string()),
                 SelectorPlaceHolderEntity(placeholder_entity),
-                SelectorArrowIconEntity(arrow_icon_entity),
-                SelectionChoicesPanelEntity(choices_panel_entity)
+                SelectorArrowIconEntity(arrow_icon_entity)
             ))
             .insert((WidgetStyle::default(), ExternalStyleHasChanged(false)))
             .id();
@@ -261,7 +259,8 @@ impl<'a> FaSelection {
         choices: &Vec<String>,
         font_handle: Handle<Font>,
         container_entity: Entity,
-        color: &SelectorColor
+        color: &SelectorColor,
+        selector_entity: Entity
     ) -> Entity {
         let node = default_selection_choices_panel_node();
         let border_radius = BorderRadius::all(Val::Px(5.0));
@@ -277,7 +276,7 @@ impl<'a> FaSelection {
 
         for choice in all_choices.iter() {
             let txt = Self::_build_choice_text(id, choice, root_node, &font_handle, color);
-            let container = Self::_build_choice_container(id, root_node, txt);
+            let container = Self::_build_choice_container(id, root_node, txt, selector_entity);
             utils::entity_add_child(root_node, txt, container);
             choice_entities.push(container);
         }
@@ -312,7 +311,12 @@ impl<'a> FaSelection {
         panel
     }
 
-    fn _build_choice_container(id: &Option<String>, root_node: &'a mut EntityCommands, text_entity: Entity) -> Entity {
+    fn _build_choice_container(
+        id: &Option<String>,
+        root_node: &'a mut EntityCommands,
+        text_entity: Entity,
+        selector_entity: Entity
+    ) -> Entity {
         let node = default_choice_container_node();
         let border_color = BorderColor::default();
         let border_radius = BorderRadius::all(Val::Px(5.0));
@@ -341,7 +345,8 @@ impl<'a> FaSelection {
                 SelectionChoiceTextEntity(text_entity),
                 Interaction::default(),
                 WidgetStyle::default(),
-                ExternalStyleHasChanged(false)
+                ExternalStyleHasChanged(false),
+                SelectorEntity(selector_entity)
             ))
             .id();
 
@@ -401,16 +406,6 @@ impl<'a> FaSelection {
         choices: &Vec<String>,
     ) -> Entity {
         let container = Self::_build_container(&id, class, root_node);
-
-        let choices_panel = Self::_build_choices_panel(
-            &id,
-            root_node,
-            choices,
-            font_handle.clone(),
-            container,
-            &color
-        );
-
         let placeholder_entity = Self::_build_selector_placeholder(
             placeholder,
             root_node,
@@ -426,9 +421,20 @@ impl<'a> FaSelection {
             &color,
             placeholder,
             placeholder_entity,
-            arrow_icon_entity,
-            choices_panel,
+            arrow_icon_entity
         );
+        let choices_panel = Self::_build_choices_panel(
+            &id,
+            root_node,
+            choices,
+            font_handle.clone(),
+            container,
+            &color,
+            selector
+        );
+
+        root_node.commands().entity(selector).insert(SelectionChoicesPanelEntity(choices_panel));
+
         utils::entity_add_children(root_node, &vec![placeholder_entity, arrow_icon_entity], selector);
         utils::entity_add_children(root_node, &vec![selector, choices_panel], container);
 

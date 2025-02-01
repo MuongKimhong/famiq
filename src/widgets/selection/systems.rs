@@ -1,11 +1,10 @@
 use crate::widgets::selection::*;
-use crate::widgets::color::*;
 use crate::widgets::{WidgetType, FamiqWidgetResource};
 use crate::event_writer::FaInteractionEvent;
 use crate::utils;
 use super::FaSelection;
 use bevy::prelude::*;
-use std::time::Instant;
+
 pub fn update_choices_panel_position_and_width_system(
     selection_q: Query<
         (
@@ -27,7 +26,6 @@ pub fn update_choices_panel_position_and_width_system(
     label_q: Query<(&Node, &IsFamiqSelectionLabel), Without<IsFamiqSelectionChoicesPanel>>,
     builder_res: Res<FamiqWidgetResource>
 ) {
-    let now = Instant::now();
     for (entity, selector_node, computed_node, panel_entity, label_entity) in selection_q.iter() {
         match builder_res.get_widget_focus_state(&entity) {
             Some(true) => {
@@ -62,8 +60,6 @@ pub fn update_choices_panel_position_and_width_system(
             _ => {}
         }
     }
-    let elapsed = now.elapsed();
-    println!("Elapsed: {:.2?}", elapsed);
 }
 
 pub fn handle_selection_interaction_system(
@@ -158,6 +154,7 @@ pub fn handle_selection_choice_interaction_system(
             &mut DefaultWidgetEntity,
             &mut BackgroundColor,
             &SelectionChoiceTextEntity,
+            &SelectorEntity
 
         ),
         (With<IsFamiqSelectionChoice>, Without<IsFamiqSelectionChoicesPanel>, Without<SelectorPlaceHolderEntity>)
@@ -185,77 +182,69 @@ pub fn handle_selection_choice_interaction_system(
     mut builder_res: ResMut<FamiqWidgetResource>
 ) {
     for e in events.read() {
-        if e.widget == WidgetType::SelectionChoice {
+        if let Ok((
+            mut default_choice_widget,
+            mut choice_bg_color,
+            choice_txt_entity,
+            selector_entity
+        )) = selection_choice_q.get_mut(e.entity) {
             let mut selected_choice = String::new();
 
-            for (
-                selection_entity,
-                selection,
-                selection_id,
-                selection_bg_color,
-                placeholder_entity,
-                arrow_entity,
-                panel_entity
-            )
-            in selection_q.iter_mut()
-            {
-                match builder_res.get_widget_focus_state(&selection_entity) {
-                    Some(true) => {
-                        if let Ok((
-                            mut default_choice_widget,
-                            mut bg_color,
-                            choice_text_entity
-                        ))
-                        = selection_choice_q.get_mut(e.entity) {
-                            match e.interaction {
-                                Interaction::Hovered => {
-                                    *bg_color = BackgroundColor(ITEM_ON_HOVER_BG_COLOR);
-                                    default_choice_widget.background_color = BackgroundColor(ITEM_ON_HOVER_BG_COLOR);
-                                }
-                                Interaction::Pressed => {
-                                    // Update selected items resource
-                                    if let Ok(text) = text_q.get_mut(choice_text_entity.0) {
-                                        selected_choice = if text.0 == "-/-" {
-                                            String::from("")
-                                        } else {
-                                            text.0.clone()
-                                        };
-                                        if let Some(id) = selection_id {
-                                            selected_choices_res._update_or_insert(id.0.clone(), text.0.clone());
-                                        }
-                                    }
+            match e.interaction {
+                Interaction::Hovered => {
+                    *choice_bg_color = ITEM_ON_HOVER_BG_COLOR.into();
+                    default_choice_widget.background_color = ITEM_ON_HOVER_BG_COLOR.into();
+                },
+                Interaction::Pressed => {
+                    if let Ok((
+                        selection_entity,
+                        selection,
+                        selection_id,
+                        selection_bg_color,
+                        placeholder_entity,
+                        arrow_entity,
+                        panel_entity
+                    )) = selection_q.get_mut(selector_entity.0) {
 
-                                    // update placeholder value
-                                    if let Ok(mut text) = text_q.get_mut(placeholder_entity.0) {
-                                        if selected_choice != "" {
-                                            text.0 = selected_choice.clone();
-                                        } else {
-                                            text.0 = selection.placeholder.clone();
-                                        }
-                                    }
-
-                                    // set selection to unfocus after choice is selected
-                                    builder_res.update_or_insert_focus_state(selection_entity, false);
-                                    FaSelection::arrow_down(&mut arrow_q, arrow_entity.0);
-                                    FaSelection::hide_choice_panel(&mut panel_q, panel_entity.0);
-                                    FaSelection::set_placeholder_color(
-                                        false,
-                                        &mut placeholder_q,
-                                        placeholder_entity.0,
-                                        &selection_bg_color.0
-                                    );
-
-                                    *bg_color = BackgroundColor(ITEM_NORMAL_BG_COLOR);
-                                    default_choice_widget.background_color = BackgroundColor(ITEM_NORMAL_BG_COLOR);
-                                }
-                                _ => {
-                                    *bg_color = BackgroundColor(ITEM_NORMAL_BG_COLOR);
-                                    default_choice_widget.background_color = BackgroundColor(ITEM_NORMAL_BG_COLOR);
-                                }
+                        // Update selected items resource
+                        if let Ok(text) = text_q.get_mut(choice_txt_entity.0) {
+                            selected_choice = if text.0 == "-/-" {
+                                String::from("")
+                            } else {
+                                text.0.clone()
+                            };
+                            if let Some(id) = selection_id {
+                                selected_choices_res._update_or_insert(id.0.clone(), text.0.clone());
                             }
                         }
-                    },
-                    _ => {}
+
+                        // update placeholder value
+                        if let Ok(mut text) = text_q.get_mut(placeholder_entity.0) {
+                            if selected_choice != "" {
+                                text.0 = selected_choice.clone();
+                            } else {
+                                text.0 = selection.placeholder.clone();
+                            }
+                        }
+
+                        // set selection to unfocus after choice is selected
+                        builder_res.update_or_insert_focus_state(selection_entity, false);
+                        FaSelection::arrow_down(&mut arrow_q, arrow_entity.0);
+                        FaSelection::hide_choice_panel(&mut panel_q, panel_entity.0);
+                        FaSelection::set_placeholder_color(
+                            false,
+                            &mut placeholder_q,
+                            placeholder_entity.0,
+                            &selection_bg_color.0
+                        );
+
+                        *choice_bg_color = BackgroundColor(ITEM_NORMAL_BG_COLOR);
+                        default_choice_widget.background_color = BackgroundColor(ITEM_NORMAL_BG_COLOR);
+                    }
+                },
+                Interaction::None => {
+                    *choice_bg_color = ITEM_NORMAL_BG_COLOR.into();
+                    default_choice_widget.background_color = ITEM_NORMAL_BG_COLOR.into();
                 }
             }
         }
