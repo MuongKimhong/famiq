@@ -1,7 +1,9 @@
 pub mod helper;
+pub mod tests;
 
+use bevy::ui::FocusPolicy;
 use helper::*;
-use crate::utils::{self, process_spacing_built_in_class};
+use crate::utils::{self, process_spacing_built_in_class, mask_string};
 use crate::widgets::color::WHITE_COLOR;
 use crate::widgets::{
     DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId,
@@ -85,11 +87,25 @@ pub struct FamiqTextInputPlaceholderEntity(pub Entity);
 #[derive(Component)]
 pub struct FamiqTextInputCursorEntity(pub Entity);
 
+/// Link a toggle icon entity to its corresponding text input entity;
+#[derive(Component)]
+pub struct FamiqTextInputToggleIconEntity(pub Entity);
+
+/// Link a text input entity to its corresponding toggle icon entity;
+#[derive(Component)]
+pub struct FamiqTextInputEntity(pub Entity);
+
 /// Represents the size of a single character in the text input field.
 #[derive(Component)]
 pub struct CharacterSize {
     pub width: f32,
     pub height: f32
+}
+
+/// Marker component for identifying a toggle password visibility icon in a text input widget.
+#[derive(Component, Default)]
+pub struct TogglePasswordIcon {
+    pub can_see_text: bool
 }
 
 /// The width of the text input cursor.
@@ -128,6 +144,13 @@ pub enum TextInputShape {
     Rectangle
 }
 
+/// Type options for text input widget.
+#[derive(PartialEq)]
+pub enum TextInputType {
+    Text,
+    Password
+}
+
 /// Represents the Famiq text input widget, which includes placeholder text, a blinking cursor, and customizable styles.
 pub struct FaTextInput;
 
@@ -146,7 +169,7 @@ impl<'a> FaTextInput {
             ..default()
         };
         let txt_color = TextColor(PLACEHOLDER_COLOR);
-        let txt_layout = TextLayout::new_with_justify(JustifyText::Center);
+        let txt_layout = TextLayout::new_with_justify(JustifyText::Left);
 
         root_node
             .commands()
@@ -155,9 +178,38 @@ impl<'a> FaTextInput {
                 txt_font.clone(),
                 txt_color.clone(),
                 txt_layout.clone(),
-                // FamiqWidgetId(format!("{id}_placeholder")),
                 DefaultTextEntity::new(txt, txt_font, txt_color, txt_layout),
                 IsFamiqTextInputPlaceholder
+            ))
+            .id()
+    }
+
+    fn _build_toggle_password_icon(
+        root_node: &'a mut EntityCommands,
+        font_handle: Handle<Font>,
+        size: &TextInputSize,
+        input_entity: Entity
+    ) -> Entity {
+        let txt = Text::new("<?>");
+        let txt_font = TextFont {
+            font: font_handle,
+            font_size: get_text_size(&size),
+            ..default()
+        };
+        let txt_color = TextColor(BLACK_COLOR);
+        let txt_layout = TextLayout::new_with_justify(JustifyText::Right);
+
+        root_node
+            .commands()
+            .spawn((
+                txt.clone(),
+                txt_font.clone(),
+                txt_color.clone(),
+                txt_layout.clone(),
+                TogglePasswordIcon::default(),
+                FamiqTextInputEntity(input_entity),
+                FocusPolicy::Block,
+                Interaction::default()
             ))
             .id()
     }
@@ -281,10 +333,11 @@ impl<'a> FaTextInput {
         size: TextInputSize,
         variant: TextInputVariant,
         color: TextInputColor,
-        shape: TextInputShape
+        shape: TextInputShape,
+        input_type: &TextInputType
     ) -> Entity {
         let cursor_entity = Self::_build_cursor(root_node, &color);
-        let ph_entity = Self::_build_placeholder(placeholder, root_node, font_handle, &size);
+        let ph_entity = Self::_build_placeholder(placeholder, root_node, font_handle.clone(), &size);
         let input_entity = Self::_build_input(
             &id,
             class,
@@ -297,7 +350,15 @@ impl<'a> FaTextInput {
             cursor_entity
         );
 
-        utils::entity_add_children(root_node, &vec![ph_entity, cursor_entity], input_entity);
+        let mut children = vec![ph_entity, cursor_entity];
+
+        if *input_type == TextInputType::Password {
+            let toggle_icon = Self::_build_toggle_password_icon(root_node, font_handle, &size, input_entity);
+            root_node.commands().entity(input_entity).insert(FamiqTextInputToggleIconEntity(toggle_icon));
+            children.push(toggle_icon);
+        }
+
+        utils::entity_add_children(root_node, &children, input_entity);
         input_entity
     }
 
@@ -327,7 +388,7 @@ impl<'a> FaTextInput {
                 if let Ok((text, mut text_color, text_info)) = text_q.get_mut(placeholder_entity.0) {
                     match builder_res.get_widget_focus_state(&input_entity) {
                         Some(true) => {
-                            handle_on_focused(
+                            _handle_cursor_on_focused(
                                 &mut text_color,
                                 bg_color,
                                 &mut visibility,
@@ -384,16 +445,18 @@ impl<'a> FaTextInput {
 
     pub fn handle_text_input_on_typing_system(
         mut evr_kbd: EventReader<KeyboardInput>,
-        mut input_resource: ResMut<FaTextInputResource>,
+        mut input_res: ResMut<FaTextInputResource>,
         mut input_q: Query<(
             Entity,
             &mut TextInput,
             &CharacterSize,
             &FamiqTextInputPlaceholderEntity,
             &FamiqTextInputCursorEntity,
+            Option<&FamiqTextInputToggleIconEntity>,
             Option<&FamiqWidgetId>
         )>,
         mut text_q: Query<(&mut Text, &IsFamiqTextInputPlaceholder)>,
+        toggle_icon_q: Query<&TogglePasswordIcon>,
         mut cursor_q: Query<(&mut Node, &mut Visibility, &IsFamiqTextInputCursor)>,
         builder_res: Res<FamiqWidgetResource>
     ) {
@@ -404,73 +467,87 @@ impl<'a> FaTextInput {
 
             match &e.logical_key {
                 Key::Character(input) => {
-                    for (entity, mut text_input, char_size, placeholder_entity, cursor_entity, id) in input_q.iter_mut() {
-                        match builder_res.get_widget_focus_state(&entity) {
-                            Some(true) => {
-                                text_input.text.push_str(input);
+                    for (
+                            entity,
+                            mut text_input,
+                            char_size,
+                            placeholder_entity,
+                            cursor_entity,
+                            toggle_icon_entity,
+                            id,
+                        ) in input_q.iter_mut()
+                    {
+                        if let Some(true) = builder_res.get_widget_focus_state(&entity) {
+                            _update_text_input_value(id, &mut input_res, &mut text_input, true, Some(input));
 
-                                if let Some(id) = id {
-                                    input_resource._update_or_insert(id.0.clone(), text_input.text.clone());
-                                }
+                            if let Ok((mut placeholder_text, _)) = text_q.get_mut(placeholder_entity.0) {
+                                placeholder_text.0 = text_input.text.clone();
+                                _handle_mask_placeholder(toggle_icon_entity, &toggle_icon_q, &text_input, &mut placeholder_text);
+                                _update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, true);
+                            }
 
-                                if let Ok((mut text, _)) = text_q.get_mut(placeholder_entity.0) {
-                                    text.0 = text_input.text.clone();
-                                    update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, true);
-                                }
-                                break;
-                            },
-                            _ => {}
+                            break;
                         }
                     }
                 }
                 Key::Space => {
-                    for (entity, mut text_input, char_size, placeholder_entity, cursor_entity, id) in input_q.iter_mut() {
-                        match builder_res.get_widget_focus_state(&entity) {
-                            Some(true) => {
-                                text_input.text.push_str(&SmolStr::new(" "));
+                    for (
+                            entity,
+                            mut text_input,
+                            char_size,
+                            placeholder_entity,
+                            cursor_entity,
+                            toggle_icon_entity,
+                            id,
+                        ) in input_q.iter_mut()
+                    {
+                        if let Some(true) = builder_res.get_widget_focus_state(&entity) {
+                            _update_text_input_value(id, &mut input_res, &mut text_input, true, Some(&SmolStr::new(" ")));
 
-                                if let Some(id) = id {
-                                    input_resource._update_or_insert(id.0.clone(), text_input.text.clone());
-                                }
+                            if let Ok((mut placeholder_text, _)) = text_q.get_mut(placeholder_entity.0) {
+                                placeholder_text.0 = text_input.text.clone();
+                                _handle_mask_placeholder(toggle_icon_entity, &toggle_icon_q, &text_input, &mut placeholder_text);
+                                _update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, true);
+                            }
 
-                                if let Ok((mut text, _)) = text_q.get_mut(placeholder_entity.0) {
-                                    text.0 = text_input.text.clone();
-                                    update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, true);
-                                }
-                                break;
-                            },
-                            _ => {}
+                            break;
                         }
                     }
                 }
                 Key::Backspace => {
-                    for (entity, mut text_input, char_size, placeholder_entity, cursor_entity, id) in input_q.iter_mut() {
-                        match builder_res.get_widget_focus_state(&entity) {
-                            Some(true) => {
-                                text_input.text.pop();
+                    for (
+                            entity,
+                            mut text_input,
+                            char_size,
+                            placeholder_entity,
+                            cursor_entity,
+                            toggle_icon_entity,
+                            id,
+                        ) in input_q.iter_mut()
+                    {
+                        if let Some(true) = builder_res.get_widget_focus_state(&entity) {
+                            _update_text_input_value(id, &mut input_res, &mut text_input, false, None);
 
-                                if let Some(id) = id {
-                                    input_resource._update_or_insert(id.0.clone(), text_input.text.clone());
+                            if let Ok((mut placeholder_text, _)) = text_q.get_mut(placeholder_entity.0) {
+                                if placeholder_text.0 != text_input.placeholder {
+                                    _update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, false);
                                 }
 
-                                if let Ok((mut text, _)) = text_q.get_mut(placeholder_entity.0) {
-                                    if text.0 != text_input.placeholder {
-                                        update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, false);
-                                    }
-                                    if text_input.text.is_empty() {
-                                        text.0 = text_input.placeholder.clone();
-                                    } else {
-                                        text.0 = text_input.text.clone();
-                                    }
+                                if text_input.text.is_empty() {
+                                    placeholder_text.0 = text_input.placeholder.clone();
                                 }
-                                break;
-                            },
-                            _ => {}
+                                else {
+                                    placeholder_text.0 = text_input.text.clone();
+                                    _handle_mask_placeholder(toggle_icon_entity, &toggle_icon_q, &text_input, &mut placeholder_text);
+                                }
+                            }
+
+                            break;
                         }
                     }
                 }
                 _ => continue
-                }
+            }
         }
     }
 
@@ -508,6 +585,46 @@ impl<'a> FaTextInput {
             }
         }
     }
+
+    pub fn handle_toggle_password_icon_interaction_system(
+        mut events: EventReader<FaInteractionEvent>,
+        mut icon_q: Query<(&mut TogglePasswordIcon, &FamiqTextInputEntity)>,
+        input_q: Query<(&FamiqTextInputPlaceholderEntity, &TextInput)>,
+        mut placeholder_q: Query<&mut Text, With<IsFamiqTextInputPlaceholder>>
+    ) {
+        for e in events.read() {
+            if !e.is_password_toggle_icon_pressed() {
+                continue;
+            }
+
+            let (mut toggle_icon, input_entity) = match icon_q.get_mut(e.entity) {
+                Ok(data) => data,
+                Err(_) => continue,
+            };
+
+            toggle_icon.can_see_text = !toggle_icon.can_see_text;
+
+            let (placeholder_entity, text_input) = match input_q.get(input_entity.0) {
+                Ok(data) => data,
+                Err(_) => continue,
+            };
+
+            let mut placeholder_text = match placeholder_q.get_mut(placeholder_entity.0) {
+                Ok(data) => data,
+                Err(_) => continue,
+            };
+
+            if text_input.text.trim().is_empty() {
+                continue;
+            }
+
+            if toggle_icon.can_see_text {
+                placeholder_text.0 = text_input.text.clone();
+            } else {
+                placeholder_text.0 = mask_string(text_input.text.as_str());
+            }
+        }
+    }
 }
 
 /// Builder for creating and customizing `FaTextInput` widgets.
@@ -516,7 +633,8 @@ pub struct FaTextInputBuilder<'a> {
     pub placeholder: String,
     pub class: Option<String>,
     pub font_handle: Handle<Font>,
-    pub root_node: EntityCommands<'a>
+    pub root_node: EntityCommands<'a>,
+    pub input_type: TextInputType
 }
 
 impl<'a> FaTextInputBuilder<'a> {
@@ -530,11 +648,12 @@ impl<'a> FaTextInputBuilder<'a> {
             placeholder,
             class: None,
             font_handle,
-            root_node
+            root_node,
+            input_type: TextInputType::Text
         }
     }
 
-    fn _process_built_in_classes(&self) -> (TextInputVariant, TextInputColor, TextInputSize, TextInputShape) {
+    fn _process_built_in_classes(&mut self) -> (TextInputVariant, TextInputColor, TextInputSize, TextInputShape) {
         let mut use_color = TextInputColor::Default;
         let mut use_size = TextInputSize::Normal;
         let mut use_shape = TextInputShape::Default;
@@ -560,6 +679,8 @@ impl<'a> FaTextInputBuilder<'a> {
                     "is-success" => use_color = TextInputColor::Success,
                     "is-warning" => use_color = TextInputColor::Warning,
                     "is-info" => use_color = TextInputColor::Info,
+
+                    "is-password" => self.input_type = TextInputType::Password,
                     _ => ()
                 }
             }
@@ -579,6 +700,12 @@ impl<'a> FaTextInputBuilder<'a> {
         self
     }
 
+    /// Method to set text_input type as password
+    pub fn is_password(mut self) -> Self {
+        self.input_type = TextInputType::Password;
+        self
+    }
+
     /// Spawn text input into UI World.
     pub fn build(&mut self) -> Entity {
         let (variant, color, size, shape) = self._process_built_in_classes();
@@ -591,7 +718,8 @@ impl<'a> FaTextInputBuilder<'a> {
             size,
             variant,
             color,
-            shape
+            shape,
+            &self.input_type
         )
     }
 }
@@ -614,75 +742,4 @@ pub fn fa_text_input<'a>(
 /// True only if there is a text_input widget created.
 pub fn can_run_text_input_systems(input_q: Query<&IsFamiqTextInput>) -> bool {
     input_q.iter().count() > 0
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::plugin::FamiqPlugin;
-    use crate::widgets::color::PRIMARY_DARK_COLOR;
-    use bevy::input::InputPlugin;
-    use super::*;
-
-    fn setup_test_default_input(
-        mut commands: Commands,
-        asset_server: ResMut<AssetServer>,
-        mut builder_res: ResMut<FamiqWidgetResource>,
-    ) {
-        let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-        fa_text_input(&mut builder, "First name").id("#test-input").build();
-    }
-
-    fn setup_test_input_with_built_in_class(
-        mut commands: Commands,
-        asset_server: ResMut<AssetServer>,
-        mut builder_res: ResMut<FamiqWidgetResource>,
-    ) {
-        let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-        fa_text_input(&mut builder, "First name")
-            .class("is-primary is-rectangle")
-            .build();
-    }
-
-    #[test]
-    fn test_create_default_input() {
-        let mut app = utils::create_test_app();
-        app.add_plugins(InputPlugin::default());
-        app.add_plugins(FamiqPlugin);
-        app.insert_resource(FamiqWidgetResource::default());
-        app.add_systems(Startup, setup_test_default_input);
-        app.update();
-
-        let input_q = app.world_mut()
-            .query::<(&FamiqWidgetId, &IsFamiqTextInput)>()
-            .get_single(app.world());
-
-        let input_id = input_q.unwrap().0;
-        assert_eq!("#test-input".to_string(), input_id.0);
-    }
-
-    #[test]
-    fn test_create_input_with_built_in_class() {
-        let mut app = utils::create_test_app();
-        app.add_plugins(InputPlugin::default());
-        app.add_plugins(FamiqPlugin);
-        app.insert_resource(FamiqWidgetResource::default());
-        app.add_systems(Startup, setup_test_input_with_built_in_class);
-        app.update();
-
-        let input_q = app.world_mut()
-            .query::<(&FamiqWidgetClasses, &BackgroundColor, &BorderRadius, &IsFamiqTextInput)>()
-            .get_single(app.world());
-
-        let input_class = input_q.as_ref().unwrap().0;
-        assert_eq!("is-primary is-rectangle".to_string(), input_class.0);
-
-        let input_bg = input_q.as_ref().unwrap().1;
-        assert_eq!(BackgroundColor(PRIMARY_DARK_COLOR), *input_bg);
-
-        let input_border_radius = input_q.unwrap().2;
-        assert_eq!(
-            BorderRadius::all(Val::Px(0.0)),
-            *input_border_radius
-        );
-    }
 }

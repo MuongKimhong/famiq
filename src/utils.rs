@@ -191,3 +191,7 @@ pub fn process_spacing_built_in_class(node: &mut Node, class: &Option<String>) {
         }
     }
 }
+
+pub fn mask_string(input: &str) -> String {
+    "*".repeat(input.len())
+}

@@ -56,6 +56,11 @@ impl FaInteractionEvent {
     pub fn is_button_pressed(&self) -> bool {
         self.widget == WidgetType::Button && self.interaction == Interaction::Pressed
     }
+
+    /// Check if emitted event is a text_input's toggle-icon password pressed.
+    pub fn is_password_toggle_icon_pressed(&self) -> bool {
+        self.widget == WidgetType::TextInputTogglePasswordIcon && self.interaction == Interaction::Pressed
+    }
 }
 
 pub fn btn_interaction_system(
@@ -86,6 +91,16 @@ pub fn text_input_interaction_system(
     mut writer: EventWriter<FaInteractionEvent>,
 ) {
     FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::TextInput);
+}
+
+pub fn text_input_toggle_password_icon_interaction_system(
+    mut interaction_q: Query<
+        (Entity, &TogglePasswordIcon, Option<&FamiqWidgetId>, &Interaction),
+        Changed<Interaction>,
+    >,
+    mut writer: EventWriter<FaInteractionEvent>,
+) {
+    FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::TextInputTogglePasswordIcon);
 }
 
 pub fn selection_interaction_system(

@@ -1,6 +1,7 @@
 use bevy::prelude::*;
-use crate::utils;
-use super::{TextInputSize, TextInputColor, IsFamiqTextInputCursor, CharacterSize, CURSOR_WIDTH};
+use smol_str::SmolStr;
+use crate::{utils, widgets::FamiqWidgetId};
+use super::*;
 use bevy::text::TextLayoutInfo;
 use crate::widgets::color::*;
 
@@ -9,7 +10,8 @@ pub const TEXT_INPUT_VALUE_COLOR: Color = Color::srgba(1.0, 1.0, 1.0, 0.922);
 
 pub fn default_input_node() -> Node {
     Node {
-        justify_content: JustifyContent::Start,
+        flex_direction: FlexDirection::Row,
+        justify_content: JustifyContent::SpaceBetween,
         align_items: AlignItems::Center,
         padding: UiRect {
             left: Val::Px(10.0),
@@ -96,9 +98,9 @@ pub fn get_input_border_color(color: &TextInputColor) -> BorderColor {
     }
 }
 
-/// Updates the cursor position based on character width and action.
+/// Internal helper function to updates the cursor position based on character width and action.
 /// `add` indicates whether a character is added (true) or removed (false).
-pub fn update_cursor_position(
+pub fn _update_cursor_position(
     cursor_q: &mut Query<(&mut Node, &mut Visibility, &IsFamiqTextInputCursor)>,
     cursor_entity: Entity,
     char_width: f32,
@@ -116,8 +118,9 @@ pub fn update_cursor_position(
     }
 }
 
-
-pub fn handle_on_focused(
+/// Internal helper function to calculate cursor size,
+/// updating visibility and set initial position.
+pub fn _handle_cursor_on_focused(
     text_color: &mut TextColor,
     bg_color: &BackgroundColor,
     visibility: &mut Visibility,
@@ -146,5 +149,40 @@ pub fn handle_on_focused(
         cursor_node.top = text_input_node.padding.top.clone();
         cursor_node.width = Val::Px(CURSOR_WIDTH);
         cursor_node.height = Val::Px(text_info.size.y);
+    }
+}
+
+/// Internal helper function to update text_input value & text_input resource.
+pub fn _update_text_input_value(
+    input_id: Option<&FamiqWidgetId>,
+    input_resource: &mut ResMut<FaTextInputResource>,
+    text_input: &mut TextInput,
+    appending: bool,
+    new_char: Option<&SmolStr>
+) {
+    if appending {
+        text_input.text.push_str(new_char.unwrap());
+    } else {
+        text_input.text.pop();
+    }
+
+    if let Some(id) = input_id {
+        input_resource._update_or_insert(id.0.clone(), text_input.text.clone());
+    }
+}
+
+/// Internal helper function to mask placeholder as password.
+pub fn _handle_mask_placeholder(
+    toggle_icon_entity: Option<&FamiqTextInputToggleIconEntity>,
+    toggle_icon_q: &Query<&TogglePasswordIcon>,
+    text_input: &TextInput,
+    placeholder_text: &mut Text
+) {
+    if let Some(toggle_icon_entity) = toggle_icon_entity {
+        if let Ok(toggle_icon) = toggle_icon_q.get(toggle_icon_entity.0) {
+            if !toggle_icon.can_see_text {
+                placeholder_text.0 = mask_string(text_input.text.as_str());
+            }
+        }
     }
 }
