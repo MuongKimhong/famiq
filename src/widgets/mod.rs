@@ -32,6 +32,17 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use crate::utils::get_embedded_asset_path;
 
+pub trait ResourceMap {
+    /// Insert or update a value
+    fn _update_or_insert(&mut self, id: String, value: String);
+
+    /// Get a value by id
+    fn get_value(&self, id: &str) -> String;
+
+    /// Check if an id exists
+    fn exists(&self, id: &str) -> bool;
+}
+
 // key-value of "#widget-id"/".class-name" and all its styles in styles.json
 pub type StyleKeyValue = HashMap<String, WidgetStyle>;
 pub type StylesKeyValue = Vec<StyleKeyValue>;
