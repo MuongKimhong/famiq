@@ -44,6 +44,7 @@ pub enum WidgetType {
     Text,
     FpsText, // globalzindex 6
     TextInput,
+    TextInputTogglePasswordIcon,
     ListView,
     ListViewItem,
     Selection,

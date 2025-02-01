@@ -101,7 +101,10 @@ pub fn get_input_border_color(color: &TextInputColor) -> BorderColor {
 /// Internal helper function to updates the cursor position based on character width and action.
 /// `add` indicates whether a character is added (true) or removed (false).
 pub fn _update_cursor_position(
-    cursor_q: &mut Query<(&mut Node, &mut Visibility, &IsFamiqTextInputCursor)>,
+    cursor_q: &mut Query<
+        (&mut Node, &mut Visibility, &IsFamiqTextInputCursor),
+        Without<CharacterSize>
+    >,
     cursor_entity: Entity,
     char_width: f32,
     add: bool
@@ -129,6 +132,7 @@ pub fn _handle_cursor_on_focused(
     text_info: &TextLayoutInfo,
     text_content: &str,
     char_size: &mut CharacterSize,
+    text_input: &TextInput
 ) {
     // Update text color based on background
     text_color.0 = if bg_color.0 == WHITE_COLOR {
@@ -150,6 +154,17 @@ pub fn _handle_cursor_on_focused(
         cursor_node.width = Val::Px(CURSOR_WIDTH);
         cursor_node.height = Val::Px(text_info.size.y);
     }
+    else {
+
+        let mut position = text_input.cursor_index as f32 * char_size.width;
+
+        match utils::extract_val(text_input_node.padding.left) {
+            Some(v) => position += v,
+            _ => {}
+        }
+
+        cursor_node.left = Val::Px(position);
+    }
 }
 
 /// Internal helper function to update text_input value & text_input resource.
@@ -161,9 +176,15 @@ pub fn _update_text_input_value(
     new_char: Option<&SmolStr>
 ) {
     if appending {
-        text_input.text.push_str(new_char.unwrap());
+        text_input.text.insert_str(text_input.cursor_index, new_char.unwrap());
+        text_input.cursor_index += 1;
+
     } else {
-        text_input.text.pop();
+        if text_input.cursor_index > 0 {
+            let byte_index = text_input.text.char_indices().nth(text_input.cursor_index - 1).map(|(i, _)| i).unwrap();
+            text_input.text.remove(byte_index);
+            text_input.cursor_index -= 1;
+        }
     }
 
     if let Some(id) = input_id {

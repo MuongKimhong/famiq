@@ -26,14 +26,16 @@ use super::color::BLACK_COLOR;
 #[derive(Component)]
 pub struct TextInput {
     pub text: String,
-    pub placeholder: String
+    pub placeholder: String,
+    pub cursor_index: usize
 }
 
 impl TextInput {
     pub fn new(text: &str, placeholder: &str) -> Self {
         Self {
             text: text.to_string(),
-            placeholder: placeholder.to_string()
+            placeholder: placeholder.to_string(),
+            cursor_index: 0
         }
     }
 }
@@ -57,6 +59,11 @@ impl FaTextInputResource {
         } else {
             String::from("")
         }
+    }
+
+    /// Check if text_input id exists in resource
+    pub fn exists(&self, id: &str) -> bool {
+        self.inputs.get(id).is_some()
     }
 }
 
@@ -152,6 +159,7 @@ pub enum TextInputType {
 }
 
 /// Represents the Famiq text input widget, which includes placeholder text, a blinking cursor, and customizable styles.
+/// Support UTF-8 encoded only.
 pub struct FaTextInput;
 
 // Needs container
@@ -367,6 +375,7 @@ impl<'a> FaTextInput {
             Entity,
             &Node,
             &BackgroundColor,
+            &TextInput,
             &FamiqTextInputCursorEntity,
             &FamiqTextInputPlaceholderEntity,
             &mut CharacterSize
@@ -382,28 +391,30 @@ impl<'a> FaTextInput {
         mut text_q: Query<(&Text, &mut TextColor, &TextLayoutInfo), With<IsFamiqTextInputPlaceholder>>,
         builder_res: Res<FamiqWidgetResource>
     ) {
-        for (input_entity, text_input_node, bg_color, cursor_entity, placeholder_entity, mut char_size) in input_q.iter_mut() {
-            if let Ok((mut cursor_node, mut visibility, _)) = cursor_q.get_mut(cursor_entity.0) {
+        if !builder_res.is_changed() {
+            return;
+        }
+        for (input_entity, text_input_node, bg_color, text_input, cursor_entity, placeholder_entity, mut char_size) in input_q.iter_mut() {
 
+            let Some(focused) = builder_res.get_widget_focus_state(&input_entity) else { continue };
+
+            if let Ok((mut cursor_node, mut visibility, _)) = cursor_q.get_mut(cursor_entity.0) {
                 if let Ok((text, mut text_color, text_info)) = text_q.get_mut(placeholder_entity.0) {
-                    match builder_res.get_widget_focus_state(&input_entity) {
-                        Some(true) => {
-                            _handle_cursor_on_focused(
-                                &mut text_color,
-                                bg_color,
-                                &mut visibility,
-                                &mut cursor_node,
-                                text_input_node,
-                                &text_info,
-                                &text.0,
-                                &mut char_size,
-                            );
-                        }
-                        _ => {
-                            // Handle unfocused state
-                            *visibility = Visibility::Hidden;
-                            text_color.0 = PLACEHOLDER_COLOR;
-                        }
+                    if focused {
+                        _handle_cursor_on_focused(
+                            &mut text_color,
+                            bg_color,
+                            &mut visibility,
+                            &mut cursor_node,
+                            text_input_node,
+                            &text_info,
+                            &text.0,
+                            &mut char_size,
+                            &text_input
+                        );
+                    } else {
+                        *visibility = Visibility::Hidden;
+                        text_color.0 = PLACEHOLDER_COLOR;
                     }
                 }
             }
@@ -414,15 +425,14 @@ impl<'a> FaTextInput {
     pub fn handle_text_input_interaction_system(
         mut events: EventReader<FaInteractionEvent>,
         mut input_q_for_hover: Query<
-            (&mut BoxShadow, Option<&FamiqWidgetId>, &DefaultWidgetEntity),
-            With<TextInput>
+            (&mut BoxShadow, &mut TextInput, Option<&FamiqWidgetId>, &DefaultWidgetEntity)
         >,
         mut builder_res: ResMut<FamiqWidgetResource>,
         mut input_resource: ResMut<FaTextInputResource>,
     ) {
         for e in events.read() {
             if e.widget == WidgetType::TextInput {
-                if let Ok((mut box_shadow, id, default_style)) = input_q_for_hover.get_mut(e.entity) {
+                if let Ok((mut box_shadow, mut text_input, id, default_style)) = input_q_for_hover.get_mut(e.entity) {
                     match e.interaction {
                         Interaction::Hovered => {
                             box_shadow.color = default_style.border_color.0.clone();
@@ -432,8 +442,14 @@ impl<'a> FaTextInput {
                             builder_res.update_all_focus_states(false);
                             builder_res.update_or_insert_focus_state(e.entity, true);
 
+                            if text_input.cursor_index > 0 {
+                                text_input.cursor_index = text_input.text.len();
+                            }
+
                             if let Some(id) = id {
-                                input_resource._update_or_insert(id.0.clone(), "".to_string());
+                                if !input_resource.exists(id.0.as_str()) {
+                                    input_resource._update_or_insert(id.0.clone(), "".to_string());
+                                }
                             }
                         },
                         _ => box_shadow.color = Color::NONE
@@ -457,7 +473,7 @@ impl<'a> FaTextInput {
         )>,
         mut text_q: Query<(&mut Text, &IsFamiqTextInputPlaceholder)>,
         toggle_icon_q: Query<&TogglePasswordIcon>,
-        mut cursor_q: Query<(&mut Node, &mut Visibility, &IsFamiqTextInputCursor)>,
+        mut cursor_q: Query<(&mut Node, &mut Visibility, &IsFamiqTextInputCursor), Without<CharacterSize>>,
         builder_res: Res<FamiqWidgetResource>
     ) {
         for e in evr_kbd.read() {
@@ -543,6 +559,26 @@ impl<'a> FaTextInput {
                             }
 
                             break;
+                        }
+                    }
+                },
+                Key::ArrowLeft => {
+                    for (entity, mut text_input, char_size, _, cursor_entity, _, _,) in input_q.iter_mut() {
+                        if let Some(true) = builder_res.get_widget_focus_state(&entity) {
+                            if text_input.cursor_index > 0 {
+                                text_input.cursor_index -= 1;
+                                _update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, false);
+                            }
+                        }
+                    }
+                }
+                Key::ArrowRight => {
+                    for (entity, mut text_input, char_size, _, cursor_entity, _, _,) in input_q.iter_mut() {
+                        if let Some(true) = builder_res.get_widget_focus_state(&entity) {
+                            if text_input.cursor_index < text_input.text.len() {
+                                text_input.cursor_index += 1;
+                                _update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, true);
+                            }
                         }
                     }
                 }
