@@ -1,7 +1,7 @@
 pub mod helper;
 
 use crate::widgets::{
-    FamiqWidgetId, FamiqWidgetClasses, FamiqWidgetResource,
+    FamiqWidgetId, FamiqWidgetClasses,
     DefaultWidgetEntity, FamiqWidgetBuilder, WidgetStyle, ExternalStyleHasChanged
 };
 use crate::utils;
@@ -292,6 +292,7 @@ pub fn can_run_modal_systems(modal_q: Query<&IsFamiqModalBackground>) -> bool {
 #[cfg(test)]
 mod tests {
     use crate::plugin::FamiqPlugin;
+    use crate::widgets::FamiqWidgetResource;
     use crate::widgets::text::fa_text;
     use super::*;
 

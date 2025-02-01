@@ -6,7 +6,7 @@ use std::fs::File;
 use std::io::Read;
 
 use crate::errors::StylesFileError;
-use crate::widgets::{StyleKeyValue, StylesKeyValue};
+use crate::widgets::{StyleKeyValue, StylesKeyValue, FamiqWidgetId, FamiqWidgetClasses};
 
 pub fn read_styles_json_file(path: &str) -> Result<StylesKeyValue, StylesFileError> {
     let mut file = match File::open(path) {
@@ -194,4 +194,18 @@ pub fn process_spacing_built_in_class(node: &mut Node, class: &Option<String>) {
 
 pub fn mask_string(input: &str) -> String {
     "*".repeat(input.len())
+}
+
+pub fn insert_id_and_class<'a>(
+    root_node: &'a mut EntityCommands,
+    entity: Entity,
+    id: &Option<String>,
+    class: &Option<String>
+) {
+    if let Some(id) = id {
+        root_node.commands().entity(entity).insert(FamiqWidgetId(id.to_owned()));
+    }
+    if let Some(class) = class {
+        root_node.commands().entity(entity).insert(FamiqWidgetClasses(class.to_owned()));
+    }
 }

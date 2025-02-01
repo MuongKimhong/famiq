@@ -361,7 +361,7 @@ impl<'a> FamiqWidgetBuilder<'a> {
     /// ├── src/
     /// ```
     ///
-    /// ```rust
+    /// ```text
     /// builder.use_font_path("fonts/Some-font.ttf");
     /// ```
     ///
@@ -381,7 +381,7 @@ impl<'a> FamiqWidgetBuilder<'a> {
     /// │   ├── src/
     /// ```
     ///
-    /// ```rust
+    /// ```text
     /// // Inside subcrate 1
     /// builder.use_font_path("fonts/Some-font.ttf");
     /// ```

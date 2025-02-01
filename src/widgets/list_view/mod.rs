@@ -3,7 +3,7 @@ pub mod helper;
 // use crate::event_writer::FaInteractionEvent;
 use crate::utils;
 use crate::widgets::{
-    DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetResource,
+    DefaultWidgetEntity, FamiqWidgetId,
     FamiqWidgetClasses, WidgetType, FamiqWidgetBuilder,
     WidgetStyle, ExternalStyleHasChanged
 };
@@ -311,6 +311,7 @@ pub fn can_run_list_view_systems(listview_q: Query<&IsFamiqListView>) -> bool {
 mod tests {
     use crate::plugin::FamiqPlugin;
     use crate::widgets::button::fa_button;
+    use crate::widgets::FamiqWidgetResource;
     use bevy::input::InputPlugin;
     use super::*;
 

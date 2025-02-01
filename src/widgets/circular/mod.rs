@@ -4,7 +4,7 @@ pub mod tests;
 
 use bevy::prelude::*;
 use crate::widgets::{
-    FamiqWidgetId, FamiqWidgetClasses, FamiqWidgetResource,
+    FamiqWidgetId, FamiqWidgetClasses,
     DefaultWidgetEntity, FamiqWidgetBuilder, WidgetStyle,
     ExternalStyleHasChanged
 };

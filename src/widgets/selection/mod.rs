@@ -2,11 +2,12 @@ pub mod components;
 pub mod helper;
 pub mod styling;
 pub mod systems;
+pub mod tests;
 
-use crate::utils;
+use crate::utils::*;
 use crate::widgets::{
-    DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetResource,
-    FamiqWidgetId, FamiqWidgetClasses, FamiqWidgetBuilder, WidgetStyle,
+    DefaultTextEntity, DefaultWidgetEntity,
+    FamiqWidgetId, FamiqWidgetBuilder, WidgetStyle,
     ExternalStyleHasChanged
 };
 use bevy::ecs::system::EntityCommands;
@@ -78,77 +79,67 @@ pub struct FaSelection;
 
 // Needs container
 impl<'a> FaSelection {
-    fn _build_container(
-        id: &Option<String>,
-        class: Option<String>,
-        root_node: &'a mut EntityCommands
-    ) -> Entity {
-        let node = default_selection_container_node();
-        let border_color = BorderColor::default();
-        let border_radius = BorderRadius::default();
-        let bg_color = BackgroundColor::default();
-        let z_index = ZIndex::default();
-        let visibility = Visibility::Visible;
-
-        let entity = root_node
+    fn _build_container(root_node: &'a mut EntityCommands) -> Entity {
+        root_node
             .commands()
             .spawn((
-                node.clone(),
-                border_color.clone(),
-                border_radius.clone(),
-                bg_color.clone(),
-                z_index.clone(),
-                visibility.clone(),
+                default_selection_container_node(),
+                BorderColor::default(),
+                BorderRadius::default(),
+                BackgroundColor::default(),
+                ZIndex::default(),
+                Visibility::Visible,
                 IsFamiqSelectionContainer,
                 DefaultWidgetEntity::new(
-                    node,
-                    border_color,
-                    border_radius,
-                    bg_color,
-                    z_index,
-                    visibility,
+                    default_selection_container_node(),
+                    BorderColor::default(),
+                    BorderRadius::default(),
+                    BackgroundColor::default(),
+                    ZIndex::default(),
+                    Visibility::Visible,
                 ),
                 Interaction::default(),
                 WidgetStyle::default(),
                 ExternalStyleHasChanged(false)
             ))
-            .id();
-
-        if let Some(id) = id {
-            root_node.commands().entity(entity).insert(FamiqWidgetId(id.to_string()));
-        }
-        if let Some(class) = class {
-            root_node.commands().entity(entity).insert(FamiqWidgetClasses(class));
-        }
-        entity
+            .id()
     }
 
     fn _build_selector_placeholder(
+        id: &Option<String>,
+        class: &Option<String>,
         placeholder: &str,
         root_node: &'a mut EntityCommands,
         font_handle: Handle<Font>,
         size: &SelectionSize,
     ) -> Entity {
-        let txt = Text::new(placeholder);
         let txt_font = TextFont {
             font: font_handle,
             font_size: get_text_size(&size),
             ..default()
         };
-        let txt_color = TextColor(PLACEHOLDER_COLOR_UNFOCUSED);
-        let txt_layout = TextLayout::new_with_justify(JustifyText::Left);
 
-        root_node
+        let entity = root_node
             .commands()
             .spawn((
-                txt.clone(),
+                Text::new(placeholder),
                 txt_font.clone(),
-                txt_color.clone(),
-                txt_layout.clone(),
+                TextColor(PLACEHOLDER_COLOR_UNFOCUSED),
+                TextLayout::new_with_justify(JustifyText::Left),
                 SelectorPlaceHolder,
-                DefaultTextEntity::new(txt, txt_font, txt_color, txt_layout),
+                DefaultTextEntity::new(
+                    Text::new(placeholder),
+                    txt_font,
+                    TextColor(PLACEHOLDER_COLOR_UNFOCUSED),
+                    TextLayout::new_with_justify(JustifyText::Left)
+                ),
+                WidgetStyle::default(),
+                ExternalStyleHasChanged(false)
             ))
-            .id()
+            .id();
+
+        insert_id_and_class(root_node, entity, id, class);
+        entity
     }
 
     fn _build_selector_arrow_icon(
@@ -156,23 +147,19 @@ impl<'a> FaSelection {
         font_handle: Handle<Font>,
         size: &SelectionSize,
     ) -> Entity {
-        let txt = Text::new("▼");
         let txt_font = TextFont {
             font: font_handle,
             font_size: get_text_size(&size),
             ..default()
         };
-        let txt_color = TextColor(PLACEHOLDER_COLOR_UNFOCUSED);
-        let txt_layout = TextLayout::new_with_justify(JustifyText::Right);
 
         root_node
             .commands()
             .spawn((
-                txt.clone(),
-                txt_font.clone(),
-                txt_color.clone(),
-                txt_layout.clone(),
-                DefaultTextEntity::new(txt, txt_font, txt_color, txt_layout),
+                Text::new("▼"),
+                txt_font,
+                TextColor(PLACEHOLDER_COLOR_UNFOCUSED),
+                TextLayout::new_with_justify(JustifyText::Right),
                 ArrowIcon
             ))
             .id()
@@ -180,6 +167,7 @@ impl<'a> FaSelection {
 
     fn _build_selector(
         id: &Option<String>,
+        class: &Option<String>,
         root_node: &'a mut EntityCommands,
         variant: &SelectorVariant,
         shape: &SelectorShape,
@@ -208,21 +196,16 @@ impl<'a> FaSelection {
             }
             _ => ()
         }
-        let node = default_selector_node(border_width);
-        let border_color = get_selector_border_color(color);
-        let bg_color = get_selector_background_color(color);
-        let z_index = ZIndex::default();
-        let visibility = Visibility::Visible;
 
         let selector_entity = root_node
             .commands()
             .spawn((
-                node.clone(),
-                border_color.clone(),
+                default_selector_node(border_width),
+                get_selector_border_color(color),
                 border_radius.clone(),
-                bg_color.clone(),
-                z_index.clone(),
-                visibility.clone(),
+                get_selector_background_color(color),
+                ZIndex::default(),
+                Visibility::Visible,
                 BoxShadow {
                     color: Color::NONE,
                     x_offset: Val::Px(0.0),
@@ -232,12 +215,12 @@ impl<'a> FaSelection {
                 },
                 IsFamiqSelectionSelector,
                 DefaultWidgetEntity::new(
-                    node,
-                    border_color,
+                    default_selector_node(border_width),
+                    get_selector_border_color(color),
                     border_radius,
-                    bg_color,
-                    z_index,
-                    visibility,
+                    get_selector_background_color(color),
+                    ZIndex::default(),
+                    Visibility::Visible,
                 ),
                 Interaction::default(),
                 Selection::new(placeholder.to_string()),
@@ -247,14 +230,11 @@ impl<'a> FaSelection {
             .insert((WidgetStyle::default(), ExternalStyleHasChanged(false)))
             .id();
 
-        if let Some(id) = id {
-            root_node.commands().entity(selector_entity).insert(FamiqWidgetId(id.to_owned()));
-        }
+        insert_id_and_class(root_node, selector_entity, id, class);
         selector_entity
     }
 
     fn _build_choices_panel(
-        id: &Option<String>,
         root_node: &'a mut EntityCommands,
         choices: &Vec<String>,
         font_handle: Handle<Font>,
@@ -262,108 +242,66 @@ impl<'a> FaSelection {
         color: &SelectorColor,
         selector_entity: Entity
     ) -> Entity {
-        let node = default_selection_choices_panel_node();
-        let border_radius = BorderRadius::all(Val::Px(5.0));
-        let border_color = get_choice_panel_border_color(color);
-        let bg_color = get_choice_panel_background_color(color);
-        let z_index = ZIndex::default();
-        let visibility = Visibility::Hidden;
-
         let mut choice_entities: Vec<Entity> = Vec::new();
         let mut all_choices = Vec::with_capacity(choices.len() + 1);
         all_choices.push("-/-".to_string());
         all_choices.extend_from_slice(choices);
 
         for choice in all_choices.iter() {
-            let txt = Self::_build_choice_text(id, choice, root_node, &font_handle, color);
-            let container = Self::_build_choice_container(id, root_node, txt, selector_entity);
-            utils::entity_add_child(root_node, txt, container);
+            let txt = Self::_build_choice_text(choice, root_node, &font_handle, color);
+            let container = Self::_build_choice_container(root_node, txt, selector_entity);
+            entity_add_child(root_node, txt, container);
             choice_entities.push(container);
         }
 
         let panel = root_node
             .commands()
             .spawn((
-                node.clone(),
-                border_color.clone(),
-                border_radius.clone(),
-                bg_color.clone(),
-                z_index.clone(),
-                visibility.clone(),
+                default_selection_choices_panel_node(),
+                get_choice_panel_border_color(color),
+                BorderRadius::all(Val::Px(5.0)),
+                get_choice_panel_background_color(color),
+                ZIndex::default(),
+                Visibility::Hidden,
                 IsFamiqSelectionChoicesPanel,
-                DefaultWidgetEntity::new(
-                    node,
-                    border_color,
-                    border_radius,
-                    bg_color,
-                    z_index,
-                    visibility,
-                ),
                 SelectionContainerEntity(container_entity),
                 GlobalZIndex(2),
                 FocusPolicy::Block
             ))
             .id();
-        if let Some(id) = id {
-            root_node.commands().entity(panel).insert(FamiqWidgetId(format!("{id}_selection_choice_panel")));
-        }
-        utils::entity_add_children(root_node, &choice_entities, panel);
+
+        entity_add_children(root_node, &choice_entities, panel);
         panel
     }
 
     fn _build_choice_container(
-        id: &Option<String>,
         root_node: &'a mut EntityCommands,
         text_entity: Entity,
         selector_entity: Entity
     ) -> Entity {
-        let node = default_choice_container_node();
-        let border_color = BorderColor::default();
-        let border_radius = BorderRadius::all(Val::Px(5.0));
-        let bg_color = BackgroundColor::default();
-        let z_index = ZIndex::default();
-        let visibility = Visibility::Inherited;
-
-        let entity = root_node
+        root_node
             .commands()
             .spawn((
-                node.clone(),
-                border_color.clone(),
-                border_radius.clone(),
-                bg_color.clone(),
-                z_index.clone(),
-                visibility.clone(),
-                DefaultWidgetEntity::new(
-                    node,
-                    border_color,
-                    border_radius,
-                    bg_color,
-                    z_index,
-                    visibility,
-                ),
+                default_choice_container_node(),
+                BorderColor::default(),
+                BorderRadius::all(Val::Px(5.0)),
+                BackgroundColor::default(),
+                ZIndex::default(),
+                Visibility::Inherited,
                 IsFamiqSelectionChoice,
                 SelectionChoiceTextEntity(text_entity),
                 Interaction::default(),
-                WidgetStyle::default(),
-                ExternalStyleHasChanged(false),
                 SelectorEntity(selector_entity)
             ))
-            .id();
-
-        if let Some(id) = id {
-            root_node.commands().entity(entity).insert(FamiqWidgetId(format!("{id}_selection_choice_container")));
-        }
-        entity
+            .id()
     }
 
     fn _build_choice_text(
-        id: &Option<String>,
         choice: &str,
         root_node: &'a mut EntityCommands,
         font_handle: &Handle<Font>,
         color: &SelectorColor
     ) -> Entity {
-        let txt = Text::new(choice);
         let txt_font = TextFont {
             font: font_handle.clone(),
             ..default()
@@ -372,24 +310,16 @@ impl<'a> FaSelection {
         if *color == SelectorColor::Default {
             txt_color = TextColor(BLACK_COLOR);
         }
-        let txt_layout = TextLayout::new_with_justify(JustifyText::Center);
-
-        let entity = root_node
+        root_node
             .commands()
             .spawn((
-                txt.clone(),
-                txt_font.clone(),
-                txt_color.clone(),
-                txt_layout.clone(),
-                DefaultTextEntity::new(txt, txt_font, txt_color, txt_layout),
+                Text::new(choice),
+                txt_font,
+                txt_color,
+                TextLayout::new_with_justify(JustifyText::Center),
                 Visibility::Inherited,
             ))
-            .id();
-
-        if let Some(id) = id {
-            root_node.commands().entity(entity).insert(FamiqWidgetId(format!("{id}_selection_choice_text")));
-        }
-        entity
+            .id()
     }
 
     // return Entity of Container (Selection refers to container itself)
@@ -405,8 +335,10 @@ impl<'a> FaSelection {
         shape: SelectorShape,
         choices: &Vec<String>,
     ) -> Entity {
-        let container = Self::_build_container(&id, class, root_node);
+        let container = Self::_build_container(root_node);
         let placeholder_entity = Self::_build_selector_placeholder(
+            &id,
+            &class,
             placeholder,
             root_node,
             font_handle.clone(),
@@ -415,6 +347,7 @@ impl<'a> FaSelection {
         let arrow_icon_entity = Self::_build_selector_arrow_icon(root_node, font_handle.clone(), &size);
         let selector = Self::_build_selector(
             &id,
+            &class,
             root_node,
             &variant,
             &shape,
@@ -424,7 +357,6 @@ impl<'a> FaSelection {
             arrow_icon_entity
         );
         let choices_panel = Self::_build_choices_panel(
-            &id,
             root_node,
             choices,
             font_handle.clone(),
@@ -435,8 +367,8 @@ impl<'a> FaSelection {
 
         root_node.commands().entity(selector).insert(SelectionChoicesPanelEntity(choices_panel));
 
-        utils::entity_add_children(root_node, &vec![placeholder_entity, arrow_icon_entity], selector);
-        utils::entity_add_children(root_node, &vec![selector, choices_panel], container);
+        entity_add_children(root_node, &vec![placeholder_entity, arrow_icon_entity], selector);
+        entity_add_children(root_node, &vec![selector, choices_panel], container);
 
         container
     }
@@ -454,28 +386,20 @@ impl<'a> FaSelection {
     }
 
     pub fn show_choice_panel(
-        panel_q: &mut Query<
-            (&mut Visibility, &mut DefaultWidgetEntity),
-            With<IsFamiqSelectionChoicesPanel>
-        >,
+        panel_q: &mut Query<&mut Visibility, With<IsFamiqSelectionChoicesPanel>>,
         panel_entity: Entity
     ) {
-        if let Ok((mut visibility, mut default_widget)) = panel_q.get_mut(panel_entity) {
+        if let Ok(mut visibility) = panel_q.get_mut(panel_entity) {
             *visibility = Visibility::Visible;
-            default_widget.visibility = Visibility::Visible;
         }
     }
 
     pub fn hide_choice_panel(
-        panel_q: &mut Query<
-            (&mut Visibility, &mut DefaultWidgetEntity),
-            With<IsFamiqSelectionChoicesPanel>
-        >,
+        panel_q: &mut Query<&mut Visibility, With<IsFamiqSelectionChoicesPanel>>,
         panel_entity: Entity
     ) {
-        if let Ok((mut visibility, mut default_widget)) = panel_q.get_mut(panel_entity) {
+        if let Ok(mut visibility) = panel_q.get_mut(panel_entity) {
             *visibility = Visibility::Hidden;
-            default_widget.visibility = Visibility::Hidden;
         }
     }
 
@@ -608,125 +532,4 @@ pub fn fa_selection<'a>(
 
 pub fn can_run_selection_systems(selection_q: Query<&IsFamiqSelectionContainer>) -> bool {
     selection_q.iter().count() > 0
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::plugin::FamiqPlugin;
-    use crate::widgets::color::PRIMARY_DARK_COLOR;
-    use super::*;
-
-    fn setup_test_default_selection(
-        mut commands: Commands,
-        asset_server: ResMut<AssetServer>,
-        mut builder_res: ResMut<FamiqWidgetResource>,
-    ) {
-        let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-        fa_selection(&mut builder, "Test select choice").id("#test-selection").build();
-    }
-
-    fn setup_test_selection_with_built_in_class_color(
-        mut commands: Commands,
-        asset_server: ResMut<AssetServer>,
-        mut builder_res: ResMut<FamiqWidgetResource>,
-    ) {
-        let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-        fa_selection(&mut builder, "Test select choice")
-            .class("is-primary")
-            .build();
-    }
-
-    fn setup_test_selection_with_built_in_class_shape(
-        mut commands: Commands,
-        asset_server: ResMut<AssetServer>,
-        mut builder_res: ResMut<FamiqWidgetResource>,
-    ) {
-        let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-        fa_selection(&mut builder, "Test select choice")
-            .class("is-rectangle")
-            .build();
-    }
-
-    fn setup_test_selection_with_choices(
-        mut commands: Commands,
-        asset_server: ResMut<AssetServer>,
-        mut builder_res: ResMut<FamiqWidgetResource>,
-    ) {
-        let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-        fa_selection(&mut builder, "Test select choice")
-            .choices(vec!["Test one", "Test two"])
-            .build();
-    }
-
-    #[test]
-    fn test_create_default_selection() {
-        let mut app = utils::create_test_app();
-        app.add_plugins(FamiqPlugin);
-        app.insert_resource(FamiqWidgetResource::default());
-        app.add_systems(Startup, setup_test_default_selection);
-        app.update();
-
-        let selection_q = app.world_mut()
-            .query::<(&FamiqWidgetId, &IsFamiqSelectionContainer)>()
-            .get_single(app.world());
-
-        assert!(selection_q.is_ok(), "There should be only 1 selection");
-
-        let selection_id = selection_q.unwrap().0;
-        assert_eq!("#test-selection".to_string(), selection_id.0);
-    }
-
-    #[test]
-    fn test_create_selection_with_built_in_class_color() {
-        let mut app = utils::create_test_app();
-        app.add_plugins(FamiqPlugin);
-        app.insert_resource(FamiqWidgetResource::default());
-        app.add_systems(Startup, setup_test_selection_with_built_in_class_color);
-        app.update();
-
-        let selector_q = app.world_mut()
-            .query::<(&BackgroundColor, &IsFamiqSelectionSelector)>()
-            .get_single(app.world());
-
-        let selector_bg = selector_q.unwrap().0;
-        assert_eq!(
-            BackgroundColor(PRIMARY_DARK_COLOR),
-            *selector_bg
-        );
-    }
-
-    #[test]
-    fn test_create_selection_with_built_in_class_shape() {
-        let mut app = utils::create_test_app();
-        app.add_plugins(FamiqPlugin);
-        app.insert_resource(FamiqWidgetResource::default());
-        app.add_systems(Startup, setup_test_selection_with_built_in_class_shape);
-        app.update();
-
-        let selector_q = app.world_mut()
-            .query::<(&BorderRadius, &IsFamiqSelectionSelector)>()
-            .get_single(app.world());
-
-        let selector_border = selector_q.unwrap().0;
-        assert_eq!(
-            BorderRadius::all(Val::Px(0.0)),
-            *selector_border
-        );
-    }
-
-    #[test]
-    fn test_create_selection_with_choices() {
-        let mut app = utils::create_test_app();
-        app.add_plugins(FamiqPlugin);
-        app.insert_resource(FamiqWidgetResource::default());
-        app.add_systems(Startup, setup_test_selection_with_choices);
-        app.update();
-
-        let panel_q = app.world_mut()
-            .query::<(&Children, &IsFamiqSelectionChoicesPanel)>()
-            .get_single(app.world());
-
-        // 2 provided choices, 1 default "-/-"
-        assert_eq!(3 as usize, panel_q.unwrap().0.len());
-    }
 }
