@@ -65,7 +65,7 @@ fn fa_text_input_systems(app: &mut App) {
             event_writer::text_input_toggle_password_icon_interaction_system,
             FaTextInput::handle_text_input_on_typing_system,
             FaTextInput::handle_text_input_interaction_system,
-            FaTextInput::handle_text_input_cursor_on_focused_system,
+            FaTextInput::handle_text_input_on_focused_system,
             FaTextInput::handle_cursor_blink_system,
             FaTextInput::handle_toggle_password_icon_interaction_system
         )

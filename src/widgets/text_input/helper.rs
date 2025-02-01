@@ -121,12 +121,36 @@ pub fn _update_cursor_position(
     }
 }
 
+/// Internal helper function to set placeholder color
+/// based on text_input focus state.
+pub fn _handle_update_placeholder_color(
+    placeholder_text_color: &mut TextColor,
+    input_bg_color: &BackgroundColor,
+    placeholder_internal_widget_style: &WidgetStyle,
+    focused: bool
+) {
+    if placeholder_internal_widget_style.color.is_some() {
+        println!("external style changed");
+        return;
+    }
+
+    if focused {
+        println!("white or black");
+        if input_bg_color.0 == WHITE_COLOR {
+            placeholder_text_color.0 = BLACK_COLOR;
+        } else {
+            placeholder_text_color.0 = TEXT_INPUT_VALUE_COLOR;
+        }
+    }
+    else {
+        println!("placeholder color");
+        placeholder_text_color.0 = PLACEHOLDER_COLOR;
+    }
+}
+
 /// Internal helper function to calculate cursor size,
 /// updating visibility and set initial position.
 pub fn _handle_cursor_on_focused(
-    text_color: &mut TextColor,
-    bg_color: &BackgroundColor,
-    visibility: &mut Visibility,
     cursor_node: &mut Node,
     text_input_node: &Node,
     text_info: &TextLayoutInfo,
@@ -134,15 +158,6 @@ pub fn _handle_cursor_on_focused(
     char_size: &mut CharacterSize,
     text_input: &TextInput
 ) {
-    // Update text color based on background
-    text_color.0 = if bg_color.0 == WHITE_COLOR {
-        BLACK_COLOR
-    } else {
-        TEXT_INPUT_VALUE_COLOR
-    };
-
-    *visibility = Visibility::Visible;
-
     // Update character size
     char_size.width = text_info.size.x / text_content.len() as f32;
     char_size.height = text_info.size.y;

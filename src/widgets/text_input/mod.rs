@@ -165,6 +165,8 @@ pub struct FaTextInput;
 // Needs container
 impl<'a> FaTextInput {
     fn _build_placeholder(
+        id: &Option<String>,
+        class: &Option<String>,
         placeholder: &str,
         root_node: &'a mut EntityCommands,
         font_handle: Handle<Font>,
@@ -179,7 +181,7 @@ impl<'a> FaTextInput {
         let txt_color = TextColor(PLACEHOLDER_COLOR);
         let txt_layout = TextLayout::new_with_justify(JustifyText::Left);
 
-        root_node
+        let entity = root_node
             .commands()
             .spawn((
                 txt.clone(),
@@ -187,9 +189,19 @@ impl<'a> FaTextInput {
                 txt_color.clone(),
                 txt_layout.clone(),
                 DefaultTextEntity::new(txt, txt_font, txt_color, txt_layout),
-                IsFamiqTextInputPlaceholder
+                IsFamiqTextInputPlaceholder,
+                WidgetStyle::default(),
+                ExternalStyleHasChanged(false)
             ))
-            .id()
+            .id();
+
+        if let Some(id) = id {
+            root_node.commands().entity(entity).insert(FamiqWidgetId(id.to_owned()));
+        }
+        if let Some(class) = class {
+            root_node.commands().entity(entity).insert(FamiqWidgetClasses(class.to_owned()));
+        }
+        entity
     }
 
     fn _build_toggle_password_icon(
@@ -345,7 +357,14 @@ impl<'a> FaTextInput {
         input_type: &TextInputType
     ) -> Entity {
         let cursor_entity = Self::_build_cursor(root_node, &color);
-        let ph_entity = Self::_build_placeholder(placeholder, root_node, font_handle.clone(), &size);
+        let ph_entity = Self::_build_placeholder(
+            &id,
+            &class,
+            placeholder,
+            root_node,
+            font_handle.clone(),
+            &size
+        );
         let input_entity = Self::_build_input(
             &id,
             class,
@@ -370,7 +389,7 @@ impl<'a> FaTextInput {
         input_entity
     }
 
-    pub fn handle_text_input_cursor_on_focused_system(
+    pub fn handle_text_input_on_focused_system(
         mut input_q: Query<(
             Entity,
             &Node,
@@ -388,35 +407,55 @@ impl<'a> FaTextInput {
             ),
             Without<CharacterSize>
         >,
-        mut text_q: Query<(&Text, &mut TextColor, &TextLayoutInfo), With<IsFamiqTextInputPlaceholder>>,
+        mut placeholder_q: Query<
+            (&Text, &mut TextColor, &TextLayoutInfo, &WidgetStyle),
+            With<IsFamiqTextInputPlaceholder>
+        >,
         builder_res: Res<FamiqWidgetResource>
     ) {
         if !builder_res.is_changed() {
             return;
         }
-        for (input_entity, text_input_node, bg_color, text_input, cursor_entity, placeholder_entity, mut char_size) in input_q.iter_mut() {
+        for (
+            input_entity,
+            text_input_node,
+            input_bg_color,
+            text_input,
+            cursor_entity,
+            placeholder_entity,
+            mut char_size
+        ) in input_q.iter_mut() {
 
             let Some(focused) = builder_res.get_widget_focus_state(&input_entity) else { continue };
 
-            if let Ok((mut cursor_node, mut visibility, _)) = cursor_q.get_mut(cursor_entity.0) {
-                if let Ok((text, mut text_color, text_info)) = text_q.get_mut(placeholder_entity.0) {
-                    if focused {
-                        _handle_cursor_on_focused(
-                            &mut text_color,
-                            bg_color,
-                            &mut visibility,
-                            &mut cursor_node,
-                            text_input_node,
-                            &text_info,
-                            &text.0,
-                            &mut char_size,
-                            &text_input
-                        );
-                    } else {
-                        *visibility = Visibility::Hidden;
-                        text_color.0 = PLACEHOLDER_COLOR;
-                    }
+            let Ok((mut cursor_node, mut visibility, _)) = cursor_q.get_mut(cursor_entity.0) else {continue};
+
+            if let Ok((
+                placeholder_text,
+                mut placeholder_text_color,
+                placeholder_text_info,
+                placeholder_internal_widget_style
+            )) = placeholder_q.get_mut(placeholder_entity.0) {
+                if focused {
+                    *visibility = Visibility::Visible;
+                    _handle_cursor_on_focused(
+                        &mut cursor_node,
+                        text_input_node,
+                        &placeholder_text_info,
+                        &placeholder_text.0,
+                        &mut char_size,
+                        &text_input
+                    );
+                } else {
+                    *visibility = Visibility::Hidden;
                 }
+
+                _handle_update_placeholder_color(
+                    &mut placeholder_text_color,
+                    input_bg_color,
+                    placeholder_internal_widget_style,
+                    focused
+                );
             }
         }
     }
