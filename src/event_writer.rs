@@ -5,6 +5,7 @@ use crate::widgets::{
     text::*,
     text_input::*,
     image::*,
+    circular::*,
     *,
 };
 
@@ -131,6 +132,16 @@ pub fn text_interaction_system(
     mut writer: EventWriter<FaInteractionEvent>,
 ) {
     FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::Text);
+}
+
+pub fn circular_interaction_system(
+    mut interaction_q: Query<
+        (Entity, &IsFamiqCircular, Option<&FamiqWidgetId>, &Interaction),
+        Changed<Interaction>,
+    >,
+    mut writer: EventWriter<FaInteractionEvent>,
+) {
+    FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::Circular);
 }
 
 pub fn listview_interaction_system(

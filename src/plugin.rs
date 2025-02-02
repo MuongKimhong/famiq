@@ -125,8 +125,10 @@ fn fa_circular_systems(app: &mut App) {
     app.add_systems(
         Update,
         (
+            event_writer::circular_interaction_system,
             FaCircular::rotate_spinner,
-            FaCircular::update_spinner_speed
+            FaCircular::update_spinner_speed,
+            FaCircular::handle_circular_interaction_system
         )
         .run_if(can_run_circular_systems)
     );

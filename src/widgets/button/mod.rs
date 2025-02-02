@@ -16,7 +16,7 @@ use bevy::prelude::*;
 pub use components::*;
 use helper::*;
 
-use super::tooltip::{FaToolTipResource, FamiqToolTipTextEntity, IsFamiqToolTipContainer, IsFamiqToolTipText};
+use super::tooltip::FaToolTipResource;
 
 /// Represents built-in button color options for a `FaButton`.
 pub enum BtnColor {
@@ -199,20 +199,18 @@ impl<'a> FaButton {
             &mut BackgroundColor,
             &mut BorderColor,
             &ComputedNode,
+            &GlobalTransform,
             Option<&FamiqToolTipText>
         ), With<IsFamiqButton>>,
         mut tooltip_res: ResMut<FaToolTipResource>
     ) {
         for e in events.read() {
-            if let Ok((default_style, mut bg_color, mut bd_color, computed_node, tooltip_text)) = button_q.get_mut(e.entity) {
+            if let Ok((default_style, mut bg_color, mut bd_color, computed, transform, tooltip_text)) = button_q.get_mut(e.entity) {
                 match e.interaction {
                     Interaction::Hovered => {
-                        if let Some(tooltip_text) = tooltip_text {
-                            tooltip_res.visible = true;
-                            tooltip_res.text = tooltip_text.0.clone();
-                            tooltip_res.hovered_widget_height = computed_node.size().y;
+                        if let Some(text) = tooltip_text {
+                            tooltip_res.show(text.0.clone(), computed.size(), transform.translation());
                         }
-
                         // darken by 10%
                         set_default_bg_and_bd_color(default_style, &mut bg_color, &mut bd_color);
                         darken_bg_and_bg_color(10.0, &mut bg_color, &mut bd_color);
@@ -227,7 +225,7 @@ impl<'a> FaButton {
                     },
                     Interaction::None => {
                         if tooltip_text.is_some() {
-                            tooltip_res.visible = false;
+                            tooltip_res.hide();
                         }
                         set_default_bg_and_bd_color(default_style, &mut bg_color, &mut bd_color);
                     },
@@ -308,18 +306,19 @@ impl<'a> FaButtonBuilder<'a> {
         (use_color, use_size, use_shape)
     }
 
-    /// Method to add class to button entity
+    /// Method to add class to button entity.
     pub fn class(mut self, class: &str) -> Self {
         self.class = Some(class.to_string());
         self
     }
 
-    /// Method to add id to button entity
+    /// Method to add id to button entity.
     pub fn id(mut self, id: &str) -> Self {
         self.id = Some(id.to_string());
         self
     }
 
+    /// Method to add tooltip to button.
     pub fn tooltip(mut self, text: &str) -> Self {
         self.has_tooltip = true;
         self.tooltip_text = text.to_string();

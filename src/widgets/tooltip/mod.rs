@@ -5,6 +5,9 @@ use crate::utils::entity_add_child;
 
 use super::color::{BLACK_COLOR, WHITE_COLOR};
 
+const TOP_OFFSET: f32 = 10.0;
+const BOTTOM_OFFSET: f32 = 15.0;
+
 #[derive(Component)]
 pub struct IsFamiqToolTipContainer;
 
@@ -18,7 +21,42 @@ pub struct FamiqToolTipTextEntity(pub Entity);
 pub struct FaToolTipResource {
     pub visible: bool,
     pub text: String,
-    pub hovered_widget_height: f32
+    pub widget_size: Vec2,
+    pub widget_translation: Vec3
+}
+
+impl FaToolTipResource {
+    pub fn show(&mut self, text: String, widget_size: Vec2, widget_translation: Vec3) {
+        self.visible = true;
+        self.text = text;
+        self.widget_size = widget_size;
+        self.widget_translation = widget_translation;
+    }
+
+    pub fn hide(&mut self) {
+        self.visible = false;
+    }
+
+    pub fn get_top_pos(&self, size: Vec2) -> f32 {
+        let mut top_pos = self.widget_translation.y
+            - (self.widget_size.y / 2.0)
+            - size.y
+            - TOP_OFFSET;
+
+        if top_pos < 0.0 {
+            top_pos += size.y + self.widget_size.y + BOTTOM_OFFSET;
+        }
+        top_pos
+    }
+
+    pub fn get_left_pos(&self, size: Vec2) -> f32 {
+        let mut left_pos = self.widget_translation.x - (size.x / 2.0);
+
+        if left_pos < 0.0 {
+            left_pos = 0.0;
+        }
+        left_pos
+    }
 }
 
 pub struct FaToolTip;
@@ -83,7 +121,6 @@ impl<'a> FaToolTip {
 
     pub fn handle_show_hide_tooltip_system(
         tooltip_res: Res<FaToolTipResource>,
-        window_q: Query<&Window, With<PrimaryWindow>>,
         mut tooltip_q: Query<(
             &mut Visibility,
             &mut Node,
@@ -93,8 +130,6 @@ impl<'a> FaToolTip {
         mut tooltip_text_q: Query<&mut Text, With<IsFamiqToolTipText>>
     ) {
         if tooltip_res.is_changed() {
-            let Some(cursor_position) = window_q.single().cursor_position() else { return; };
-
             if let Ok((mut visibility, mut node, computed_node, text_entity)) = tooltip_q.get_single_mut() {
 
                 if !tooltip_res.visible {
@@ -109,17 +144,9 @@ impl<'a> FaToolTip {
                 if let Ok(mut tooltip_text) = tooltip_text_q.get_mut(text_entity.0) {
                     tooltip_text.0 = tooltip_res.text.clone();
                 }
-
-                let offset: f32 = 25.0;
-                let screen_height = window_q.single().height();
-                let screen_width = window_q.single().width();
-
-                let top_pos = (cursor_position.y - tooltip_res.hovered_widget_height - offset).clamp(0.0, screen_height);
-                let left_pos = (cursor_position.x - (computed_node.size().x / 2.0)).clamp(0.0, screen_width);
-
-                node.top = Val::Px(top_pos);
-                node.left = Val::Px(left_pos);
-
+                let size = computed_node.size();
+                node.top = Val::Px(tooltip_res.get_top_pos(size));
+                node.left = Val::Px(tooltip_res.get_left_pos(size));
                 *visibility = Visibility::Visible;
             }
         }

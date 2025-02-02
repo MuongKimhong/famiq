@@ -6,14 +6,16 @@ use bevy::prelude::*;
 use crate::widgets::{
     FamiqWidgetId, FamiqWidgetClasses,
     DefaultWidgetEntity, FamiqWidgetBuilder, WidgetStyle,
-    ExternalStyleHasChanged
+    ExternalStyleHasChanged, FamiqToolTipText
 };
+use crate::event_writer::FaInteractionEvent;
 use crate::utils::{
     entity_add_child,
     lighten_color,
     darken_color,
     process_spacing_built_in_class
 };
+use super::tooltip::FaToolTipResource;
 
 pub use components::*;
 use helper::*;
@@ -155,6 +157,8 @@ impl<'a> FaCircular {
         root_node: &'a mut EntityCommands,
         color: CircularColor,
         size: CircularSize,
+        has_tooltip: bool,
+        tooltip_text: Option<String>
     ) -> Entity {
         let spinner = Self::_build_spinner(root_node, &color, &size);
         let outer = Self::_build_outer_circle(
@@ -166,6 +170,9 @@ impl<'a> FaCircular {
             spinner
         );
 
+        if has_tooltip {
+            root_node.commands().entity(outer).insert(FamiqToolTipText(tooltip_text.unwrap()));
+        }
         entity_add_child(root_node, spinner, outer);
         outer
     }
@@ -209,6 +216,33 @@ impl<'a> FaCircular {
             }
         }
     }
+
+    pub fn handle_circular_interaction_system(
+        mut events: EventReader<FaInteractionEvent>,
+        mut circular_q: Query<
+            (&ComputedNode, &GlobalTransform, Option<&FamiqToolTipText>),
+            With<IsFamiqCircular>
+        >,
+        mut tooltip_res: ResMut<FaToolTipResource>
+    ) {
+        for e in events.read() {
+            if let Ok((computed, transform, tooltip_text)) = circular_q.get_mut(e.entity) {
+                match e.interaction {
+                    Interaction::Hovered => {
+                        if let Some(text) = tooltip_text {
+                            tooltip_res.show(text.0.clone(), computed.size(), transform.translation());
+                        }
+                    },
+                    Interaction::None => {
+                        if tooltip_text.is_some() {
+                            tooltip_res.hide();
+                        }
+                    },
+                    _ => {}
+                }
+            }
+        }
+    }
 }
 
 /// Builder for creating Famiq circular elements.
@@ -216,7 +250,9 @@ pub struct FaCircularBuilder<'a> {
     pub id: Option<String>,
     pub class: Option<String>,
     pub size: Option<f32>,
-    pub root_node: EntityCommands<'a>
+    pub root_node: EntityCommands<'a>,
+    pub has_tooltip: bool,
+    pub tooltip_text: String
 }
 
 impl<'a> FaCircularBuilder<'a> {
@@ -225,7 +261,9 @@ impl<'a> FaCircularBuilder<'a> {
             id: None,
             class: None,
             size: None,
-            root_node
+            root_node,
+            has_tooltip: false,
+            tooltip_text: String::new()
         }
     }
 
@@ -278,9 +316,16 @@ impl<'a> FaCircularBuilder<'a> {
         self
     }
 
-    /// Method to add id to circular
+    /// Method to add id to circular.
     pub fn id(mut self, id: &str) -> Self {
         self.id = Some(id.to_string());
+        self
+    }
+
+    /// Method to add tooltip to circular.
+    pub fn tooltip(mut self, text: &str) -> Self {
+        self.has_tooltip = true;
+        self.tooltip_text = text.to_string();
         self
     }
 
@@ -293,7 +338,9 @@ impl<'a> FaCircularBuilder<'a> {
             self.class.clone(),
             &mut self.root_node,
             color,
-            use_size
+            use_size,
+            self.has_tooltip,
+            Some(self.tooltip_text.clone())
         )
     }
 }
