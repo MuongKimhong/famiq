@@ -7,7 +7,7 @@ use crate::widgets::{
     DefaultTextEntity, DefaultWidgetEntity,
     FamiqWidgetId, FamiqWidgetClasses,
     FamiqWidgetResource, FamiqWidgetBuilder,
-    WidgetStyle, ExternalStyleHasChanged
+    WidgetStyle, ExternalStyleHasChanged, FamiqToolTipText
 };
 use crate::event_writer::FaInteractionEvent;
 use bevy::ecs::system::EntityCommands;
@@ -15,6 +15,8 @@ use bevy::prelude::*;
 
 pub use components::*;
 use helper::*;
+
+use super::tooltip::{FaToolTipResource, FamiqToolTipTextEntity, IsFamiqToolTipContainer, IsFamiqToolTipText};
 
 /// Represents built-in button color options for a `FaButton`.
 pub enum BtnColor {
@@ -124,7 +126,9 @@ impl<'a> FaButton {
         font_handle: Handle<Font>,
         color: BtnColor,
         size: BtnSize,
-        shape: BtnShape
+        shape: BtnShape,
+        has_tooltip: bool,
+        tooltip_text: Option<String>
     ) -> Entity {
         let txt_entity = Self::_build_text(&id, &class, text, root_node, font_handle, &color, &size);
 
@@ -167,6 +171,10 @@ impl<'a> FaButton {
             ))
             .id();
 
+        if has_tooltip {
+            root_node.commands().entity(btn_entity).insert(FamiqToolTipText(tooltip_text.unwrap()));
+        }
+
         if let Some(id) = id {
             root_node.commands().entity(btn_entity).insert(FamiqWidgetId(id));
         }
@@ -185,13 +193,26 @@ impl<'a> FaButton {
     /// - `builder_res`: Mutable reference to `FamiqWidgetResource` for managing focus states.
     pub fn handle_button_on_interaction_system(
         mut events: EventReader<FaInteractionEvent>,
-        mut button_q: Query<(&IsFamiqButton, &DefaultWidgetEntity, &mut BackgroundColor, &mut BorderColor)>,
-        mut builder_res: ResMut<FamiqWidgetResource>
+        mut builder_res: ResMut<FamiqWidgetResource>,
+        mut button_q: Query<(
+            &DefaultWidgetEntity,
+            &mut BackgroundColor,
+            &mut BorderColor,
+            &ComputedNode,
+            Option<&FamiqToolTipText>
+        ), With<IsFamiqButton>>,
+        mut tooltip_res: ResMut<FaToolTipResource>
     ) {
         for e in events.read() {
-            if let Ok((_, default_style, mut bg_color, mut bd_color)) = button_q.get_mut(e.entity) {
+            if let Ok((default_style, mut bg_color, mut bd_color, computed_node, tooltip_text)) = button_q.get_mut(e.entity) {
                 match e.interaction {
                     Interaction::Hovered => {
+                        if let Some(tooltip_text) = tooltip_text {
+                            tooltip_res.visible = true;
+                            tooltip_res.text = tooltip_text.0.clone();
+                            tooltip_res.hovered_widget_height = computed_node.size().y;
+                        }
+
                         // darken by 10%
                         set_default_bg_and_bd_color(default_style, &mut bg_color, &mut bd_color);
                         darken_bg_and_bg_color(10.0, &mut bg_color, &mut bd_color);
@@ -205,6 +226,9 @@ impl<'a> FaButton {
                         builder_res.update_or_insert_focus_state(e.entity, true);
                     },
                     Interaction::None => {
+                        if tooltip_text.is_some() {
+                            tooltip_res.visible = false;
+                        }
                         set_default_bg_and_bd_color(default_style, &mut bg_color, &mut bd_color);
                     },
                 }
@@ -220,6 +244,8 @@ pub struct FaButtonBuilder<'a> {
     pub text: String,
     pub font_handle: Handle<Font>,
     pub root_node: EntityCommands<'a>,
+    pub has_tooltip: bool,
+    pub tooltip_text: String
 }
 
 impl<'a> FaButtonBuilder<'a> {
@@ -238,6 +264,8 @@ impl<'a> FaButtonBuilder<'a> {
             text,
             font_handle,
             root_node,
+            has_tooltip: false,
+            tooltip_text: String::new()
         }
     }
 
@@ -292,6 +320,12 @@ impl<'a> FaButtonBuilder<'a> {
         self
     }
 
+    pub fn tooltip(mut self, text: &str) -> Self {
+        self.has_tooltip = true;
+        self.tooltip_text = text.to_string();
+        self
+    }
+
     /// Spawn the button to UI world.
     pub fn build(&mut self) -> Entity {
         let (color, size, shape) = self._process_built_in_classes();
@@ -303,7 +337,9 @@ impl<'a> FaButtonBuilder<'a> {
             self.font_handle.clone(),
             color,
             size,
-            shape
+            shape,
+            self.has_tooltip,
+            Some(self.tooltip_text.clone())
         )
     }
 }

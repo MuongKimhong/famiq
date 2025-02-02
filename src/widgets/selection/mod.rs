@@ -45,30 +45,6 @@ impl ResourceMap for FaSelectionResource {
     }
 }
 
-// impl FaSelectionResource {
-//     pub fn _update_or_insert(&mut self, id: String, selected_choice: String) {
-//         self.choices.insert(id, selected_choice);
-//     }
-
-//     /// Get selection value by id
-//     pub fn get_value(&self, id: &str) -> String {
-//         if let Some(v) = self.choices.get(id) {
-//             if v == "-/-" {
-//                 return String::from("")
-//             } else {
-//                 v.to_owned()
-//             }
-//         } else {
-//             String::from("")
-//         }
-//     }
-
-//     /// Check if selection id exists in resource
-//     pub fn exists(&self, id: &str) -> bool {
-//         self.choices.get(id).is_some()
-//     }
-// }
-
 pub enum SelectorVariant {
     Outlined,
     Default,

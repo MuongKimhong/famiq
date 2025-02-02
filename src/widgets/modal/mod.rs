@@ -154,7 +154,6 @@ impl<'a> FaModal {
                 GlobalZIndex(5),
                 Visibility::Hidden,
                 IsFamiqModalBackground,
-                // FaModalState(false),
                 FocusPolicy::Block,
                 FaModalContainerEntity(container_entity),
                 WidgetStyle::default(),

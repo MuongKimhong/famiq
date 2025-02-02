@@ -123,29 +123,23 @@ impl<'a> FaText {
         let mut node = _default_text_container_node();
         process_spacing_built_in_class(&mut node, &class);
 
-        let border_color = BorderColor::default();
-        let bg_color = BackgroundColor::default();
-        let z_index = ZIndex::default();
-        let visibility = Visibility::Inherited;
-        let border_radius = BorderRadius::default();
-
         let container_entity = root_node
             .commands()
             .spawn((
                 node.clone(),
-                border_color.clone(),
-                bg_color.clone(),
-                border_radius.clone(),
-                z_index.clone(),
-                visibility.clone(),
+                BorderColor::default(),
+                BackgroundColor::default(),
+                BorderRadius::default(),
+                ZIndex::default(),
+                Visibility::Inherited,
                 IsFamiqTextContainer,
                 DefaultWidgetEntity::new(
                     node,
-                    border_color,
-                    border_radius,
-                    bg_color,
-                    z_index,
-                    visibility,
+                    BorderColor::default(),
+                    BorderRadius::default(),
+                    BackgroundColor::default(),
+                    ZIndex::default(),
+                    Visibility::Inherited,
                 ),
                 Interaction::default(),
                 WidgetStyle::default(),

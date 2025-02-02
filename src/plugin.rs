@@ -8,6 +8,7 @@ use crate::widgets::{
     circular::*,
     modal::*,
     text::*,
+    tooltip::*,
     *
 };
 
@@ -164,6 +165,7 @@ impl Plugin for FamiqPlugin {
             timer: Timer::from_seconds(0.5, TimerMode::Repeating),
             is_transparent: false
         });
+        app.insert_resource(FaToolTipResource::default());
         app.insert_resource(FaModalState::default());
         app.insert_resource(FaTextResource::default());
         app.insert_resource(FamiqWidgetResource::default());
@@ -180,5 +182,7 @@ impl Plugin for FamiqPlugin {
         fa_circular_systems(app);
         fa_modal_systems(app);
         fa_image_systems(app);
+
+        app.add_systems(Update, FaToolTip::handle_show_hide_tooltip_system);
     }
 }

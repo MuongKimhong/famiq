@@ -61,27 +61,6 @@ impl ResourceMap for FaTextInputResource {
     }
 }
 
-// impl FaTextInputResource {
-//     /// Updates an existing input value or inserts a new one if it doesn't exist.
-//     fn _update_or_insert(&mut self, id: String, new_value: String) {
-//         self.inputs.insert(id, new_value);
-//     }
-
-//     /// Get text input value by id
-//     pub fn get_value(&self, id: &str) -> String {
-//         if let Some(v) = self.inputs.get(id) {
-//             v.to_owned()
-//         } else {
-//             String::from("")
-//         }
-//     }
-
-//     /// Check if text_input id exists in resource
-//     pub fn exists(&self, id: &str) -> bool {
-//         self.inputs.get(id).is_some()
-//     }
-// }
-
 /// Handles the blinking behavior of the text input cursor.
 #[derive(Resource, Debug)]
 pub struct FaTextInputCursorBlinkTimer {

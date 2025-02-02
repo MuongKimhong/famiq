@@ -13,6 +13,7 @@ pub mod modal;
 pub mod image;
 pub mod bg_image;
 pub mod helper;
+pub mod tooltip;
 
 pub use button::fa_button;
 pub use circular::fa_circular;
@@ -25,6 +26,7 @@ pub use text::fa_text;
 pub use text_input::fa_text_input;
 pub use selection::fa_selection;
 pub use bg_image::fa_bg_image;
+use tooltip::FaToolTip;
 
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
@@ -78,6 +80,9 @@ impl StylesKeyValueResource {
         self.0.iter().flat_map(|map| map.get(&classname)).next()
     }
 }
+
+#[derive(Component)]
+pub struct FamiqToolTipText(pub String);
 
 #[derive(Component, Deref)]
 pub struct FamiqWidgetId(pub String);
@@ -412,8 +417,22 @@ impl<'a> FamiqWidgetBuilder<'a> {
         self
     }
 
+    /// Method to enable hot-reload.
     pub fn hot_reload(mut self) -> Self {
         self.resource.hot_reload_styles = true;
+        self
+    }
+
+    /// Registers a tooltip option for widgets.
+    ///
+    /// If `use_font_path` is called, `register_tooltip` must be called **after** `use_font_path`
+    /// to ensure that the custom font is applied to the tooltip.
+    pub fn register_tooltip(mut self) -> Self {
+        let font_handle = self.asset_server.load(self.font_path.as_ref().unwrap().as_str());
+        FaToolTip::new(
+            &mut self.ui_root_node,
+            font_handle
+        );
         self
     }
 

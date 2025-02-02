@@ -11,8 +11,7 @@ pub fn update_choices_panel_position_and_width_system(
             Entity,
             &Node,
             &ComputedNode,
-            &SelectionChoicesPanelEntity,
-            Option<&SelectionLabelEntity>
+            &SelectionChoicesPanelEntity
         )
     >,
     mut panel_q: Query<
@@ -22,10 +21,9 @@ pub fn update_choices_panel_position_and_width_system(
         ),
         Without<SelectionChoicesPanelEntity>
     >,
-    label_q: Query<(&Node, &IsFamiqSelectionLabel), Without<IsFamiqSelectionChoicesPanel>>,
     builder_res: Res<FamiqWidgetResource>
 ) {
-    for (entity, selector_node, computed_node, panel_entity, label_entity) in selection_q.iter() {
+    for (entity, selector_node, computed_node, panel_entity) in selection_q.iter() {
 
         let Some(focused) = builder_res.get_widget_focus_state(&entity) else { continue };
 
@@ -35,13 +33,6 @@ pub fn update_choices_panel_position_and_width_system(
             let mut top_pos: f32 = 0.0;
             let top_offset: f32 = 6.0;
 
-            if let Some(label_entity) = label_entity {
-                if let Ok((label_node, _)) = label_q.get(label_entity.0) {
-                    if let Some(label_height) = utils::extract_val(label_node.height) {
-                        top_pos += label_height;
-                    }
-                }
-            }
             if let Some(m_top) = utils::extract_val(selector_node.margin.top) {
                 top_pos += m_top;
             }
