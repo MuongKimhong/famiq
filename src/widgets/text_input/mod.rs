@@ -8,7 +8,7 @@ use crate::widgets::color::WHITE_COLOR;
 use crate::widgets::{
     DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId,
     FamiqWidgetClasses, WidgetType, FamiqWidgetResource, FamiqWidgetBuilder,
-    WidgetStyle, ExternalStyleHasChanged
+    WidgetStyle, ExternalStyleHasChanged, ResourceMap
 };
 use crate::event_writer::FaInteractionEvent;
 
@@ -46,26 +46,41 @@ pub struct FaTextInputResource {
     pub inputs: HashMap<String, String>,
 }
 
-impl FaTextInputResource {
-    /// Updates an existing input value or inserts a new one if it doesn't exist.
-    fn _update_or_insert(&mut self, id: String, new_value: String) {
-        self.inputs.insert(id, new_value);
+/// Implement the trait for FaTextInputResource
+impl ResourceMap for FaTextInputResource {
+    fn _update_or_insert(&mut self, id: String, value: String) {
+        self.inputs.insert(id, value);
     }
 
-    /// Get text input value by id
-    pub fn get_value(&self, id: &str) -> String {
-        if let Some(v) = self.inputs.get(id) {
-            v.to_owned()
-        } else {
-            String::from("")
-        }
+    fn get_value(&self, id: &str) -> String {
+        self.inputs.get(id).cloned().unwrap_or_default()
     }
 
-    /// Check if text_input id exists in resource
-    pub fn exists(&self, id: &str) -> bool {
-        self.inputs.get(id).is_some()
+    fn exists(&self, id: &str) -> bool {
+        self.inputs.contains_key(id)
     }
 }
+
+// impl FaTextInputResource {
+//     /// Updates an existing input value or inserts a new one if it doesn't exist.
+//     fn _update_or_insert(&mut self, id: String, new_value: String) {
+//         self.inputs.insert(id, new_value);
+//     }
+
+//     /// Get text input value by id
+//     pub fn get_value(&self, id: &str) -> String {
+//         if let Some(v) = self.inputs.get(id) {
+//             v.to_owned()
+//         } else {
+//             String::from("")
+//         }
+//     }
+
+//     /// Check if text_input id exists in resource
+//     pub fn exists(&self, id: &str) -> bool {
+//         self.inputs.get(id).is_some()
+//     }
+// }
 
 /// Handles the blinking behavior of the text input cursor.
 #[derive(Resource, Debug)]

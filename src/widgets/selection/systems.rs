@@ -74,7 +74,7 @@ pub fn handle_selection_interaction_system(
     mut builder_res: ResMut<FamiqWidgetResource>,
     mut selected_choices_res: ResMut<FaSelectionResource>,
     mut arrow_q: Query<&mut Text, With<ArrowIcon>>,
-    mut placeholder_q: Query<&mut TextColor, With<SelectorPlaceHolder>>,
+    mut placeholder_q: Query<(&mut TextColor, &WidgetStyle), With<SelectorPlaceHolder>>,
     mut panel_q: Query<&mut Visibility, With<IsFamiqSelectionChoicesPanel>>,
 
 ) {
@@ -124,7 +124,9 @@ pub fn handle_selection_interaction_system(
                         );
 
                         if let Some(id) = id {
-                            selected_choices_res._update_or_insert(id.0.clone(), "-/-".to_string());
+                            if !selected_choices_res.exists(id.0.as_str()) {
+                                selected_choices_res._update_or_insert(id.0.clone(), "-/-".to_string());
+                            }
                         }
                     },
                     _ => {
@@ -158,7 +160,7 @@ pub fn handle_selection_choice_interaction_system(
     mut selected_choices_res: ResMut<FaSelectionResource>,
     mut text_q: Query<&mut Text, Without<ArrowIcon>>,
     mut arrow_q: Query<&mut Text, With<ArrowIcon>>,
-    mut placeholder_q: Query<&mut TextColor, With<SelectorPlaceHolder>>,
+    mut placeholder_q: Query<(&mut TextColor, &WidgetStyle), With<SelectorPlaceHolder>>,
     mut panel_q: Query<&mut Visibility, With<IsFamiqSelectionChoicesPanel>>,
     mut builder_res: ResMut<FamiqWidgetResource>
 ) {
@@ -168,7 +170,7 @@ pub fn handle_selection_choice_interaction_system(
             choice_txt_entity,
             selector_entity
         )) = selection_choice_q.get_mut(e.entity) {
-            let mut selected_choice = String::new();
+
 
             match e.interaction {
                 Interaction::Hovered => {
@@ -184,6 +186,7 @@ pub fn handle_selection_choice_interaction_system(
                         arrow_entity,
                         panel_entity
                     )) = selection_q.get_mut(selector_entity.0) {
+                        let mut selected_choice = String::new();
 
                         // Update selected items resource
                         if let Ok(text) = text_q.get_mut(choice_txt_entity.0) {

@@ -8,7 +8,7 @@ use crate::utils::*;
 use crate::widgets::{
     DefaultTextEntity, DefaultWidgetEntity,
     FamiqWidgetId, FamiqWidgetBuilder, WidgetStyle,
-    ExternalStyleHasChanged
+    ExternalStyleHasChanged, ResourceMap
 };
 use bevy::ecs::system::EntityCommands;
 use bevy::ui::FocusPolicy;
@@ -27,24 +27,47 @@ pub struct FaSelectionResource {
     pub choices: HashMap<String, String>, // id - choice
 }
 
-impl FaSelectionResource {
-    pub fn _update_or_insert(&mut self, id: String, selected_choice: String) {
-        self.choices.insert(id, selected_choice);
+/// Implement the trait for FaSelectionResource
+impl ResourceMap for FaSelectionResource {
+    fn _update_or_insert(&mut self, id: String, value: String) {
+        self.choices.insert(id, value);
     }
 
-    /// Get selection value by id
-    pub fn get_value(&self, id: &str) -> String {
-        if let Some(v) = self.choices.get(id) {
-            if v == "-/-" {
-                return String::from("")
-            } else {
-                v.to_owned()
-            }
-        } else {
-            String::from("")
-        }
+    fn get_value(&self, id: &str) -> String {
+        self.choices.get(id).map_or_else(
+            || String::from(""),
+            |v| if v == "-/-" { String::from("") } else { v.clone() },
+        )
+    }
+
+    fn exists(&self, id: &str) -> bool {
+        self.choices.contains_key(id)
     }
 }
+
+// impl FaSelectionResource {
+//     pub fn _update_or_insert(&mut self, id: String, selected_choice: String) {
+//         self.choices.insert(id, selected_choice);
+//     }
+
+//     /// Get selection value by id
+//     pub fn get_value(&self, id: &str) -> String {
+//         if let Some(v) = self.choices.get(id) {
+//             if v == "-/-" {
+//                 return String::from("")
+//             } else {
+//                 v.to_owned()
+//             }
+//         } else {
+//             String::from("")
+//         }
+//     }
+
+//     /// Check if selection id exists in resource
+//     pub fn exists(&self, id: &str) -> bool {
+//         self.choices.get(id).is_some()
+//     }
+// }
 
 pub enum SelectorVariant {
     Outlined,
@@ -405,11 +428,16 @@ impl<'a> FaSelection {
 
     pub fn set_placeholder_color(
         is_focused: bool,
-        text_q: &mut Query<&mut TextColor, With<SelectorPlaceHolder>>,
+        text_q: &mut Query<(&mut TextColor, &WidgetStyle), With<SelectorPlaceHolder>>,
         placeholder_entity: Entity,
         selector_bg_color: &Color
     ) {
-        if let Ok(mut text_color) = text_q.get_mut(placeholder_entity) {
+        if let Ok((mut text_color, widget_style)) = text_q.get_mut(placeholder_entity) {
+            // can update text color only if no external style set to placeholder.
+            if widget_style.color.is_some() {
+                return;
+            }
+
             if is_focused {
                 if *selector_bg_color == WHITE_COLOR {
                     text_color.0 = BLACK_COLOR
