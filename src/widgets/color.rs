@@ -25,6 +25,8 @@ pub const BLACK_COLOR: Color = Color::srgba(0.11, 0.11, 0.11, 0.902);
 pub const WHITE_COLOR: Color = Color::srgba(0.969, 0.969, 0.969, 0.902);
 pub const BUTTON_DEFAULT_COLOR: Color = Color::srgba(0.95, 0.95, 0.95, 0.902);
 
+
+/// Supported colors via json style and widget buiders.
 pub fn built_in_color_parser(value: &str) -> Option<Color> {
     match value.trim().to_lowercase().as_str() {
         "white" => Some(WHITE_COLOR),

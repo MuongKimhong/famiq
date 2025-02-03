@@ -28,8 +28,8 @@ pub fn get_text_color(variant: &BtnColor) -> Color {
     }
 }
 
-pub fn get_button_background_color(variant: &BtnColor) -> BackgroundColor {
-    let bg_color: BackgroundColor = match variant {
+pub fn get_button_background_color(color: &BtnColor) -> BackgroundColor {
+    let bg_color: BackgroundColor = match color {
         BtnColor::Default => BackgroundColor(BUTTON_DEFAULT_COLOR),
         BtnColor::Primary => BackgroundColor(PRIMARY_COLOR),
         BtnColor::PrimaryDark => BackgroundColor(PRIMARY_DARK_COLOR),

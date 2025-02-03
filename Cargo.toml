@@ -1,9 +1,9 @@
 [package]
 name = "famiq"
-version = "0.2.4"
+version = "0.2.5"
 edition = "2021"
 authors = ["Kimhong Muong <muongkimhong086@gmail.com>"]
-description = "UI Library wrapped around Bevy UI module"
+description = "Simply UI Development in Bevy Engine"
 license = "MIT"
 repository = "https://github.com/MuongKimhong/famiq"
 homepage = "https://github.com/MuongKimhong/famiq"
