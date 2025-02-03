@@ -9,6 +9,7 @@ use crate::widgets::{
     modal::*,
     text::*,
     tooltip::*,
+    progress_bar::*,
     *
 };
 
@@ -148,6 +149,19 @@ fn fa_image_systems(app: &mut App) {
     app.add_systems(Update, event_writer::image_interaction_system);
 }
 
+fn fa_progress_bar_systems(app: &mut App) {
+    app.add_systems(
+        Update,
+        (
+            FaProgressBar::move_progress_value_as_indeterminate_system
+                .run_if(can_move_progress_value_as_indeterminate_system),
+
+            FaProgressBar::handle_progress_value_change
+                .run_if(can_run_handle_progress_value_change)
+        )
+    );
+}
+
 pub struct FamiqPlugin;
 
 impl Plugin for FamiqPlugin {
@@ -167,6 +181,9 @@ impl Plugin for FamiqPlugin {
             timer: Timer::from_seconds(0.5, TimerMode::Repeating),
             is_transparent: false
         });
+
+        app.insert_resource(IndeterminateAnimationTimer::new());
+        app.insert_resource(FaProgressBarResource::default());
         app.insert_resource(FaToolTipResource::default());
         app.insert_resource(FaModalState::default());
         app.insert_resource(FaTextResource::default());
@@ -184,7 +201,9 @@ impl Plugin for FamiqPlugin {
         fa_circular_systems(app);
         fa_modal_systems(app);
         fa_image_systems(app);
+        fa_progress_bar_systems(app);
 
         app.add_systems(Update, FaToolTip::handle_show_hide_tooltip_system);
+
     }
 }

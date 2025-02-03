@@ -19,11 +19,13 @@ pub mod prelude {
         fa_text,
         fa_text_input,
         fa_selection,
-        fa_bg_image
+        fa_bg_image,
+        fa_progress_bar
     };
     pub use crate::widgets::modal::{IsFamiqModalContainer, IsFamiqModalBackground, FaModalState};
     pub use crate::widgets::text_input::{IsFamiqTextInput, FaTextInputResource};
     pub use crate::widgets::selection::{IsFamiqSelectionSelector, FaSelectionResource};
+    pub use crate::widgets::progress_bar::{IsFamiqProgressBar, IsFamiqProgressValue, FaProgressBarResource};
     pub use crate::widgets::container::IsFamiqContainer;
     pub use crate::widgets::fps::IsFamiqFPSTextCount;
     pub use crate::widgets::text::{IsFamiqText, FaTextResource};

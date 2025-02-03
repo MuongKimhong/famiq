@@ -14,6 +14,7 @@ pub mod image;
 pub mod bg_image;
 pub mod helper;
 pub mod tooltip;
+pub mod progress_bar;
 
 pub use button::fa_button;
 pub use circular::fa_circular;
@@ -26,6 +27,7 @@ pub use text::fa_text;
 pub use text_input::fa_text_input;
 pub use selection::fa_selection;
 pub use bg_image::fa_bg_image;
+pub use progress_bar::fa_progress_bar;
 use tooltip::FaToolTip;
 
 use bevy::ecs::system::EntityCommands;
