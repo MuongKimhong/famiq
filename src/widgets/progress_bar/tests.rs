@@ -32,6 +32,7 @@ fn setup_test_bar_with_percentage(
 ) {
     let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
     fa_progress_bar(&mut builder)
+        .id("#test-bar")
         .percentage(50.0)
         .build();
 }
@@ -80,4 +81,30 @@ fn test_create_bar_with_percentage() {
         .get_single(app.world());
 
     assert_eq!(50.0, bar_q.unwrap().0.0);
+}
+
+#[test]
+fn test_get_percentage_by_non_exist_id() {
+    let mut app = create_test_app();
+    app.add_plugins(FamiqPlugin);
+    app.insert_resource(FamiqWidgetResource::default());
+    app.add_systems(Startup, setup_test_default_bar);
+    app.update();
+
+    let bar_res = app.world_mut().resource::<FaProgressBarResource>();
+    let percentage = bar_res.get_percentage_by_id("#random-id");
+    assert_eq!(None, percentage);
+}
+
+#[test]
+fn test_get_percentage_by_id() {
+    let mut app = create_test_app();
+    app.add_plugins(FamiqPlugin);
+    app.insert_resource(FamiqWidgetResource::default());
+    app.add_systems(Startup, setup_test_bar_with_percentage);
+    app.update();
+
+    let bar_res = app.world_mut().resource::<FaProgressBarResource>();
+    let percentage = bar_res.get_percentage_by_id("#test-bar");
+    assert_eq!(Some(50.0), percentage);
 }

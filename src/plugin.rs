@@ -161,7 +161,10 @@ fn fa_progress_bar_systems(app: &mut App) {
                 .run_if(can_run_handle_progress_value_change),
 
             FaProgressBar::handle_progress_value_change_by_entity
-                .run_if(can_run_handle_progress_value_change)
+                .run_if(can_run_handle_progress_value_change),
+
+            FaProgressBar::detect_new_progress_bar_widget_system
+                .run_if(can_run_handle_progress_value_change),
         )
     );
 }

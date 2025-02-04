@@ -56,33 +56,6 @@ impl Default for IndeterminateAnimationTimer {
 }
 
 /// Stores the progress percetages in a `HashMap` where keys are IDs of the progress bar.
-// #[derive(Resource, Default, Debug)]
-// pub struct FaProgressBarResource {
-//     pub bars: HashMap<String, Option<f32>>
-// }
-
-// impl FaProgressBarResource {
-//     fn _insert(&mut self, id: String, percentage: Option<f32>) {
-//         if percentage.filter(|&v| v >= 0.0).is_some() || percentage.is_none() {
-//             self.bars.insert(id, percentage);
-//         }
-//     }
-
-//     pub fn get_percentage(&self, id: &str) -> Option<f32> {
-//         if let Some(v) = self.bars.get(id) {
-//             return *v;
-//         }
-//         None
-//     }
-
-//     pub fn set_percentage(&mut self, id: &str, percentage: Option<f32>) {
-//         self._insert(id.to_string(), percentage);
-//     }
-
-//     pub fn exists(&self, id: &str) -> bool {
-//         self.bars.contains_key(id)
-//     }
-// }
 #[derive(Resource, Default, Debug)]
 pub struct FaProgressBarResource {
     /// Stores progress bars as id-value pairs
@@ -433,6 +406,36 @@ impl<'a> FaProgressBar {
                     },
                     None => {
                         Self::_set_to_indeterminate(&mut commands, &mut node, direction, percentage, value_entity.0);
+                    }
+                }
+            }
+        }
+    }
+
+    /// Internal system to detect new progress bars bing created.
+    pub fn detect_new_progress_bar_widget_system(
+        bar_q: Query<(Entity, Option<&FamiqWidgetId>, &FamiqProgressValueEntity), Added<IsFamiqProgressBar>>,
+        value_q: Query<Option<&FaProgressValuePercentage>>,
+        mut bar_res: ResMut<FaProgressBarResource>
+    ) {
+        for (entity, id, value_entity) in bar_q.iter() {
+            if let Ok(percentage) = value_q.get(value_entity.0) {
+
+                if let Some(id) = id {
+                    if !bar_res.exists_by_id(id.0.as_str()) {
+                        if let Some(percent) = percentage {
+                            bar_res.set_percentage_by_id(id.0.as_str(), Some(percent.0));
+                        } else {
+                            bar_res.set_percentage_by_id(id.0.as_str(), None);
+                        }
+                    }
+                }
+
+                if !bar_res.exists_by_entity(entity) {
+                    if let Some(percent) = percentage {
+                        bar_res.set_percentage_by_entity(entity, Some(percent.0));
+                    } else {
+                        bar_res.set_percentage_by_entity(entity, None);
                     }
                 }
             }
