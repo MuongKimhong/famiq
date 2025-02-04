@@ -47,34 +47,23 @@ fn setup(
 
 fn handle_btn_press(
     mut events: EventReader<FaInteractionEvent>,
-    modal_q: Single<&mut FaModalState>,
-    mut text_q: Query<(&FamiqWidgetId, &mut Text), Without<FaModalState>>,
-    input_resource: Res<FaTextInputResource>,
+    mut modal_res: ResMut<FaModalState>,
+    mut text_res: ResMut<FaTextResource>,
+    input_res: Res<FaTextInputResource>,
 ) {
     for e in events.read() {
         if e.widget == WidgetType::Button && e.interaction == Interaction::Pressed {
             if let Some(id) = e.widget_id.as_ref() {
                 match id.as_str() {
                     "#btn" => {
-                        if let Some(name) = input_resource.inputs.get("#name") {
-                            if !name.trim().is_empty() {
-                                for (text_id, mut text) in text_q.iter_mut() {
-                                    if text_id.0 == "#welcome-txt" {
-                                        text.0 = format!("Welcome {name}, this example is built with Famiq.");
-                                    }
-                                }
-                                // Open modal
-                                let mut state = modal_q.into_inner();
-                                state.0 = true;
-                                break;
-                            }
-                        }
+                        let name = input_res.get_value("#name");
+
+                        let new_txt = format!("Welcome {name}, this example is built with Famiq.");
+                        text_res.update_value("#welcome-txt", new_txt.as_str());
+                        modal_res.show_by_id("#modal");
                     },
                     "#close-btn" => {
-                        // Close modal
-                        let mut state = modal_q.into_inner();
-                        state.0 = false;
-                        break;
+                        modal_res.hide_by_id("#modal");
                     }
                     _ => ()
                 }
