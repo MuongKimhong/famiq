@@ -65,6 +65,22 @@ impl FaTextResource {
         self.entity_value.insert(entity, new_value.to_string());
         self.changed_entities.insert(entity); // Mark as changed
     }
+
+    /// Get `fa_text` value by id, return empty string if id doesn't exist.
+    pub fn get_value_by_id(&self, id: &str) -> String {
+        if let Some(v) = self.text_value.get(id) {
+            return v.clone();
+        }
+        String::new()
+    }
+
+    /// Get `fa_text` value by entity, return emtpty string if entity doesn't exist.
+    pub fn get_value_by_entity(&self, entity: Entity) -> String {
+        if let Some(v) = self.entity_value.get(&entity) {
+            return v.clone();
+        }
+        String::new()
+    }
 }
 
 /// Represents a Famiq text widget for displaying styled text.
@@ -206,6 +222,25 @@ impl<'a> FaText {
             text_res.changed_entities.clear();
         }
     }
+
+    /// Internal system to insert text value into `FaTextResource` after created.
+    pub fn detect_new_text_widget_system(
+        text_q: Query<(Entity, &Text, Option<&FamiqWidgetId>), Added<IsFamiqText>>,
+        mut text_res: ResMut<FaTextResource>
+    ) {
+        for (entity, text, id) in text_q.iter() {
+
+            if let Some(id) = id {
+                if !text_res.text_value.contains_key(id.0.as_str()) {
+                    text_res.text_value.insert(id.0.clone(), text.0.clone());
+                }
+            }
+
+            if !text_res.entity_value.contains_key(&entity) {
+                text_res.entity_value.insert(entity, text.0.clone());
+            }
+        }
+    }
 }
 
 /// Builder for creating `FaText` entities with customizable options.
@@ -291,13 +326,17 @@ mod tests {
     use crate::widgets::FamiqWidgetResource;
     use super::*;
 
+    #[derive(Resource)]
+    struct TestResource(Entity);
+
     fn setup_test_default_text(
         mut commands: Commands,
         asset_server: ResMut<AssetServer>,
         mut builder_res: ResMut<FamiqWidgetResource>,
     ) {
         let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-        fa_text(&mut builder, "Test Text").id("#test-text").build();
+        let text = fa_text(&mut builder, "Test Text").id("#test-text").build();
+        commands.insert_resource(TestResource(text));
     }
 
     #[test]
@@ -320,7 +359,7 @@ mod tests {
     }
 
     #[test]
-    fn test_update_text_value() {
+    fn test_update_text_value_by_id() {
         let mut app = create_test_app();
         app.add_plugins(FamiqPlugin);
         app.insert_resource(FamiqWidgetResource::default());
@@ -336,15 +375,72 @@ mod tests {
         app.update(); // update again so update_text_value_system run again
 
         let txt_q = app.world_mut()
-            .query::<(&FamiqWidgetId, &Text, &IsFamiqText)>()
+            .query::<(&Text, &IsFamiqText)>()
             .get_single(app.world());
 
-        let id = txt_q.as_ref().unwrap().0;
-        let txt = txt_q.as_ref().unwrap().1;
-
-        assert_eq!("#test-text".to_string(), id.0);
+        let txt = txt_q.as_ref().unwrap().0;
 
         // original text is "Test Text"
         assert_eq!("New test text Hello World".to_string(), txt.0);
+    }
+
+    #[test]
+    fn test_update_text_value_by_entity() {
+        let mut app = create_test_app();
+        app.add_plugins(FamiqPlugin);
+        app.insert_resource(FamiqWidgetResource::default());
+        app.insert_resource(FaTextResource::default());
+        app.add_systems(Startup, setup_test_default_text);
+        app.add_systems(Update, FaText::update_text_value_system); // internal system that handle updating the text
+        app.update();
+
+        let text_entity = app.world_mut().resource::<TestResource>().0;
+        let mut text_res = app.world_mut().resource_mut::<FaTextResource>();
+        text_res.update_value_by_entity(text_entity, "New test text Hello World");
+
+        app.update(); // update again so update_text_value_system run again
+
+        let txt_q = app.world_mut()
+            .query::<(&Text, &IsFamiqText)>()
+            .get_single(app.world());
+
+        let txt = txt_q.as_ref().unwrap().0;
+
+        // original text is "Test Text"
+        assert_eq!("New test text Hello World".to_string(), txt.0);
+    }
+
+    #[test]
+    fn test_get_value_by_non_exist_id() {
+        let mut app = create_test_app();
+        app.add_plugins(FamiqPlugin);
+        app.insert_resource(FamiqWidgetResource::default());
+        app.insert_resource(FaTextResource::default());
+        app.add_systems(Startup, setup_test_default_text);
+        app.add_systems(Update, FaText::update_text_value_system); // internal system that handle updating the text
+        app.update();
+
+        let text_res = app.world_mut().resource::<FaTextResource>();
+
+        let value = text_res.get_value_by_id("#random-id");
+
+        assert_eq!(String::new(), value);
+    }
+
+    #[test]
+    fn test_get_value_by_id() {
+        let mut app = create_test_app();
+        app.add_plugins(FamiqPlugin);
+        app.insert_resource(FamiqWidgetResource::default());
+        app.insert_resource(FaTextResource::default());
+        app.add_systems(Startup, setup_test_default_text);
+        app.add_systems(Update, FaText::update_text_value_system); // internal system that handle updating the text
+        app.update();
+
+        let text_res = app.world_mut().resource::<FaTextResource>();
+
+        let value = text_res.get_value_by_id("#test-text");
+
+        assert_eq!(String::from("Test Text"), value);
     }
 }
