@@ -353,59 +353,7 @@ impl<'a> FaProgressBar {
         node.left = Val::Px(0.0);
     }
 
-    /// Internal system to reflect on percentage changes via `FaProgressBarResource`.
-    // pub fn handle_progress_value_change(
-    //     mut commands: Commands,
-    //     bar_q: Query<(&FamiqWidgetId, &FamiqProgressValueEntity)>,
-    //     mut value_q: Query<
-    //         (
-    //             &mut Node,
-    //             Option<&IndeterminateDirection>,
-    //             Option<&mut FaProgressValuePercentage>
-    //         ),
-    //         With<IsFamiqProgressValue>
-    //     >,
-    //     progress_bar_res: Res<FaProgressBarResource>
-    // ) {
-    //     if !progress_bar_res.is_changed() {
-    //         return;
-    //     }
-
-    //     for (id, value_entity) in bar_q.iter() {
-    //         if !progress_bar_res.exists(id.0.as_str()) {
-    //             continue;
-    //         }
-
-    //         if let Ok((mut node, direction, percentage)) = value_q.get_mut(value_entity.0) {
-
-    //             match progress_bar_res.get_percentage(id.0.as_str()) {
-    //                 Some(new_percentage) => {
-    //                     println!("called some");
-    //                     if direction.is_some() {
-    //                         commands.entity(value_entity.0).remove::<IndeterminateDirection>();
-    //                     }
-    //                     if let Some(mut old_percentage) = percentage {
-    //                         old_percentage.0 = new_percentage;
-    //                     } else {
-    //                         commands.entity(value_entity.0).insert(FaProgressValuePercentage(new_percentage));
-    //                     }
-    //                     node.width = Val::Percent(new_percentage);
-    //                 },
-    //                 None => {
-    //                     println!("called None");
-    //                     if percentage.is_some() {
-    //                         commands.entity(value_entity.0).remove::<FaProgressValuePercentage>();
-    //                     }
-    //                     if direction.is_none() {
-    //                         commands.entity(value_entity.0).insert(IndeterminateDirection(1.0));
-    //                     }
-    //                     node.width = Val::Percent(INDETERMINATE_WIDTH);
-    //                 }
-    //             }
-
-    //         }
-    //     }
-    // }
+    /// Internal system to reflect on percentage changes via `FaProgressBarResource` by id.
     pub fn handle_progress_value_change_by_id(
         mut commands: Commands,
         bar_q: Query<(&FamiqWidgetId, &FamiqProgressValueEntity)>,
@@ -448,6 +396,7 @@ impl<'a> FaProgressBar {
         }
     }
 
+    /// Internal system to reflect on percentage changes via `FaProgressBarResource` by entity.
     pub fn handle_progress_value_change_by_entity(
         mut commands: Commands,
         bar_q: Query<(Entity, &FamiqProgressValueEntity)>,

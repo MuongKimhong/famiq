@@ -59,7 +59,7 @@ fn handle_btn_press(
                         let name = input_res.get_value("#name");
 
                         let new_txt = format!("Welcome {name}, this example is built with Famiq.");
-                        text_res.update_value("#welcome-txt", new_txt.as_str());
+                        text_res.update_value_by_id("#welcome-txt", new_txt.as_str());
                         modal_res.show_by_id("#modal");
                     },
                     "#close-btn" => {

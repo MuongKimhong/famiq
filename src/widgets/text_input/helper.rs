@@ -130,12 +130,10 @@ pub fn _handle_update_placeholder_color(
     focused: bool
 ) {
     if placeholder_internal_widget_style.color.is_some() {
-        println!("external style changed");
         return;
     }
 
     if focused {
-        println!("white or black");
         if input_bg_color.0 == WHITE_COLOR {
             placeholder_text_color.0 = BLACK_COLOR;
         } else {
@@ -143,7 +141,6 @@ pub fn _handle_update_placeholder_color(
         }
     }
     else {
-        println!("placeholder color");
         placeholder_text_color.0 = PLACEHOLDER_COLOR;
     }
 }

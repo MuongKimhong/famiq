@@ -91,7 +91,8 @@ fn fa_text_systems(app: &mut App) {
         Update,
         (
             event_writer::text_interaction_system,
-            FaText::update_text_value_system
+            FaText::update_text_value_system,
+            FaText::detect_new_text_widget_system
         )
     );
 }
@@ -156,7 +157,10 @@ fn fa_progress_bar_systems(app: &mut App) {
             FaProgressBar::move_progress_value_as_indeterminate_system
                 .run_if(can_move_progress_value_as_indeterminate_system),
 
-            FaProgressBar::handle_progress_value_change
+            FaProgressBar::handle_progress_value_change_by_id
+                .run_if(can_run_handle_progress_value_change),
+
+            FaProgressBar::handle_progress_value_change_by_entity
                 .run_if(can_run_handle_progress_value_change)
         )
     );
