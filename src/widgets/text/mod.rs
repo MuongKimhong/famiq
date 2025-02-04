@@ -33,13 +33,19 @@ pub struct FaTextResource {
     /// id-value
     pub text_value: HashMap<String, String>,
 
+    /// entity-value pair
+    pub entity_value: HashMap<Entity, String>,
+
     /// Tracks which text IDs changed
     pub changed_texts: HashSet<String>,
+
+    /// Tracks which entities' text changed
+    pub changed_entities: HashSet<Entity>,
 }
 
 impl FaTextResource {
     /// Update fa_text's value by id
-    pub fn update_value(&mut self, id: &str, new_value: &str) {
+    pub fn update_value_by_id(&mut self, id: &str, new_value: &str) {
         if let Some(existing) = self.text_value.get(id) {
             if existing == new_value {
                 return;
@@ -47,6 +53,17 @@ impl FaTextResource {
         }
         self.text_value.insert(id.to_string(), new_value.to_string());
         self.changed_texts.insert(id.to_string()); // Mark as changed
+    }
+
+    /// Update fa_text's value by entity
+    pub fn update_value_by_entity(&mut self, entity: Entity, new_value: &str) {
+        if let Some(existing) = self.entity_value.get(&entity) {
+            if existing == new_value {
+                return;
+            }
+        }
+        self.entity_value.insert(entity, new_value.to_string());
+        self.changed_entities.insert(entity); // Mark as changed
     }
 }
 
@@ -157,23 +174,36 @@ impl<'a> FaText {
         let txt_entity = Self::_build_text(&id, &class, text, root_node, font_handle, size);
         let container = Self::_build_container(id, class, root_node);
         entity_add_child(root_node, txt_entity, container);
-        container
+        txt_entity
     }
 
     /// Internal system that reads `FaTextResource` and update the corresponding text widget's value
     pub fn update_text_value_system(
-        mut text_q: Query<(&mut Text, &FamiqWidgetId), With<IsFamiqText>>,
+        mut text_q: Query<(&mut Text, Entity, Option<&FamiqWidgetId>), With<IsFamiqText>>,
         mut text_res: ResMut<FaTextResource>
     ) {
         if text_res.is_changed() {
-            for (mut text, id) in text_q.iter_mut() {
-                if text_res.changed_texts.contains(&id.0) {
-                    if let Some(value) = text_res.text_value.get(&id.0) {
+            for (mut text, entity, id) in text_q.iter_mut() {
+                // Check by id
+                if let Some(id) = id {
+                    if text_res.changed_texts.contains(&id.0) {
+                        if let Some(value) = text_res.text_value.get(&id.0) {
+                            text.0 = value.clone();
+                        }
+                    }
+                }
+
+                // Check by entity
+                if text_res.changed_entities.contains(&entity) {
+                    if let Some(value) = text_res.entity_value.get(&entity) {
                         text.0 = value.clone();
                     }
                 }
             }
-            text_res.changed_texts.clear(); // clear changed list after updates
+
+            // Clear changed lists after updates
+            text_res.changed_texts.clear();
+            text_res.changed_entities.clear();
         }
     }
 }
@@ -301,7 +331,7 @@ mod tests {
 
         let mut text_res = app.world_mut().resource_mut::<FaTextResource>();
 
-        text_res.update_value("#test-text", "New test text Hello World");
+        text_res.update_value_by_id("#test-text", "New test text Hello World");
 
         app.update(); // update again so update_text_value_system run again
 
