@@ -43,15 +43,17 @@ fn setup(
 
 fn handle_like_btn_press(
     mut events: EventReader<FaInteractionEvent>,
-    mut like_txt_q: Query<(&mut Text, &mut LikeCount)>,
+    mut text_res: ResMut<FaTextResource>,
+    mut like_txt_q: Query<(Entity, &mut LikeCount)>,
     like_btn_q: Query<&LikeTextEntity>
 ) {
     for e in events.read() {
-        if e.widget == WidgetType::Button && e.interaction == Interaction::Pressed {
+        if e.is_button_pressed() {
             if let Ok(txt_entity) = like_btn_q.get(e.entity) {
-                if let Ok((mut text, mut count)) = like_txt_q.get_mut(txt_entity.0) {
+
+                if let Ok((entity, mut count)) = like_txt_q.get_mut(txt_entity.0) {
                     count.0 += 1;
-                    text.0 = count.0.to_string();
+                    text_res.update_value_by_entity(entity, &count.0.to_string());
                     break;
                 }
             }
