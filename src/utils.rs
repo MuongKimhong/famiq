@@ -72,18 +72,6 @@ pub fn entity_add_children<'a>(
     root_node.commands().entity(parent).add_children(children);
 }
 
-// by default, bevy's AssetServer expects assets to be inside
-// assets folder, and we can load assets without needing to
-// include assets/ prefix.
-//
-// if user provide assets/ prefix, remove it
-// pub fn strip_assets_prefix(path: &String) -> Option<String> {
-//     if let Some(normalized) = path.strip_prefix("assets/") {
-//         Some(normalized.to_string())
-//     } else {
-//         None
-//     }
-// }
 
 pub fn lighten_color(percentage: f32, color: &Color) -> Option<Color> {
     let multiplier = percentage / 100.0;

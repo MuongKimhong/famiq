@@ -1,9 +1,9 @@
 use super::color::WHITE_COLOR;
 use crate::widgets::{
-    DefaultTextEntity, FamiqWidgetId, FamiqWidgetClasses, DefaultWidgetEntity,
+    DefaultTextEntity, FamiqWidgetId, DefaultWidgetEntity,
     FamiqWidgetBuilder, WidgetStyle, ExternalStyleHasChanged
 };
-use crate::utils::{entity_add_child, process_spacing_built_in_class};
+use crate::utils::{entity_add_child, process_spacing_built_in_class, insert_id_and_class};
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
@@ -106,12 +106,7 @@ impl<'a> FaText {
             ))
             .id();
 
-        if let Some(id) = id {
-            root_node.commands().entity(entity).insert(FamiqWidgetId(id.to_owned()));
-        }
-        if let Some(class) = class {
-            root_node.commands().entity(entity).insert(FamiqWidgetClasses(class.to_owned()));
-        }
+        insert_id_and_class(root_node, entity, id, class);
         entity
     }
 
@@ -147,12 +142,7 @@ impl<'a> FaText {
             ))
             .id();
 
-        if let Some(id) = id {
-            root_node.commands().entity(container_entity).insert(FamiqWidgetId(id));
-        }
-        if let Some(class) = class {
-            root_node.commands().entity(container_entity).insert(FamiqWidgetClasses(class));
-        }
+        insert_id_and_class(root_node, container_entity, &id, &class);
         container_entity
     }
 

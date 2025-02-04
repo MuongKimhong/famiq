@@ -3,12 +3,12 @@ pub mod tests;
 
 use bevy::prelude::*;
 use bevy::utils::HashMap;
-use crate::utils::{entity_add_child, process_spacing_built_in_class};
+use crate::utils::{entity_add_child, process_spacing_built_in_class, insert_id_and_class};
 use helper::*;
 
 use super::{
     DefaultWidgetEntity, ExternalStyleHasChanged,
-    FamiqWidgetBuilder, FamiqWidgetClasses, FamiqWidgetId, WidgetStyle
+    FamiqWidgetBuilder, FamiqWidgetId, WidgetStyle
 };
 
 /// Animation speed, defined by `speed = INDETERMINATE_SPEED_FACTOR * bar_width`.
@@ -47,8 +47,8 @@ pub struct IndeterminateAnimationTimer {
     pub timer: Timer,
 }
 
-impl IndeterminateAnimationTimer {
-    pub fn new() -> Self {
+impl Default for IndeterminateAnimationTimer {
+    fn default() -> Self {
         Self {
             timer: Timer::from_seconds(1.0 / 120.0, TimerMode::Repeating), // 120 fps
         }
@@ -147,12 +147,7 @@ impl<'a> FaProgressBar {
             ))
             .id();
 
-        if let Some(id) = id {
-            root_node.commands().entity(entity).insert(FamiqWidgetId(id.to_owned()));
-        }
-        if let Some(class) = class {
-            root_node.commands().entity(entity).insert(FamiqWidgetClasses(class));
-        }
+        insert_id_and_class(root_node, entity, id, &class);
         entity
     }
 

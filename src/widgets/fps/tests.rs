@@ -2,7 +2,7 @@
 
 use crate::plugin::FamiqPlugin;
 use crate::utils::create_test_app;
-use crate::widgets::FamiqWidgetResource;
+use crate::widgets::{FamiqWidgetResource, FamiqWidgetId, FamiqWidgetClasses};
 use super::*;
 
 fn setup_test_default_fps(

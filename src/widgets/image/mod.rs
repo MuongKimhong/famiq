@@ -1,15 +1,16 @@
+pub mod tests;
+
 use bevy::prelude::*;
-use crate::utils::process_spacing_built_in_class;
+use crate::utils::{process_spacing_built_in_class, insert_id_and_class};
 use crate::widgets::{
-    DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetClasses,
-    FamiqWidgetBuilder, WidgetStyle, ExternalStyleHasChanged
+    DefaultWidgetEntity, FamiqWidgetBuilder,
+    WidgetStyle, ExternalStyleHasChanged
 };
 
 /// Marker component identifyijng Famiq Image widget.
 #[derive(Component)]
 pub struct IsFamiqImage;
 
-/// Represents Famiq Image widget.
 pub struct FaImage;
 
 impl<'a> FaImage {
@@ -58,12 +59,7 @@ impl<'a> FaImage {
             ExternalStyleHasChanged(false)
         )).id();
 
-        if let Some(id) = id {
-            root_node.commands().entity(image_entity).insert(FamiqWidgetId(id));
-        }
-        if let Some(class) = class {
-            root_node.commands().entity(image_entity).insert(FamiqWidgetClasses(class));
-        }
+        insert_id_and_class(root_node, image_entity, &id, &class);
         image_entity
     }
 }
@@ -129,88 +125,4 @@ pub fn fa_image<'a>(builder: &'a mut FamiqWidgetBuilder, path: &str) -> FaImageB
         image_handle,
         builder.ui_root_node.reborrow()
     )
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::plugin::FamiqPlugin;
-    use crate::widgets::FamiqWidgetResource;
-    use crate::utils::{get_embedded_asset_path, create_test_app};
-    use super::*;
-
-    fn setup_test_default_image(
-        mut commands: Commands,
-        asset_server: ResMut<AssetServer>,
-        mut builder_res: ResMut<FamiqWidgetResource>,
-    ) {
-        let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-        let path = get_embedded_asset_path("embedded_assets/logo.jpeg").to_string();
-        fa_image(&mut builder, path.as_str()).id("#test-image").build();
-    }
-
-    fn setup_test_image_with_class(
-        mut commands: Commands,
-        asset_server: ResMut<AssetServer>,
-        mut builder_res: ResMut<FamiqWidgetResource>,
-    ) {
-        let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-        let path = get_embedded_asset_path("embedded_assets/logo.jpeg").to_string();
-        fa_image(&mut builder, path.as_str())
-            .class("test-class-one")
-            .build();
-    }
-
-    fn setup_test_image_with_custom_size(
-        mut commands: Commands,
-        asset_server: ResMut<AssetServer>,
-        mut builder_res: ResMut<FamiqWidgetResource>,
-    ) {
-        let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-        let path = get_embedded_asset_path("embedded_assets/logo.jpeg").to_string();
-        fa_image(&mut builder, path.as_str())
-            .size(Val::Px(200.0), Val::Px(200.0))
-            .build();
-    }
-
-    #[test]
-    fn test_create_default_image() {
-        let mut app = create_test_app();
-        app.add_plugins(FamiqPlugin);
-        app.insert_resource(FamiqWidgetResource::default());
-        app.add_systems(Startup, setup_test_default_image);
-        app.update();
-
-        let img_q = app.world_mut().query::<(&FamiqWidgetId, &IsFamiqImage)>().get_single(app.world());
-        assert!(img_q.is_ok(), "There should be only 1 Image");
-
-        let img_id = img_q.unwrap().0;
-        assert_eq!("#test-image".to_string(), img_id.0);
-    }
-
-    #[test]
-    fn test_create_image_with_class() {
-        let mut app = create_test_app();
-        app.add_plugins(FamiqPlugin);
-        app.insert_resource(FamiqWidgetResource::default());
-        app.add_systems(Startup, setup_test_image_with_class);
-        app.update();
-
-        let img_q = app.world_mut().query::<(&FamiqWidgetClasses, &IsFamiqImage)>().get_single(app.world());
-        assert!(img_q.is_ok(), "There should be only 1 Image");
-        assert_eq!("test-class-one".to_string(), img_q.unwrap().0.0);
-    }
-
-    #[test]
-    fn test_create_image_with_custom_size() {
-        let mut app = create_test_app();
-        app.add_plugins(FamiqPlugin);
-        app.insert_resource(FamiqWidgetResource::default());
-        app.add_systems(Startup, setup_test_image_with_custom_size);
-        app.update();
-
-        let img_q = app.world_mut().query::<(&Node, &IsFamiqImage)>().get_single(app.world());
-        let img_node = img_q.unwrap().0;
-        assert_eq!(Val::Px(200.0), img_node.width);
-        assert_eq!(Val::Px(200.0), img_node.height);
-    }
 }

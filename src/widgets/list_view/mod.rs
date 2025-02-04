@@ -1,10 +1,10 @@
 pub mod helper;
+pub mod tests;
 
-// use crate::event_writer::FaInteractionEvent;
 use crate::utils;
 use crate::widgets::{
     DefaultWidgetEntity, FamiqWidgetId,
-    FamiqWidgetClasses, WidgetType, FamiqWidgetBuilder,
+    WidgetType, FamiqWidgetBuilder,
     WidgetStyle, ExternalStyleHasChanged
 };
 use crate::event_writer::FaInteractionEvent;
@@ -40,7 +40,6 @@ pub struct CanBeScrolledListView {
     pub entity: Option<Entity>,
 }
 
-/// Represents Famiq Image widget.
 pub struct FaListView;
 
 // Doesn't need container
@@ -135,12 +134,7 @@ impl<'a> FaListView {
             ))
             .id();
 
-        if let Some(id) = id {
-            root_node.commands().entity(listview_entity).insert(FamiqWidgetId(id));
-        }
-        if let Some(class) = class {
-            root_node.commands().entity(listview_entity).insert(FamiqWidgetClasses(class));
-        }
+        utils::insert_id_and_class(root_node, listview_entity, &id, &class);
         listview_entity
     }
 
@@ -199,13 +193,7 @@ impl<'a> FaListView {
     }
 
 
-    /// System to handle scrolling interactions on ListView widgets.
-    ///
-    /// # Parameters
-    /// - `mouse_wheel_events`: A reader for mouse wheel scroll events.
-    /// - `listview_q`: A query for ListView components.
-    /// - `panel_q`: A query for move panel components.
-    /// - `can_be_scrolled_listview`: A resource tracking the currently hovered ListView entity.
+    /// Internal system to handle scrolling interactions on ListView widgets.
     pub fn on_scroll_system(
         mut mouse_wheel_events: EventReader<MouseWheel>,
         mut listview_q: Query<(&mut Node, &ComputedNode, &ListViewMovePanelEntity), Without<ScrollList>>,
@@ -305,76 +293,4 @@ pub fn fa_listview<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaListViewBuilder
 /// True only if there is a listview widget created.
 pub fn can_run_list_view_systems(listview_q: Query<&IsFamiqListView>) -> bool {
     listview_q.iter().count() > 0
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::plugin::FamiqPlugin;
-    use crate::widgets::button::fa_button;
-    use crate::widgets::FamiqWidgetResource;
-    use bevy::input::InputPlugin;
-    use super::*;
-
-    fn setup_test_default_listview(
-        mut commands: Commands,
-        asset_server: ResMut<AssetServer>,
-        mut builder_res: ResMut<FamiqWidgetResource>,
-    ) {
-        let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-        fa_listview(&mut builder).id("#test-listview").build();
-    }
-
-    fn setup_test_listview_with_children(
-        mut commands: Commands,
-        asset_server: ResMut<AssetServer>,
-        mut builder_res: ResMut<FamiqWidgetResource>,
-    ) {
-        let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-        let button_one = fa_button(&mut builder, "Button 1").build();
-        let button_two = fa_button(&mut builder, "Button 2").build();
-
-        fa_listview(&mut builder)
-            .children(vec![button_one, button_two])
-            .build();
-    }
-
-    #[test]
-    fn test_create_default_listview() {
-        let mut app = utils::create_test_app();
-        app.add_plugins(InputPlugin::default());
-        app.add_plugins(FamiqPlugin);
-        app.insert_resource(FamiqWidgetResource::default());
-        app.add_systems(Startup, setup_test_default_listview);
-
-        app.update();
-
-        let listview_q = app.world_mut()
-            .query::<(&FamiqWidgetId, &Children, &IsFamiqListView)>()
-            .get_single(app.world());
-
-        assert!(listview_q.is_ok(), "There should be only 1 listview");
-
-        let listview_id = listview_q.as_ref().unwrap().0;
-        assert_eq!("#test-listview".to_string(), listview_id.0, "Should match");
-
-        // The listview itself has only 1 child which is move_panel.
-        // All the children provided by users belong to move_panel
-        assert_eq!(1 as usize, listview_q.unwrap().1.len(), "Should be 1");
-    }
-
-    #[test]
-    fn test_create_listview_with_children() {
-        let mut app = utils::create_test_app();
-        app.add_plugins(InputPlugin::default());
-        app.add_plugins(FamiqPlugin);
-        app.insert_resource(FamiqWidgetResource::default());
-        app.add_systems(Startup, setup_test_listview_with_children);
-        app.update();
-
-        let move_panel_q = app.world_mut()
-            .query::<(&Children, &IsFamiqListViewMovePanel)>()
-            .get_single(app.world());
-
-        assert_eq!(2 as usize, move_panel_q.unwrap().0.len());
-    }
 }

@@ -2,23 +2,21 @@ pub mod components;
 pub mod helper;
 pub mod tests;
 
+pub use components::*;
+use helper::*;
+
 use crate::utils;
-use crate::widgets::{
+use super::{
     DefaultTextEntity, DefaultWidgetEntity,
-    FamiqWidgetId, FamiqWidgetClasses,
     FamiqWidgetResource, FamiqWidgetBuilder,
     WidgetStyle, ExternalStyleHasChanged, FamiqToolTipText
 };
+use super::tooltip::FaToolTipResource;
 use crate::event_writer::FaInteractionEvent;
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 
-pub use components::*;
-use helper::*;
-
-use super::tooltip::FaToolTipResource;
-
-/// Represents built-in button color options for a `FaButton`.
+/// Built-in button color options for `fa_button`.
 pub enum BtnColor {
     Default,
     Primary,
@@ -34,13 +32,13 @@ pub enum BtnColor {
     InfoDark
 }
 
-/// Represents built-in button size options for a `FaButton`.
+/// Built-in button size options for `fa_button`.
 pub enum BtnSize {
     Small,
     Normal,
     Large,
 }
-/// Represents a custom button shape for Famiq widgets.
+/// Built-in shape options for `fa_button`.
 pub enum BtnShape {
     Default,
     Round,
@@ -51,18 +49,6 @@ pub struct FaButton;
 
 // Needs container
 impl<'a> FaButton {
-    /// Builds the text entity for the button.
-    ///
-    /// # Parameters
-    /// - `id`: Optional ID for the text entity.
-    /// - `text`: The text to display on the button.
-    /// - `root_node`: A mutable reference to the root node's `EntityCommands`.
-    /// - `font_handle`: Handle to the font to use for the button text.
-    /// - `color`: Button color configuration.
-    /// - `size`: Button size configuration.
-    ///
-    /// # Returns
-    /// - The `Entity` of the created text component.
     fn _build_text(
         id: &Option<String>,
         class: &Option<String>,
@@ -95,29 +81,10 @@ impl<'a> FaButton {
             ))
             .id();
 
-        if let Some(id) = id {
-            root_node.commands().entity(entity).insert(FamiqWidgetId(id.to_owned()));
-        }
-        if let Some(class) = class {
-            root_node.commands().entity(entity).insert(FamiqWidgetClasses(class.to_owned()));
-        }
+        utils::insert_id_and_class(root_node, entity, id, class);
         entity
     }
 
-    /// Creates a new `FaButton` entity.
-    ///
-    /// # Parameters
-    /// - `id`: Optional ID for the button.
-    /// - `class`: Optional CSS-like class for styling.
-    /// - `text`: The text to display on the button.
-    /// - `root_node`: A mutable reference to the root node's `EntityCommands`.
-    /// - `font_handle`: Handle to the font to use for the button text.
-    /// - `color`: Button color configuration.
-    /// - `size`: Button size configuration.
-    /// - `shape`: Button shape configuration.
-    ///
-    /// # Returns
-    /// - The `Entity` of the created button.
     pub fn new(
         id: Option<String>,
         class: Option<String>,
@@ -174,23 +141,12 @@ impl<'a> FaButton {
         if has_tooltip {
             root_node.commands().entity(btn_entity).insert(FamiqToolTipText(tooltip_text.unwrap()));
         }
-
-        if let Some(id) = id {
-            root_node.commands().entity(btn_entity).insert(FamiqWidgetId(id));
-        }
-        if let Some(class) = class {
-            root_node.commands().entity(btn_entity).insert(FamiqWidgetClasses(class));
-        }
+        utils::insert_id_and_class(root_node, btn_entity, &id, &class);
         utils::entity_add_child(root_node, txt_entity, btn_entity);
         btn_entity
     }
 
-    /// System to handle internal button interaction events and apply styles accordingly.
-    ///
-    /// # Parameters
-    /// - `events`: Event reader for `FaInteractionEvent`.
-    /// - `button_q`: Query for buttons and their components.
-    /// - `builder_res`: Mutable reference to `FamiqWidgetResource` for managing focus states.
+    /// Internal system to handle `fa_button` interaction events.
     pub fn handle_button_on_interaction_system(
         mut events: EventReader<FaInteractionEvent>,
         mut builder_res: ResMut<FamiqWidgetResource>,
@@ -235,7 +191,7 @@ impl<'a> FaButton {
     }
 }
 
-/// Builder for creating `FaButton` entities with customizable options.
+/// Builder for creating `fa_button`.
 pub struct FaButtonBuilder<'a> {
     pub id: Option<String>,
     pub class: Option<String>,
@@ -247,10 +203,6 @@ pub struct FaButtonBuilder<'a> {
 }
 
 impl<'a> FaButtonBuilder<'a> {
-    /// Create a new FaButtonBuilder
-    ///
-    /// # Returns
-    /// - A new instance of `FaButtonBuilder`.
     pub fn new(
         text: String,
         font_handle: Handle<Font>,

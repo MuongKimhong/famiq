@@ -3,11 +3,11 @@ pub mod tests;
 
 use bevy::ui::FocusPolicy;
 use helper::*;
-use crate::utils::{self, process_spacing_built_in_class, mask_string};
+use crate::utils::{self, process_spacing_built_in_class, mask_string, insert_id_and_class};
 use crate::widgets::color::WHITE_COLOR;
 use crate::widgets::{
     DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId,
-    FamiqWidgetClasses, WidgetType, FamiqWidgetResource, FamiqWidgetBuilder,
+     WidgetType, FamiqWidgetResource, FamiqWidgetBuilder,
     WidgetStyle, ExternalStyleHasChanged, ResourceMap
 };
 use crate::event_writer::FaInteractionEvent;
@@ -66,6 +66,15 @@ impl ResourceMap for FaTextInputResource {
 pub struct FaTextInputCursorBlinkTimer {
     pub timer: Timer, // change bg color every 0.5 second
     pub is_transparent: bool
+}
+
+impl Default for FaTextInputCursorBlinkTimer {
+    fn default() -> Self {
+        FaTextInputCursorBlinkTimer {
+            timer: Timer::from_seconds(0.5, TimerMode::Repeating),
+            is_transparent: false
+        }
+    }
 }
 
 /// Marker component for identifying a text input widget.
@@ -189,12 +198,7 @@ impl<'a> FaTextInput {
             ))
             .id();
 
-        if let Some(id) = id {
-            root_node.commands().entity(entity).insert(FamiqWidgetId(id.to_owned()));
-        }
-        if let Some(class) = class {
-            root_node.commands().entity(entity).insert(FamiqWidgetClasses(class.to_owned()));
-        }
+        insert_id_and_class(root_node, entity, id, class);
         entity
     }
 
@@ -329,12 +333,7 @@ impl<'a> FaTextInput {
             ))
             .id();
 
-        if let Some(id) = id {
-            root_node.commands().entity(entity).insert(FamiqWidgetId(id.to_string()));
-        }
-        if let Some(class) = class {
-            root_node.commands().entity(entity).insert(FamiqWidgetClasses(class));
-        }
+        insert_id_and_class(root_node, entity, id, &class);
         entity
     }
 

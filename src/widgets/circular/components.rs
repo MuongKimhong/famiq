@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-/// Marker component for identifying a Famiq circular UI element.
+/// Marker component for identifying a Famiq circular widget.
 #[derive(Component)]
 pub struct IsFamiqCircular;
 
@@ -23,9 +23,17 @@ pub struct RotatingSequence {
     pub current_index: usize,
 }
 
-/// Component for associating a spinner entity with its parent circular element.
-///
-/// # Fields
-/// - `0`: The spinner entity associated with the circular element.
+impl Default for RotatingSequence {
+    fn default() -> Self {
+        RotatingSequence {
+            speed: 300.0,
+            timer: Timer::from_seconds(1.0, TimerMode::Repeating),
+            speed_sequence: vec![300.0, 500.0, 300.0],
+            current_index: 0,
+        }
+    }
+}
+
+/// Component for associating a spinner entity with its parent circular widget.
 #[derive(Component)]
 pub struct CircularSpinnerEntity(pub Entity);

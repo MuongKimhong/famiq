@@ -1,6 +1,7 @@
 #![cfg(test)]
 
 use crate::plugin::FamiqPlugin;
+use crate::widgets::{FamiqWidgetId, FamiqWidgetClasses};
 use super::*;
 
 fn setup_test_default_button(

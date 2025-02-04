@@ -1,6 +1,4 @@
 use bevy::prelude::*;
-use bevy::window::PrimaryWindow;
-
 use crate::utils::entity_add_child;
 
 use super::color::{BLACK_COLOR, WHITE_COLOR};

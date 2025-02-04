@@ -1,11 +1,10 @@
 pub mod helper;
 pub mod tests;
 
-use crate::utils::{entity_add_child, process_spacing_built_in_class};
+use crate::utils::{entity_add_child, insert_id_and_class, process_spacing_built_in_class};
 use crate::widgets::{
     DefaultTextEntity, DefaultWidgetEntity, DefaultTextSpanEntity,
-    FamiqWidgetId, FamiqWidgetBuilder, FamiqWidgetClasses,
-    WidgetStyle, ExternalStyleHasChanged
+    FamiqWidgetBuilder, WidgetStyle, ExternalStyleHasChanged
 };
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::ecs::system::EntityCommands;
@@ -36,7 +35,6 @@ pub struct IsFamiqFPSTextContainer;
 pub struct CanChangeColor(pub bool);
 
 
-/// Represents the Famiq FPS text widget.
 pub struct FaFpsText;
 
 // Doesn't need container
@@ -86,12 +84,7 @@ impl<'a> FaFpsText {
             ))
             .id();
 
-        if let Some(id) = id {
-            root_node.commands().entity(entity).insert(FamiqWidgetId(id));
-        }
-        if let Some(class) = class {
-            root_node.commands().entity(entity).insert(FamiqWidgetClasses(class));
-        }
+        insert_id_and_class(root_node, entity, &id, &class);
         root_node.add_child(entity);
         entity
     }
@@ -154,15 +147,8 @@ impl<'a> FaFpsText {
             ))
             .id();
 
-        if let Some(id) = id {
-            root_node.commands().entity(label_txt_entity).insert(FamiqWidgetId(id.to_owned()));
-            root_node.commands().entity(count_txt_entity).insert(FamiqWidgetId(id.to_owned()));
-        }
-        if let Some(class) = class {
-            root_node.commands().entity(label_txt_entity).insert(FamiqWidgetClasses(class.to_owned()));
-            root_node.commands().entity(count_txt_entity).insert(FamiqWidgetClasses(class.to_owned()));
-        }
-
+        insert_id_and_class(root_node, label_txt_entity, id, class);
+        insert_id_and_class(root_node, count_txt_entity, id, class);
         entity_add_child(root_node, count_txt_entity, label_txt_entity);
         label_txt_entity
     }
@@ -182,11 +168,7 @@ impl<'a> FaFpsText {
         text_entity
     }
 
-    /// System to update the FPS count and optionally change its color based on the value.
-    ///
-    /// # Parameters
-    /// - `diagnostics`: Diagnostics resource containing FPS data.
-    /// - `text_q`: Query to retrieve FPS count text entities.
+    /// Internal system to update the FPS count and optionally change its color based on the value.
     pub fn update_fps_count_system(
         diagnostics: Res<DiagnosticsStore>,
         mut text_q: Query<(&mut TextSpan, &mut TextColor, &CanChangeColor, &IsFamiqFPSTextCount)>
@@ -244,12 +226,13 @@ impl<'a> FaFpsTextBuilder<'a> {
         self
     }
 
-    /// Method to add id to fps
+    /// Method to add id to fps.
     pub fn id(mut self, id: &str) -> Self {
         self.id = Some(id.to_string());
         self
     }
 
+    /// Method to add class to fps.
     pub fn class(mut self, class: &str) -> Self {
         self.class = Some(class.to_string());
         self
@@ -261,7 +244,7 @@ impl<'a> FaFpsTextBuilder<'a> {
         self
     }
 
-    /// Spawn fps into UI World
+    /// Spawn fps into UI World.
     pub fn build(&mut self) -> Entity {
         FaFpsText::new(
             self.id.clone(),

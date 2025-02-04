@@ -1,7 +1,7 @@
 #![cfg(test)]
 
 use crate::plugin::FamiqPlugin;
-use crate::widgets::FamiqWidgetResource;
+use crate::widgets::{FamiqWidgetResource, FamiqWidgetId, FamiqWidgetClasses};
 use crate::utils::create_test_app;
 use super::*;
 

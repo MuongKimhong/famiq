@@ -12,7 +12,7 @@ use crate::widgets::{
 use bevy::ecs::event::EventWriter;
 use bevy::prelude::*;
 
-// Interaction Event: Hover, Press, Leave (None)
+/// Interaction Event: Hover, Press, Leave (None)
 #[derive(Event, Debug)]
 pub struct FaInteractionEvent {
     pub entity: Entity,

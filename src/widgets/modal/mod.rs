@@ -1,8 +1,9 @@
 pub mod helper;
+pub mod tests;
 
 use crate::widgets::{
-    FamiqWidgetId, FamiqWidgetClasses,
-    DefaultWidgetEntity, FamiqWidgetBuilder, WidgetStyle, ExternalStyleHasChanged
+    FamiqWidgetId, DefaultWidgetEntity,
+    FamiqWidgetBuilder, WidgetStyle, ExternalStyleHasChanged
 };
 use crate::utils;
 use bevy::prelude::*;
@@ -161,12 +162,7 @@ impl<'a> FaModal {
             ))
             .id();
 
-        if let Some(id) = id {
-            root_node.commands().entity(entity).insert(FamiqWidgetId(id));
-        }
-        if let Some(class) = class {
-            root_node.commands().entity(entity).insert(FamiqWidgetClasses(class));
-        }
+        utils::insert_id_and_class(root_node, entity, &id, &class);
         root_node.add_child(entity);
         entity
     }
@@ -185,6 +181,7 @@ impl<'a> FaModal {
         background
     }
 
+    /// Internal system to hide or display via `FaModalState` resource.
     pub fn hide_or_display_modal_system(
         mut modal_bg_q: Query<(&mut Visibility, Entity, &FamiqWidgetId, &FaModalContainerEntity)>,
         mut modal_container_q: Query<(&mut AnimationProgress, &mut Transform), With<IsFamiqModalContainer>>,
@@ -286,62 +283,4 @@ pub fn fa_modal<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaModalBuilder<'a> {
 /// True only if there is a modal widget created.
 pub fn can_run_modal_systems(modal_q: Query<&IsFamiqModalBackground>) -> bool {
     modal_q.iter().count() > 0
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::plugin::FamiqPlugin;
-    use crate::widgets::FamiqWidgetResource;
-    use crate::widgets::text::fa_text;
-    use super::*;
-
-    fn setup_test_default_modal(
-        mut commands: Commands,
-        asset_server: ResMut<AssetServer>,
-        mut builder_res: ResMut<FamiqWidgetResource>,
-    ) {
-        let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-        fa_modal(&mut builder).id("#test-modal").build();
-    }
-
-    fn setup_test_modal_with_children(
-        mut commands: Commands,
-        asset_server: ResMut<AssetServer>,
-        mut builder_res: ResMut<FamiqWidgetResource>,
-    ) {
-        let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-        let txt_one = fa_text(&mut builder, "Text one").build();
-        let txt_two = fa_text(&mut builder, "Text two").build();
-
-        fa_modal(&mut builder)
-            .children(vec![txt_one, txt_two])
-            .build();
-    }
-
-    #[test]
-    fn test_create_default_modal() {
-        let mut app = utils::create_test_app();
-        app.add_plugins(FamiqPlugin);
-        app.insert_resource(FamiqWidgetResource::default());
-        app.add_systems(Startup, setup_test_default_modal);
-        app.update();
-
-        let modal_q = app.world_mut().query::<(&FamiqWidgetId, &IsFamiqModalBackground)>().get_single(app.world());
-        assert!(modal_q.is_ok(), "There should be only 1 listview");
-
-        let modal_id = modal_q.unwrap().0;
-        assert_eq!("#test-modal".to_string(), modal_id.0);
-    }
-
-    #[test]
-    fn test_create_modal_with_children() {
-        let mut app = utils::create_test_app();
-        app.add_plugins(FamiqPlugin);
-        app.insert_resource(FamiqWidgetResource::default());
-        app.add_systems(Startup, setup_test_modal_with_children);
-        app.update();
-
-        let modal_q = app.world_mut().query::<(&Children, &IsFamiqModalContainer)>().get_single(app.world());
-        assert_eq!(2 as usize, modal_q.unwrap().0.len());
-    }
 }

@@ -4,7 +4,6 @@ pub mod tests;
 
 use bevy::prelude::*;
 use crate::widgets::{
-    FamiqWidgetId, FamiqWidgetClasses,
     DefaultWidgetEntity, FamiqWidgetBuilder, WidgetStyle,
     ExternalStyleHasChanged, FamiqToolTipText
 };
@@ -13,7 +12,8 @@ use crate::utils::{
     entity_add_child,
     lighten_color,
     darken_color,
-    process_spacing_built_in_class
+    process_spacing_built_in_class,
+    insert_id_and_class
 };
 use super::tooltip::FaToolTipResource;
 
@@ -54,12 +54,9 @@ impl<'a> FaCircular {
         let bg_color = BackgroundColor(Color::NONE);
         let z_index = ZIndex::default();
         let visibility = Visibility::Inherited;
-
-
-        // let border_color = BorderColor(Color::srgba(0.878, 0.878, 0.878, 0.941));
         let border_color = get_spinner_color(color);
 
-        let entity = root_node
+        root_node
             .commands()
             .spawn((
                 node,
@@ -69,16 +66,9 @@ impl<'a> FaCircular {
                 z_index,
                 visibility,
                 IsFamiqCircularSpinner,
-                RotatingSequence {
-                    speed: 300.0,
-                    timer: Timer::from_seconds(1.0, TimerMode::Repeating), // every 1 secs
-                    speed_sequence: vec![300.0, 500.0, 300.0], // Sequence of speeds
-                    current_index: 0,
-                }
+                RotatingSequence::default()
             ))
-            .id();
-
-        entity
+            .id()
     }
 
     fn _build_outer_circle(
@@ -142,12 +132,7 @@ impl<'a> FaCircular {
             ))
             .id();
 
-        if let Some(id) = id {
-            root_node.commands().entity(outer_entity).insert(FamiqWidgetId(id.to_string()));
-        }
-        if let Some(class) = class {
-            root_node.commands().entity(outer_entity).insert(FamiqWidgetClasses(class));
-        }
+        insert_id_and_class(root_node, outer_entity, &id, &class);
         outer_entity
     }
 
@@ -177,11 +162,7 @@ impl<'a> FaCircular {
         outer
     }
 
-    /// System to rotate spinner entities based on their rotation speed.
-    ///
-    /// # Parameters
-    /// - `time`: Resource containing the time delta.
-    /// - `query`: Query for spinner entities and their `RotatingSequence` components.
+    /// Internal to rotate spinner entities based on their rotation speed.
     pub fn rotate_spinner(
         time: Res<Time>,
         mut query: Query<(&mut Transform, &RotatingSequence)>,
@@ -196,17 +177,13 @@ impl<'a> FaCircular {
         }
     }
 
-    /// System to update spinner rotation speeds based on a predefined sequence.
-    ///
-    /// # Parameters
-    /// - `time`: Resource containing the time delta.
-    /// - `query`: Query for spinner entities and their `RotatingSequence` components.
+    /// Internal system to update spinner rotation speeds based on a predefined sequence.
     pub fn update_spinner_speed(
         time: Res<Time>,
         mut query: Query<&mut RotatingSequence>,
     ) {
         for mut rotating in query.iter_mut() {
-            // Update the timer
+            // Update timer
             rotating.timer.tick(time.delta());
 
             if rotating.timer.just_finished() {
@@ -217,6 +194,7 @@ impl<'a> FaCircular {
         }
     }
 
+    /// Internal system to handle circular interaction events.
     pub fn handle_circular_interaction_system(
         mut events: EventReader<FaInteractionEvent>,
         mut circular_q: Query<
@@ -245,7 +223,7 @@ impl<'a> FaCircular {
     }
 }
 
-/// Builder for creating Famiq circular elements.
+/// Builder for creating Famiq circular widget.
 pub struct FaCircularBuilder<'a> {
     pub id: Option<String>,
     pub class: Option<String>,

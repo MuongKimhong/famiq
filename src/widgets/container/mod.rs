@@ -6,8 +6,8 @@ use bevy::prelude::*;
 
 use crate::utils;
 use crate::widgets::{
-    DefaultWidgetEntity, FamiqWidgetId, FamiqWidgetClasses,
-    FamiqWidgetBuilder, WidgetStyle, ExternalStyleHasChanged
+    DefaultWidgetEntity, FamiqWidgetBuilder,
+    WidgetStyle, ExternalStyleHasChanged
 };
 use helper::default_container_node;
 
@@ -60,13 +60,8 @@ impl<'a> FaContainer {
             ))
             .id();
 
-        if let Some(id) = id {
-            root_node.commands().entity(container_entity).insert(FamiqWidgetId(id));
-        }
-        if let Some(class) = class {
-            root_node.commands().entity(container_entity).insert(FamiqWidgetClasses(class));
-        }
         root_node.add_child(container_entity);
+        utils::insert_id_and_class(root_node, container_entity, &id, &class);
         utils::entity_add_children(root_node, children, container_entity);
         container_entity
     }

@@ -177,12 +177,8 @@ impl Plugin for FamiqPlugin {
         app.insert_resource(CanBeScrolledListView { entity: None });
         app.insert_resource(FaSelectionResource::default());
         app.insert_resource(FaTextInputResource::default());
-        app.insert_resource(FaTextInputCursorBlinkTimer {
-            timer: Timer::from_seconds(0.5, TimerMode::Repeating),
-            is_transparent: false
-        });
-
-        app.insert_resource(IndeterminateAnimationTimer::new());
+        app.insert_resource(FaTextInputCursorBlinkTimer::default());
+        app.insert_resource(IndeterminateAnimationTimer::default());
         app.insert_resource(FaProgressBarResource::default());
         app.insert_resource(FaToolTipResource::default());
         app.insert_resource(FaModalState::default());
@@ -204,6 +200,5 @@ impl Plugin for FamiqPlugin {
         fa_progress_bar_systems(app);
 
         app.add_systems(Update, FaToolTip::handle_show_hide_tooltip_system);
-
     }
 }
