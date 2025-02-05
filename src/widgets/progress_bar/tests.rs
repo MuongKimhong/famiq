@@ -5,6 +5,9 @@ use crate::plugin::FamiqPlugin;
 use crate::widgets::{FamiqWidgetId, FamiqWidgetClasses, FamiqWidgetResource};
 use super::*;
 
+#[derive(Resource)]
+struct TestEntity(Entity);
+
 fn setup_test_default_bar(
     mut commands: Commands,
     asset_server: ResMut<AssetServer>,
@@ -31,10 +34,12 @@ fn setup_test_bar_with_percentage(
     mut builder_res: ResMut<FamiqWidgetResource>,
 ) {
     let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-    fa_progress_bar(&mut builder)
+    let bar = fa_progress_bar(&mut builder)
         .id("#test-bar")
         .percentage(50.0)
         .build();
+
+    commands.insert_resource(TestEntity(bar));
 }
 
 #[test]
@@ -107,4 +112,65 @@ fn test_get_percentage_by_id() {
     let bar_res = app.world_mut().resource::<FaProgressBarResource>();
     let percentage = bar_res.get_percentage_by_id("#test-bar");
     assert_eq!(Some(50.0), percentage);
+}
+
+#[test]
+fn test_get_percentage_by_entity() {
+    let mut app = create_test_app();
+    app.add_plugins(FamiqPlugin);
+    app.insert_resource(FamiqWidgetResource::default());
+    app.add_systems(Startup, setup_test_bar_with_percentage);
+    app.update();
+
+    let bar_entity = app.world_mut().resource::<TestEntity>().0;
+    let bar_res = app.world_mut().resource::<FaProgressBarResource>();
+    let percentage = bar_res.get_percentage_by_entity(bar_entity);
+    assert_eq!(Some(50.0), percentage);
+}
+
+#[test]
+fn test_update_percentage_by_id() {
+    let mut app = create_test_app();
+    app.add_plugins(FamiqPlugin);
+    app.insert_resource(FamiqWidgetResource::default());
+    app.add_systems(Startup, setup_test_bar_with_percentage);
+    app.add_systems(Update, FaProgressBar::handle_progress_value_change_by_id);
+    app.update();
+
+    let mut bar_res = app.world_mut().resource_mut::<FaProgressBarResource>();
+    let old_percentage = bar_res.get_percentage_by_id("#test-bar");
+    assert_eq!(Some(50.0), old_percentage);
+
+    bar_res.set_percentage_by_id("#test-bar", Some(10.0));
+    app.update(); // update again so handle_progress_value_change_by_id run again;
+
+    let value_q = app.world_mut().query::<&FaProgressValuePercentage>()
+        .get_single(app.world());
+
+    let new_percentage = value_q.unwrap().0;
+    assert_eq!(10.0, new_percentage);
+}
+
+#[test]
+fn test_update_percentage_by_entity() {
+    let mut app = create_test_app();
+    app.add_plugins(FamiqPlugin);
+    app.insert_resource(FamiqWidgetResource::default());
+    app.add_systems(Startup, setup_test_bar_with_percentage);
+    app.add_systems(Update, FaProgressBar::handle_progress_value_change_by_entity);
+    app.update();
+
+    let bar_entity = app.world_mut().resource::<TestEntity>().0;
+    let mut bar_res = app.world_mut().resource_mut::<FaProgressBarResource>();
+    let old_percentage = bar_res.get_percentage_by_entity(bar_entity);
+    assert_eq!(Some(50.0), old_percentage);
+
+    bar_res.set_percentage_by_entity(bar_entity, Some(10.0));
+    app.update(); // update again so handle_progress_value_change_by_entity run again;
+
+    let value_q = app.world_mut().query::<&FaProgressValuePercentage>()
+        .get_single(app.world());
+
+    let new_percentage = value_q.unwrap().0;
+    assert_eq!(10.0, new_percentage);
 }
