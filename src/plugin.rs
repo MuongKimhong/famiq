@@ -54,6 +54,7 @@ fn fa_selection_systems(app: &mut App) {
             update_choices_panel_position_and_width_system,
             handle_selection_interaction_system,
             handle_selection_choice_interaction_system,
+            detect_new_selection_widget_system
         )
         .run_if(can_run_selection_systems)
     );
@@ -69,7 +70,8 @@ fn fa_text_input_systems(app: &mut App) {
             FaTextInput::handle_text_input_interaction_system,
             FaTextInput::handle_text_input_on_focused_system,
             FaTextInput::handle_cursor_blink_system,
-            FaTextInput::handle_toggle_password_icon_interaction_system
+            FaTextInput::handle_toggle_password_icon_interaction_system,
+            FaTextInput::detect_new_text_input_widget_system
         )
         .run_if(can_run_text_input_systems)
     );

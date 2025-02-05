@@ -24,24 +24,40 @@ pub use systems::*;
 
 #[derive(Resource, Default, Debug)]
 pub struct FaSelectionResource {
-    pub choices: HashMap<String, String>, // id - choice
+    pub choices_id: HashMap<String, String>, // id - choice
+    pub choices_entity: HashMap<Entity, String> // entity - choice
 }
 
 /// Implement the trait for FaSelectionResource
 impl ResourceMap for FaSelectionResource {
-    fn _update_or_insert(&mut self, id: String, value: String) {
-        self.choices.insert(id, value);
+    fn _insert_by_id(&mut self, id: String, value: String) {
+        self.choices_id.insert(id, value);
     }
 
-    fn get_value(&self, id: &str) -> String {
-        self.choices.get(id).map_or_else(
+    fn _insert_by_entity(&mut self, entity: Entity, value: String) {
+        self.choices_entity.insert(entity, value);
+    }
+
+    fn get_value_by_id(&self, id: &str) -> String {
+        self.choices_id.get(id).map_or_else(
             || String::from(""),
             |v| if v == "-/-" { String::from("") } else { v.clone() },
         )
     }
 
-    fn exists(&self, id: &str) -> bool {
-        self.choices.contains_key(id)
+    fn get_value_by_entity(&self, entity: Entity) -> String {
+        self.choices_entity.get(&entity).map_or_else(
+            || String::from(""),
+            |v| if v == "-/-" { String::from("") } else { v.clone() },
+        )
+    }
+
+    fn exists_by_id(&self, id: &str) -> bool {
+        self.choices_id.contains_key(id)
+    }
+
+    fn exists_by_entity(&self, entity: Entity) -> bool {
+        self.choices_entity.contains_key(&entity)
     }
 }
 
@@ -369,7 +385,7 @@ impl<'a> FaSelection {
         entity_add_children(root_node, &vec![placeholder_entity, arrow_icon_entity], selector);
         entity_add_children(root_node, &vec![selector, choices_panel], container);
 
-        container
+        selector
     }
 
     pub fn arrow_up(text_q: &mut Query<&mut Text, With<ArrowIcon>>, arrow_entity: Entity) {

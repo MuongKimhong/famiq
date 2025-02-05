@@ -43,21 +43,34 @@ impl TextInput {
 /// Stores the text input values in a `HashMap` where keys are IDs of the inputs.
 #[derive(Resource, Default, Debug)]
 pub struct FaTextInputResource {
-    pub inputs: HashMap<String, String>,
+    pub inputs_id: HashMap<String, String>,
+    pub inputs_entity: HashMap<Entity, String>
 }
 
 /// Implement the trait for FaTextInputResource
 impl ResourceMap for FaTextInputResource {
-    fn _update_or_insert(&mut self, id: String, value: String) {
-        self.inputs.insert(id, value);
+    fn _insert_by_id(&mut self, id: String, value: String) {
+        self.inputs_id.insert(id, value);
     }
 
-    fn get_value(&self, id: &str) -> String {
-        self.inputs.get(id).cloned().unwrap_or_default()
+    fn _insert_by_entity(&mut self, entity: Entity, value: String) {
+        self.inputs_entity.insert(entity, value);
     }
 
-    fn exists(&self, id: &str) -> bool {
-        self.inputs.contains_key(id)
+    fn get_value_by_id(&self, id: &str) -> String {
+        self.inputs_id.get(id).cloned().unwrap_or_default()
+    }
+
+    fn get_value_by_entity(&self, entity: Entity) -> String {
+        self.inputs_entity.get(&entity).cloned().unwrap_or_default()
+    }
+
+    fn exists_by_id(&self, id: &str) -> bool {
+        self.inputs_id.contains_key(id)
+    }
+
+    fn exists_by_entity(&self, entity: Entity) -> bool {
+        self.inputs_entity.contains_key(&entity)
     }
 }
 
@@ -460,7 +473,7 @@ impl<'a> FaTextInput {
             (&mut BoxShadow, &mut TextInput, Option<&FamiqWidgetId>, &DefaultWidgetEntity)
         >,
         mut builder_res: ResMut<FamiqWidgetResource>,
-        mut input_resource: ResMut<FaTextInputResource>,
+        // mut input_resource: ResMut<FaTextInputResource>,
     ) {
         for e in events.read() {
             if e.widget == WidgetType::TextInput {
@@ -478,15 +491,33 @@ impl<'a> FaTextInput {
                                 text_input.cursor_index = text_input.text.len();
                             }
 
-                            if let Some(id) = id {
-                                if !input_resource.exists(id.0.as_str()) {
-                                    input_resource._update_or_insert(id.0.clone(), "".to_string());
-                                }
-                            }
+                            // if let Some(id) = id {
+                            //     if !input_resource.exists(id.0.as_str()) {
+                            //         input_resource._update_or_insert(id.0.clone(), "".to_string());
+                            //     }
+                            // }
                         },
                         _ => box_shadow.color = Color::NONE
                     }
                 }
+            }
+        }
+    }
+
+    /// Internal system to detect new text_input being created.
+    pub fn detect_new_text_input_widget_system(
+        input_q: Query<(Entity, Option<&FamiqWidgetId>), Added<IsFamiqTextInput>>,
+        mut input_res: ResMut<FaTextInputResource>
+    ) {
+        for (entity, id) in input_q.iter() {
+            if let Some(id) = id {
+                if !input_res.exists_by_id(id.0.as_str()) {
+                    input_res._insert_by_id(id.0.clone(), String::new());
+                }
+            }
+
+            if !input_res.exists_by_entity(entity) {
+                input_res._insert_by_entity(entity, String::new());
             }
         }
     }
@@ -526,7 +557,7 @@ impl<'a> FaTextInput {
                         ) in input_q.iter_mut()
                     {
                         if let Some(true) = builder_res.get_widget_focus_state(&entity) {
-                            _update_text_input_value(id, &mut input_res, &mut text_input, true, Some(input));
+                            _update_text_input_value(entity, id, &mut input_res, &mut text_input, true, Some(input));
 
                             if let Ok((mut placeholder_text, _)) = text_q.get_mut(placeholder_entity.0) {
                                 placeholder_text.0 = text_input.text.clone();
@@ -550,7 +581,7 @@ impl<'a> FaTextInput {
                         ) in input_q.iter_mut()
                     {
                         if let Some(true) = builder_res.get_widget_focus_state(&entity) {
-                            _update_text_input_value(id, &mut input_res, &mut text_input, true, Some(&SmolStr::new(" ")));
+                            _update_text_input_value(entity, id, &mut input_res, &mut text_input, true, Some(&SmolStr::new(" ")));
 
                             if let Ok((mut placeholder_text, _)) = text_q.get_mut(placeholder_entity.0) {
                                 placeholder_text.0 = text_input.text.clone();
@@ -574,7 +605,7 @@ impl<'a> FaTextInput {
                         ) in input_q.iter_mut()
                     {
                         if let Some(true) = builder_res.get_widget_focus_state(&entity) {
-                            _update_text_input_value(id, &mut input_res, &mut text_input, false, None);
+                            _update_text_input_value(entity, id, &mut input_res, &mut text_input, false, None);
 
                             if let Ok((mut placeholder_text, _)) = text_q.get_mut(placeholder_entity.0) {
                                 if placeholder_text.0 != text_input.placeholder {

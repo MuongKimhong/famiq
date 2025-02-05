@@ -114,17 +114,35 @@ pub fn handle_selection_interaction_system(
                             &bg_color.0
                         );
 
-                        if let Some(id) = id {
-                            if !selected_choices_res.exists(id.0.as_str()) {
-                                selected_choices_res._update_or_insert(id.0.clone(), "-/-".to_string());
-                            }
-                        }
+                        // if let Some(id) = id {
+                        //     if !selected_choices_res.exists(id.0.as_str()) {
+                        //         selected_choices_res._update_or_insert(id.0.clone(), "-/-".to_string());
+                        //     }
+                        // }
                     },
                     _ => {
                         box_shadow.color = Color::NONE;
                     }
                 }
             }
+        }
+    }
+}
+
+/// Internal system to detect new selection being created.
+pub fn detect_new_selection_widget_system(
+    selection_q: Query<(Entity, Option<&FamiqWidgetId>), Added<IsFamiqSelectionSelector>>,
+    mut selection_res: ResMut<FaSelectionResource>
+) {
+    for (entity, id) in selection_q.iter() {
+        if let Some(id) = id {
+            if !selection_res.exists_by_id(id.0.as_str()) {
+                selection_res._insert_by_id(id.0.clone(), String::new());
+            }
+        }
+
+        if !selection_res.exists_by_entity(entity) {
+            selection_res._insert_by_entity(entity, String::new());
         }
     }
 }
@@ -148,7 +166,7 @@ pub fn handle_selection_choice_interaction_system(
         &SelectorArrowIconEntity,
         &SelectionChoicesPanelEntity
     )>,
-    mut selected_choices_res: ResMut<FaSelectionResource>,
+    mut selection_res: ResMut<FaSelectionResource>,
     mut text_q: Query<&mut Text, Without<ArrowIcon>>,
     mut arrow_q: Query<&mut Text, With<ArrowIcon>>,
     mut placeholder_q: Query<(&mut TextColor, &WidgetStyle), With<SelectorPlaceHolder>>,
@@ -187,8 +205,9 @@ pub fn handle_selection_choice_interaction_system(
                                 text.0.clone()
                             };
                             if let Some(id) = selection_id {
-                                selected_choices_res._update_or_insert(id.0.clone(), text.0.clone());
+                                selection_res._insert_by_id(id.0.clone(), text.0.clone());
                             }
+                            selection_res._insert_by_entity(selection_entity, text.0.clone());
                         }
 
                         // update placeholder value

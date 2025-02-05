@@ -181,6 +181,7 @@ pub fn _handle_cursor_on_focused(
 
 /// Internal helper function to update text_input value & text_input resource.
 pub fn _update_text_input_value(
+    input_entity: Entity,
     input_id: Option<&FamiqWidgetId>,
     input_resource: &mut ResMut<FaTextInputResource>,
     text_input: &mut TextInput,
@@ -199,9 +200,11 @@ pub fn _update_text_input_value(
         }
     }
 
+    // call _insert_by_id & _insert_by_entity because insert will update the value if it exists.
     if let Some(id) = input_id {
-        input_resource._update_or_insert(id.0.clone(), text_input.text.clone());
+        input_resource._insert_by_id(id.0.clone(), text_input.text.clone());
     }
+    input_resource._insert_by_entity(input_entity, text_input.text.clone());
 }
 
 /// Internal helper function to mask placeholder as password.
