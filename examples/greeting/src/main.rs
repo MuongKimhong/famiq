@@ -56,7 +56,7 @@ fn handle_btn_press(
             if let Some(id) = e.widget_id.as_ref() {
                 match id.as_str() {
                     "#btn" => {
-                        let name = input_res.get_value("#name");
+                        let name = input_res.get_value_by_id("#name");
 
                         let new_txt = format!("Welcome {name}, this example is built with Famiq.");
                         text_res.update_value_by_id("#welcome-txt", new_txt.as_str());
