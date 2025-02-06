@@ -127,7 +127,13 @@ impl<'a> FaSelection {
         root_node: &'a mut EntityCommands,
         font_handle: Handle<Font>,
         size: &SelectionSize,
+        color: &SelectorColor
     ) -> Entity {
+        let mut use_color = WHITE_COLOR;
+
+        if *color == SelectorColor::Default {
+            use_color = BLACK_COLOR;
+        }
         let txt_font = TextFont {
             font: font_handle,
             font_size: get_text_size(&size),
@@ -139,13 +145,13 @@ impl<'a> FaSelection {
             .spawn((
                 Text::new(placeholder),
                 txt_font.clone(),
-                TextColor(PLACEHOLDER_COLOR_UNFOCUSED),
+                TextColor(use_color),
                 TextLayout::new_with_justify(JustifyText::Left),
                 SelectorPlaceHolder,
                 DefaultTextEntity::new(
                     Text::new(placeholder),
                     txt_font,
-                    TextColor(PLACEHOLDER_COLOR_UNFOCUSED),
+                    TextColor(use_color),
                     TextLayout::new_with_justify(JustifyText::Left)
                 ),
                 WidgetStyle::default(),
@@ -161,7 +167,13 @@ impl<'a> FaSelection {
         root_node: &'a mut EntityCommands,
         font_handle: Handle<Font>,
         size: &SelectionSize,
+        color: &SelectorColor
     ) -> Entity {
+        let mut use_color = WHITE_COLOR;
+
+        if *color == SelectorColor::Default {
+            use_color = BLACK_COLOR;
+        }
         let txt_font = TextFont {
             font: font_handle,
             font_size: get_text_size(&size),
@@ -173,7 +185,7 @@ impl<'a> FaSelection {
             .spawn((
                 Text::new("▼"),
                 txt_font,
-                TextColor(PLACEHOLDER_COLOR_UNFOCUSED),
+                TextColor(use_color),
                 TextLayout::new_with_justify(JustifyText::Right),
                 ArrowIcon
             ))
@@ -358,8 +370,9 @@ impl<'a> FaSelection {
             root_node,
             font_handle.clone(),
             &size,
+            &color
         );
-        let arrow_icon_entity = Self::_build_selector_arrow_icon(root_node, font_handle.clone(), &size);
+        let arrow_icon_entity = Self::_build_selector_arrow_icon(root_node, font_handle.clone(), &size, &color);
         let selector = Self::_build_selector(
             &id,
             &class,

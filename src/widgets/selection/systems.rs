@@ -51,17 +51,14 @@ pub fn handle_selection_interaction_system(
     mut selector_q: Query<
         (
             &mut BoxShadow,
-            &BackgroundColor,
             &DefaultWidgetEntity,
             &SelectorArrowIconEntity,
             &SelectionChoicesPanelEntity,
-            &SelectorPlaceHolderEntity
         ),
         Without<IsFamiqSelectionChoicesPanel>
     >,
     mut builder_res: ResMut<FamiqWidgetResource>,
     mut arrow_q: Query<&mut Text, With<ArrowIcon>>,
-    mut placeholder_q: Query<(&mut TextColor, &WidgetStyle), With<SelectorPlaceHolder>>,
     mut panel_q: Query<&mut Visibility, With<IsFamiqSelectionChoicesPanel>>,
 
 ) {
@@ -69,11 +66,9 @@ pub fn handle_selection_interaction_system(
         if e.widget == WidgetType::Selection {
             if let Ok((
                 mut box_shadow,
-                bg_color,
                 default_style,
                 arrow_entity,
                 panel_entity,
-                placeholder_entity
             )) = selector_q.get_mut(e.entity)
             {
                 match e.interaction {
@@ -87,12 +82,6 @@ pub fn handle_selection_interaction_system(
                                 builder_res.update_or_insert_focus_state(e.entity, false);
                                 FaSelection::arrow_down(&mut arrow_q, arrow_entity.0);
                                 FaSelection::hide_choice_panel(&mut panel_q, panel_entity.0);
-                                FaSelection::set_placeholder_color(
-                                    false,
-                                    &mut placeholder_q,
-                                    placeholder_entity.0,
-                                    &bg_color.0
-                                );
                                 break;
                             }
                         }
@@ -102,12 +91,6 @@ pub fn handle_selection_interaction_system(
                         builder_res.update_or_insert_focus_state(e.entity, true);
                         FaSelection::arrow_up(&mut arrow_q, arrow_entity.0);
                         FaSelection::show_choice_panel(&mut panel_q, panel_entity.0);
-                        FaSelection::set_placeholder_color(
-                            true,
-                            &mut placeholder_q,
-                            placeholder_entity.0,
-                            &bg_color.0
-                        );
                     },
                     _ => {
                         box_shadow.color = Color::NONE;
@@ -167,7 +150,6 @@ pub fn handle_selection_choice_interaction_system(
         Entity,
         &Selection,
         Option<&FamiqWidgetId>,
-        &BackgroundColor,
         &mut SelectorPlaceHolderEntity,
         &SelectorArrowIconEntity,
         &SelectionChoicesPanelEntity
@@ -175,7 +157,6 @@ pub fn handle_selection_choice_interaction_system(
     mut selection_res: ResMut<FaSelectionResource>,
     mut text_q: Query<&mut Text, Without<ArrowIcon>>,
     mut arrow_q: Query<&mut Text, With<ArrowIcon>>,
-    mut placeholder_q: Query<(&mut TextColor, &WidgetStyle), With<SelectorPlaceHolder>>,
     mut panel_q: Query<&mut Visibility, With<IsFamiqSelectionChoicesPanel>>,
     mut builder_res: ResMut<FamiqWidgetResource>
 ) {
@@ -196,7 +177,6 @@ pub fn handle_selection_choice_interaction_system(
                         selection_entity,
                         selection,
                         selection_id,
-                        selection_bg_color,
                         placeholder_entity,
                         arrow_entity,
                         panel_entity
@@ -229,12 +209,6 @@ pub fn handle_selection_choice_interaction_system(
                         builder_res.update_or_insert_focus_state(selection_entity, false);
                         FaSelection::arrow_down(&mut arrow_q, arrow_entity.0);
                         FaSelection::hide_choice_panel(&mut panel_q, panel_entity.0);
-                        FaSelection::set_placeholder_color(
-                            false,
-                            &mut placeholder_q,
-                            placeholder_entity.0,
-                            &selection_bg_color.0
-                        );
 
                         *choice_bg_color = BackgroundColor(ITEM_NORMAL_BG_COLOR);
                     }
