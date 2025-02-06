@@ -187,14 +187,20 @@ impl<'a> FaTextInput {
         root_node: &'a mut EntityCommands,
         font_handle: Handle<Font>,
         size: &TextInputSize,
+        color: &TextInputColor
     ) -> Entity {
+        let mut use_color = WHITE_COLOR;
+
+        if *color == TextInputColor::Default {
+            use_color = BLACK_COLOR;
+        }
         let txt = Text::new(placeholder);
         let txt_font = TextFont {
             font: font_handle,
             font_size: get_text_size(size),
             ..default()
         };
-        let txt_color = TextColor(PLACEHOLDER_COLOR);
+        let txt_color = TextColor(use_color);
         let txt_layout = TextLayout::new_with_justify(JustifyText::Left);
 
         let entity = root_node
@@ -219,24 +225,28 @@ impl<'a> FaTextInput {
         root_node: &'a mut EntityCommands,
         font_handle: Handle<Font>,
         size: &TextInputSize,
-        input_entity: Entity
+        input_entity: Entity,
+        color: &TextInputColor
     ) -> Entity {
-        let txt = Text::new("<?>");
+        let mut use_color = WHITE_COLOR;
+
+        if *color == TextInputColor::Default {
+            use_color = BLACK_COLOR;
+        }
+
         let txt_font = TextFont {
             font: font_handle,
             font_size: get_text_size(&size),
             ..default()
         };
-        let txt_color = TextColor(BLACK_COLOR);
-        let txt_layout = TextLayout::new_with_justify(JustifyText::Right);
 
         root_node
             .commands()
             .spawn((
-                txt.clone(),
+                Text::new("<?>"),
                 txt_font.clone(),
-                txt_color.clone(),
-                txt_layout.clone(),
+                TextColor(use_color),
+                TextLayout::new_with_justify(JustifyText::Right),
                 TogglePasswordIcon::default(),
                 FamiqTextInputEntity(input_entity),
                 FocusPolicy::Block,
@@ -275,7 +285,7 @@ impl<'a> FaTextInput {
         class: Option<String>,
         root_node: &'a mut EntityCommands,
         variant: TextInputVariant,
-        color: TextInputColor,
+        color: &TextInputColor,
         shape: TextInputShape,
         placeholder: &str,
         placeholder_entity: Entity,
@@ -369,14 +379,15 @@ impl<'a> FaTextInput {
             placeholder,
             root_node,
             font_handle.clone(),
-            &size
+            &size,
+            &color
         );
         let input_entity = Self::_build_input(
             &id,
             class,
             root_node,
             variant,
-            color,
+            &color,
             shape,
             placeholder,
             ph_entity,
@@ -386,7 +397,7 @@ impl<'a> FaTextInput {
         let mut children = vec![ph_entity, cursor_entity];
 
         if *input_type == TextInputType::Password {
-            let toggle_icon = Self::_build_toggle_password_icon(root_node, font_handle, &size, input_entity);
+            let toggle_icon = Self::_build_toggle_password_icon(root_node, font_handle, &size, input_entity, &color);
             root_node.commands().entity(input_entity).insert(FamiqTextInputToggleIconEntity(toggle_icon));
             children.push(toggle_icon);
         }
@@ -399,7 +410,6 @@ impl<'a> FaTextInput {
         mut input_q: Query<(
             Entity,
             &Node,
-            &BackgroundColor,
             &TextInput,
             &FamiqTextInputCursorEntity,
             &FamiqTextInputPlaceholderEntity,
@@ -413,10 +423,7 @@ impl<'a> FaTextInput {
             ),
             Without<CharacterSize>
         >,
-        mut placeholder_q: Query<
-            (&Text, &mut TextColor, &TextLayoutInfo, &WidgetStyle),
-            With<IsFamiqTextInputPlaceholder>
-        >,
+        mut placeholder_q: Query<(&Text, &TextLayoutInfo), With<IsFamiqTextInputPlaceholder>>,
         builder_res: Res<FamiqWidgetResource>
     ) {
         if !builder_res.is_changed() {
@@ -425,7 +432,6 @@ impl<'a> FaTextInput {
         for (
             input_entity,
             text_input_node,
-            input_bg_color,
             text_input,
             cursor_entity,
             placeholder_entity,
@@ -436,12 +442,7 @@ impl<'a> FaTextInput {
 
             let Ok((mut cursor_node, mut visibility, _)) = cursor_q.get_mut(cursor_entity.0) else {continue};
 
-            if let Ok((
-                placeholder_text,
-                mut placeholder_text_color,
-                placeholder_text_info,
-                placeholder_internal_widget_style
-            )) = placeholder_q.get_mut(placeholder_entity.0) {
+            if let Ok((placeholder_text, placeholder_text_info)) = placeholder_q.get_mut(placeholder_entity.0) {
                 if focused {
                     *visibility = Visibility::Visible;
                     _handle_cursor_on_focused(
@@ -455,13 +456,6 @@ impl<'a> FaTextInput {
                 } else {
                     *visibility = Visibility::Hidden;
                 }
-
-                _handle_update_placeholder_color(
-                    &mut placeholder_text_color,
-                    input_bg_color,
-                    placeholder_internal_widget_style,
-                    focused
-                );
             }
         }
     }
@@ -473,7 +467,7 @@ impl<'a> FaTextInput {
             (&mut BoxShadow, &mut TextInput, &DefaultWidgetEntity)
         >,
         mut builder_res: ResMut<FamiqWidgetResource>,
-        // mut input_resource: ResMut<FaTextInputResource>,
+        mut cursor_blink_timer: ResMut<FaTextInputCursorBlinkTimer>,
     ) {
         for e in events.read() {
             if e.widget == WidgetType::TextInput {
@@ -486,6 +480,7 @@ impl<'a> FaTextInput {
                             // global focus
                             builder_res.update_all_focus_states(false);
                             builder_res.update_or_insert_focus_state(e.entity, true);
+                            cursor_blink_timer.is_transparent = false;
 
                             if text_input.cursor_index > 0 {
                                 text_input.cursor_index = text_input.text.len();
