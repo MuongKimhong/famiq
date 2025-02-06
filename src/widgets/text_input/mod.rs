@@ -470,14 +470,14 @@ impl<'a> FaTextInput {
     pub fn handle_text_input_interaction_system(
         mut events: EventReader<FaInteractionEvent>,
         mut input_q_for_hover: Query<
-            (&mut BoxShadow, &mut TextInput, Option<&FamiqWidgetId>, &DefaultWidgetEntity)
+            (&mut BoxShadow, &mut TextInput, &DefaultWidgetEntity)
         >,
         mut builder_res: ResMut<FamiqWidgetResource>,
         // mut input_resource: ResMut<FaTextInputResource>,
     ) {
         for e in events.read() {
             if e.widget == WidgetType::TextInput {
-                if let Ok((mut box_shadow, mut text_input, id, default_style)) = input_q_for_hover.get_mut(e.entity) {
+                if let Ok((mut box_shadow, mut text_input, default_style)) = input_q_for_hover.get_mut(e.entity) {
                     match e.interaction {
                         Interaction::Hovered => {
                             box_shadow.color = default_style.border_color.0.clone();
@@ -490,12 +490,6 @@ impl<'a> FaTextInput {
                             if text_input.cursor_index > 0 {
                                 text_input.cursor_index = text_input.text.len();
                             }
-
-                            // if let Some(id) = id {
-                            //     if !input_resource.exists(id.0.as_str()) {
-                            //         input_resource._update_or_insert(id.0.clone(), "".to_string());
-                            //     }
-                            // }
                         },
                         _ => box_shadow.color = Color::NONE
                     }
