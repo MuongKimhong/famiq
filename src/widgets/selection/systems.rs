@@ -1,49 +1,47 @@
 use crate::widgets::selection::*;
 use crate::widgets::{WidgetType, FamiqWidgetResource};
 use crate::event_writer::FaInteractionEvent;
-use crate::utils;
 use super::FaSelection;
 use bevy::prelude::*;
+
+const PANEL_TOP_OFFSET: f32 = 10.0;
+
+fn _set_choice_panel_position_and_width(
+    selector_translation: &Vec3,
+    selector_computed_node: &ComputedNode,
+    panel_node: &mut Node,
+) {
+    let top_pos = selector_translation.y + (selector_computed_node.size().y / 2.0) + PANEL_TOP_OFFSET;
+    let left_pos = selector_translation.x - (selector_computed_node.size().x / 2.0);
+
+    panel_node.left = Val::Px(left_pos);
+    panel_node.top = Val::Px(top_pos);
+    panel_node.width = Val::Px(selector_computed_node.size().x);
+}
 
 pub fn update_choices_panel_position_and_width_system(
     selection_q: Query<
         (
             Entity,
-            &Node,
             &ComputedNode,
+            &GlobalTransform,
             &SelectionChoicesPanelEntity
         )
     >,
-    mut panel_q: Query<
-        (
-            &IsFamiqSelectionChoicesPanel,
-            &mut Node
-        ),
-        Without<SelectionChoicesPanelEntity>
-    >,
+    mut panel_q: Query<&mut Node, With<IsFamiqSelectionChoicesPanel>>,
     builder_res: Res<FamiqWidgetResource>
 ) {
-    for (entity, selector_node, computed_node, panel_entity) in selection_q.iter() {
-
+    for (entity, computed_node, transform, panel_entity) in selection_q.iter() {
         let Some(focused) = builder_res.get_widget_focus_state(&entity) else { continue };
 
         if focused {
-            let Ok((_, mut panel_node)) = panel_q.get_mut(panel_entity.0) else { continue };
+            let Ok(mut panel_node) = panel_q.get_mut(panel_entity.0) else { continue };
 
-            let mut top_pos: f32 = 0.0;
-            let top_offset: f32 = 6.0;
-
-            if let Some(m_top) = utils::extract_val(selector_node.margin.top) {
-                top_pos += m_top;
-            }
-            if let Some(m_bottom) = utils::extract_val(selector_node.margin.bottom) {
-                top_pos += m_bottom;
-            }
-            top_pos += computed_node.size().y;
-
-            panel_node.top = Val::Px(top_pos + top_offset);
-            panel_node.left = selector_node.left;
-            panel_node.width = Val::Px(computed_node.size().x);
+            _set_choice_panel_position_and_width(
+                &transform.translation(),
+                computed_node,
+                &mut panel_node
+            );
         }
     }
 }
@@ -53,7 +51,6 @@ pub fn handle_selection_interaction_system(
     mut selector_q: Query<
         (
             &mut BoxShadow,
-            Option<&FamiqWidgetId>,
             &BackgroundColor,
             &DefaultWidgetEntity,
             &SelectorArrowIconEntity,
@@ -63,7 +60,6 @@ pub fn handle_selection_interaction_system(
         Without<IsFamiqSelectionChoicesPanel>
     >,
     mut builder_res: ResMut<FamiqWidgetResource>,
-    mut selected_choices_res: ResMut<FaSelectionResource>,
     mut arrow_q: Query<&mut Text, With<ArrowIcon>>,
     mut placeholder_q: Query<(&mut TextColor, &WidgetStyle), With<SelectorPlaceHolder>>,
     mut panel_q: Query<&mut Visibility, With<IsFamiqSelectionChoicesPanel>>,
@@ -73,7 +69,6 @@ pub fn handle_selection_interaction_system(
         if e.widget == WidgetType::Selection {
             if let Ok((
                 mut box_shadow,
-                id,
                 bg_color,
                 default_style,
                 arrow_entity,
@@ -113,12 +108,6 @@ pub fn handle_selection_interaction_system(
                             placeholder_entity.0,
                             &bg_color.0
                         );
-
-                        // if let Some(id) = id {
-                        //     if !selected_choices_res.exists(id.0.as_str()) {
-                        //         selected_choices_res._update_or_insert(id.0.clone(), "-/-".to_string());
-                        //     }
-                        // }
                     },
                     _ => {
                         box_shadow.color = Color::NONE;
@@ -131,10 +120,20 @@ pub fn handle_selection_interaction_system(
 
 /// Internal system to detect new selection being created.
 pub fn detect_new_selection_widget_system(
-    selection_q: Query<(Entity, Option<&FamiqWidgetId>), Added<IsFamiqSelectionSelector>>,
+    selection_q: Query<
+        (
+            Entity,
+            Option<&FamiqWidgetId>,
+            &ComputedNode,
+            &GlobalTransform,
+            &SelectionChoicesPanelEntity
+        ),
+        Added<IsFamiqSelectionSelector>
+    >,
+    mut panel_q: Query<&mut Node, With<IsFamiqSelectionChoicesPanel>>,
     mut selection_res: ResMut<FaSelectionResource>
 ) {
-    for (entity, id) in selection_q.iter() {
+    for (entity, id, computed_node, transform, panel_entity) in selection_q.iter() {
         if let Some(id) = id {
             if !selection_res.exists_by_id(id.0.as_str()) {
                 selection_res._insert_by_id(id.0.clone(), String::new());
@@ -144,6 +143,13 @@ pub fn detect_new_selection_widget_system(
         if !selection_res.exists_by_entity(entity) {
             selection_res._insert_by_entity(entity, String::new());
         }
+
+        let Ok(mut panel_node) = panel_q.get_mut(panel_entity.0) else { continue };
+        _set_choice_panel_position_and_width(
+            &transform.translation(),
+            computed_node,
+            &mut panel_node
+        );
     }
 }
 
