@@ -296,7 +296,9 @@ impl WidgetStyle {
         *self = external.clone();
     }
 
-    // merge external into self and only overwrite fields that are `null` in `self`
+    // merge external into & overwrite fields in self if
+    // - field in self is "null"
+    // - field in both self & external are not "null"
     pub fn merge_external(&mut self, external: &WidgetStyle) -> bool {
         let mut has_changed = false;
 
@@ -305,10 +307,15 @@ impl WidgetStyle {
 
         let merged_map = self_map.as_object_mut().unwrap();
         for (key, value) in external_map.as_object().unwrap() {
-            if merged_map.get(key).unwrap().is_null() && !external_map.get(key).unwrap().is_null() {
-                merged_map.insert(key.clone(), value.clone());
-                has_changed = true;
-            }
+
+            let self_field = merged_map.get(key).unwrap();
+            let external_field = external_map.get(key).unwrap();
+
+            if (self_field.is_null() && !external_field.is_null()) ||
+               (!self_field.is_null() && !external_field.is_null()) {
+                    merged_map.insert(key.clone(), value.clone());
+                    has_changed = true;
+               }
         }
 
         *self = serde_json::from_value(serde_json::Value::Object(merged_map.clone())).unwrap();
