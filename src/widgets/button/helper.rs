@@ -84,13 +84,8 @@ pub fn default_button_node() -> Node {
         height: Val::Auto,
         justify_content: JustifyContent::Center,
         align_items: AlignItems::Center,
-        border: UiRect::all(Val::Px(2.0)),
-        padding: UiRect {
-            left: Val::Px(6.0),
-            right: Val::Px(6.0),
-            top: Val::Px(2.0),
-            bottom: Val::Px(2.0)
-        },
+        border: UiRect::all(Val::Px(0.0)),
+        padding: UiRect::all(Val::Px(0.0)),
         margin: UiRect {
             top: Val::Px(2.0),
             right: Val::Px(0.0),
@@ -101,39 +96,20 @@ pub fn default_button_node() -> Node {
     }
 }
 
-// background and border color
-pub fn darken_bg_and_bg_color(percentage: f32, bg_color: &mut BackgroundColor, bd_color: &mut BorderColor) {
-    let multiplier = 1.0 - (percentage / 100.0);
-
-    if let Color::Srgba(mut value) = bg_color.0 {
-        value.red = (value.red * multiplier).clamp(0.0, 1.0);
-        value.green = (value.green * multiplier).clamp(0.0, 1.0);
-        value.blue = (value.blue * multiplier).clamp(0.0, 1.0);
-        bg_color.0 = Color::Srgba(value);
-        bd_color.0 = Color::Srgba(value);
+pub fn default_text_container_node() -> Node {
+    Node {
+        width: Val::Auto,
+        height: Val::Auto,
+        justify_content: JustifyContent::Center,
+        align_items: AlignItems::Center,
+        border: UiRect::all(Val::Px(2.0)),
+        padding: UiRect {
+            left: Val::Px(6.0),
+            right: Val::Px(6.0),
+            top: Val::Px(2.0),
+            bottom: Val::Px(2.0)
+        },
+        margin: UiRect::all(Val::Px(0.0)),
+        ..default()
     }
-
-    if let Color::LinearRgba(mut value) = bg_color.0 {
-        value.red = (value.red * multiplier).clamp(0.0, 1.0);
-        value.green = (value.green * multiplier).clamp(0.0, 1.0);
-        value.blue = (value.blue * multiplier).clamp(0.0, 1.0);
-        bg_color.0 = Color::LinearRgba(value);
-        bd_color.0 = Color::LinearRgba(value);
-    }
-
-    if let Color::Hsla(mut value) = bg_color.0 {
-        value.lightness = (value.lightness * multiplier).clamp(0.0, 1.0);
-        bg_color.0 = Color::Hsla(value);
-        bd_color.0 = Color::Hsla(value);
-    }
-}
-
-// background and border color
-pub fn set_default_bg_and_bd_color(
-    default_style: &DefaultWidgetEntity,
-    bg_color: &mut BackgroundColor,
-    bd_color: &mut BorderColor
-) {
-    *bg_color = default_style.background_color.clone();
-    *bd_color = default_style.border_color.clone();
 }

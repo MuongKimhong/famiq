@@ -85,6 +85,30 @@ impl<'a> FaButton {
         entity
     }
 
+    fn _build_text_container(root_node: &'a mut EntityCommands, shape: &BtnShape) -> Entity {
+        let mut border_radius =  BorderRadius::all(Val::Px(6.0));
+
+        match shape {
+            BtnShape::Round => border_radius = BorderRadius::all(Val::Percent(50.0)),
+            BtnShape::Rectangle => border_radius = BorderRadius::all(Val::Px(0.0)),
+            _ => ()
+        }
+
+        root_node
+            .commands()
+            .spawn((
+                default_text_container_node(),
+                BorderColor::default(),
+                BackgroundColor::default(),
+                border_radius,
+                ZIndex::default(),
+                Visibility::Inherited,
+                Interaction::default(),
+                IsFamiqButtonTextContainer
+            ))
+            .id()
+    }
+
     pub fn new(
         id: Option<String>,
         class: Option<String>,
@@ -98,6 +122,7 @@ impl<'a> FaButton {
         tooltip_text: Option<String>
     ) -> Entity {
         let txt_entity = Self::_build_text(&id, &class, text, root_node, font_handle, &color, &size);
+        let container_entity = Self::_build_text_container(root_node, &shape);
 
         let mut node = default_button_node();
         utils::process_spacing_built_in_class(&mut node, &class);
@@ -134,7 +159,8 @@ impl<'a> FaButton {
                 Interaction::default(),
                 ButtonTextEntity(txt_entity),
                 WidgetStyle::default(),
-                ExternalStyleHasChanged(false)
+                ExternalStyleHasChanged(false),
+                ButtonTextContainerEntity(container_entity)
             ))
             .id();
 
@@ -142,7 +168,8 @@ impl<'a> FaButton {
             root_node.commands().entity(btn_entity).insert(FamiqToolTipText(tooltip_text.unwrap()));
         }
         utils::insert_id_and_class(root_node, btn_entity, &id, &class);
-        utils::entity_add_child(root_node, txt_entity, btn_entity);
+        utils::entity_add_child(root_node, txt_entity, container_entity);
+        utils::entity_add_child(root_node, container_entity, btn_entity);
         btn_entity
     }
 
@@ -150,31 +177,41 @@ impl<'a> FaButton {
     pub fn handle_button_on_interaction_system(
         mut events: EventReader<FaInteractionEvent>,
         mut builder_res: ResMut<FamiqWidgetResource>,
-        mut button_q: Query<(
-            &DefaultWidgetEntity,
-            &mut BackgroundColor,
-            &mut BorderColor,
+        mut button_q: Query<
+            (
             &ComputedNode,
             &GlobalTransform,
+            &ButtonTextContainerEntity,
             Option<&FamiqToolTipText>
-        ), With<IsFamiqButton>>,
-        mut tooltip_res: ResMut<FaToolTipResource>
+            ),
+            With<IsFamiqButton>
+        >,
+        mut tooltip_res: ResMut<FaToolTipResource>,
+        mut text_container_q: Query<(&mut BackgroundColor, &mut BorderColor), (With<IsFamiqButtonTextContainer>, Without<IsFamiqButton>)>
     ) {
         for e in events.read() {
-            if let Ok((default_style, mut bg_color, mut bd_color, computed, transform, tooltip_text)) = button_q.get_mut(e.entity) {
+            if let Ok((
+                computed,
+                transform,
+                container_entity,
+                tooltip_text
+            )) = button_q.get_mut(e.entity) {
                 match e.interaction {
                     Interaction::Hovered => {
                         if let Some(text) = tooltip_text {
                             tooltip_res.show(text.0.clone(), computed.size(), transform.translation());
                         }
-                        // darken by 10%
-                        set_default_bg_and_bd_color(default_style, &mut bg_color, &mut bd_color);
-                        darken_bg_and_bg_color(10.0, &mut bg_color, &mut bd_color);
+
+                        if let Ok((mut c_bg_color, mut c_bd_color)) = text_container_q.get_mut(container_entity.0) {
+                            c_bg_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.3);
+                            c_bd_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.3);
+                        }
                     },
                     Interaction::Pressed => {
-                        // darken by 15%
-                        set_default_bg_and_bd_color(default_style, &mut bg_color, &mut bd_color);
-                        darken_bg_and_bg_color(15.0, &mut bg_color, &mut bd_color);
+                        if let Ok((mut c_bg_color, mut c_bd_color)) = text_container_q.get_mut(container_entity.0) {
+                            c_bg_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.6);
+                            c_bd_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.6);
+                        }
 
                         builder_res.update_all_focus_states(false);
                         builder_res.update_or_insert_focus_state(e.entity, true);
@@ -183,7 +220,10 @@ impl<'a> FaButton {
                         if tooltip_text.is_some() {
                             tooltip_res.hide();
                         }
-                        set_default_bg_and_bd_color(default_style, &mut bg_color, &mut bd_color);
+                        if let Ok((mut c_bg_color, mut c_bd_color)) = text_container_q.get_mut(container_entity.0) {
+                            *c_bg_color = BackgroundColor::default();
+                            *c_bd_color = BorderColor::default();
+                        }
                     },
                 }
             }
