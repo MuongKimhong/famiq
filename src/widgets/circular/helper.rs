@@ -5,8 +5,8 @@ use super::{CircularSize, CircularColor};
 
 pub fn get_outer_circle_size(size: &CircularSize) -> (Val, Val) {
     let size_small = Val::Px(40.0);
-    let size_normal = Val::Px(46.0);
-    let size_large = Val::Px(52.0);
+    let size_normal = Val::Px(50.0);
+    let size_large = Val::Px(65.0);
 
     match size {
         CircularSize::Small => (size_small, size_small),
