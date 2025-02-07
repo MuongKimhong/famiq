@@ -9,10 +9,10 @@ pub struct IsFamiqButton;
 pub struct IsFamiqButtonText;
 
 #[derive(Component)]
-pub struct IsFamiqButtonTextContainer;
+pub struct IsFamiqButtonOverlay;
 
 #[derive(Component)]
-pub struct ButtonTextContainerEntity(pub Entity);
+pub struct ButtonOverlayEntity(pub Entity);
 
 /// Component storing the entity associated with a button's text.
 ///

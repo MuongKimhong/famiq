@@ -85,7 +85,7 @@ impl<'a> FaButton {
         entity
     }
 
-    fn _build_text_container(root_node: &'a mut EntityCommands, shape: &BtnShape) -> Entity {
+    fn _build_overlay(root_node: &'a mut EntityCommands, shape: &BtnShape) -> Entity {
         let mut border_radius =  BorderRadius::all(Val::Px(6.0));
 
         match shape {
@@ -97,14 +97,14 @@ impl<'a> FaButton {
         root_node
             .commands()
             .spawn((
-                default_text_container_node(),
+                default_button_overlay_node(),
                 BorderColor::default(),
                 BackgroundColor::default(),
                 border_radius,
-                ZIndex::default(),
+                ZIndex(2),
                 Visibility::Inherited,
                 Interaction::default(),
-                IsFamiqButtonTextContainer
+                IsFamiqButtonOverlay
             ))
             .id()
     }
@@ -122,7 +122,7 @@ impl<'a> FaButton {
         tooltip_text: Option<String>
     ) -> Entity {
         let txt_entity = Self::_build_text(&id, &class, text, root_node, font_handle, &color, &size);
-        let container_entity = Self::_build_text_container(root_node, &shape);
+        let overlay_entity = Self::_build_overlay(root_node, &shape);
 
         let mut node = default_button_node();
         utils::process_spacing_built_in_class(&mut node, &class);
@@ -160,7 +160,7 @@ impl<'a> FaButton {
                 ButtonTextEntity(txt_entity),
                 WidgetStyle::default(),
                 ExternalStyleHasChanged(false),
-                ButtonTextContainerEntity(container_entity)
+                ButtonOverlayEntity(overlay_entity)
             ))
             .id();
 
@@ -168,9 +168,44 @@ impl<'a> FaButton {
             root_node.commands().entity(btn_entity).insert(FamiqToolTipText(tooltip_text.unwrap()));
         }
         utils::insert_id_and_class(root_node, btn_entity, &id, &class);
-        utils::entity_add_child(root_node, txt_entity, container_entity);
-        utils::entity_add_child(root_node, container_entity, btn_entity);
+        utils::entity_add_children(root_node, &vec![overlay_entity, txt_entity], btn_entity);
         btn_entity
+    }
+
+    fn _update_overlay(
+        overlay_q: &mut Query<
+            (&mut Node, &mut BackgroundColor, &mut BorderColor, &mut BorderRadius),
+            (With<IsFamiqButtonOverlay>, Without<IsFamiqButton>)
+        >,
+        button_border_radius: &BorderRadius,
+        button_node: &Node,
+        button_computed_node: &ComputedNode,
+        overlay_entity: Entity,
+        update_to: &str
+    ) {
+        if let Ok((mut node, mut bg_color, mut bd_color, mut bd_radius)) = overlay_q.get_mut(overlay_entity) {
+            node.border = button_node.border;
+            node.width = Val::Px(button_computed_node.size().x);
+            node.height = Val::Px(button_computed_node.size().y);
+            *bd_radius = button_border_radius.clone();
+
+
+            match update_to {
+                "hover" => {
+                    bg_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.3);
+                    bd_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.3);
+                },
+                "press" => {
+                    bg_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.6);
+                    bd_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.6);
+                },
+                "none" => {
+                    *bg_color = BackgroundColor::default();
+                    *bd_color = BorderColor::default();
+                }
+                _ => {}
+            }
+        }
     }
 
     /// Internal system to handle `fa_button` interaction events.
@@ -179,21 +214,28 @@ impl<'a> FaButton {
         mut builder_res: ResMut<FamiqWidgetResource>,
         mut button_q: Query<
             (
+            &Node,
             &ComputedNode,
             &GlobalTransform,
-            &ButtonTextContainerEntity,
+            &ButtonOverlayEntity,
+            &BorderRadius,
             Option<&FamiqToolTipText>
             ),
             With<IsFamiqButton>
         >,
         mut tooltip_res: ResMut<FaToolTipResource>,
-        mut text_container_q: Query<(&mut BackgroundColor, &mut BorderColor), (With<IsFamiqButtonTextContainer>, Without<IsFamiqButton>)>
+        mut overlay_q: Query<
+            (&mut Node, &mut BackgroundColor, &mut BorderColor, &mut BorderRadius),
+            (With<IsFamiqButtonOverlay>, Without<IsFamiqButton>)
+        >
     ) {
         for e in events.read() {
             if let Ok((
+                node,
                 computed,
                 transform,
-                container_entity,
+                overlay_entity,
+                border_radius,
                 tooltip_text
             )) = button_q.get_mut(e.entity) {
                 match e.interaction {
@@ -201,29 +243,32 @@ impl<'a> FaButton {
                         if let Some(text) = tooltip_text {
                             tooltip_res.show(text.0.clone(), computed.size(), transform.translation());
                         }
+                        FaButton::_update_overlay(&mut overlay_q, border_radius, node, computed, overlay_entity.0, "hover");
 
-                        if let Ok((mut c_bg_color, mut c_bd_color)) = text_container_q.get_mut(container_entity.0) {
-                            c_bg_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.3);
-                            c_bd_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.3);
-                        }
+                        // if let Ok((mut c_bg_color, mut c_bd_color)) = text_container_q.get_mut(container_entity.0) {
+                        //     c_bg_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.3);
+                        //     c_bd_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.3);
+                        // }
                     },
                     Interaction::Pressed => {
-                        if let Ok((mut c_bg_color, mut c_bd_color)) = text_container_q.get_mut(container_entity.0) {
-                            c_bg_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.6);
-                            c_bd_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.6);
-                        }
+                        // if let Ok((mut c_bg_color, mut c_bd_color)) = text_container_q.get_mut(container_entity.0) {
+                        //     c_bg_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.6);
+                        //     c_bd_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.6);
+                        // }
 
                         builder_res.update_all_focus_states(false);
                         builder_res.update_or_insert_focus_state(e.entity, true);
+                        FaButton::_update_overlay(&mut overlay_q, border_radius, node, computed, overlay_entity.0, "press");
                     },
                     Interaction::None => {
                         if tooltip_text.is_some() {
                             tooltip_res.hide();
                         }
-                        if let Ok((mut c_bg_color, mut c_bd_color)) = text_container_q.get_mut(container_entity.0) {
-                            *c_bg_color = BackgroundColor::default();
-                            *c_bd_color = BorderColor::default();
-                        }
+                        FaButton::_update_overlay(&mut overlay_q, border_radius, node, computed, overlay_entity.0, "none");
+                        // if let Ok((mut c_bg_color, mut c_bd_color)) = text_container_q.get_mut(container_entity.0) {
+                        //     *c_bg_color = BackgroundColor::default();
+                        //     *c_bd_color = BorderColor::default();
+                        // }
                     },
                 }
             }

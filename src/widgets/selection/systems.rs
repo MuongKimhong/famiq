@@ -28,20 +28,23 @@ pub fn update_choices_panel_position_and_width_system(
             &SelectionChoicesPanelEntity
         )
     >,
-    mut panel_q: Query<&mut Node, With<IsFamiqSelectionChoicesPanel>>,
+    mut panel_q: Query<(&mut Node, &mut Visibility), With<IsFamiqSelectionChoicesPanel>>,
     builder_res: Res<FamiqWidgetResource>
 ) {
     for (entity, computed_node, transform, panel_entity) in selection_q.iter() {
         let Some(focused) = builder_res.get_widget_focus_state(&entity) else { continue };
+        let Ok((mut panel_node, mut panel_visibility)) = panel_q.get_mut(panel_entity.0) else { continue };
 
         if focused {
-            let Ok(mut panel_node) = panel_q.get_mut(panel_entity.0) else { continue };
-
+            *panel_visibility = Visibility::Visible;
             _set_choice_panel_position_and_width(
                 &transform.translation(),
                 computed_node,
                 &mut panel_node
             );
+        }
+        else {
+            *panel_visibility = Visibility::Hidden;
         }
     }
 }
@@ -53,13 +56,11 @@ pub fn handle_selection_interaction_system(
             &mut BoxShadow,
             &DefaultWidgetEntity,
             &SelectorArrowIconEntity,
-            &SelectionChoicesPanelEntity,
         ),
         Without<IsFamiqSelectionChoicesPanel>
     >,
     mut builder_res: ResMut<FamiqWidgetResource>,
     mut arrow_q: Query<&mut Text, With<ArrowIcon>>,
-    mut panel_q: Query<&mut Visibility, With<IsFamiqSelectionChoicesPanel>>,
 
 ) {
     for e in events.read() {
@@ -68,7 +69,6 @@ pub fn handle_selection_interaction_system(
                 mut box_shadow,
                 default_style,
                 arrow_entity,
-                panel_entity,
             )) = selector_q.get_mut(e.entity)
             {
                 match e.interaction {
@@ -81,7 +81,6 @@ pub fn handle_selection_interaction_system(
                             if state {
                                 builder_res.update_or_insert_focus_state(e.entity, false);
                                 FaSelection::arrow_down(&mut arrow_q, arrow_entity.0);
-                                FaSelection::hide_choice_panel(&mut panel_q, panel_entity.0);
                                 break;
                             }
                         }
@@ -90,7 +89,6 @@ pub fn handle_selection_interaction_system(
                         builder_res.update_all_focus_states(false);
                         builder_res.update_or_insert_focus_state(e.entity, true);
                         FaSelection::arrow_up(&mut arrow_q, arrow_entity.0);
-                        FaSelection::show_choice_panel(&mut panel_q, panel_entity.0);
                     },
                     _ => {
                         box_shadow.color = Color::NONE;
@@ -152,12 +150,10 @@ pub fn handle_selection_choice_interaction_system(
         Option<&FamiqWidgetId>,
         &mut SelectorPlaceHolderEntity,
         &SelectorArrowIconEntity,
-        &SelectionChoicesPanelEntity
     )>,
     mut selection_res: ResMut<FaSelectionResource>,
     mut text_q: Query<&mut Text, Without<ArrowIcon>>,
     mut arrow_q: Query<&mut Text, With<ArrowIcon>>,
-    mut panel_q: Query<&mut Visibility, With<IsFamiqSelectionChoicesPanel>>,
     mut builder_res: ResMut<FamiqWidgetResource>
 ) {
     for e in events.read() {
@@ -179,7 +175,6 @@ pub fn handle_selection_choice_interaction_system(
                         selection_id,
                         placeholder_entity,
                         arrow_entity,
-                        panel_entity
                     )) = selection_q.get_mut(selector_entity.0) {
                         let mut selected_choice = String::new();
 
@@ -208,8 +203,6 @@ pub fn handle_selection_choice_interaction_system(
                         // set selection to unfocus after choice is selected
                         builder_res.update_or_insert_focus_state(selection_entity, false);
                         FaSelection::arrow_down(&mut arrow_q, arrow_entity.0);
-                        FaSelection::hide_choice_panel(&mut panel_q, panel_entity.0);
-
                         *choice_bg_color = BackgroundColor(ITEM_NORMAL_BG_COLOR);
                     }
                 },

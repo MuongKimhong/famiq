@@ -3,7 +3,7 @@ use crate::widgets::{
     DefaultTextEntity, FamiqWidgetId, DefaultWidgetEntity,
     FamiqWidgetBuilder, WidgetStyle, ExternalStyleHasChanged
 };
-use crate::utils::{entity_add_child, process_spacing_built_in_class, insert_id_and_class};
+use crate::utils::{process_spacing_built_in_class, insert_id_and_class};
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
@@ -124,6 +124,9 @@ impl<'a> FaText {
         let txt_color = TextColor(WHITE_COLOR);
         let txt_layout = TextLayout::new_with_justify(JustifyText::Center);
 
+        let mut node = _default_text_container_node();
+        process_spacing_built_in_class(&mut node, &class);
+
         let entity = root_node
             .commands()
             .spawn((
@@ -137,30 +140,13 @@ impl<'a> FaText {
                 ExternalStyleHasChanged(false),
                 IsFamiqText
             ))
-            .id();
-
-        insert_id_and_class(root_node, entity, id, class);
-        entity
-    }
-
-    fn _build_container(
-        id: Option<String>,
-        class: Option<String>,
-        root_node: &'a mut EntityCommands,
-    ) -> Entity {
-        let mut node = _default_text_container_node();
-        process_spacing_built_in_class(&mut node, &class);
-
-        let container_entity = root_node
-            .commands()
-            .spawn((
+            .insert((
                 node.clone(),
                 BorderColor::default(),
                 BackgroundColor::default(),
                 BorderRadius::default(),
                 ZIndex::default(),
                 Visibility::Inherited,
-                IsFamiqTextContainer,
                 DefaultWidgetEntity::new(
                     node,
                     BorderColor::default(),
@@ -168,16 +154,49 @@ impl<'a> FaText {
                     BackgroundColor::default(),
                     ZIndex::default(),
                     Visibility::Inherited,
-                ),
-                Interaction::default(),
-                WidgetStyle::default(),
-                ExternalStyleHasChanged(false)
+                )
             ))
             .id();
 
-        insert_id_and_class(root_node, container_entity, &id, &class);
-        container_entity
+        insert_id_and_class(root_node, entity, id, class);
+        entity
     }
+
+    // fn _build_container(
+    //     id: Option<String>,
+    //     class: Option<String>,
+    //     root_node: &'a mut EntityCommands,
+    // ) -> Entity {
+    //     let mut node = _default_text_container_node();
+    //     process_spacing_built_in_class(&mut node, &class);
+
+    //     let container_entity = root_node
+    //         .commands()
+    //         .spawn((
+    //             node.clone(),
+    //             BorderColor::default(),
+    //             BackgroundColor::default(),
+    //             BorderRadius::default(),
+    //             ZIndex::default(),
+    //             Visibility::Inherited,
+    //             IsFamiqTextContainer,
+    //             DefaultWidgetEntity::new(
+    //                 node,
+    //                 BorderColor::default(),
+    //                 BorderRadius::default(),
+    //                 BackgroundColor::default(),
+    //                 ZIndex::default(),
+    //                 Visibility::Inherited,
+    //             ),
+    //             Interaction::default(),
+    //             WidgetStyle::default(),
+    //             ExternalStyleHasChanged(false)
+    //         ))
+    //         .id();
+
+    //     insert_id_and_class(root_node, container_entity, &id, &class);
+    //     container_entity
+    // }
 
     pub fn new(
         id: Option<String>,
@@ -188,8 +207,8 @@ impl<'a> FaText {
         size: TextSize
     ) -> Entity {
         let txt_entity = Self::_build_text(&id, &class, text, root_node, font_handle, size);
-        let container = Self::_build_container(id, class, root_node);
-        entity_add_child(root_node, txt_entity, container);
+        // let container = Self::_build_container(id, class, root_node);
+        // entity_add_child(root_node, txt_entity, container);
         txt_entity
     }
 

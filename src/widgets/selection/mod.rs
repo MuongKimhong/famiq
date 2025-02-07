@@ -224,10 +224,13 @@ impl<'a> FaSelection {
             _ => ()
         }
 
+        let mut node = default_selector_node(border_width);
+        process_spacing_built_in_class(&mut node, class);
+
         let selector_entity = root_node
             .commands()
             .spawn((
-                default_selector_node(border_width),
+                node.clone(),
                 get_selector_border_color(color),
                 border_radius.clone(),
                 get_selector_background_color(color),
@@ -242,7 +245,7 @@ impl<'a> FaSelection {
                 },
                 IsFamiqSelectionSelector,
                 DefaultWidgetEntity::new(
-                    default_selector_node(border_width),
+                    node,
                     get_selector_border_color(color),
                     border_radius,
                     get_selector_background_color(color),
@@ -349,7 +352,7 @@ impl<'a> FaSelection {
             .id()
     }
 
-    // return Entity of Container (Selection refers to container itself)
+    // return Entity of selector
     pub fn new(
         id: Option<String>,
         class: Option<String>,

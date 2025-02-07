@@ -85,7 +85,12 @@ pub fn default_button_node() -> Node {
         justify_content: JustifyContent::Center,
         align_items: AlignItems::Center,
         border: UiRect::all(Val::Px(0.0)),
-        padding: UiRect::all(Val::Px(0.0)),
+        padding: UiRect {
+            left: Val::Px(6.0),
+            right: Val::Px(6.0),
+            top: Val::Px(2.0),
+            bottom: Val::Px(2.0)
+        },
         margin: UiRect {
             top: Val::Px(2.0),
             right: Val::Px(0.0),
@@ -96,19 +101,15 @@ pub fn default_button_node() -> Node {
     }
 }
 
-pub fn default_text_container_node() -> Node {
+pub fn default_button_overlay_node() -> Node {
     Node {
-        width: Val::Auto,
-        height: Val::Auto,
-        justify_content: JustifyContent::Center,
-        align_items: AlignItems::Center,
+        width: Val::Percent(100.0),
+        height: Val::Percent(100.0),
+        position_type: PositionType::Absolute,
+        left: Val::Px(0.0),
+        top: Val::Px(0.0),
         border: UiRect::all(Val::Px(2.0)),
-        padding: UiRect {
-            left: Val::Px(6.0),
-            right: Val::Px(6.0),
-            top: Val::Px(2.0),
-            bottom: Val::Px(2.0)
-        },
+        padding: UiRect::all(Val::Px(0.0)),
         margin: UiRect::all(Val::Px(0.0)),
         ..default()
     }
