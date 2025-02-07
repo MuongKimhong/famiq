@@ -49,9 +49,11 @@ pub fn detect_external_style_changes(
     )>
 ) {
     for (id, class, mut has_changed, mut widget_style) in query.iter_mut() {
+        let mut empty_style = WidgetStyle::default();
+
         if let Some(id) = id {
             if let Some(external_style) = styles.get_style_by_id(&id.0) {
-                has_changed.0 = widget_style.update_from(external_style);
+                empty_style.update_from(external_style);
             }
         }
 
@@ -59,10 +61,11 @@ pub fn detect_external_style_changes(
             let classes_split: Vec<&str> = classes.0.split_whitespace().collect();
             for class_name in classes_split {
                 if let Some(external_style) = styles.get_style_by_class_name(class_name) {
-                    has_changed.0 = widget_style.merge_external(external_style);
+                    empty_style.merge_external(external_style);
                 }
             }
         }
+        has_changed.0 = widget_style.update_from(&empty_style);
     }
 }
 
