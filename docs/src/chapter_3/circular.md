@@ -40,6 +40,7 @@ pub fn fa_circular<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaCircularBuilder
 let circular = fa_circular(&mut builder).build();
 ```
 Return `Entity` of the widget which must be used inside `FaContainer` widget.
+- `size()`: set custom size of `fa_circular`.
 
 ### Built-in classes
 - Color: `is-primary`, `is-secondary`, `is-warning`, `is-info`, `is-success`, `is-danger`.
@@ -56,13 +57,11 @@ let warning_cir = fa_circular(&mut builder)
     .class("is-warning is-small")
     .build();
 
-// primary & large
+// primary & custom size
 let primary_cir = fa_circular(&mut builder)
     .class("is-primary is-large")
     .build();
 
-fa_container(&mut builder)
-    .children(vec![cir, warning_cir, primary_cir])
-    .build();
+fa_container(&mut builder).children([cir, warning_cir, primary_cir]).build();
 ```
 ![Example 1](../images/circular_example_1.png)

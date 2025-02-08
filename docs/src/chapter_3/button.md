@@ -86,7 +86,7 @@ let large_btn = fa_button(&mut builder, "Press me")
     .build();
 
 fa_container(&mut builder)
-    .children(vec![my_btn, info_btn, small_btn, large_btn])
+    .children([my_btn, info_btn, small_btn, large_btn])
     .build();
 ```
 ![Example 1](../images/btn_example_1.png)
@@ -95,9 +95,9 @@ fa_container(&mut builder)
 ```rust
 fn handle_button_press_system(mut events: EventReader<FaInteractionEvent>) {
     for e in events.read() {
-        if e.widget == WidgetType::Button && e.interaction == Interaction::Pressed {
-            // make sure this works only with widgets that have id provided
-            if let Some(id) = e.widget_id {
+        if e.is_button_pressed() {
+            // make sure this works only with buttons that have id provided
+            if let Some(id) = e.widget_id.as_ref() {
                 match ud.as_str() {
                     "#my-btn" => {
                         // do something with my button

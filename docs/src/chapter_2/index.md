@@ -36,15 +36,15 @@ You can write a bevy system to handle Famiq’s widgets interaction.
 ```rust
 fn handle_button_press_system(mut events: EventReader<FaInteractionEvent>) {
     for e in events.read() {
-        if e.widget == WidgetType::Button && e.interaction == Interaction::Pressed {
+        if e.widget == WidgetType::Image && e.interaction == Interaction::Hovered {
             // make sure this works only with widgets that have id provided
-            if let Some(id) = e.widget_id {
+            if let Some(id) = e.widget_id.as_ref() {
                 match id.as_str() {
-                    "#my-login-btn" => {
-                        // do something with login
+                    "#image-one-id" => {
+                        // do something
                     },
-                    "#my-forgot-password-btn" => {
-                        // do something with forgot password
+                    "#image-two-id" => {
+                        // do something
                     }
                     _ => ()
                 }

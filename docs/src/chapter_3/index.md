@@ -14,3 +14,4 @@ Famiq provides some default widgets that are likely required in any UI developme
   - [ListView](./list_view.md)
   - [Image](./image.md)
   - [Background Image](./bg_image.md)
+  - [Progress Bar](./progress_bar.md)

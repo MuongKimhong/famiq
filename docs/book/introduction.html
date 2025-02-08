@@ -163,10 +163,10 @@ developers can define styles in a well known JSON file. These styles are then pa
 into Bevy's native UI styles, significantly reducing boilerplate code.</p>
 <p>Built on top of Bevy UI, based on Bevy ECS.</p>
 <ul>
-<li>Simple: follow Bevy's philosophy, widgets are just rust functions</li>
-<li>Clean: a widget styles can be defined in JSON file, making code more cleaner</li>
-<li>widgets: provide useful default widgets including button, modal, listview, and more</li>
-<li>Flexible: just like in <code>HTML/CSS</code>, you can provide styles to widget via either <code>id</code> or <code>classes</code></li>
+<li><strong>Simple</strong>: Follows Bevy's philosophy—widgets are just Rust functions.</li>
+<li><strong>Clean</strong>: Styles can be defined in a JSON file, reducing boilerplate code.</li>
+<li><strong>Widgets</strong>: Includes useful default components like button, modal, listview and more.</li>
+<li><strong>Flexible</strong>: Just like in <code>HTML/CSS</code>, styles can be applied using <code>id</code> or <code>classes</code>.</li>
 </ul>
 <h3 id="simple-button"><a class="header" href="#simple-button">Simple button</a></h3>
 <pre><code class="language-rust">let my_btn = fa_button(&amp;mut builder, "Press me").build();</code></pre>
@@ -215,22 +215,6 @@ builder.hot_reload();</code></pre>
 
         </div>
 
-        <!-- Livereload script (if served using the cli tool) -->
-        <script>
-            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
-            const socket = new WebSocket(wsAddress);
-            socket.onmessage = function (event) {
-                if (event.data === "reload") {
-                    socket.close();
-                    location.reload();
-                }
-            };
-
-            window.onbeforeunload = function() {
-                socket.close();
-            }
-        </script>
 
 
 

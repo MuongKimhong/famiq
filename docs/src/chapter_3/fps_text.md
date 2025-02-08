@@ -12,7 +12,7 @@ pub fn fa_fps<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaFpsTextBuilder<'a> {
 }
 ```
 
-### Usage via builder
+### Usage
 ```rust
 fa_fps(&mut builder).build();
 ```

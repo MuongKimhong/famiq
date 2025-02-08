@@ -17,41 +17,26 @@ pub fn fa_modal<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaModalBuilder<'a> {
 let modal = fa_modal(&mut builder).build();
 ```
 
-### Show/Hide modal
-Modals can be shown or hided by updating `FaModalState` component.
-
-Example,
+### Resource
 ```rust
-
-// store modal entity here to show/hide in future
-#[derive(Resource)]
-struct Modals {
-    entity: Entity
-}
-
-fn setup_ui(
-    // other args required by Famiq..
-    mut modals: ResMut<Modals>
-) {
-    let text = fa_text(&mut builder, "Hello world").build();
-
-    let modal = fa_modal(&mut builder)
-        .children(vec![text])
-        .build();
-
-    modals.entity = modal;
-}
-
-// example system handle button press
-fn on_btn_press_system(
-    modals: Res<Modals>,
-    mut modals_q: Query<&mut FaModalState>
-) {
-    // some other code to handle button press event..
-
-    // set to true to show modal, false to hide.
-    if let Ok(mut state) = modals_q.get_mut(modals.entity) {
-        state.0 = true;
-    }
-}
+pub struct FaModalState;
 ```
+- `FaModalState` can be used to show and hide specific modal by either `id` or `entity`.
+  #### Available methods:
+  - `show_by_id`: show modal by id.
+  - `show_by_entity`: show modal by entity.
+  - `hide_by_id`: hide modal by id.
+  - `hide_by_entity`: hide modal by entity.
+
+  #### Example of using `FaModalState`
+  ```rust
+  fn my_system(mut modal_state: ResMut<FaModalState>) {
+      // some logic ..
+
+      // show modal
+      modal_state.show_by_id("#modal-id");
+
+      // hide modal
+      modal_state.hide_by_id("#modal-id");
+  }
+  ```

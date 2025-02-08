@@ -18,7 +18,5 @@ return `Entity` which can be used as child of `FaContainer`.
 let button = fa_button(&mut builder, "Press me").build();
 let input = fa_text_input(&mut builder, "Enter your name").build();
 
-fa_listview(&mut builder)
-    .children(vec![input, button])
-    .build();
+fa_listview(&mut builder).children([input, button]).build();
 ```

@@ -45,20 +45,6 @@ pub enum TextInputShape {
 }
 ```
 
-### Resource
-Resource to store key value pair of text-input id & its data.
-```rust
-pub struct FaTextInputResource {
-    pub inputs: HashMap<String, String>,
-}
-
-impl FaTextInputResource {
-    pub fn update_or_insert(&mut self, id: String, new_value: String) {
-        // ..
-    }
-}
-```
-
 ### Widget API
 ```rust
 pub fn fa_text_input<'a>(
@@ -87,7 +73,9 @@ Return `Entity` of the widget which must be used as child of `FaContainer` widge
 ### Example
 ```rust
 // default
-let input_default = fa_text_input(&mut builder, "Enter your name").build();
+let input_default = fa_text_input(&mut builder, "Enter your name")
+    .id("#name-input")
+    .build();
 
 // info & large
 let input_info_large = fa_text_input(&mut builder, "Enter your name")
@@ -100,18 +88,26 @@ let input_warning_round = fa_text_input(&mut builder, "Enter your name")
     .build();
 
 fa_container(&mut builder)
-    .children(vec![input_default, input_info_large, input_warning_round])
+    .children([input_default, input_info_large, input_warning_round])
     .build();
 ```
 ![Example 1](../images/input_example_1.png)
 
-### Getting input data
-The input data can be read from `FaTextInputResource` within system.
-
+### Resource
 ```rust
-fn my_system(input_resource: Res<FaTextInputResource>) {
-    if let Some(data) = input_resource.inputs.get("#my-text-input-id") {
-        println!("Data: {:?}", data);
-    }
-}
+pub struct FaTextInputResource;
 ```
+- `FaTextInputResource` can be used to retrieve specific `fa_text_input` value by either `id` or `entity`.
+  #### Available methods:
+  - `get_value_by_id`: get input value by id, return `empty string` it id doesn't exist.
+  - `get_value_by_entity`: get input value by entity, return `empty string` it entity doesn't exist.
+
+  #### Example of using `FaTextInputResource`
+  ```rust
+  fn my_system(input_res: Res<FaTextInputResource>) {
+      // some logic ..
+
+      // get value
+      let text = input_res.get_value_by_id("#name-input");
+  }
+  ```

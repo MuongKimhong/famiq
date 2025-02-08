@@ -28,7 +28,7 @@ commands.spawn((
     BorderRadius::all(Val::Px(5.0))
 ));
 ```
-With **Famiq**, you can simply give widget an id or classes, then write styles in json file.
+With **Famiq**, you can simply give widget an id or class, then write styles in json file.
 ```json
 {
   "#my-widget-id": {
@@ -55,8 +55,8 @@ grid_column: GridPlacement
 
 #### Supported
 ```rust
-color: Color // can be used for fa_text & TextBundle only
-font_size: f32 // can be used for fa_text & TextBundle only
+color: Color
+font_size: f32
 
 background_color: BackgroundColor
 border_color: BorderColor

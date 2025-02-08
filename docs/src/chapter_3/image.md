@@ -34,6 +34,6 @@ let famiq_logo = fa_image(&mut builder, "logo.jpeg")
     .size(Val::Px(100.0), Val::Px(100.0))
     .build();
 
-fa_container(&mut builder).children(vec![famiq_logo]).build();
+fa_container(&mut builder).children([famiq_logo]).build();
 ```
 ![Example 1](../images/image_example_1.png)

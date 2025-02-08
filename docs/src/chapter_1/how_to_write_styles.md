@@ -4,7 +4,6 @@
 **Famiq** supports almost all UI styles provided by Bevy engine.
 
 ### id & Class
-**Famiq** supports styles via `id` and `classes`.
 ```json
 {
   "#my-widget-id": {
@@ -31,8 +30,6 @@
   Example, `"font_size": "14"`
 
   [https://docs.rs/bevy/latest/bevy/prelude/struct.TextFont.html#structfield.font_size](https://docs.rs/bevy/latest/bevy/prelude/struct.TextFont.html#structfield.font_size)
-
-Can be used for `fa_text` and `fa_fps` widgets.
 
 ### For node widgets
 - `background_color`: supports only `srgba`, `linear_rgba`, `hsla` and basic colors.

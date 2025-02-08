@@ -32,9 +32,7 @@ Texts inside container
 let boss = fa_text(&mut builder, "Hello Boss").build();
 let mom = fa_text(&mut builder, "Hello Mom").build();
 
-fa_container(&mut builder)
-    .children(vec![boss, mom])
-    .build();
+fa_container(&mut builder).children([boss, mom]).build();
 ```
 ![Example 2](../images/container_example_2.png)
 
@@ -43,7 +41,7 @@ fa_container(&mut builder)
 ```rust
 fa_container(&mut builder)
     .id("#container")
-    .children(vec![boss, mom])
+    .children([boss, mom])
     .build();
 ```
 ```json

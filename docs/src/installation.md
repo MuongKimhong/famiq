@@ -7,5 +7,7 @@ cargo add famiq
 or
 ```toml
 [dependencies]
-famiq = "0.2.4"
+famiq = "0.2.5"
 ```
+
+using the latest version is recommended.

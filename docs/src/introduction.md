@@ -8,10 +8,10 @@ developers can define styles in a well known JSON file. These styles are then pa
 into Bevy's native UI styles, significantly reducing boilerplate code.
 
 Built on top of Bevy UI, based on Bevy ECS.
-- Simple: follow Bevy's philosophy, widgets are just rust functions
-- Clean: a widget styles can be defined in JSON file, making code more cleaner
-- widgets: provide useful default widgets including button, modal, listview, and more
-- Flexible: just like in `HTML/CSS`, you can provide styles to widget via either `id` or `classes`
+- **Simple**: Follows Bevy's philosophy—widgets are just Rust functions.
+- **Clean**: Styles can be defined in a JSON file, reducing boilerplate code.
+- **Widgets**: Includes useful default components like button, modal, listview and more.
+- **Flexible**: Just like in `HTML/CSS`, styles can be applied using `id` or `classes`.
 
 ### Simple button
 ```rust

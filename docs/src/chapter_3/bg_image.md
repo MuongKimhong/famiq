@@ -26,6 +26,7 @@ fa_bg_image(&mut builder, "path/to/image.jpg").build();
 fa_bg_image(&mut builder, "logo.jpeg").build();
 
 let btn = fa_button(&mut builder, "Press me").class("is-primary").build();
-fa_container(&mut builder).children(vec![btn]).build();
+
+fa_container(&mut builder).children([btn]).build();
 ```
 ![Example 1](../images/bg_image_example_1.png)

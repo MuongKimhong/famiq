@@ -19,3 +19,4 @@
     - [ListView](./chapter_3/list_view.md)
     - [Image](./chapter_3/image.md)
     - [Background Image](./chapter_3/bg_image.md)
+    - [Progress Bar](./chapter_3/progress_bar.md)
