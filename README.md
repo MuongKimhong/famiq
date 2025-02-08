@@ -27,7 +27,7 @@ cargo add famiq
 ```
 or
 ```toml
-famiq = "0.2.4"
+famiq = "0.2.5"
 ```
 
 ## Documentation
