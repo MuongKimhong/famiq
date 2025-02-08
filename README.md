@@ -4,7 +4,7 @@
   Simplifying UI Development in Bevy engine
 </p>
 <p align="center">
-  <img width="200" height="200" src="logo.jpeg">
+  <img width="200" height="200" src="demo.gif">
 </p>
 
 ## What is Famiq?

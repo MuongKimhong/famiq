@@ -1,11 +1,17 @@
 # What is Famiq?
 
-**Famiq** is a UI library wrapped around Bevy UI module by providing default
-widgets and a simple way to manage styles. Instead of writing Rust code for styling,
+**Famiq** is a UI library built on top of Bevy UI by providing default
+widgets and a simple way to manage styles.
+
+Instead of writing Rust code for styling,
 developers can define styles in a well known JSON file. These styles are then parsed
 into Bevy's native UI styles, significantly reducing boilerplate code.
 
-Just like in `HTML/CSS`, you can provide styles to widget via either `id` or `classes`.
+Built on top of Bevy UI, based on Bevy ECS.
+- Simple: follow Bevy's philosophy, widgets are just rust functions
+- Clean: a widget styles can be defined in JSON file, making code more cleaner
+- widgets: provide useful default widgets including button, modal, listview, and more
+- Flexible: just like in `HTML/CSS`, you can provide styles to widget via either `id` or `classes`
 
 ### Simple button
 ```rust
@@ -14,7 +20,7 @@ let my_btn = fa_button(&mut builder, "Press me").build();
 . `&mut builder` is a mutable reference of `FamiqWidgetBuilder`.
 
 
-If you want to make changes to the widget, you can simply give it an `id` or `classes`.
+If you want to make changes to the widget, you can simply give it an `id` or `class`.
 ```rust
 let my_btn = fa_button(&mut builder, "Press me").id("#my-btn").build();
 ```

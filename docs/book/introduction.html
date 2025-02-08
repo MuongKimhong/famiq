@@ -156,15 +156,22 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="what-is-famiq"><a class="header" href="#what-is-famiq">What is Famiq?</a></h1>
-<p><strong>Famiq</strong> is a UI library wrapped around Bevy UI module by providing default
-widgets and a simple way to manage styles. Instead of writing Rust code for styling,
+<p><strong>Famiq</strong> is a UI library built on top of Bevy UI by providing default
+widgets and a simple way to manage styles.</p>
+<p>Instead of writing Rust code for styling,
 developers can define styles in a well known JSON file. These styles are then parsed
 into Bevy's native UI styles, significantly reducing boilerplate code.</p>
-<p>Just like in <code>HTML/CSS</code>, you can provide styles to widget via either <code>id</code> or <code>classes</code>.</p>
+<p>Built on top of Bevy UI, based on Bevy ECS.</p>
+<ul>
+<li>Simple: follow Bevy's philosophy, widgets are just rust functions</li>
+<li>Clean: a widget styles can be defined in JSON file, making code more cleaner</li>
+<li>widgets: provide useful default widgets including button, modal, listview, and more</li>
+<li>Flexible: just like in <code>HTML/CSS</code>, you can provide styles to widget via either <code>id</code> or <code>classes</code></li>
+</ul>
 <h3 id="simple-button"><a class="header" href="#simple-button">Simple button</a></h3>
 <pre><code class="language-rust">let my_btn = fa_button(&amp;mut builder, "Press me").build();</code></pre>
 <p>. <code>&amp;mut builder</code> is a mutable reference of <code>FamiqWidgetBuilder</code>.</p>
-<p>If you want to make changes to the widget, you can simply give it an <code>id</code> or <code>classes</code>.</p>
+<p>If you want to make changes to the widget, you can simply give it an <code>id</code> or <code>class</code>.</p>
 <pre><code class="language-rust">let my_btn = fa_button(&amp;mut builder, "Press me").id("#my-btn").build();</code></pre>
 <pre><code class="language-json">{
   "#my-btn": {
@@ -208,6 +215,22 @@ builder.hot_reload();</code></pre>
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 
