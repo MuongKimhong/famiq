@@ -15,9 +15,7 @@ Instead of writing Rust code for styling,
 developers can define styles in a well known JSON file. These styles are then parsed
 into Bevy's native UI styles, significantly reducing boilerplate code.
 
-
-https://github.com/user-attachments/assets/97110d93-6120-430a-b121-93bb055aac7c
-
+https://github.com/user-attachments/assets/739b0141-891e-4dea-ac26-3ab56f661992
 
 hot-reload can be enabled during development so that any changes made to the json file
 are reflected immediately in the running app, no need to re-compile.
