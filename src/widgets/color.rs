@@ -25,6 +25,42 @@ pub const BLACK_COLOR: Color = Color::srgba(0.11, 0.11, 0.11, 0.902);
 pub const WHITE_COLOR: Color = Color::srgba(0.969, 0.969, 0.969, 0.902);
 pub const BUTTON_DEFAULT_COLOR: Color = Color::srgba(0.95, 0.95, 0.95, 0.902);
 
+/// Convert Hex color to bevy srgba
+pub fn hex_color_parser(hex: &str) -> Option<Color> {
+    // remove # if contains any
+    let hex = hex.trim_start_matches('#');
+
+    if hex.len() != 6 && hex.len() != 8 {
+        return None;
+    }
+
+    // srgba expects 1 - 0 range
+    let r_value = match u8::from_str_radix(&hex[0..2], 16) {
+        Ok(v) => v as f32 / 255.0,
+        Err(_) => return None
+    };
+    let g_value = match u8::from_str_radix(&hex[2..4], 16) {
+        Ok(v) => v as f32 / 255.0,
+        Err(_) => return None
+    };
+    let b_value = match u8::from_str_radix(&hex[4..6], 16) {
+        Ok(v) => v as f32 / 255.0,
+        Err(_) => return None
+    };
+
+    // Check if hex code contains alpha channel
+    let alpha_value;
+    if hex.len() == 8 {
+        alpha_value = match u8::from_str_radix(&hex[6..8], 16) {
+            Ok(v) => v as f32 / 255.0,
+            Err(_) => return None
+        };
+    } else {
+        alpha_value = 1.0 as f32;
+    }
+
+    Some(Color::srgba(r_value, g_value, b_value, alpha_value))
+}
 
 /// Supported colors via json style and widget buiders.
 pub fn built_in_color_parser(value: &str) -> Option<Color> {
@@ -322,6 +358,27 @@ pub fn built_in_color_parser(value: &str) -> Option<Color> {
         "zinc_800" => Some(Color::from(ZINC_800)),
         "zinc_900" => Some(Color::from(ZINC_900)),
         "zinc_950" => Some(Color::from(ZINC_950)),
-        _ => None
+        _ => hex_color_parser(value),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_hex_color_parser_invalid() {
+        assert_eq!(None, hex_color_parser("#xyzzyx"));
+        assert_eq!(None, hex_color_parser("testhexcolorparser"));
+    }
+
+    #[test]
+    fn test_hex_color_parser() {
+        let color_one = Color::srgba(0.8, 0.8, 0.8, 1.0);
+        let color_two = Color::srgba(0.8, 0.4, 0.4, 1.0);
+
+        assert_eq!(color_one, hex_color_parser("#cccccc").unwrap());
+        assert_eq!(color_two, hex_color_parser("#cc6666").unwrap());
+        assert_eq!(color_two, hex_color_parser("#cc6666ff").unwrap());
     }
 }
