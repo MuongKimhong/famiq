@@ -17,6 +17,8 @@ into Bevy's native UI styles, significantly reducing boilerplate code.
 
 https://github.com/user-attachments/assets/739b0141-891e-4dea-ac26-3ab56f661992
 
+[Demo code](https://github.com/MuongKimhong/famiq/tree/master/examples/demo)
+
 hot-reload can be enabled during development so that any changes made to the json file
 are reflected immediately in the running app, no need to re-compile.
 
