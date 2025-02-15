@@ -4,22 +4,12 @@ use crate::plugin::FamiqPlugin;
 use crate::widgets::{FamiqWidgetId, FamiqWidgetClasses};
 use super::*;
 
-fn setup_test_default_button(
-    mut commands: Commands,
-    asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
-) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-    fa_button(&mut builder, "Press me").id("#test-btn").build();
+fn setup_test_default_button(mut commands: Commands) {
+    fa_button(&mut commands, "Press me").id("#test-btn").build();
 }
 
-fn setup_test_button_with_built_in_class(
-    mut commands: Commands,
-    asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
-) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-    fa_button(&mut builder, "Press me")
+fn setup_test_button_with_built_in_class(mut commands: Commands) {
+    fa_button(&mut commands, "Press me")
         .id("#test-btn")
         .class("is-primary is-large is-round")
         .build();
@@ -31,6 +21,7 @@ fn test_create_default_button() {
     app.add_plugins(FamiqPlugin);
     app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_default_button);
+    app.add_systems(Update, FaButton::_detect_fa_button_creation_system);
     app.update();
 
     let btn_q = app.world_mut().query::<(&FamiqWidgetId, &IsFamiqButton)>().get_single(app.world());
@@ -57,6 +48,7 @@ fn test_create_button_with_built_in_class() {
     app.add_plugins(FamiqPlugin);
     app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_button_with_built_in_class);
+    app.add_systems(Update, FaButton::_detect_fa_button_creation_system);
     app.update();
 
     let btn_q = app.world_mut().query::<(&FamiqWidgetClasses, &IsFamiqButton)>().get_single(app.world());

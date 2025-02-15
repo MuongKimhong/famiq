@@ -37,3 +37,24 @@ impl Default for RotatingSequence {
 /// Component for associating a spinner entity with its parent circular widget.
 #[derive(Component)]
 pub struct CircularSpinnerEntity(pub Entity);
+
+/// Represents built-in size of a circular UI element.
+#[derive(Component)]
+pub enum CircularSize {
+    Small,
+    Normal,
+    Large,
+    CustomSize(f32)
+}
+
+/// Represents built-in color options for a circular UI element.
+#[derive(Component)]
+pub enum CircularColor {
+    Default,
+    Primary,
+    Secondary,
+    Success,
+    Danger,
+    Warning,
+    Info,
+}

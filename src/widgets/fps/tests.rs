@@ -5,38 +5,19 @@ use crate::utils::create_test_app;
 use crate::widgets::{FamiqWidgetResource, FamiqWidgetId, FamiqWidgetClasses};
 use super::*;
 
-fn setup_test_default_fps(
-    mut commands: Commands,
-    asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
-) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-    fa_fps(&mut builder)
+fn setup_test_default_fps(mut commands: Commands) {
+    fa_fps(&mut commands)
         .id("#test-fps")
         .class("test-class")
         .build();
 }
 
-fn setup_test_fps_with_change_color(
-    mut commands: Commands,
-    asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
-) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-    fa_fps(&mut builder)
-        .change_color()
-        .build();
+fn setup_test_fps_with_change_color(mut commands: Commands) {
+    fa_fps(&mut commands).change_color().build();
 }
 
-fn setup_test_fps_with_right_side(
-    mut commands: Commands,
-    asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
-) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-    fa_fps(&mut builder)
-        .right_side()
-        .build();
+fn setup_test_fps_with_right_side(mut commands: Commands) {
+    fa_fps(&mut commands).right_side().build();
 }
 
 #[test]
@@ -45,6 +26,7 @@ fn test_create_default_fps() {
     app.add_plugins(FamiqPlugin);
     app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_default_fps);
+    app.add_systems(Update, FaFpsText::_detect_fa_fps_creation_system);
     app.update();
 
     let fps_q = app.world_mut()
@@ -64,6 +46,7 @@ fn test_create_fps_with_change_color() {
     app.add_plugins(FamiqPlugin);
     app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_fps_with_change_color);
+    app.add_systems(Update, FaFpsText::_detect_fa_fps_creation_system);
     app.update();
 
     let fps_q = app.world_mut().query::<(&CanChangeColor, &IsFamiqFPSTextCount)>().get_single(app.world());
@@ -78,6 +61,7 @@ fn test_create_fps_with_right_side() {
     app.add_plugins(FamiqPlugin);
     app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_fps_with_right_side);
+    app.add_systems(Update, FaFpsText::_detect_fa_fps_creation_system);
     app.update();
 
     let fps_q = app.world_mut().query::<(&Node, &IsFamiqFPSTextContainer)>().get_single(app.world());

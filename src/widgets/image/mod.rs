@@ -2,87 +2,91 @@ pub mod tests;
 
 use bevy::prelude::*;
 use crate::utils::{process_spacing_built_in_class, insert_id_and_class};
-use crate::widgets::{
-    DefaultWidgetEntity, FamiqWidgetBuilder,
-    WidgetStyle, ExternalStyleHasChanged
-};
+use crate::widgets::{DefaultWidgetEntity, WidgetStyle, ExternalStyleHasChanged};
+
+use super::FamiqWidgetClasses;
 
 /// Marker component identifyijng Famiq Image widget.
 #[derive(Component)]
 pub struct IsFamiqImage;
 
+/// Image path
+#[derive(Component)]
+pub struct FaImagePath(pub String);
+
+#[derive(Component)]
+pub struct FaImageSize {
+    pub width: Val,
+    pub height: Val
+}
+
 pub struct FaImage;
 
-impl<'a> FaImage {
-    pub fn new(
-        id: Option<String>,
-        class: Option<String>,
-        width: Option<Val>,
-        height: Option<Val>,
-        root_node: &'a mut EntityCommands,
-        image_handle: Handle<Image>
-    ) -> Entity {
-        let mut node = Node::default();
-        process_spacing_built_in_class(&mut node, &class);
+impl FaImage {
+    pub fn _detect_fa_image_creation_system(
+        mut commands: Commands,
+        asset_server: Res<AssetServer>,
+        image_q: Query<
+            (Entity, &FaImagePath, Option<&FamiqWidgetClasses>, Option<&FaImageSize>),
+            Added<IsFamiqImage>
+        >
+    ) {
+        for (entity, path, class, size) in image_q.iter() {
+            let class_ref = class.map(|s| s.0.clone());
+            let image_handle: Handle<Image> = asset_server.load(&path.0);
 
-        let bg_color = BackgroundColor::default();
-        let border_color = BorderColor::default();
-        let border_radius = BorderRadius::default();
-        let z_index = ZIndex::default();
-        let visibility = Visibility::Inherited;
+            let mut node = Node::default();
+            process_spacing_built_in_class(&mut node, &class_ref);
 
-        if let Some(w) = width {
-            node.width = w;
+            if let Some(size) = size {
+                node.width = size.width.clone();
+                node.height = size.height.clone();
+            }
+            commands
+                .entity(entity)
+                .insert((
+                    ImageNode::new(image_handle),
+                    node.clone(),
+                    BackgroundColor::default(),
+                    BorderRadius::default(),
+                    BorderColor::default(),
+                    ZIndex::default(),
+                    Visibility::Inherited,
+                    DefaultWidgetEntity::new(
+                        node,
+                        BorderColor::default(),
+                        BorderRadius::default(),
+                        BackgroundColor::default(),
+                        ZIndex::default(),
+                        Visibility::Inherited
+                    ),
+                    Interaction::default(),
+                    WidgetStyle::default(),
+                    ExternalStyleHasChanged(false)
+                ));
         }
-        if let Some(h) = height {
-            node.height = h;
-        }
-        let image_entity = root_node.commands().spawn((
-            ImageNode::new(image_handle),
-            node.clone(),
-            bg_color.clone(),
-            border_radius.clone(),
-            border_color.clone(),
-            z_index.clone(),
-            visibility.clone(),
-            IsFamiqImage,
-            DefaultWidgetEntity::new(
-                node,
-                border_color,
-                border_radius,
-                bg_color,
-                z_index,
-                visibility
-            ),
-            Interaction::default(),
-            WidgetStyle::default(),
-            ExternalStyleHasChanged(false)
-        )).id();
-
-        insert_id_and_class(root_node, image_entity, &id, &class);
-        image_entity
     }
 }
 
 /// Builder for creating image widget.
-pub struct FaImageBuilder<'a> {
+pub struct FaImageBuilder<'w, 's> {
     pub id: Option<String>,
-    pub image_handle: Handle<Image>,
     pub class: Option<String>,
     pub width: Option<Val>,
     pub height: Option<Val>,
-    pub root_node: EntityCommands<'a>
+    pub path: String,
+    pub commands: Commands<'w, 's>
 }
 
-impl<'a> FaImageBuilder<'a> {
-    pub fn new(image_handle: Handle<Image>, root_node: EntityCommands<'a>) -> Self {
+impl<'w, 's> FaImageBuilder<'w, 's> {
+    pub fn new(path: &str, commands: Commands<'w, 's>) -> Self {
         Self {
             id: None,
             class: None,
             width: None,
             height: None,
-            image_handle,
-            root_node
+            path: path.to_string(),
+            commands
         }
     }
 
@@ -107,22 +111,27 @@ impl<'a> FaImageBuilder<'a> {
 
     /// Spawn image into UI World.
     pub fn build(&mut self) -> Entity {
-        FaImage::new(
-            self.id.clone(),
-            self.class.clone(),
-            self.width.clone(),
-            self.height.clone(),
-            &mut self.root_node,
-            self.image_handle.clone()
-        )
+        let entity = self.commands.spawn((
+            IsFamiqImage,
+            FaImagePath(self.path.clone())
+        ))
+        .id();
+        insert_id_and_class(&mut self.commands, entity, &self.id, &self.class);
+
+        if self.width.is_some() && self.height.is_some() {
+            self.commands.entity(entity).insert(FaImageSize {
+                width: self.width.unwrap(),
+                height: self.height.unwrap()
+            });
+        }
+        entity
     }
 }
 
 /// API to create `FaImageBuilder`
-pub fn fa_image<'a>(builder: &'a mut FamiqWidgetBuilder, path: &str) -> FaImageBuilder<'a> {
-    let image_handle = builder.asset_server.load(path);
-    FaImageBuilder::new(
-        image_handle,
-        builder.ui_root_node.reborrow()
-    )
+pub fn fa_image<'w, 's>(commands: &'w mut Commands, path: &str) -> FaImageBuilder<'w, 's>
+where
+    'w: 's
+{
+    FaImageBuilder::new(path, commands.reborrow())
 }

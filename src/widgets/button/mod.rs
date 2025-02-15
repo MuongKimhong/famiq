@@ -5,55 +5,23 @@ pub mod tests;
 pub use components::*;
 use helper::*;
 
-use crate::utils;
+use crate::utils::{self, entity_add_children};
 use super::{
-    DefaultTextEntity, DefaultWidgetEntity,
-    FamiqWidgetResource, FamiqWidgetBuilder,
-    WidgetStyle, ExternalStyleHasChanged, FamiqToolTipText
+    DefaultTextEntity, DefaultWidgetEntity, ExternalStyleHasChanged, FamiqToolTipText, FamiqWidgetClasses, FamiqWidgetId, FamiqWidgetResource, WidgetStyle
 };
 use super::tooltip::FaToolTipResource;
 use crate::event_writer::FaInteractionEvent;
-use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
-
-/// Built-in button color options for `fa_button`.
-pub enum BtnColor {
-    Default,
-    Primary,
-    PrimaryDark,
-    Secondary,
-    Success,
-    SuccessDark,
-    Danger,
-    DangerDark,
-    Warning,
-    WarningDark,
-    Info,
-    InfoDark
-}
-
-/// Built-in button size options for `fa_button`.
-pub enum BtnSize {
-    Small,
-    Normal,
-    Large,
-}
-/// Built-in shape options for `fa_button`.
-pub enum BtnShape {
-    Default,
-    Round,
-    Rectangle
-}
 
 pub struct FaButton;
 
 // Needs container
-impl<'a> FaButton {
+impl FaButton {
     fn _build_text(
         id: &Option<String>,
         class: &Option<String>,
         text: &str,
-        root_node: &'a mut EntityCommands,
+        commands: &mut Commands,
         font_handle: Handle<Font>,
         color: &BtnColor,
         size: &BtnSize,
@@ -67,8 +35,7 @@ impl<'a> FaButton {
         let txt_color = TextColor(get_text_color(color));
         let txt_layout = TextLayout::new_with_justify(JustifyText::Center);
 
-        let entity = root_node
-            .commands()
+        let entity = commands
             .spawn((
                 txt.clone(),
                 txt_font.clone(),
@@ -81,11 +48,11 @@ impl<'a> FaButton {
             ))
             .id();
 
-        utils::insert_id_and_class(root_node, entity, id, class);
+        utils::insert_id_and_class(commands, entity, id, class);
         entity
     }
 
-    fn _build_overlay(root_node: &'a mut EntityCommands, shape: &BtnShape) -> Entity {
+    fn _build_overlay(commands: &mut Commands, shape: &BtnShape) -> Entity {
         let mut border_radius =  BorderRadius::all(Val::Px(6.0));
 
         match shape {
@@ -94,8 +61,7 @@ impl<'a> FaButton {
             _ => ()
         }
 
-        root_node
-            .commands()
+        commands
             .spawn((
                 default_button_overlay_node(),
                 BorderColor::default(),
@@ -107,69 +73,6 @@ impl<'a> FaButton {
                 IsFamiqButtonOverlay
             ))
             .id()
-    }
-
-    pub fn new(
-        id: Option<String>,
-        class: Option<String>,
-        text: &str,
-        root_node: &'a mut EntityCommands,
-        font_handle: Handle<Font>,
-        color: BtnColor,
-        size: BtnSize,
-        shape: BtnShape,
-        has_tooltip: bool,
-        tooltip_text: Option<String>
-    ) -> Entity {
-        let txt_entity = Self::_build_text(&id, &class, text, root_node, font_handle, &color, &size);
-        let overlay_entity = Self::_build_overlay(root_node, &shape);
-
-        let mut node = default_button_node();
-        utils::process_spacing_built_in_class(&mut node, &class);
-
-        let border_color = get_button_border_color(&color);
-        let bg_color = get_button_background_color(&color);
-        let z_index = ZIndex::default();
-        let visibility = Visibility::Inherited;
-        let mut border_radius =  BorderRadius::all(Val::Px(6.0));
-
-        match shape {
-            BtnShape::Round => border_radius = BorderRadius::all(Val::Percent(50.0)),
-            BtnShape::Rectangle => border_radius = BorderRadius::all(Val::Px(0.0)),
-            _ => ()
-        }
-        let btn_entity = root_node
-            .commands()
-            .spawn((
-                node.clone(),
-                border_color.clone(),
-                bg_color.clone(),
-                border_radius.clone(),
-                z_index.clone(),
-                visibility.clone(),
-                IsFamiqButton,
-                DefaultWidgetEntity::new(
-                    node,
-                    border_color,
-                    border_radius,
-                    bg_color,
-                    z_index,
-                    visibility,
-                ),
-                Interaction::default(),
-                ButtonTextEntity(txt_entity),
-                WidgetStyle::default(),
-                ExternalStyleHasChanged(false),
-                ButtonOverlayEntity(overlay_entity)
-            ))
-            .id();
-
-        if has_tooltip {
-            root_node.commands().entity(btn_entity).insert(FamiqToolTipText(tooltip_text.unwrap()));
-        }
-        utils::insert_id_and_class(root_node, btn_entity, &id, &class);
-        utils::entity_add_children(root_node, &vec![overlay_entity, txt_entity], btn_entity);
-        btn_entity
     }
 
     fn _update_overlay(
@@ -244,18 +147,8 @@ impl<'a> FaButton {
                             tooltip_res.show(text.0.clone(), computed.size(), transform.translation());
                         }
                         FaButton::_update_overlay(&mut overlay_q, border_radius, node, computed, overlay_entity.0, "hover");
-
-                        // if let Ok((mut c_bg_color, mut c_bd_color)) = text_container_q.get_mut(container_entity.0) {
-                        //     c_bg_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.3);
-                        //     c_bd_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.3);
-                        // }
                     },
                     Interaction::Pressed => {
-                        // if let Ok((mut c_bg_color, mut c_bd_color)) = text_container_q.get_mut(container_entity.0) {
-                        //     c_bg_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.6);
-                        //     c_bd_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.6);
-                        // }
-
                         builder_res.update_all_focus_states(false);
                         builder_res.update_or_insert_focus_state(e.entity, true);
                         FaButton::_update_overlay(&mut overlay_q, border_radius, node, computed, overlay_entity.0, "press");
@@ -265,40 +158,89 @@ impl<'a> FaButton {
                             tooltip_res.hide();
                         }
                         FaButton::_update_overlay(&mut overlay_q, border_radius, node, computed, overlay_entity.0, "none");
-                        // if let Ok((mut c_bg_color, mut c_bd_color)) = text_container_q.get_mut(container_entity.0) {
-                        //     *c_bg_color = BackgroundColor::default();
-                        //     *c_bd_color = BorderColor::default();
-                        // }
                     },
                 }
             }
         }
     }
+
+    pub fn _detect_fa_button_creation_system(
+        mut commands: Commands,
+        famiq_res: Res<FamiqWidgetResource>,
+        asset_server: Res<AssetServer>,
+        button_q: Query<
+            (Entity, Option<&FamiqWidgetId>, Option<&FamiqWidgetClasses>, &FaButtonText, &BtnColor, &BtnShape, &BtnSize),
+            Added<IsFamiqButton>
+        >
+    ) {
+        for (entity, id, class, text, color, shape, size) in button_q.iter() {
+            let font_handle = asset_server.load(&famiq_res.font_path);
+            let id_ref = id.map(|s| s.0.clone());
+            let class_ref = class.map(|s| s.0.clone());
+            let txt_entity = FaButton::_build_text(&id_ref, &class_ref, &text.0, &mut commands, font_handle, &color, &size);
+            let overlay_entity = FaButton::_build_overlay(&mut commands, &shape);
+
+            let mut node = default_button_node();
+            utils::process_spacing_built_in_class(&mut node, &class_ref);
+
+            let border_color = get_button_border_color(&color);
+            let bg_color = get_button_background_color(&color);
+            let z_index = ZIndex::default();
+            let visibility = Visibility::Inherited;
+            let mut border_radius =  BorderRadius::all(Val::Px(6.0));
+
+            match shape {
+                BtnShape::Round => border_radius = BorderRadius::all(Val::Percent(50.0)),
+                BtnShape::Rectangle => border_radius = BorderRadius::all(Val::Px(0.0)),
+                _ => ()
+            }
+
+            commands
+                .entity(entity)
+                .insert((
+                    node.clone(),
+                    border_color.clone(),
+                    bg_color.clone(),
+                    border_radius.clone(),
+                    z_index.clone(),
+                    visibility.clone(),
+                    DefaultWidgetEntity::new(
+                        node,
+                        border_color,
+                        border_radius,
+                        bg_color,
+                        z_index,
+                        visibility,
+                    ),
+                    Interaction::default(),
+                    ButtonTextEntity(txt_entity),
+                    WidgetStyle::default(),
+                    ExternalStyleHasChanged(false),
+                    ButtonOverlayEntity(overlay_entity)
+                ));
+
+            entity_add_children(&mut commands, &vec![overlay_entity, txt_entity], entity);
+        }
+    }
 }
 
 /// Builder for creating `fa_button`.
-pub struct FaButtonBuilder<'a> {
+pub struct FaButtonBuilder<'w, 's> {
     pub id: Option<String>,
     pub class: Option<String>,
     pub text: String,
-    pub font_handle: Handle<Font>,
-    pub root_node: EntityCommands<'a>,
+    pub commands: Commands<'w, 's>,
     pub has_tooltip: bool,
     pub tooltip_text: String
 }
 
-impl<'a> FaButtonBuilder<'a> {
-    pub fn new(
-        text: String,
-        font_handle: Handle<Font>,
-        root_node: EntityCommands<'a>,
-    ) -> Self {
+impl<'w, 's> FaButtonBuilder<'w, 's> {
+    pub fn new(text: &str, commands: Commands<'w, 's>) -> Self {
         Self {
             id: None,
             class: None,
-            text,
-            font_handle,
-            root_node,
+            text: text.to_string(),
+            commands,
             has_tooltip: false,
             tooltip_text: String::new()
         }
@@ -365,29 +307,26 @@ impl<'a> FaButtonBuilder<'a> {
     /// Spawn the button to UI world.
     pub fn build(&mut self) -> Entity {
         let (color, size, shape) = self._process_built_in_classes();
-        FaButton::new(
-            self.id.clone(),
-            self.class.clone(),
-            self.text.as_str(),
-            &mut self.root_node,
-            self.font_handle.clone(),
+        let entity = self.commands.spawn((
+            IsFamiqButton,
+            FaButtonText(self.text.clone()),
             color,
             size,
-            shape,
-            self.has_tooltip,
-            Some(self.tooltip_text.clone())
-        )
+            shape
+        ))
+        .id();
+
+        utils::insert_id_and_class(&mut self.commands, entity, &self.id, &self.class);
+        entity
     }
 }
 
 /// API to create a `FaButtonBuilder`.
-pub fn fa_button<'a>(builder: &'a mut FamiqWidgetBuilder, text: &str) -> FaButtonBuilder<'a> {
-    let font_handle = builder.asset_server.load(builder.font_path.as_ref().unwrap());
-    FaButtonBuilder::new(
-        text.to_string(),
-        font_handle,
-        builder.ui_root_node.reborrow(),
-    )
+pub fn fa_button<'w, 's>(commands: &'w mut Commands, text: &str) -> FaButtonBuilder<'w, 's>
+where
+    'w: 's
+{
+    FaButtonBuilder::new(text, commands.reborrow())
 }
 
 /// Checks if the button internal system(s) can run.

@@ -5,38 +5,22 @@ use crate::widgets::button::fa_button;
 use crate::widgets::{FamiqWidgetResource, FamiqWidgetId, FamiqWidgetClasses};
 use super::*;
 
-fn setup_test_default_container(
-    mut commands: Commands,
-    asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
-) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-    fa_container(&mut builder).id("#test-container").build();
+fn setup_test_default_container(mut commands: Commands) {
+    fa_container(&mut commands).id("#test-container").build();
 }
 
-fn setup_test_container_with_class(
-    mut commands: Commands,
-    asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
-) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-    fa_container(&mut builder)
+fn setup_test_container_with_class(mut commands: Commands) {
+    fa_container(&mut commands)
         .id("#test-container")
         .class("test-class-one test-class-two")
         .build();
 }
 
-fn setup_test_container_with_children(
-    mut commands: Commands,
-    asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
-) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
+fn setup_test_container_with_children(mut commands: Commands) {
+    let test_btn_1 = fa_button(&mut commands, "Button 1").build();
+    let test_btn_2 = fa_button(&mut commands, "Button 2").build();
 
-    let test_btn_1 = fa_button(&mut builder, "Button 1").build();
-    let test_btn_2 = fa_button(&mut builder, "Button 2").build();
-
-    fa_container(&mut builder)
+    fa_container(&mut commands)
         .id("#test-container")
         .children(vec![test_btn_1, test_btn_2])
         .build();
@@ -48,6 +32,7 @@ fn test_create_default_container() {
     app.add_plugins(FamiqPlugin);
     app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_default_container);
+    app.add_systems(Update, FaContainer::_detect_fa_container_creation_system);
     app.update();
 
     let container_q = app.world_mut().query::<(&FamiqWidgetId, &IsFamiqContainer)>().get_single(app.world());
@@ -63,6 +48,7 @@ fn test_create_container_with_class() {
     app.add_plugins(FamiqPlugin);
     app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_container_with_class);
+    app.add_systems(Update, FaContainer::_detect_fa_container_creation_system);
     app.update();
 
     let container_q = app.world_mut().query::<(&FamiqWidgetClasses, &IsFamiqContainer)>().get_single(app.world());
@@ -78,6 +64,7 @@ fn test_create_container_with_children() {
     app.add_plugins(FamiqPlugin);
     app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_container_with_children);
+    app.add_systems(Update, FaContainer::_detect_fa_container_creation_system);
     app.update();
 
     let container_q = app.world_mut()

@@ -28,9 +28,8 @@ pub use text_input::fa_text_input;
 pub use selection::fa_selection;
 pub use bg_image::fa_bg_image;
 pub use progress_bar::fa_progress_bar;
-use tooltip::FaToolTip;
+use tooltip::IsFamiqToolTipContainer;
 
-use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -182,50 +181,82 @@ pub struct ExternalStyleHasChanged(pub bool);
 
 #[derive(Resource)]
 pub struct FamiqWidgetResource {
-    // font path relative to project root
+    /// font path relative to assets folder.
     pub font_path: String,
 
-    // user external style (json) file path relative to project root
+    /// user external style (json) file path relative to project root.
     pub style_path: String,
 
-    // read external style (json) file and apply styles to widget every single frame
+    /// read external style (json) file and apply styles to widget every single frame
+    /// if changes are detected.
     pub hot_reload_styles: bool,
 
-    pub widget_focus_state: HashMap<Entity, bool>,
+    pub _widget_focus_state: HashMap<Entity, bool>,
 
+    /// Flag to check if external style are applied to all widgets
+    /// when hot_reload_style if false.
     pub external_style_applied: bool
 }
 
 impl FamiqWidgetResource {
     pub fn update_or_insert_focus_state(&mut self, entity: Entity, state: bool) {
-        if let Some(old_value) = self.widget_focus_state.get_mut(&entity) {
+        if let Some(old_value) = self._widget_focus_state.get_mut(&entity) {
             *old_value = state;
         } else {
-            self.widget_focus_state.insert(entity, state);
+            self._widget_focus_state.insert(entity, state);
         }
     }
 
     pub fn update_all_focus_states(&mut self, new_state: bool) {
-        for (_, state) in self.widget_focus_state.iter_mut() {
+        for (_, state) in self._widget_focus_state.iter_mut() {
             *state = new_state;
         }
     }
 
     pub fn get_widget_focus_state(&self, entity: &Entity) -> Option<bool> {
-        if let Some(&state) = self.widget_focus_state.get(entity) {
+        if let Some(&state) = self._widget_focus_state.get(entity) {
             return Some(state);
         }
         None
+    }
+
+    /// Method to use custom font
+    ///
+    /// # Arguments
+    /// * `font_path` - A path to the font, relative to Bevy's `assets/` folder.
+    pub fn use_font(&mut self, font_path: &str) {
+        self.font_path = font_path.to_string();
+    }
+
+    /// Method to use custom style file path.
+    ///
+    /// # Argument
+    /// * style_path: Full path to the json file, relative to root directory.
+    pub fn use_style(&mut self, style_path: &str) {
+        self.style_path = style_path.to_string();
+    }
+
+    /// Method to enable hot-reload.
+    pub fn hot_reload(&mut self) {
+        self.hot_reload_styles = true;
+    }
+
+    /// Registers a tooltip option for widgets.
+    ///
+    /// If `use_font()` is called, `register_tooltip` must be called **after** `use_font()`
+    /// to ensure that the custom font is applied to the tooltip.
+    pub fn register_tooltip(&mut self, commands: &mut Commands) {
+        commands.spawn(IsFamiqToolTipContainer);
     }
 }
 
 impl Default for FamiqWidgetResource {
     fn default() -> Self {
         Self {
-            font_path: String::new(),
-            style_path: String::new(),
+            font_path: get_embedded_asset_path("embedded_assets/fonts/fira-mono-regular.ttf").to_string(),
+            style_path: "assets/styles.json".to_string(),
             hot_reload_styles: false,
-            widget_focus_state: HashMap::new(),
+            _widget_focus_state: HashMap::new(),
             external_style_applied: false
         }
     }
@@ -343,149 +374,6 @@ impl WidgetStyle {
         }
 
         has_changed
-    }
-}
-
-
-pub struct FamiqWidgetBuilder<'a> {
-    pub asset_server: &'a ResMut<'a, AssetServer>,
-    pub ui_root_node: EntityCommands<'a>,
-    pub font_path: Option<String>,
-    pub style_path: Option<String>,
-    pub resource: Mut<'a, FamiqWidgetResource>
-}
-
-impl<'a> FamiqWidgetBuilder<'a> {
-    fn _reset_builder_resource(builder_resource: &mut ResMut<FamiqWidgetResource>) {
-        builder_resource.font_path = get_embedded_asset_path("embedded_assets/fonts/fira-mono-regular.ttf").to_string();
-        builder_resource.style_path = "assets/styles.json".to_string();
-        builder_resource.hot_reload_styles = false;
-        builder_resource.external_style_applied = false;
-    }
-
-    pub fn new(
-        commands: &'a mut Commands,
-        builder_resource: &'a mut ResMut<FamiqWidgetResource>,
-        asset_server: &'a ResMut<'a, AssetServer>,
-    ) -> Self {
-        Self::_reset_builder_resource(builder_resource);
-        Self {
-            asset_server,
-            ui_root_node: Self::create_ui_root_node(commands),
-            font_path: Some(get_embedded_asset_path("embedded_assets/fonts/fira-mono-regular.ttf").to_string()),
-            style_path: Some("assets/styles.json".to_string()),
-            resource: builder_resource.reborrow()
-        }
-    }
-
-    /// Method to use custom font
-    ///
-    /// # Arguments
-    ///
-    /// * `font_path` - A path to the font, relative to Bevy's `assets/` folder.
-    ///
-    /// # Examples
-    ///
-    /// ## Normal Project Structure
-    ///
-    /// ```text
-    /// my_project/
-    /// ├── assets/
-    /// │   ├── fonts/
-    /// │   │   ├── Some-font.ttf
-    /// ├── src/
-    /// ```
-    ///
-    /// ```text
-    /// builder.use_font_path("fonts/Some-font.ttf");
-    /// ```
-    ///
-    /// ## Multi-Crate / Workspace Structure
-    ///
-    /// In a multi-crate workspace, the custom font path is read from the subcrate/member's `assets/` folder:
-    ///
-    /// ```text
-    /// my_project/
-    /// ├── sub_crate_1/
-    /// │   ├── assets/
-    /// │   │   ├── fonts/
-    /// │   │   │   ├── Some-font.ttf
-    /// │   ├── src/
-    /// ├── sub_crate_2/
-    /// │   ├── assets/
-    /// │   ├── src/
-    /// ```
-    ///
-    /// ```text
-    /// // Inside subcrate 1
-    /// builder.use_font_path("fonts/Some-font.ttf");
-    /// ```
-    pub fn use_font_path(mut self, font_path: &str) -> Self {
-        self.font_path = Some(font_path.to_string());
-        self.resource.font_path = font_path.to_string();
-        self
-    }
-
-    /// Method to use custom style file path.
-    ///
-    /// # Argument
-    /// * style_path: Full path to the json file, relative to root directory.
-    pub fn use_style_path(mut self, style_path: &str) -> Self {
-        self.style_path = Some(style_path.to_string());
-        self.resource.style_path = style_path.to_string();
-        self
-    }
-
-    /// Method to enable hot-reload.
-    pub fn hot_reload(mut self) -> Self {
-        self.resource.hot_reload_styles = true;
-        self
-    }
-
-    /// Registers a tooltip option for widgets.
-    ///
-    /// If `use_font_path` is called, `register_tooltip` must be called **after** `use_font_path`
-    /// to ensure that the custom font is applied to the tooltip.
-    pub fn register_tooltip(mut self) -> Self {
-        let font_handle = self.asset_server.load(self.font_path.as_ref().unwrap().as_str());
-        FaToolTip::new(
-            &mut self.ui_root_node,
-            font_handle
-        );
-        self
-    }
-
-    fn create_ui_root_node(commands: &'a mut Commands) -> EntityCommands<'a> {
-        commands.spawn((
-            Node {
-                width: Val::Percent(100.0),
-                height: Val::Percent(100.0),
-                flex_direction: FlexDirection::Column,
-                justify_content: JustifyContent::FlexStart,
-                align_items: AlignItems::Stretch,
-                ..default()
-            },
-            FamiqWidgetId("#fa_root".to_string()),
-            IsFaWidgetRoot,
-            GlobalZIndex(1)
-        ))
-    }
-
-    pub fn insert_component<T: Bundle>(&mut self, entity: Entity, components: T) {
-        self.ui_root_node.commands().entity(entity).insert(components);
-    }
-
-    pub fn remove_component<T: Bundle>(&mut self, entity: Entity) {
-        self.ui_root_node.commands().entity(entity).remove::<T>();
-    }
-
-    pub fn get_entity(&mut self) -> Entity {
-        self.ui_root_node.id()
-    }
-
-    pub fn clean(&mut self) {
-        let root_entity = self.get_entity();
-        self.ui_root_node.commands().entity(root_entity).despawn_recursive();
     }
 }
 

@@ -8,45 +8,25 @@ use super::*;
 #[derive(Resource)]
 struct TestEntityForUpdateByEntity(Entity);
 
-fn setup_test_default_bar(
-    mut commands: Commands,
-    asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
-) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-    fa_progress_bar(&mut builder).id("#test-bar").build();
+fn setup_test_default_bar(mut commands: Commands) {
+    fa_progress_bar(&mut commands).id("#test-bar").build();
 }
 
-fn setup_test_bar_with_built_in_class(
-    mut commands: Commands,
-    asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
-) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-    fa_progress_bar(&mut builder)
+fn setup_test_bar_with_built_in_class(mut commands: Commands) {
+    fa_progress_bar(&mut commands)
         .class("is-primary is-large")
         .build();
 }
 
-fn setup_test_bar_with_percentage(
-    mut commands: Commands,
-    asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
-) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-    fa_progress_bar(&mut builder)
+fn setup_test_bar_with_percentage(mut commands: Commands) {
+    fa_progress_bar(&mut commands)
         .id("#test-bar")
         .percentage(50.0)
         .build();
 }
 
-fn setup_test_update_by_entity(
-    mut commands: Commands,
-    asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
-) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-    let bar = fa_progress_bar(&mut builder)
+fn setup_test_update_by_entity(mut commands: Commands) {
+    let bar = fa_progress_bar(&mut commands)
         .percentage(40.0)
         .build();
 
@@ -59,6 +39,7 @@ fn test_create_default_bar() {
     app.add_plugins(FamiqPlugin);
     app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_default_bar);
+    app.add_systems(Update, FaProgressBar::_detect_fa_progress_bar_creation_system);
     app.update();
 
     let bar_q = app.world_mut()
@@ -75,6 +56,7 @@ fn test_create_bar_with_built_in_class() {
     app.add_plugins(FamiqPlugin);
     app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_bar_with_built_in_class);
+    app.add_systems(Update, FaProgressBar::_detect_fa_progress_bar_creation_system);
     app.update();
 
     let bar_q = app.world_mut()
@@ -90,6 +72,7 @@ fn test_create_bar_with_percentage() {
     app.add_plugins(FamiqPlugin);
     app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_bar_with_percentage);
+    app.add_systems(Update, FaProgressBar::_detect_fa_progress_bar_creation_system);
     app.update();
 
     let bar_q = app.world_mut()
@@ -105,6 +88,7 @@ fn test_get_percentage_by_non_exist_id() {
     app.add_plugins(FamiqPlugin);
     app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_default_bar);
+    app.add_systems(Update, FaProgressBar::_detect_fa_progress_bar_creation_system);
     app.update();
 
     let bar_res = app.world_mut().resource::<FaProgressBarResource>();
@@ -120,6 +104,7 @@ fn test_get_percentage_by_entity() {
     app.add_plugins(FamiqPlugin);
     app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_update_by_entity);
+    app.add_systems(Update, FaProgressBar::_detect_fa_progress_bar_creation_system);
     app.update();
 
     let bar_entity = app.world_mut().resource::<TestEntityForUpdateByEntity>().0;
@@ -134,6 +119,7 @@ fn test_update_percentage_by_entity() {
     app.add_plugins(FamiqPlugin);
     app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_update_by_entity);
+    app.add_systems(Update, FaProgressBar::_detect_fa_progress_bar_creation_system);
     app.add_systems(Update, FaProgressBar::handle_progress_value_change_by_entity);
     app.update();
 

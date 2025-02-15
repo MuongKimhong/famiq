@@ -5,25 +5,15 @@ use crate::widgets::FamiqWidgetResource;
 use crate::widgets::text::fa_text;
 use super::*;
 
-fn setup_test_default_modal(
-    mut commands: Commands,
-    asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
-) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-    fa_modal(&mut builder).id("#test-modal").build();
+fn setup_test_default_modal(mut commands: Commands) {
+    fa_modal(&mut commands).id("#test-modal").build();
 }
 
-fn setup_test_modal_with_children(
-    mut commands: Commands,
-    asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
-) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-    let txt_one = fa_text(&mut builder, "Text one").build();
-    let txt_two = fa_text(&mut builder, "Text two").build();
+fn setup_test_modal_with_children(mut commands: Commands) {
+    let txt_one = fa_text(&mut commands, "Text one").build();
+    let txt_two = fa_text(&mut commands, "Text two").build();
 
-    fa_modal(&mut builder)
+    fa_modal(&mut commands)
         .children(vec![txt_one, txt_two])
         .build();
 }
@@ -34,6 +24,7 @@ fn test_create_default_modal() {
     app.add_plugins(FamiqPlugin);
     app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_default_modal);
+    app.add_systems(Update, FaModal::_detect_fa_modal_creation_system);
     app.update();
 
     let modal_q = app.world_mut().query::<(&FamiqWidgetId, &IsFamiqModalBackground)>().get_single(app.world());
@@ -49,6 +40,7 @@ fn test_create_modal_with_children() {
     app.add_plugins(FamiqPlugin);
     app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_modal_with_children);
+    app.add_systems(Update, FaModal::_detect_fa_modal_creation_system);
     app.update();
 
     let modal_q = app.world_mut().query::<(&Children, &IsFamiqModalContainer)>().get_single(app.world());

@@ -4,7 +4,7 @@ pub mod tests;
 
 use bevy::prelude::*;
 use crate::widgets::{
-    DefaultWidgetEntity, FamiqWidgetBuilder, WidgetStyle,
+    DefaultWidgetEntity, WidgetStyle,
     ExternalStyleHasChanged, FamiqToolTipText
 };
 use crate::event_writer::FaInteractionEvent;
@@ -16,36 +16,18 @@ use crate::utils::{
     insert_id_and_class
 };
 use super::tooltip::FaToolTipResource;
+use super::FamiqWidgetClasses;
 
 pub use components::*;
 use helper::*;
-
-/// Represents built-in size of a circular UI element.
-pub enum CircularSize {
-    Small,
-    Normal,
-    Large,
-    CustomSize(f32)
-}
-
-/// Represents built-in color options for a circular UI element.
-pub enum CircularColor {
-    Default,
-    Primary,
-    Secondary,
-    Success,
-    Danger,
-    Warning,
-    Info,
-}
 
 /// Represents a Famiq circular UI element, such as a spinner or loading indicator.
 pub struct FaCircular;
 
 // Needs container
-impl<'a> FaCircular {
+impl FaCircular {
     fn _build_spinner(
-        root_node: &'a mut EntityCommands,
+        commands: &mut Commands,
         color: &CircularColor,
         size: &CircularSize
     ) -> Entity {
@@ -56,8 +38,7 @@ impl<'a> FaCircular {
         let visibility = Visibility::Inherited;
         let border_color = get_spinner_color(color);
 
-        root_node
-            .commands()
+        commands
             .spawn((
                 node,
                 border_color,
@@ -69,97 +50,6 @@ impl<'a> FaCircular {
                 RotatingSequence::default()
             ))
             .id()
-    }
-
-    fn _build_outer_circle(
-        id: Option<String>,
-        class: Option<String>,
-        root_node: &'a mut EntityCommands,
-        color: &CircularColor,
-        size: &CircularSize,
-        spinner_entity: Entity
-    ) -> Entity {
-        let mut node = default_outer_circle_node(size);
-        process_spacing_built_in_class(&mut node, &class);
-
-        let border_radius = BorderRadius::all(Val::Percent(50.0));
-        let bg_color = BackgroundColor(Color::NONE);
-        let z_index = ZIndex::default();
-        let visibility = Visibility::Inherited;
-
-        let lightening_percentage = match color {
-            CircularColor::Primary => 70.0,
-            CircularColor::Warning => 70.0,
-            CircularColor::Danger => 45.0,
-            CircularColor::Success => 80.0,
-            CircularColor::Secondary => 45.0,
-            CircularColor::Info => 85.0,
-            _ => -25.0, // Use negative value for darken
-        };
-
-        let base_color = get_spinner_color(color).0;
-        let use_border_color = if lightening_percentage >= 0.0 {
-            lighten_color(lightening_percentage, &base_color)
-        } else {
-            darken_color(-lightening_percentage, &base_color)
-        }.unwrap();
-
-        let border_color = BorderColor(use_border_color);
-
-        let outer_entity = root_node
-            .commands()
-            .spawn((
-                node.clone(),
-                border_color.clone(),
-                border_radius.clone(),
-                bg_color.clone(),
-                z_index.clone(),
-                visibility.clone(),
-                DefaultWidgetEntity::new(
-                    node,
-                    border_color,
-                    border_radius,
-                    bg_color,
-                    z_index,
-                    visibility
-                ),
-                IsFamiqCircular,
-                CircularSpinnerEntity(spinner_entity),
-                Interaction::default(),
-                WidgetStyle::default(),
-                ExternalStyleHasChanged(false)
-
-            ))
-            .id();
-
-        insert_id_and_class(root_node, outer_entity, &id, &class);
-        outer_entity
-    }
-
-    pub fn new(
-        id: Option<String>,
-        class: Option<String>,
-        root_node: &'a mut EntityCommands,
-        color: CircularColor,
-        size: CircularSize,
-        has_tooltip: bool,
-        tooltip_text: Option<String>
-    ) -> Entity {
-        let spinner = Self::_build_spinner(root_node, &color, &size);
-        let outer = Self::_build_outer_circle(
-            id,
-            class,
-            root_node,
-            &color,
-            &size,
-            spinner
-        );
-
-        if has_tooltip {
-            root_node.commands().entity(outer).insert(FamiqToolTipText(tooltip_text.unwrap()));
-        }
-        entity_add_child(root_node, spinner, outer);
-        outer
     }
 
     /// Internal to rotate spinner entities based on their rotation speed.
@@ -221,25 +111,89 @@ impl<'a> FaCircular {
             }
         }
     }
+
+    pub fn _detect_fa_circular_creation_system(
+        mut commands: Commands,
+        circular_q: Query<
+            (Entity, &CircularSize, &CircularColor, Option<&FamiqWidgetClasses>),
+            Added<IsFamiqCircular>
+        >
+    ) {
+        for (entity, size, color, class) in circular_q.iter() {
+            let class_ref = class.map(|s| s.0.clone());
+            let spinner_entity = FaCircular::_build_spinner(&mut commands, color, size);
+            let mut node = default_outer_circle_node(size);
+            process_spacing_built_in_class(&mut node, &class_ref);
+
+            let border_radius = BorderRadius::all(Val::Percent(50.0));
+            let bg_color = BackgroundColor(Color::NONE);
+            let z_index = ZIndex::default();
+            let visibility = Visibility::Inherited;
+
+            let lightening_percentage = match color {
+                CircularColor::Primary => 70.0,
+                CircularColor::Warning => 70.0,
+                CircularColor::Danger => 45.0,
+                CircularColor::Success => 80.0,
+                CircularColor::Secondary => 45.0,
+                CircularColor::Info => 85.0,
+                _ => -25.0, // Use negative value for darken
+            };
+
+            let base_color = get_spinner_color(color).0;
+            let use_border_color = if lightening_percentage >= 0.0 {
+                lighten_color(lightening_percentage, &base_color)
+            } else {
+                darken_color(-lightening_percentage, &base_color)
+            }.unwrap();
+
+            let border_color = BorderColor(use_border_color);
+
+            commands
+                .entity(entity)
+                .insert((
+                    node.clone(),
+                    border_color.clone(),
+                    border_radius.clone(),
+                    bg_color.clone(),
+                    z_index.clone(),
+                    visibility.clone(),
+                    DefaultWidgetEntity::new(
+                        node,
+                        border_color,
+                        border_radius,
+                        bg_color,
+                        z_index,
+                        visibility
+                    ),
+                    CircularSpinnerEntity(spinner_entity),
+                    Interaction::default(),
+                    WidgetStyle::default(),
+                    ExternalStyleHasChanged(false)
+                ));
+
+            entity_add_child(&mut commands, spinner_entity, entity);
+        }
+    }
 }
 
 /// Builder for creating Famiq circular widget.
-pub struct FaCircularBuilder<'a> {
+pub struct FaCircularBuilder<'w, 's> {
     pub id: Option<String>,
     pub class: Option<String>,
     pub size: Option<f32>,
-    pub root_node: EntityCommands<'a>,
+    pub commands: Commands<'w, 's>,
     pub has_tooltip: bool,
     pub tooltip_text: String
 }
 
-impl<'a> FaCircularBuilder<'a> {
-    pub fn new(root_node: EntityCommands<'a>) -> Self {
+impl<'w, 's> FaCircularBuilder<'w, 's> {
+    pub fn new(commands: Commands<'w, 's>) -> Self {
         Self {
             id: None,
             class: None,
             size: None,
-            root_node,
+            commands,
             has_tooltip: false,
             tooltip_text: String::new()
         }
@@ -311,21 +265,18 @@ impl<'a> FaCircularBuilder<'a> {
     pub fn build(&mut self) -> Entity {
         let (color, size) = self._process_built_in_classes();
         let use_size = size.unwrap_or_else(|| self._process_custom_size() );
-        FaCircular::new(
-            self.id.clone(),
-            self.class.clone(),
-            &mut self.root_node,
-            color,
-            use_size,
-            self.has_tooltip,
-            Some(self.tooltip_text.clone())
-        )
+        let entity = self.commands.spawn((IsFamiqCircular, color, use_size)).id();
+        insert_id_and_class(&mut self.commands, entity, &self.id, &self.class);
+        entity
     }
 }
 
 /// API to create `FaCircularBuilder`
-pub fn fa_circular<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaCircularBuilder<'a> {
-    FaCircularBuilder::new(builder.ui_root_node.reborrow())
+pub fn fa_circular<'w, 's>(commands: &'w mut Commands) -> FaCircularBuilder<'w, 's>
+where
+    'w: 's
+{
+    FaCircularBuilder::new(commands.reborrow())
 }
 
 /// Determines if circular internal system(s) can run.

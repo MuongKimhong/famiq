@@ -1,10 +1,10 @@
 use super::color::WHITE_COLOR;
+use super::{FamiqWidgetClasses, FamiqWidgetResource};
 use crate::widgets::{
     DefaultTextEntity, FamiqWidgetId, DefaultWidgetEntity,
-    FamiqWidgetBuilder, WidgetStyle, ExternalStyleHasChanged
+    WidgetStyle, ExternalStyleHasChanged
 };
 use crate::utils::{process_spacing_built_in_class, insert_id_and_class};
-use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use bevy::utils::hashbrown::HashSet;
@@ -13,10 +13,14 @@ use bevy::utils::hashbrown::HashSet;
 #[derive(Component)]
 pub struct IsFamiqText;
 
+#[derive(Component)]
+pub struct FaTextValue(pub String);
+
 /// Marker component for identifying Famiq text container.
 #[derive(Component)]
 pub struct IsFamiqTextContainer;
 
+#[derive(Component)]
 pub enum TextSize {
     Default,
     TitleH1,
@@ -97,121 +101,7 @@ fn _default_text_container_node() -> Node {
     }
 }
 
-impl<'a> FaText {
-    fn _build_text(
-        id: &Option<String>,
-        class: &Option<String>,
-        text: &str,
-        root_node: &'a mut EntityCommands,
-        font_handle: Handle<Font>,
-        size: TextSize
-    ) -> Entity {
-        let txt = Text::new(text);
-        let mut txt_font = TextFont {
-            font: font_handle,
-            ..default()
-        };
-        match size {
-            TextSize::TitleH1 => txt_font.font_size = 40.0,
-            TextSize::TitleH2 => txt_font.font_size = 32.0,
-            TextSize::TitleH3 => txt_font.font_size = 28.0,
-            TextSize::TitleH4 => txt_font.font_size = 24.0,
-            TextSize::TitleH5 => txt_font.font_size = 20.0,
-            TextSize::TitleH6 => txt_font.font_size = 16.0,
-            _ => {}
-        }
-
-        let txt_color = TextColor(WHITE_COLOR);
-        let txt_layout = TextLayout::new_with_justify(JustifyText::Center);
-
-        let mut node = _default_text_container_node();
-        process_spacing_built_in_class(&mut node, &class);
-
-        let entity = root_node
-            .commands()
-            .spawn((
-                txt.clone(),
-                txt_font.clone(),
-                txt_color.clone(),
-                txt_layout.clone(),
-                DefaultTextEntity::new(txt, txt_font, txt_color, txt_layout),
-                Interaction::default(),
-                WidgetStyle::default(),
-                ExternalStyleHasChanged(false),
-                IsFamiqText
-            ))
-            .insert((
-                node.clone(),
-                BorderColor::default(),
-                BackgroundColor::default(),
-                BorderRadius::default(),
-                ZIndex::default(),
-                Visibility::Inherited,
-                DefaultWidgetEntity::new(
-                    node,
-                    BorderColor::default(),
-                    BorderRadius::default(),
-                    BackgroundColor::default(),
-                    ZIndex::default(),
-                    Visibility::Inherited,
-                )
-            ))
-            .id();
-
-        insert_id_and_class(root_node, entity, id, class);
-        entity
-    }
-
-    // fn _build_container(
-    //     id: Option<String>,
-    //     class: Option<String>,
-    //     root_node: &'a mut EntityCommands,
-    // ) -> Entity {
-    //     let mut node = _default_text_container_node();
-    //     process_spacing_built_in_class(&mut node, &class);
-
-    //     let container_entity = root_node
-    //         .commands()
-    //         .spawn((
-    //             node.clone(),
-    //             BorderColor::default(),
-    //             BackgroundColor::default(),
-    //             BorderRadius::default(),
-    //             ZIndex::default(),
-    //             Visibility::Inherited,
-    //             IsFamiqTextContainer,
-    //             DefaultWidgetEntity::new(
-    //                 node,
-    //                 BorderColor::default(),
-    //                 BorderRadius::default(),
-    //                 BackgroundColor::default(),
-    //                 ZIndex::default(),
-    //                 Visibility::Inherited,
-    //             ),
-    //             Interaction::default(),
-    //             WidgetStyle::default(),
-    //             ExternalStyleHasChanged(false)
-    //         ))
-    //         .id();
-
-    //     insert_id_and_class(root_node, container_entity, &id, &class);
-    //     container_entity
-    // }
-
-    pub fn new(
-        id: Option<String>,
-        text: &str,
-        class: Option<String>,
-        root_node: &'a mut EntityCommands,
-        font_handle: Handle<Font>,
-        size: TextSize
-    ) -> Entity {
-        let txt_entity = Self::_build_text(&id, &class, text, root_node, font_handle, size);
-        // let container = Self::_build_container(id, class, root_node);
-        // entity_add_child(root_node, txt_entity, container);
-        txt_entity
-    }
-
+impl FaText {
     /// Internal system that reads `FaTextResource` and update the corresponding text widget's value
     pub fn update_text_value_system(
         mut text_q: Query<(&mut Text, Entity, Option<&FamiqWidgetId>), With<IsFamiqText>>,
@@ -260,25 +150,94 @@ impl<'a> FaText {
             }
         }
     }
+
+    pub fn _detect_fa_text_creation_system(
+        mut commands: Commands,
+        famiq_res: Res<FamiqWidgetResource>,
+        asset_server: Res<AssetServer>,
+        mut text_res: ResMut<FaTextResource>,
+        text_q: Query<
+            (Entity, &TextSize, &FaTextValue, Option<&FamiqWidgetId>, Option<&FamiqWidgetClasses>),
+            Added<IsFamiqText>
+        >
+    ) {
+        for (entity, size, value, id, class) in text_q.iter() {
+            let class_ref = class.map(|s| s.0.clone());
+
+            if let Some(id) = id {
+                if !text_res.text_value.contains_key(id.0.as_str()) {
+                    text_res.text_value.insert(id.0.clone(), value.0.clone());
+                }
+            }
+            if !text_res.entity_value.contains_key(&entity) {
+                text_res.entity_value.insert(entity, value.0.clone());
+            }
+
+            let txt = Text::new(&value.0);
+            let mut txt_font = TextFont {
+                font: asset_server.load(&famiq_res.font_path),
+                ..default()
+            };
+            match size {
+                TextSize::TitleH1 => txt_font.font_size = 40.0,
+                TextSize::TitleH2 => txt_font.font_size = 32.0,
+                TextSize::TitleH3 => txt_font.font_size = 28.0,
+                TextSize::TitleH4 => txt_font.font_size = 24.0,
+                TextSize::TitleH5 => txt_font.font_size = 20.0,
+                TextSize::TitleH6 => txt_font.font_size = 16.0,
+                _ => {}
+            }
+
+            let txt_color = TextColor(WHITE_COLOR);
+            let txt_layout = TextLayout::new_with_justify(JustifyText::Center);
+            let mut node = _default_text_container_node();
+            process_spacing_built_in_class(&mut node, &class_ref);
+
+            commands
+                .entity(entity)
+                .insert((
+                    txt.clone(),
+                    txt_font.clone(),
+                    txt_color.clone(),
+                    txt_layout.clone(),
+                    DefaultTextEntity::new(txt, txt_font, txt_color, txt_layout),
+                    Interaction::default(),
+                    WidgetStyle::default(),
+                    ExternalStyleHasChanged(false),
+                    node.clone(),
+                    BorderColor::default(),
+                    BackgroundColor::default(),
+                    BorderRadius::default(),
+                    ZIndex::default(),
+                    Visibility::Inherited,
+                    DefaultWidgetEntity::new(
+                        node,
+                        BorderColor::default(),
+                        BorderRadius::default(),
+                        BackgroundColor::default(),
+                        ZIndex::default(),
+                        Visibility::Inherited,
+                    )
+                ));
+        }
+    }
 }
 
 /// Builder for creating `FaText` entities with customizable options.
-pub struct FaTextBuilder<'a> {
+pub struct FaTextBuilder<'w, 's> {
     pub id: Option<String>,
     pub value: String,
     pub class: Option<String>,
-    pub font_handle: Handle<Font>,
-    pub root_node: EntityCommands<'a>
+    pub commands: Commands<'w, 's>
 }
 
-impl<'a> FaTextBuilder<'a> {
-    pub fn new(value: String, font_handle: Handle<Font>, root_node: EntityCommands<'a>) -> Self {
+impl<'w, 's> FaTextBuilder<'w, 's> {
+    pub fn new(value: String, commands: Commands<'w, 's>) -> Self {
         Self {
             id: None,
             value,
             class: None,
-            font_handle,
-            root_node
+            commands
         }
     }
 
@@ -317,25 +276,22 @@ impl<'a> FaTextBuilder<'a> {
     /// Spawn text into UI World.
     pub fn build(&mut self) -> Entity {
         let size = self._process_built_in_size_class();
-        FaText::new(
-            self.id.clone(),
-            self.value.as_str(),
-            self.class.clone(),
-            &mut self.root_node,
-            self.font_handle.clone(),
-            size
-        )
+        let entity = self.commands.spawn((
+           IsFamiqText,
+           FaTextValue(self.value.clone()),
+           size
+        )).id();
+        insert_id_and_class(&mut self.commands, entity, &self.id, &self.class);
+        entity
     }
 }
 
 /// API to create `FaTextBuilder`.
-pub fn fa_text<'a>(builder: &'a mut FamiqWidgetBuilder, value: &str) -> FaTextBuilder<'a> {
-    let font_handle = builder.asset_server.load(builder.font_path.as_ref().unwrap());
-    FaTextBuilder::new(
-        value.to_string(),
-        font_handle,
-        builder.ui_root_node.reborrow()
-    )
+pub fn fa_text<'w, 's>(commands: &'w mut Commands, value: &str) -> FaTextBuilder<'w, 's>
+where
+    'w: 's
+{
+    FaTextBuilder::new(value.to_string(), commands.reborrow())
 }
 
 #[cfg(test)]
@@ -348,13 +304,8 @@ mod tests {
     #[derive(Resource)]
     struct TestResource(Entity);
 
-    fn setup_test_default_text(
-        mut commands: Commands,
-        asset_server: ResMut<AssetServer>,
-        mut builder_res: ResMut<FamiqWidgetResource>,
-    ) {
-        let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-        let text = fa_text(&mut builder, "Test Text").id("#test-text").build();
+    fn setup_test_default_text(mut commands: Commands) {
+        let text = fa_text(&mut commands, "Test Text").id("#test-text").build();
         commands.insert_resource(TestResource(text));
     }
 
@@ -364,6 +315,7 @@ mod tests {
         app.add_plugins(FamiqPlugin);
         app.insert_resource(FamiqWidgetResource::default());
         app.add_systems(Startup, setup_test_default_text);
+        app.add_systems(Update, FaText::_detect_fa_text_creation_system);
         app.update();
 
         let txt_q = app.world_mut()
@@ -384,6 +336,7 @@ mod tests {
         app.insert_resource(FamiqWidgetResource::default());
         app.insert_resource(FaTextResource::default());
         app.add_systems(Startup, setup_test_default_text);
+        app.add_systems(Update, FaText::_detect_fa_text_creation_system);
         app.add_systems(Update, FaText::update_text_value_system); // internal system that handle updating the text
         app.update();
 
@@ -410,6 +363,7 @@ mod tests {
         app.insert_resource(FamiqWidgetResource::default());
         app.insert_resource(FaTextResource::default());
         app.add_systems(Startup, setup_test_default_text);
+        app.add_systems(Update, FaText::_detect_fa_text_creation_system);
         app.add_systems(Update, FaText::update_text_value_system); // internal system that handle updating the text
         app.update();
 
@@ -436,6 +390,7 @@ mod tests {
         app.insert_resource(FamiqWidgetResource::default());
         app.insert_resource(FaTextResource::default());
         app.add_systems(Startup, setup_test_default_text);
+        app.add_systems(Update, FaText::_detect_fa_text_creation_system);
         app.add_systems(Update, FaText::update_text_value_system); // internal system that handle updating the text
         app.update();
 
@@ -453,6 +408,7 @@ mod tests {
         app.insert_resource(FamiqWidgetResource::default());
         app.insert_resource(FaTextResource::default());
         app.add_systems(Startup, setup_test_default_text);
+        app.add_systems(Update, FaText::_detect_fa_text_creation_system);
         app.add_systems(Update, FaText::update_text_value_system); // internal system that handle updating the text
         app.update();
 

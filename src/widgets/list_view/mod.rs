@@ -1,18 +1,18 @@
 pub mod helper;
 pub mod tests;
 
-use crate::utils;
+use crate::utils::{self, insert_id_and_class};
 use crate::widgets::{
     DefaultWidgetEntity, FamiqWidgetId,
-    WidgetType, FamiqWidgetBuilder,
-    WidgetStyle, ExternalStyleHasChanged
+    WidgetType, WidgetStyle, ExternalStyleHasChanged
 };
 use crate::event_writer::FaInteractionEvent;
-use bevy::ecs::system::EntityCommands;
 use bevy::input::mouse::{MouseScrollUnit, MouseWheel};
 use bevy::prelude::*;
 
 use helper::*;
+
+use super::{FamiqWidgetClasses, IsFaWidgetRoot};
 
 /// Marker component indentifying Famiq Listview widget.
 #[derive(Component)]
@@ -40,116 +40,52 @@ pub struct CanBeScrolledListView {
     pub entity: Option<Entity>,
 }
 
+#[derive(Component)]
+pub struct FaListviewChildren(pub Vec<Entity>);
+
 pub struct FaListView;
 
 // Doesn't need container
-impl<'a> FaListView {
+impl FaListView {
     fn _build_move_panel(
         id: &Option<String>,
         items: &Vec<Entity>,
-        root_node: &'a mut EntityCommands,
+        commands: &mut Commands,
     ) -> Entity {
-        let node = default_move_panel_node();
-        let bg_color = BackgroundColor::default();
-        let border_color = BorderColor::default();
-        let border_radius = BorderRadius::default();
-        let z_index = ZIndex::default();
-        let visibility = Visibility::Inherited;
-
-        let move_panel_entity = root_node
-            .commands()
+        let move_panel_entity = commands
             .spawn((
-                node.clone(),
-                bg_color.clone(),
-                border_color.clone(),
-                border_radius.clone(),
-                z_index.clone(),
-                visibility.clone(),
+                default_move_panel_node(),
+                BackgroundColor::default(),
+                BorderColor::default(),
+                BorderRadius::default(),
+                ZIndex::default(),
+                Visibility::Inherited,
                 IsFamiqListViewMovePanel,
                 DefaultWidgetEntity::new(
-                    node,
-                    border_color,
-                    border_radius,
-                    bg_color,
-                    z_index,
-                    visibility,
+                    default_move_panel_node(),
+                    BorderColor::default(),
+                    BorderRadius::default(),
+                    BackgroundColor::default(),
+                    ZIndex::default(),
+                    Visibility::Inherited,
                 ),
                 ScrollList::default()
             ))
             .id();
 
         if let Some(id) = id {
-            root_node.commands().entity(move_panel_entity).insert(FamiqWidgetId(format!("{id}_move_panel")));
+            commands.entity(move_panel_entity).insert(FamiqWidgetId(format!("{id}_move_panel")));
         }
 
         // insert IsFamiqListViewItem component into user provided items's entities
         for (_index, item_entity) in items.iter().enumerate() {
             let cloned = item_entity.clone();
-            root_node
-                .commands()
+            commands
                 .entity(cloned)
-                .insert((IsFamiqListViewItem,));
+                .insert(IsFamiqListViewItem);
         }
-        utils::entity_add_children(root_node, items, move_panel_entity);
+        utils::entity_add_children(commands, items, move_panel_entity);
         move_panel_entity
-    }
-
-    fn _build_listview(
-        id: Option<String>,
-        class: Option<String>,
-        root_node: &'a mut EntityCommands,
-        panel_entity: Entity,
-    ) -> Entity {
-        let mut node = default_listview_node();
-        utils::process_spacing_built_in_class(&mut node, &class);
-
-        let bg_color = BackgroundColor::default();
-        let border_color = BorderColor::default();
-        let border_radius = BorderRadius::default();
-        let z_index = ZIndex::default();
-        let visibility = Visibility::Visible;
-
-        let listview_entity = root_node
-            .commands()
-            .spawn((
-                node.clone(),
-                border_color.clone(),
-                border_radius.clone(),
-                bg_color.clone(),
-                z_index.clone(),
-                visibility.clone(),
-                IsFamiqListView,
-                DefaultWidgetEntity::new(
-                    node,
-                    border_color,
-                    border_radius,
-                    bg_color,
-                    z_index,
-                    visibility,
-                ),
-                Interaction::default(),
-                ListViewMovePanelEntity(panel_entity),
-                WidgetStyle::default(),
-                ExternalStyleHasChanged(false)
-            ))
-            .id();
-
-        utils::insert_id_and_class(root_node, listview_entity, &id, &class);
-        listview_entity
-    }
-
-    pub fn new(
-        id: Option<String>,
-        class: Option<String>,
-        root_node: &'a mut EntityCommands,
-        items: &Vec<Entity>
-    ) -> Entity {
-        let move_panel = Self::_build_move_panel(&id, items, root_node);
-        let listview = Self::_build_listview(id, class, root_node, move_panel);
-
-        utils::entity_add_child(root_node, move_panel, listview);
-        root_node.add_child(listview);
-        listview
     }
 
     // (top & bottom)
@@ -175,11 +111,7 @@ impl<'a> FaListView {
         max_scroll.max(0.0)
     }
 
-    /// System to track hover interactions on ListView widgets.
-    ///
-    /// # Parameters
-    /// - `interaction_events`: A reader for `FaInteractionEvent` events.
-    /// - `can_be_scrolled_listview`: A mutable resource tracking the currently hovered ListView entity.
+    /// Internal system to track hover interactions on ListView widgets.
     pub fn on_hover_system(
         mut interaction_events: EventReader<FaInteractionEvent>,
         mut can_be_scrolled_listview: ResMut<CanBeScrolledListView>,
@@ -228,29 +160,73 @@ impl<'a> FaListView {
                         default_style.node.top = Val::Px(scroll_list.position);
 
                     }
-
                 }
+            }
+        }
+    }
 
+    pub fn _detect_fa_listview_creation_system(
+        mut commands: Commands,
+        root_q: Query<Entity, With<IsFaWidgetRoot>>,
+        listview_q: Query<
+            (Entity, &FaListviewChildren, Option<&FamiqWidgetId>, Option<&FamiqWidgetClasses>),
+            Added<IsFamiqListView>
+        >
+    ) {
+        for (entity, children, id, class) in listview_q.iter() {
+            let id_ref = id.map(|s| s.0.clone());
+            let class_ref = class.map(|s| s.0.clone());
+            let panel_entity = FaListView::_build_move_panel(&id_ref, &children.0, &mut commands);
+
+            let mut node = default_listview_node();
+            utils::process_spacing_built_in_class(&mut node, &class_ref);
+
+            commands
+                .entity(entity)
+                .add_child(panel_entity)
+                .insert((
+                    node.clone(),
+                    BorderColor::default(),
+                    BorderRadius::default(),
+                    BackgroundColor::default(),
+                    ZIndex::default(),
+                    Visibility::Visible,
+                    DefaultWidgetEntity::new(
+                        node,
+                        BorderColor::default(),
+                        BorderRadius::default(),
+                        BackgroundColor::default(),
+                        ZIndex::default(),
+                        Visibility::Visible,
+                    ),
+                    Interaction::default(),
+                    ListViewMovePanelEntity(panel_entity),
+                    WidgetStyle::default(),
+                    ExternalStyleHasChanged(false)
+                ));
+
+            if let Ok(root_entity) = root_q.get_single() {
+                commands.entity(root_entity).add_child(entity);
             }
         }
     }
 }
 
 /// Builder for creating `FaListView` entities with customizable options.
-pub struct FaListViewBuilder<'a> {
+pub struct FaListViewBuilder<'w, 's> {
     pub id: Option<String>,
     pub class: Option<String>,
-    pub children: Option<Vec<Entity>>,
-    pub root_node: EntityCommands<'a>
+    pub children: Vec<Entity>,
+    pub commands: Commands<'w, 's>
 }
 
-impl<'a> FaListViewBuilder<'a> {
-    pub fn new(root_node: EntityCommands<'a>) -> Self {
+impl<'w, 's> FaListViewBuilder<'w, 's> {
+    pub fn new(commands: Commands<'w, 's>) -> Self {
         Self {
             id: None,
             class: None,
-            children: Some(Vec::new()),
-            root_node
+            children: Vec::new(),
+            commands
         }
     }
 
@@ -268,24 +244,27 @@ impl<'a> FaListViewBuilder<'a> {
 
     /// Adds child entities to the ListView.
     pub fn children<I: IntoIterator<Item = Entity>>(mut self, children: I) -> Self {
-        self.children = Some(children.into_iter().collect());
+        self.children = children.into_iter().collect();
         self
     }
 
     /// Spawn listview into UI World.
     pub fn build(&mut self) -> Entity {
-        FaListView::new(
-            self.id.clone(),
-            self.class.clone(),
-            &mut self.root_node,
-            self.children.as_ref().unwrap()
-        )
+        let entity = self.commands.spawn((
+            IsFamiqListView,
+            FaListviewChildren(self.children.clone())
+        )).id();
+        insert_id_and_class(&mut self.commands, entity, &self.id, &self.class);
+        entity
     }
 }
 
 /// API to create `FaListViewBuilder`.
-pub fn fa_listview<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaListViewBuilder<'a> {
-    FaListViewBuilder::new(builder.ui_root_node.reborrow())
+pub fn fa_listview<'w, 's>(commands: &'w mut Commands) -> FaListViewBuilder<'w, 's>
+where
+    'w: 's
+{
+    FaListViewBuilder::new(commands.reborrow())
 }
 
 /// Determines if ListView internal system(s) can run.

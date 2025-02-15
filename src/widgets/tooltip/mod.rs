@@ -1,7 +1,6 @@
 use bevy::prelude::*;
-use crate::utils::entity_add_child;
 
-use super::color::{BLACK_COLOR, WHITE_COLOR};
+use super::{color::{BLACK_COLOR, WHITE_COLOR}, FamiqWidgetResource, IsFaWidgetRoot};
 
 const TOP_OFFSET: f32 = 10.0;
 const BOTTOM_OFFSET: f32 = 15.0;
@@ -60,41 +59,11 @@ impl FaToolTipResource {
 pub struct FaToolTip;
 
 impl<'a> FaToolTip {
-    fn _build_container(root_node: &'a mut EntityCommands, txt_entity: Entity) -> Entity {
-        let node = Node {
-            width: Val::Auto,
-            height: Val::Auto,
-            position_type: PositionType::Absolute,
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-            border: UiRect::all(Val::Px(1.0)),
-            left: Val::Px(0.0),
-            top: Val::Px(0.0),
-            padding: UiRect::all(Val::Px(10.0)),
-            ..default()
-        };
-        root_node
-            .commands()
-            .spawn((
-                node,
-                BorderColor(WHITE_COLOR),
-                BackgroundColor(WHITE_COLOR),
-                BorderRadius::all(Val::Px(5.0)),
-                ZIndex::default(),
-                Visibility::Hidden,
-                IsFamiqToolTipContainer,
-                GlobalZIndex(4),
-                FamiqToolTipTextEntity(txt_entity)
-            ))
-            .id()
-    }
-
     fn _build_text(
-        root_node: &'a mut EntityCommands,
+        commands: &mut Commands,
         font_handle: Handle<Font>
     ) -> Entity {
-        root_node
-            .commands()
+        commands
             .spawn((
                 Text::new(""),
                 TextFont {
@@ -108,13 +77,6 @@ impl<'a> FaToolTip {
                 IsFamiqToolTipText
             ))
             .id()
-    }
-
-    pub fn new(root_node: &'a mut EntityCommands, font_handle: Handle<Font>) -> Entity {
-        let txt = Self::_build_text(root_node, font_handle);
-        let container = Self::_build_container(root_node, txt);
-        entity_add_child(root_node, txt, container);
-        container
     }
 
     pub fn handle_show_hide_tooltip_system(
@@ -147,6 +109,53 @@ impl<'a> FaToolTip {
                 node.left = Val::Px(tooltip_res.get_left_pos(size));
                 *visibility = Visibility::Visible;
             }
+        }
+    }
+
+    pub fn detect_tooltip_creation_system(
+        mut commands: Commands,
+        famiq_res: Res<FamiqWidgetResource>,
+        asset_server: Res<AssetServer>,
+        tooltip_q: Query<Entity, Added<IsFamiqToolTipContainer>>,
+        root_q: Query<Entity, With<IsFaWidgetRoot>>
+    ) {
+        // despawn if tooltip widget is already created
+        if tooltip_q.iter().count() > 1 {
+            let entity = tooltip_q.get_single().unwrap();
+            commands.entity(entity).despawn();
+        }
+        let container_entity = tooltip_q.get_single().unwrap();
+        let font_handle = asset_server.load(&famiq_res.font_path);
+        let text_entity = FaToolTip::_build_text(&mut commands, font_handle);
+
+        commands
+            .entity(container_entity)
+            .add_child(text_entity)
+            .insert((
+                Node {
+                    width: Val::Auto,
+                    height: Val::Auto,
+                    position_type: PositionType::Absolute,
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
+                    border: UiRect::all(Val::Px(1.0)),
+                    left: Val::Px(0.0),
+                    top: Val::Px(0.0),
+                    padding: UiRect::all(Val::Px(10.0)),
+                    ..default()
+                },
+                BorderColor(WHITE_COLOR),
+                BackgroundColor(WHITE_COLOR),
+                BorderRadius::all(Val::Px(5.0)),
+                ZIndex::default(),
+                Visibility::Hidden,
+                IsFamiqToolTipContainer,
+                GlobalZIndex(4),
+                FamiqToolTipTextEntity(text_entity)
+            ));
+
+        if let Ok(root_entity) = root_q.get_single() {
+            commands.entity(root_entity).add_child(container_entity);
         }
     }
 }

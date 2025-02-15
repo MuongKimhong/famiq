@@ -10,6 +10,9 @@ use crate::widgets::{
     text::*,
     tooltip::*,
     progress_bar::*,
+    bg_image::*,
+    container::*,
+    image::*,
     *
 };
 
@@ -82,10 +85,11 @@ fn fa_button_systems(app: &mut App) {
         Update,
         (
             event_writer::btn_interaction_system,
-            FaButton::handle_button_on_interaction_system
+            FaButton::handle_button_on_interaction_system,
         )
         .run_if(can_run_button_systems)
     );
+    app.add_systems(Update, FaButton::_detect_fa_button_creation_system);
 }
 
 fn fa_text_systems(app: &mut App) {
@@ -94,7 +98,7 @@ fn fa_text_systems(app: &mut App) {
         (
             event_writer::text_interaction_system,
             FaText::update_text_value_system,
-            FaText::detect_new_text_widget_system
+            FaText::_detect_fa_text_creation_system
         )
     );
 }
@@ -112,6 +116,7 @@ fn fa_listview_systems(app: &mut App) {
             .run_if(can_run_list_view_systems)
         ,
     );
+    app.add_systems(Update, FaListView::_detect_fa_listview_creation_system);
 }
 
 fn fa_fps_text_systems(app: &mut App) {
@@ -123,6 +128,7 @@ fn fa_fps_text_systems(app: &mut App) {
 
         )
     );
+    app.add_systems(Update, FaFpsText::_detect_fa_fps_creation_system);
 }
 
 fn fa_circular_systems(app: &mut App) {
@@ -136,6 +142,7 @@ fn fa_circular_systems(app: &mut App) {
         )
         .run_if(can_run_circular_systems)
     );
+    app.add_systems(Update, FaCircular::_detect_fa_circular_creation_system);
 }
 
 fn fa_modal_systems(app: &mut App) {
@@ -146,10 +153,17 @@ fn fa_modal_systems(app: &mut App) {
         )
         .run_if(can_run_modal_systems)
     );
+    app.add_systems(Update, FaModal::_detect_fa_modal_creation_system);
 }
 
 fn fa_image_systems(app: &mut App) {
-    app.add_systems(Update, event_writer::image_interaction_system);
+    app.add_systems(
+        Update,
+        (
+            event_writer::image_interaction_system,
+            FaImage::_detect_fa_image_creation_system
+        )
+    );
 }
 
 fn fa_progress_bar_systems(app: &mut App) {
@@ -157,18 +171,19 @@ fn fa_progress_bar_systems(app: &mut App) {
         Update,
         (
             FaProgressBar::move_progress_value_as_indeterminate_system
-                .run_if(can_move_progress_value_as_indeterminate_system),
-
-            FaProgressBar::handle_progress_value_change_by_id
-                .run_if(can_run_handle_progress_value_change),
-
-            FaProgressBar::handle_progress_value_change_by_entity
-                .run_if(can_run_handle_progress_value_change),
-
-            FaProgressBar::detect_new_progress_bar_widget_system
-                .run_if(can_run_handle_progress_value_change),
         )
+        .run_if(can_move_progress_value_as_indeterminate_system)
     );
+    app.add_systems(
+        Update,
+        (
+            FaProgressBar::handle_progress_value_change_by_id,
+            FaProgressBar::handle_progress_value_change_by_entity
+        )
+        .run_if(can_run_handle_progress_value_change)
+    );
+
+    app.add_systems(Update, FaProgressBar::_detect_fa_progress_bar_creation_system);
 }
 
 pub struct FamiqPlugin;
@@ -195,6 +210,7 @@ impl Plugin for FamiqPlugin {
         app.insert_resource(FamiqWidgetResource::default());
 
         app.add_event::<event_writer::FaInteractionEvent>();
+        app.add_systems(Startup, spawn_root_node);
 
         external_styles_file_systems(app);
         fa_button_systems(app);
@@ -208,6 +224,30 @@ impl Plugin for FamiqPlugin {
         fa_image_systems(app);
         fa_progress_bar_systems(app);
 
-        app.add_systems(Update, FaToolTip::handle_show_hide_tooltip_system);
+        app.add_systems(
+            Update,
+            (
+                FaToolTip::handle_show_hide_tooltip_system,
+                FaToolTip::detect_tooltip_creation_system
+            )
+        );
+        app.add_systems(Update, FaBgImage::detect_bg_image_creation_system);
+
+        app.add_systems(Update, FaContainer::_detect_fa_container_creation_system);
     }
+}
+
+fn spawn_root_node(mut commands: Commands) {
+    commands.spawn((
+        Node {
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            flex_direction: FlexDirection::Column,
+            justify_content: JustifyContent::FlexStart,
+            align_items: AlignItems::Stretch,
+            ..default()
+        },
+        IsFaWidgetRoot,
+        GlobalZIndex(1)
+    ));
 }

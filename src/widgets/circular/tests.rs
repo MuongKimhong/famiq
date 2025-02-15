@@ -5,36 +5,19 @@ use crate::widgets::{FamiqWidgetResource, FamiqWidgetId, FamiqWidgetClasses};
 use crate::utils::create_test_app;
 use super::*;
 
-fn setup_test_default_circular(
-    mut commands: Commands,
-    asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
-) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-    fa_circular(&mut builder).id("#test-circular").build();
+fn setup_test_default_circular(mut commands: Commands) {
+    fa_circular(&mut commands).id("#test-circular").build();
 }
 
-fn setup_test_circular_with_built_in_class(
-    mut commands: Commands,
-    asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
-) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-    fa_circular(&mut builder)
+fn setup_test_circular_with_built_in_class(mut commands: Commands) {
+    fa_circular(&mut commands)
         .id("#test-circular")
         .class("is-primary is-large")
         .build();
 }
 
-fn set_up_circular_with_custom_size(
-    mut commands: Commands,
-    asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
-) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
-    fa_circular(&mut builder)
-        .size(90.0)
-        .build();
+fn set_up_circular_with_custom_size(mut commands: Commands) {
+    fa_circular(&mut commands).size(90.0).build();
 }
 
 #[test]
@@ -43,6 +26,7 @@ fn test_create_default_circular() {
     app.add_plugins(FamiqPlugin);
     app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_default_circular);
+    app.add_systems(Update, FaCircular::_detect_fa_circular_creation_system);
     app.update();
 
     let circular_q = app.world_mut().query::<(&FamiqWidgetId, &Node, &IsFamiqCircular)>().get_single(app.world());
@@ -74,6 +58,7 @@ fn test_create_circular_with_built_in_class() {
     app.add_plugins(FamiqPlugin);
     app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_circular_with_built_in_class);
+    app.add_systems(Update, FaCircular::_detect_fa_circular_creation_system);
     app.update();
 
     let circular_q = app.world_mut().query::<(&FamiqWidgetClasses, &Node, &IsFamiqCircular)>().get_single(app.world());
@@ -104,6 +89,7 @@ fn test_create_circular_with_custom_size() {
     app.add_plugins(FamiqPlugin);
     app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, set_up_circular_with_custom_size);
+    app.add_systems(Update, FaCircular::_detect_fa_circular_creation_system);
     app.update();
 
     let circular_q = app.world_mut().query::<(&Node, &IsFamiqCircular)>().get_single(app.world());

@@ -3,13 +3,15 @@ pub mod tests;
 
 use crate::widgets::{
     FamiqWidgetId, DefaultWidgetEntity,
-    FamiqWidgetBuilder, WidgetStyle, ExternalStyleHasChanged
+    WidgetStyle, ExternalStyleHasChanged
 };
-use crate::utils;
+use crate::utils::{self, insert_id_and_class};
 use bevy::prelude::*;
 use bevy::ui::FocusPolicy;
 use bevy::utils::HashMap;
 use helper::*;
+
+use super::IsFaWidgetRoot;
 
 /// Marker component for identifying the modal background.
 #[derive(Component)]
@@ -34,6 +36,12 @@ pub struct FaModalState {
     pub id_states: HashMap<String, bool>,
     pub entity_states: HashMap<Entity, bool>
 }
+
+#[derive(Component)]
+pub struct FaModalChildren(pub Vec<Entity>);
+
+#[derive(Component)]
+pub struct ClearBg(pub bool);
 
 impl FaModalState {
     /// Private: Updates or inserts an ID state
@@ -88,10 +96,10 @@ impl FaModalState {
 pub struct FaModal;
 
 // Doesn't need container
-impl<'a> FaModal {
+impl FaModal {
     fn _build_modal_container(
         id: &Option<String>,
-        root_node: &'a mut EntityCommands,
+        commands: &mut Commands,
         items: &Vec<Entity>
     ) -> Entity {
         let node = default_modal_container_node();
@@ -101,8 +109,7 @@ impl<'a> FaModal {
         let z_index = ZIndex::default();
         let visibility = Visibility::Inherited;
 
-        let container_entity = root_node
-            .commands()
+        let container_entity = commands
             .spawn((
                 node.clone(),
                 border_color.clone(),
@@ -125,60 +132,11 @@ impl<'a> FaModal {
             .id();
 
         if let Some(id) = id {
-            root_node.commands().entity(container_entity).insert(FamiqWidgetId(format!("{id}_modal_container")));
+            commands.entity(container_entity).insert(FamiqWidgetId(format!("{id}_modal_container")));
         }
 
-        utils::entity_add_children(root_node, items, container_entity);
+        utils::entity_add_children(commands, items, container_entity);
         container_entity
-    }
-
-    fn _build_modal_background(
-        id: Option<String>,
-        class: Option<String>,
-        clear_bg: bool,
-        root_node: &'a mut EntityCommands,
-        container_entity: Entity
-    ) -> Entity {
-        let mut bg = BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.6));
-        if clear_bg {
-            bg = BackgroundColor::default();
-        }
-
-        let entity = root_node
-            .commands()
-            .spawn((
-                default_modal_background_node(),
-                BorderColor(Color::srgba(0.0, 0.0, 0.0, 0.6)),
-                BorderRadius::default(),
-                bg,
-                ZIndex::default(),
-                GlobalZIndex(5),
-                Visibility::Hidden,
-                IsFamiqModalBackground,
-                FocusPolicy::Block,
-                FaModalContainerEntity(container_entity),
-                WidgetStyle::default(),
-                ExternalStyleHasChanged(false)
-            ))
-            .id();
-
-        utils::insert_id_and_class(root_node, entity, &id, &class);
-        root_node.add_child(entity);
-        entity
-    }
-
-    pub fn new(
-        id: Option<String>,
-        class: Option<String>,
-        clear_bg: bool,
-        items: &Vec<Entity>,
-        root_node: &'a mut EntityCommands
-    ) -> Entity {
-        let container = Self::_build_modal_container(&id, root_node, items);
-        let background = Self::_build_modal_background(id, class, clear_bg, root_node, container);
-
-        utils::entity_add_child(root_node, container, background);
-        background
     }
 
     /// Internal system to hide or display via `FaModalState` resource.
@@ -210,25 +168,62 @@ impl<'a> FaModal {
             }
         }
     }
+
+    pub fn _detect_fa_modal_creation_system(
+        mut commands: Commands,
+        root_q: Query<Entity, With<IsFaWidgetRoot>>,
+        modal_q: Query<(Entity, &FaModalChildren, &ClearBg, Option<&FamiqWidgetId>), Added<IsFamiqModalBackground>>
+    ) {
+        for (entity, children, clear_bg, id) in modal_q.iter() {
+            let id_ref = id.map(|s| s.0.clone());
+            let container_entity = FaModal::_build_modal_container(&id_ref, &mut commands, &children.0);
+
+            let mut bg = BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.6));
+            if clear_bg.0 {
+                bg = BackgroundColor::default();
+            }
+            commands
+                .entity(entity)
+                .add_child(container_entity)
+                .insert((
+                    default_modal_background_node(),
+                    BorderColor(Color::srgba(0.0, 0.0, 0.0, 0.6)),
+                    BorderRadius::default(),
+                    bg,
+                    ZIndex::default(),
+                    GlobalZIndex(5),
+                    Visibility::Hidden,
+                    IsFamiqModalBackground,
+                    FocusPolicy::Block,
+                    FaModalContainerEntity(container_entity),
+                    WidgetStyle::default(),
+                    ExternalStyleHasChanged(false)
+                ));
+
+            if let Ok(root_entity) = root_q.get_single() {
+                commands.entity(root_entity).add_child(entity);
+            }
+        }
+    }
 }
 
 /// Builder for creating modal widgets.
-pub struct FaModalBuilder<'a> {
+pub struct FaModalBuilder<'w, 's> {
     pub id: Option<String>,
     pub class: Option<String>,
     pub clear_bg: bool,
-    pub children: Option<Vec<Entity>>,
-    pub root_node: EntityCommands<'a>
+    pub children: Vec<Entity>,
+    pub commands: Commands<'w, 's>
 }
 
-impl<'a> FaModalBuilder<'a> {
-    pub fn new(root_node: EntityCommands<'a>) -> Self {
+impl<'w, 's> FaModalBuilder<'w, 's> {
+    pub fn new(commands: Commands<'w, 's>) -> Self {
         Self {
             id: None,
             class: None,
             clear_bg: false,
-            children: Some(Vec::new()),
-            root_node
+            children: Vec::new(),
+            commands
         }
     }
 
@@ -244,7 +239,7 @@ impl<'a> FaModalBuilder<'a> {
         self
     }
 
-    /// Method to make modal background full transparent
+    /// Method to make modal background fully transparent
     pub fn clear_bg(mut self) -> Self {
         self.clear_bg = true;
         self
@@ -255,27 +250,29 @@ impl<'a> FaModalBuilder<'a> {
     /// # Parameters
     /// - `children`: An iterable collection of entities to add as children.
     pub fn children<I: IntoIterator<Item = Entity>>(mut self, children: I) -> Self {
-        self.children = Some(children.into_iter().collect());
+        self.children = children.into_iter().collect();
         self
     }
 
     /// Spawn modal into UI World.
     pub fn build(&mut self) -> Entity {
-        FaModal::new(
-            self.id.clone(),
-            self.class.clone(),
-            self.clear_bg,
-            self.children.as_ref().unwrap(),
-            &mut self.root_node
-        )
+        let entity = self.commands.spawn((
+            IsFamiqModalBackground,
+            FaModalChildren(self.children.clone()),
+            ClearBg(self.clear_bg)
+        ))
+        .id();
+        insert_id_and_class(&mut self.commands, entity, &self.id, &self.class);
+        entity
     }
 }
 
 /// API to create `FaModalBuilder`
-pub fn fa_modal<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaModalBuilder<'a> {
-    FaModalBuilder::new(
-        builder.ui_root_node.reborrow(),
-    )
+pub fn fa_modal<'w, 's>(commands: &'w mut Commands) -> FaModalBuilder<'w, 's>
+where
+    'w: 's
+{
+    FaModalBuilder::new(commands.reborrow())
 }
 
 /// Determines if modal internal system(s) can run.

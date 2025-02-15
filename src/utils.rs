@@ -59,17 +59,17 @@ pub fn extract_val(val: Val) -> Option<f32> {
 }
 
 // add an entity as child to another entity
-pub fn entity_add_child<'a>(root_node: &'a mut EntityCommands, child: Entity, parent: Entity) {
-    root_node.commands().entity(parent).add_child(child);
+pub fn entity_add_child(commands: &mut Commands, child: Entity, parent: Entity) {
+    commands.entity(parent).add_child(child);
 }
 
 // add multiple entities as children to another entity
-pub fn entity_add_children<'a>(
-    root_node: &'a mut EntityCommands,
+pub fn entity_add_children(
+    commands: &mut Commands,
     children: &Vec<Entity>,
     parent: Entity,
 ) {
-    root_node.commands().entity(parent).add_children(children);
+    commands.entity(parent).add_children(children);
 }
 
 
@@ -184,16 +184,16 @@ pub fn mask_string(input: &str) -> String {
     "*".repeat(input.len())
 }
 
-pub fn insert_id_and_class<'a>(
-    root_node: &'a mut EntityCommands,
+pub fn insert_id_and_class(
+    commands: &mut Commands,
     entity: Entity,
     id: &Option<String>,
     class: &Option<String>
 ) {
     if let Some(id) = id {
-        root_node.commands().entity(entity).insert(FamiqWidgetId(id.to_owned()));
+        commands.entity(entity).insert(FamiqWidgetId(id.to_owned()));
     }
     if let Some(class) = class {
-        root_node.commands().entity(entity).insert(FamiqWidgetClasses(class.to_owned()));
+        commands.entity(entity).insert(FamiqWidgetClasses(class.to_owned()));
     }
 }
