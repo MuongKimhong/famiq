@@ -130,9 +130,9 @@ fn fa_circular_systems(app: &mut App) {
         Update,
         (
             event_writer::circular_interaction_system,
-            FaCircular::rotate_spinner,
-            FaCircular::update_spinner_speed,
-            FaCircular::handle_circular_interaction_system
+            FaCircular::handle_circular_interaction_system,
+            FaCircular::detect_new_circular_widget_system,
+            FaCircular::_update_circular_material_u_time
         )
         .run_if(can_run_circular_systems)
     );
@@ -172,11 +172,13 @@ impl Plugin for FamiqPlugin {
         // embedded assets
         embedded_asset!(app, "embedded_assets/fonts/fira-mono-regular.ttf");
         embedded_asset!(app, "embedded_assets/shaders/progress_bar.wgsl");
+        embedded_asset!(app, "embedded_assets/shaders/circular.wgsl");
         embedded_asset!(app, "embedded_assets/logo.jpeg"); // for testing
 
         app.add_systems(PreStartup, _spawn_root_node);
 
         app.add_plugins(UiMaterialPlugin::<ProgressBarMaterial>::default());
+        app.add_plugins(UiMaterialPlugin::<CircularMaterial>::default());
         app.add_plugins(FrameTimeDiagnosticsPlugin::default());
         app.insert_resource(StylesKeyValueResource(StylesKeyValue::new()));
         app.insert_resource(FamiqResource::new());
