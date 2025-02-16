@@ -1,4 +1,5 @@
 pub mod helper;
+pub mod components;
 pub mod tests;
 
 use bevy::prelude::*;
@@ -10,35 +11,14 @@ use crate::utils::{
     entity_add_child, process_spacing_built_in_class, insert_id_and_class,
     get_embedded_asset_path
 };
+use crate::widgets::color::built_in_color_parser;
+pub use components::*;
 use helper::*;
 
 use super::{
     DefaultWidgetEntity, ExternalStyleHasChanged,
     FamiqBuilder, FamiqWidgetId, WidgetStyle
 };
-
-/// Marker component for identifying an entity as a Famiq Progress bar.
-#[derive(Component)]
-pub struct IsFamiqProgressBar;
-
-/// Marker component for identifying an entity as a Famiq Progress bar's value.
-#[derive(Component)]
-pub struct IsFamiqProgressValue;
-
-/// Component storing the progress bar entity associated with its value.
-#[derive(Component)]
-pub struct FamiqProgressBarEntity(pub Entity);
-
-/// Component storing the progress value entity associated with its bar.
-#[derive(Component)]
-pub struct FamiqProgressValueEntity(pub Entity);
-
-/// Component storing percentage of a progress bar.
-#[derive(Component)]
-pub struct FaProgressValuePercentage(pub f32);
-
-#[derive(Component)]
-pub struct ProgressValueColor(pub Color);
 
 #[derive(AsBindGroup, Asset, TypePath, Debug, Clone)]
 pub struct ProgressBarMaterial {
@@ -53,20 +33,6 @@ pub struct ProgressBarMaterial {
 impl UiMaterial for ProgressBarMaterial {
     fn fragment_shader() -> ShaderRef {
         get_embedded_asset_path("embedded_assets/shaders/progress_bar.wgsl").into()
-    }
-}
-
-/// Indeterminate animation timer, moving at 120 fps.
-#[derive(Resource)]
-pub struct IndeterminateAnimationTimer {
-    pub timer: Timer,
-}
-
-impl Default for IndeterminateAnimationTimer {
-    fn default() -> Self {
-        Self {
-            timer: Timer::from_seconds(1.0 / 120.0, TimerMode::Repeating), // 120 fps
-        }
     }
 }
 
@@ -230,10 +196,9 @@ impl<'a> FaProgressBar {
     fn _build_progress_value(
         root_node: &'a mut EntityCommands,
         percentage: Option<f32>,
-        color: ProgressBarColor,
+        color: Color,
         bar_entity: Entity
     ) -> Entity {
-
         let entity = root_node
             .commands()
             .spawn((
@@ -245,7 +210,7 @@ impl<'a> FaProgressBar {
                 Visibility::Inherited,
                 IsFamiqProgressValue,
                 FamiqProgressBarEntity(bar_entity),
-                ProgressValueColor(get_progress_value_color(&color))
+                ProgressValueColor(color)
             ))
             .id();
 
@@ -264,7 +229,7 @@ impl<'a> FaProgressBar {
         root_node: &'a mut EntityCommands,
         percentage: Option<f32>,
         size: ProgressBarSize,
-        color: ProgressBarColor
+        color: Color
     ) -> Entity {
         let bar = Self::_build_progress_bar(&id, class, root_node, size);
         let value = Self::_build_progress_value(root_node, percentage, color, bar);
@@ -484,7 +449,7 @@ impl<'a> FaProgressBarBuilder<'a> {
         }
     }
 
-    fn _process_built_in_classes(&self) -> (ProgressBarColor, ProgressBarSize) {
+    fn _process_built_in_classes(&mut self) -> ProgressBarSize {
         let mut use_color = ProgressBarColor::Default;
         let mut use_size = ProgressBarSize::Normal;
 
@@ -514,7 +479,10 @@ impl<'a> FaProgressBarBuilder<'a> {
                 }
             }
         }
-        (use_color, use_size)
+        if self.color.is_none() {
+            self.color = Some(get_progress_value_color(&use_color));
+        }
+        use_size
     }
 
     /// Method to add class to progress bar.
@@ -535,17 +503,23 @@ impl<'a> FaProgressBarBuilder<'a> {
         self
     }
 
+    /// Method to set color.
+    pub fn set_color(mut self, color: &str) -> Self {
+        self.color = built_in_color_parser(color);
+        self
+    }
+
     /// Spawn progress bar into UI World.
     pub fn build(&mut self) -> Entity {
-        let (color, size) = self._process_built_in_classes();
+        let use_size = self._process_built_in_classes();
 
         FaProgressBar::new(
             self.id.clone(),
             self.class.clone(),
             &mut self.root_node,
             self.percentage.clone(),
-            size,
-            color
+            use_size,
+            self.color.unwrap()
         )
     }
 }
