@@ -130,6 +130,7 @@ pub fn create_test_app() -> App {
     // Note the use of `MinimalPlugins` instead of `DefaultPlugins`, as described above.
     app.add_plugins(MinimalPlugins);
     app.add_plugins(AssetPlugin::default());
+    app.init_resource::<Assets<Shader>>();
     app.init_asset::<Font>();
     app.init_asset::<Image>();
     // Spawning a fake window allows testing systems that require a window.
