@@ -29,9 +29,19 @@ pub struct IsFamiqListViewMovePanel;
 #[derive(Component)]
 pub struct ListViewMovePanelEntity(pub Entity);
 
-#[derive(Component, Default)]
+#[derive(Component)]
 pub struct ScrollList {
     pub position: f32,
+    pub scroll_height: f32
+}
+
+impl ScrollList {
+    fn new(scroll_height: f32) -> Self {
+        Self {
+            position: 0.0,
+            scroll_height
+        }
+    }
 }
 
 /// only listview with entity inside this resource can be scrolled
@@ -48,6 +58,7 @@ impl<'a> FaListView {
         id: &Option<String>,
         items: &Vec<Entity>,
         root_node: &'a mut EntityCommands,
+        scroll_height: f32
     ) -> Entity {
         let node = default_move_panel_node();
         let bg_color = BackgroundColor::default();
@@ -74,7 +85,7 @@ impl<'a> FaListView {
                     z_index,
                     visibility,
                 ),
-                ScrollList::default()
+                ScrollList::new(scroll_height)
             ))
             .id();
 
@@ -142,9 +153,10 @@ impl<'a> FaListView {
         id: Option<String>,
         class: Option<String>,
         root_node: &'a mut EntityCommands,
-        items: &Vec<Entity>
+        items: &Vec<Entity>,
+        scroll_height: f32
     ) -> Entity {
-        let move_panel = Self::_build_move_panel(&id, items, root_node);
+        let move_panel = Self::_build_move_panel(&id, items, root_node, scroll_height);
         let listview = Self::_build_listview(id, class, root_node, move_panel);
 
         utils::entity_add_child(root_node, move_panel, listview);
@@ -200,8 +212,6 @@ impl<'a> FaListView {
         mut panel_q: Query<(&mut Node, &ComputedNode, &mut ScrollList, &mut DefaultWidgetEntity)>,
         can_be_scrolled_listview: ResMut<CanBeScrolledListView>,
     ) {
-        let scroll_height: f32 = 20.0;
-
         // for (mut listview_node, _, _) in listview_q.iter_mut() {
         //     // always set paddings to 0 as ListView can't have paddings.
         //     listview_node.padding = UiRect::all(Val::Px(0.0));
@@ -217,7 +227,7 @@ impl<'a> FaListView {
                     if let Ok((mut panel_node, panel_c_node, mut scroll_list, mut default_style)) = panel_q.get_mut(panel_entity.0) {
 
                         let dy = match e.unit {
-                            MouseScrollUnit::Line => e.y * scroll_height,
+                            MouseScrollUnit::Line => e.y * scroll_list.scroll_height,
                             MouseScrollUnit::Pixel => e.y,
                         };
                         let max_scroll = Self::_calculate_max_scroll(panel_c_node, listview_c_node);
@@ -241,7 +251,8 @@ pub struct FaListViewBuilder<'a> {
     pub id: Option<String>,
     pub class: Option<String>,
     pub children: Option<Vec<Entity>>,
-    pub root_node: EntityCommands<'a>
+    pub root_node: EntityCommands<'a>,
+    pub scroll_height: f32
 }
 
 impl<'a> FaListViewBuilder<'a> {
@@ -250,7 +261,8 @@ impl<'a> FaListViewBuilder<'a> {
             id: None,
             class: None,
             children: Some(Vec::new()),
-            root_node
+            root_node,
+            scroll_height: 15.0
         }
     }
 
@@ -266,6 +278,12 @@ impl<'a> FaListViewBuilder<'a> {
         self
     }
 
+    ///' Method to set scroll height.
+    pub fn scroll_height(mut self, scroll_height: f32) -> Self {
+        self.scroll_height = scroll_height;
+        self
+    }
+
     /// Adds child entities to the ListView.
     pub fn children<I: IntoIterator<Item = Entity>>(mut self, children: I) -> Self {
         self.children = Some(children.into_iter().collect());
@@ -278,7 +296,8 @@ impl<'a> FaListViewBuilder<'a> {
             self.id.clone(),
             self.class.clone(),
             &mut self.root_node,
-            self.children.as_ref().unwrap()
+            self.children.as_ref().unwrap(),
+            self.scroll_height
         )
     }
 }
