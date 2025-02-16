@@ -4,19 +4,18 @@ pub mod tests;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use bevy::utils::hashbrown::HashSet;
-use crate::utils::{entity_add_child, process_spacing_built_in_class, insert_id_and_class};
+use bevy::reflect::TypePath;
+use bevy::render::render_resource::*;
+use crate::utils::{
+    entity_add_child, process_spacing_built_in_class, insert_id_and_class,
+    get_embedded_asset_path
+};
 use helper::*;
 
 use super::{
     DefaultWidgetEntity, ExternalStyleHasChanged,
     FamiqBuilder, FamiqWidgetId, WidgetStyle
 };
-
-/// Animation speed, defined by `speed = INDETERMINATE_SPEED_FACTOR * bar_width`.
-const INDETERMINATE_SPEED_FACTOR: f32 =  0.5; // Move 50% of the bar width per second
-
-/// Progress value width when set as indeterminate.
-const INDETERMINATE_WIDTH: f32 = 40.0; // 40% of bar width
 
 /// Marker component for identifying an entity as a Famiq Progress bar.
 #[derive(Component)]
@@ -34,13 +33,28 @@ pub struct FamiqProgressBarEntity(pub Entity);
 #[derive(Component)]
 pub struct FamiqProgressValueEntity(pub Entity);
 
-/// Component storing direction of indeterminate animation, 1.0 for right, -1.0 for left.
-#[derive(Component)]
-pub struct IndeterminateDirection(pub f32); // 1.0 right, -1.0 left
-
 /// Component storing percentage of a progress bar.
 #[derive(Component)]
 pub struct FaProgressValuePercentage(pub f32);
+
+#[derive(Component)]
+pub struct ProgressValueColor(pub Color);
+
+#[derive(AsBindGroup, Asset, TypePath, Debug, Clone)]
+pub struct ProgressBarMaterial {
+    #[uniform(0)]
+    u_time: f32,
+    #[uniform(1)]
+    u_color: Vec3,
+    #[uniform(2)]
+    u_blend: f32
+}
+
+impl UiMaterial for ProgressBarMaterial {
+    fn fragment_shader() -> ShaderRef {
+        get_embedded_asset_path("embedded_assets/shaders/progress_bar.wgsl").into()
+    }
+}
 
 /// Indeterminate animation timer, moving at 120 fps.
 #[derive(Resource)]
@@ -181,7 +195,7 @@ impl<'a> FaProgressBar {
         root_node: &'a mut EntityCommands,
         size: ProgressBarSize
     ) -> Entity {
-        let color = Color::srgba(0.6, 0.6, 0.6, 0.95);
+        let color = Color::srgba(0.6, 0.6, 0.6, 0.7);
 
         let mut node = default_progress_bar_node(&size);
         process_spacing_built_in_class(&mut node, &class);
@@ -214,7 +228,6 @@ impl<'a> FaProgressBar {
     }
 
     fn _build_progress_value(
-        id: Option<String>,
         root_node: &'a mut EntityCommands,
         percentage: Option<f32>,
         color: ProgressBarColor,
@@ -225,39 +238,18 @@ impl<'a> FaProgressBar {
             .commands()
             .spawn((
                 default_progress_value_node(percentage),
-                get_progress_value_border_color(&color),
-                get_progress_value_background_color(&color),
-                BorderRadius::all(Val::Px(5.0)),
+                BorderColor::default(),
+                BackgroundColor::default(),
+                BorderRadius::default(),
                 ZIndex::default(),
                 Visibility::Inherited,
                 IsFamiqProgressValue,
                 FamiqProgressBarEntity(bar_entity),
-                WidgetStyle::default(),
-                ExternalStyleHasChanged(false),
-                DefaultWidgetEntity::new(
-                    default_progress_value_node(percentage),
-                    get_progress_value_border_color(&color),
-                    BorderRadius::all(Val::Px(5.0)),
-                    get_progress_value_background_color(&color),
-                    ZIndex::default(),
-                    Visibility::Inherited
-                )
+                ProgressValueColor(get_progress_value_color(&color))
             ))
             .id();
 
-        if let Some(id) = id {
-            root_node
-                .commands()
-                .entity(entity)
-                .insert(FamiqWidgetId(format!("{id}_progress_value")));
-        }
-        if percentage.is_none() {
-            root_node
-                .commands()
-                .entity(entity)
-                .insert(IndeterminateDirection(1.0));
-        }
-        else {
+        if percentage.is_some() {
             root_node
                 .commands()
                 .entity(entity)
@@ -275,65 +267,20 @@ impl<'a> FaProgressBar {
         color: ProgressBarColor
     ) -> Entity {
         let bar = Self::_build_progress_bar(&id, class, root_node, size);
-        let value = Self::_build_progress_value(id, root_node, percentage, color, bar);
+        let value = Self::_build_progress_value(root_node, percentage, color, bar);
 
         root_node.commands().entity(bar).insert(FamiqProgressValueEntity(value));
         entity_add_child(root_node, value, bar);
         bar
     }
 
-    /// Internal system to move progress value when set to indeterminate mode.
-    pub fn move_progress_value_as_indeterminate_system(
-        time: Res<Time>,
-        bar_q: Query<(&Node, &ComputedNode), With<IsFamiqProgressBar>>,
-        mut value_q: Query<
-            (&mut Node, &ComputedNode, &mut IndeterminateDirection, &FamiqProgressBarEntity),
-            Without<IsFamiqProgressBar>
-        >,
-        mut animation: ResMut<IndeterminateAnimationTimer>
-    ) {
-        animation.timer.tick(time.delta());
-
-        if !animation.timer.just_finished() {
-            return;
-        }
-        for (mut value_node, value_computed_node, mut direction, bar_entity) in value_q.iter_mut() {
-
-            if let Ok((_, bar_computed_node)) = bar_q.get(bar_entity.0) {
-
-                let current_left = match value_node.left {
-                    Val::Px(val) => val,
-                    _ => 0.0,
-                };
-                let bar_width = bar_computed_node.size().x;
-                let speed = bar_width * INDETERMINATE_SPEED_FACTOR;
-                let pixels_per_frame = speed * time.delta_secs();
-                let new_left = current_left + direction.0 * pixels_per_frame;
-
-                let max_left = bar_computed_node.size().x - value_computed_node.size().x;
-                let min_left = 0.0;
-
-                if new_left >= max_left {
-                    direction.0 = -1.0;
-                } else if new_left <= min_left {
-                    direction.0 = 1.0;
-                }
-                value_node.left = Val::Px(new_left);
-            }
-        }
-    }
-
     fn _set_to_percentage(
         commands: &mut Commands,
         node: &mut Node,
-        direction: Option<&IndeterminateDirection>,
         percentage: Option<Mut<'_, FaProgressValuePercentage>>,
         new_percentage: f32,
         value_entity: Entity
     ) {
-        if direction.is_some() {
-            commands.entity(value_entity).remove::<IndeterminateDirection>();
-        }
         if let Some(mut old_percentage) = percentage {
             old_percentage.0 = new_percentage;
         } else {
@@ -346,17 +293,13 @@ impl<'a> FaProgressBar {
     fn _set_to_indeterminate(
         commands: &mut Commands,
         node: &mut Node,
-        direction: Option<&IndeterminateDirection>,
         percentage: Option<Mut<'_, FaProgressValuePercentage>>,
         value_entity: Entity
     ) {
         if percentage.is_some() {
             commands.entity(value_entity).remove::<FaProgressValuePercentage>();
         }
-        if direction.is_none() {
-            commands.entity(value_entity).insert(IndeterminateDirection(1.0));
-        }
-        node.width = Val::Percent(INDETERMINATE_WIDTH);
+        node.width = Val::Percent(100.0);
         node.left = Val::Px(0.0);
     }
 
@@ -367,7 +310,6 @@ impl<'a> FaProgressBar {
         mut value_q: Query<
             (
                 &mut Node,
-                Option<&IndeterminateDirection>,
                 Option<&mut FaProgressValuePercentage>
             ),
             With<IsFamiqProgressValue>
@@ -383,21 +325,20 @@ impl<'a> FaProgressBar {
                 continue;
             }
 
-            if let Ok((mut node, direction, percentage)) = value_q.get_mut(value_entity.0) {
+            if let Ok((mut node, percentage)) = value_q.get_mut(value_entity.0) {
                 if progress_bar_res.get_changed_ids().contains(&id.0) {
                     match progress_bar_res.get_percentage_by_id(id.0.as_str()) {
                         Some(new_percentage) => {
                             Self::_set_to_percentage(
                                 &mut commands,
                                 &mut node,
-                                direction,
                                 percentage,
                                 new_percentage,
                                 value_entity.0
                             );
                         },
                         None => {
-                            Self::_set_to_indeterminate(&mut commands, &mut node, direction, percentage, value_entity.0);
+                            Self::_set_to_indeterminate(&mut commands, &mut node, percentage, value_entity.0);
                         }
                     }
                 }
@@ -413,7 +354,6 @@ impl<'a> FaProgressBar {
         mut value_q: Query<
             (
                 &mut Node,
-                Option<&IndeterminateDirection>,
                 Option<&mut FaProgressValuePercentage>
             ),
             With<IsFamiqProgressValue>
@@ -429,7 +369,7 @@ impl<'a> FaProgressBar {
                 continue;
             }
 
-            if let Ok((mut node, direction, percentage)) = value_q.get_mut(value_entity.0) {
+            if let Ok((mut node, percentage)) = value_q.get_mut(value_entity.0) {
 
                 if progress_bar_res.get_changed_entities().contains(&bar_entity) {
                     match progress_bar_res.get_percentage_by_entity(bar_entity) {
@@ -437,14 +377,13 @@ impl<'a> FaProgressBar {
                             Self::_set_to_percentage(
                                 &mut commands,
                                 &mut node,
-                                direction,
                                 percentage,
                                 new_percentage,
                                 value_entity.0
                             );
                         },
                         None => {
-                            Self::_set_to_indeterminate(&mut commands, &mut node, direction, percentage, value_entity.0);
+                            Self::_set_to_indeterminate(&mut commands, &mut node, percentage, value_entity.0);
                         }
                     }
                     progress_bar_res.clear_changes_entity();
@@ -455,12 +394,31 @@ impl<'a> FaProgressBar {
 
     /// Internal system to detect new progress bars bing created.
     pub fn detect_new_progress_bar_widget_system(
+        mut commands: Commands,
+        mut progress_materials: ResMut<Assets<ProgressBarMaterial>>,
         bar_q: Query<(Entity, Option<&FamiqWidgetId>, &FamiqProgressValueEntity), Added<IsFamiqProgressBar>>,
-        value_q: Query<Option<&FaProgressValuePercentage>>,
+        value_q: Query<(&ProgressValueColor, Option<&FaProgressValuePercentage>)>,
         mut bar_res: ResMut<FaProgressBarResource>
     ) {
         for (entity, id, value_entity) in bar_q.iter() {
-            if let Ok(percentage) = value_q.get(value_entity.0) {
+            if let Ok((value_color, percentage)) = value_q.get(value_entity.0) {
+
+                if let Color::Srgba(value) = value_color.0 {
+                    let u_blend = if percentage.is_some() {
+                        0.0
+                    } else {
+                        1.0
+                    };
+                    commands
+                        .entity(value_entity.0)
+                        .insert(
+                            MaterialNode(progress_materials.add(ProgressBarMaterial {
+                                u_time: 0.0,
+                                u_color: Vec3::new(value.red, value.green, value.blue),
+                                u_blend
+                            }))
+                        );
+                }
 
                 if let Some(id) = id {
                     if !bar_res.exists_by_id(id.0.as_str()) {
@@ -482,6 +440,24 @@ impl<'a> FaProgressBar {
 
                 bar_res.clear_changes_id();
                 bar_res.clear_changes_entity();
+            }
+        }
+    }
+
+    pub fn _update_progress_bar_material_u_time(
+        time: Res<Time>,
+        mut materials: ResMut<Assets<ProgressBarMaterial>>,
+        query: Query<(&MaterialNode<ProgressBarMaterial>, Option<&FaProgressValuePercentage>)>
+    ) {
+        for (material_handle, percentage) in query.iter() {
+            if let Some(material) = materials.get_mut(material_handle) {
+                if percentage.is_none() {
+                    material.u_time = -time.elapsed_secs();
+                    material.u_blend = 1.0;
+                } else {
+                    material.u_time = 0.0;
+                    material.u_blend = 0.0;
+                }
             }
         }
     }
@@ -581,15 +557,7 @@ pub fn fa_progress_bar<'a>(builder: &'a mut FamiqBuilder) -> FaProgressBarBuilde
     )
 }
 
-/// Internal function to check if `FaProgressBar`'s indeterminate system can run.
-pub fn can_move_progress_value_as_indeterminate_system(
-    value_q: Query<&IndeterminateDirection>
-) -> bool {
-    value_q.iter().count() > 0
-}
-
-/// Internal function to check if `handle_progress_value_change` system can run.
-pub fn can_run_handle_progress_value_change(
+pub fn can_run_fa_progress_bar_systems(
     bar_q: Query<&IsFamiqProgressBar>
 ) -> bool {
     bar_q.iter().count() > 0

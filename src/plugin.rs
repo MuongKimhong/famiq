@@ -156,18 +156,12 @@ fn fa_progress_bar_systems(app: &mut App) {
     app.add_systems(
         Update,
         (
-            FaProgressBar::move_progress_value_as_indeterminate_system
-                .run_if(can_move_progress_value_as_indeterminate_system),
-
-            FaProgressBar::handle_progress_value_change_by_id
-                .run_if(can_run_handle_progress_value_change),
-
-            FaProgressBar::handle_progress_value_change_by_entity
-                .run_if(can_run_handle_progress_value_change),
-
-            FaProgressBar::detect_new_progress_bar_widget_system
-                .run_if(can_run_handle_progress_value_change),
+            FaProgressBar::handle_progress_value_change_by_id,
+            FaProgressBar::handle_progress_value_change_by_entity,
+            FaProgressBar::detect_new_progress_bar_widget_system,
+            FaProgressBar::_update_progress_bar_material_u_time
         )
+        .run_if(can_run_fa_progress_bar_systems)
     );
 }
 
@@ -177,10 +171,12 @@ impl Plugin for FamiqPlugin {
     fn build(&self, app: &mut App) {
         // embedded assets
         embedded_asset!(app, "embedded_assets/fonts/fira-mono-regular.ttf");
+        embedded_asset!(app, "embedded_assets/shaders/progress_bar.wgsl");
         embedded_asset!(app, "embedded_assets/logo.jpeg"); // for testing
 
         app.add_systems(PreStartup, _spawn_root_node);
 
+        app.add_plugins(UiMaterialPlugin::<ProgressBarMaterial>::default());
         app.add_plugins(FrameTimeDiagnosticsPlugin::default());
         app.insert_resource(StylesKeyValueResource(StylesKeyValue::new()));
         app.insert_resource(FamiqResource::new());
