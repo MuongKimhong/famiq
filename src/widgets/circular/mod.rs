@@ -15,7 +15,7 @@ use crate::utils::{
     process_spacing_built_in_class,
     insert_id_and_class
 };
-use super::tooltip::FaToolTipResource;
+use super::tooltip::{FaToolTip, FaToolTipResource, IsFamiqToolTipText};
 
 pub use components::*;
 use helper::*;
@@ -201,13 +201,15 @@ impl<'a> FaCircular {
             (&ComputedNode, &GlobalTransform, Option<&FamiqToolTipText>),
             With<IsFamiqCircular>
         >,
-        mut tooltip_res: ResMut<FaToolTipResource>
+        mut tooltip_res: ResMut<FaToolTipResource>,
+        mut tooltip_text_q: Query<&mut Text, With<IsFamiqToolTipText>>
     ) {
         for e in events.read() {
             if let Ok((computed, transform, tooltip_text)) = circular_q.get_mut(e.entity) {
                 match e.interaction {
                     Interaction::Hovered => {
                         if let Some(text) = tooltip_text {
+                            FaToolTip::_update_toolitp_text(&text.0, &mut tooltip_text_q);
                             tooltip_res.show(text.0.clone(), computed.size(), transform.translation());
                         }
                     },

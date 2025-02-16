@@ -11,7 +11,7 @@ use super::{
     FamiqResource, FamiqBuilder,
     WidgetStyle, ExternalStyleHasChanged, FamiqToolTipText
 };
-use super::tooltip::FaToolTipResource;
+use super::tooltip::{FaToolTip, FaToolTipResource, IsFamiqToolTipText};
 use crate::event_writer::FaInteractionEvent;
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
@@ -227,7 +227,8 @@ impl<'a> FaButton {
         mut overlay_q: Query<
             (&mut Node, &mut BackgroundColor, &mut BorderColor, &mut BorderRadius),
             (With<IsFamiqButtonOverlay>, Without<IsFamiqButton>)
-        >
+        >,
+        mut tooltip_text_q: Query<&mut Text, With<IsFamiqToolTipText>>
     ) {
         for e in events.read() {
             if let Ok((
@@ -241,21 +242,12 @@ impl<'a> FaButton {
                 match e.interaction {
                     Interaction::Hovered => {
                         if let Some(text) = tooltip_text {
+                            FaToolTip::_update_toolitp_text(&text.0, &mut tooltip_text_q);
                             tooltip_res.show(text.0.clone(), computed.size(), transform.translation());
                         }
                         FaButton::_update_overlay(&mut overlay_q, border_radius, node, computed, overlay_entity.0, "hover");
-
-                        // if let Ok((mut c_bg_color, mut c_bd_color)) = text_container_q.get_mut(container_entity.0) {
-                        //     c_bg_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.3);
-                        //     c_bd_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.3);
-                        // }
                     },
                     Interaction::Pressed => {
-                        // if let Ok((mut c_bg_color, mut c_bd_color)) = text_container_q.get_mut(container_entity.0) {
-                        //     c_bg_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.6);
-                        //     c_bd_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.6);
-                        // }
-
                         builder_res.update_all_focus_states(false);
                         builder_res.update_or_insert_focus_state(e.entity, true);
                         FaButton::_update_overlay(&mut overlay_q, border_radius, node, computed, overlay_entity.0, "press");
@@ -265,10 +257,6 @@ impl<'a> FaButton {
                             tooltip_res.hide();
                         }
                         FaButton::_update_overlay(&mut overlay_q, border_radius, node, computed, overlay_entity.0, "none");
-                        // if let Ok((mut c_bg_color, mut c_bd_color)) = text_container_q.get_mut(container_entity.0) {
-                        //     *c_bg_color = BackgroundColor::default();
-                        //     *c_bd_color = BorderColor::default();
-                        // }
                     },
                 }
             }
