@@ -4,8 +4,8 @@ use super::{ProgressBarColor, ProgressBarSize};
 
 fn _get_progress_bar_size(size: &ProgressBarSize) -> f32 {
     let size_small = 5.0;
-    let size_normal = 10.0;
-    let size_large = 15.0;
+    let size_normal = 9.0;
+    let size_large = 13.0;
 
     match size {
         ProgressBarSize::Small => size_small,

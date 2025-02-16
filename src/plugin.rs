@@ -184,7 +184,6 @@ impl Plugin for FamiqPlugin {
         app.insert_resource(FaSelectionResource::default());
         app.insert_resource(FaTextInputResource::default());
         app.insert_resource(FaTextInputCursorBlinkTimer::default());
-        app.insert_resource(IndeterminateAnimationTimer::default());
         app.insert_resource(FaProgressBarResource::default());
         app.insert_resource(FaToolTipResource::default());
         app.insert_resource(FaModalState::default());
