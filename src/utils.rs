@@ -142,39 +142,44 @@ pub fn process_spacing_built_in_class(node: &mut Node, class: &Option<String>) {
     if let Some(class) = class {
         for class_name in class.split_whitespace() {
             if let Some((prefix, value)) = class_name.split_once('-') {
-                if let Ok(num) = value.parse::<f32>() {
-                    let px_value = Val::Px(num * 5.0);
 
-                    match prefix {
-                        // Margin classes
-                        "mt" => node.margin.top = px_value,
-                        "mb" => node.margin.bottom = px_value,
-                        "ml" => node.margin.left = px_value,
-                        "mr" => node.margin.right = px_value,
-                        "my" => {
-                            node.margin.top = px_value;
-                            node.margin.bottom = px_value;
-                        }
-                        "mx" => {
-                            node.margin.left = px_value;
-                            node.margin.right = px_value;
-                        }
+                let spacing_value = if value == "auto" {
+                    Val::Auto
+                } else if let Ok(num) = value.parse::<f32>() {
+                    Val::Px(num * 5.0)
+                } else {
+                    continue;
+                };
 
-                        // Padding classes
-                        "pt" => node.padding.top = px_value,
-                        "pb" => node.padding.bottom = px_value,
-                        "pl" => node.padding.left = px_value,
-                        "pr" => node.padding.right = px_value,
-                        "py" => {
-                            node.padding.top = px_value;
-                            node.padding.bottom = px_value;
-                        }
-                        "px" => {
-                            node.padding.left = px_value;
-                            node.padding.right = px_value;
-                        }
-                        _ => {}
+                match prefix {
+                    // Margin classes
+                    "mt" => node.margin.top = spacing_value,
+                    "mb" => node.margin.bottom = spacing_value,
+                    "ml" => node.margin.left = spacing_value,
+                    "mr" => node.margin.right = spacing_value,
+                    "my" => {
+                        node.margin.top = spacing_value;
+                        node.margin.bottom = spacing_value;
                     }
+                    "mx" => {
+                        node.margin.left = spacing_value;
+                        node.margin.right = spacing_value;
+                    }
+
+                    // Padding classes
+                    "pt" => node.padding.top = spacing_value,
+                    "pb" => node.padding.bottom = spacing_value,
+                    "pl" => node.padding.left = spacing_value,
+                    "pr" => node.padding.right = spacing_value,
+                    "py" => {
+                        node.padding.top = spacing_value;
+                        node.padding.bottom = spacing_value;
+                    }
+                    "px" => {
+                        node.padding.left = spacing_value;
+                        node.padding.right = spacing_value;
+                    }
+                    _ => {}
                 }
             }
         }
@@ -196,5 +201,30 @@ pub fn insert_id_and_class<'a>(
     }
     if let Some(class) = class {
         root_node.commands().entity(entity).insert(FamiqWidgetClasses(class.to_owned()));
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_spacing_built_in_class() {
+        let mut node = Node {
+            margin: UiRect::all(Val::Px(0.0)),
+            padding: UiRect::all(Val::Px(0.0)),
+            ..default()
+        };
+
+        let test_class =  Some(String::from("mx-auto my-2 pb-2 pr-3"));
+        process_spacing_built_in_class(&mut node, &test_class);
+
+        assert_eq!(Val::Auto, node.margin.left);
+        assert_eq!(Val::Auto, node.margin.right);
+        assert_eq!(Val::Px(10.0), node.margin.top);
+        assert_eq!(Val::Px(10.0), node.margin.bottom);
+
+        assert_eq!(Val::Px(10.0), node.padding.bottom);
+        assert_eq!(Val::Px(15.0), node.padding.right);
     }
 }
