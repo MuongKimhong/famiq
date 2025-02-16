@@ -181,7 +181,7 @@ impl DefaultTextSpanEntity {
 pub struct ExternalStyleHasChanged(pub bool);
 
 #[derive(Resource)]
-pub struct FamiqWidgetResource {
+pub struct FamiqResource {
     // font path relative to project root
     pub font_path: String,
 
@@ -193,10 +193,14 @@ pub struct FamiqWidgetResource {
 
     pub widget_focus_state: HashMap<Entity, bool>,
 
-    pub external_style_applied: bool
+    pub external_style_applied: bool,
+
+    pub root_node_entity: Option<Entity>,
+
+    pub tooltip_registered: bool
 }
 
-impl FamiqWidgetResource {
+impl FamiqResource {
     pub fn update_or_insert_focus_state(&mut self, entity: Entity, state: bool) {
         if let Some(old_value) = self.widget_focus_state.get_mut(&entity) {
             *old_value = state;
@@ -217,16 +221,16 @@ impl FamiqWidgetResource {
         }
         None
     }
-}
 
-impl Default for FamiqWidgetResource {
-    fn default() -> Self {
+    pub fn new() -> Self {
         Self {
-            font_path: String::new(),
-            style_path: String::new(),
+            font_path: get_embedded_asset_path("embedded_assets/fonts/fira-mono-regular.ttf").to_string(),
+            style_path: "assets/styles.json".to_string(),
             hot_reload_styles: false,
             widget_focus_state: HashMap::new(),
-            external_style_applied: false
+            external_style_applied: false,
+            root_node_entity: None,
+            tooltip_registered: false
         }
     }
 }
@@ -347,33 +351,26 @@ impl WidgetStyle {
 }
 
 
-pub struct FamiqWidgetBuilder<'a> {
+pub struct FamiqBuilder<'a> {
     pub asset_server: &'a ResMut<'a, AssetServer>,
     pub ui_root_node: EntityCommands<'a>,
-    pub font_path: Option<String>,
-    pub style_path: Option<String>,
-    pub resource: Mut<'a, FamiqWidgetResource>
+    pub resource: Mut<'a, FamiqResource>
 }
 
-impl<'a> FamiqWidgetBuilder<'a> {
-    fn _reset_builder_resource(builder_resource: &mut ResMut<FamiqWidgetResource>) {
-        builder_resource.font_path = get_embedded_asset_path("embedded_assets/fonts/fira-mono-regular.ttf").to_string();
-        builder_resource.style_path = "assets/styles.json".to_string();
-        builder_resource.hot_reload_styles = false;
+impl<'a> FamiqBuilder<'a> {
+    fn _reset_builder_resource(builder_resource: &mut ResMut<FamiqResource>) {
         builder_resource.external_style_applied = false;
     }
 
     pub fn new(
         commands: &'a mut Commands,
-        builder_resource: &'a mut ResMut<FamiqWidgetResource>,
+        builder_resource: &'a mut ResMut<FamiqResource>,
         asset_server: &'a ResMut<'a, AssetServer>,
     ) -> Self {
         Self::_reset_builder_resource(builder_resource);
         Self {
             asset_server,
-            ui_root_node: Self::create_ui_root_node(commands),
-            font_path: Some(get_embedded_asset_path("embedded_assets/fonts/fira-mono-regular.ttf").to_string()),
-            style_path: Some("assets/styles.json".to_string()),
+            ui_root_node: commands.entity(builder_resource.root_node_entity.unwrap()),
             resource: builder_resource.reborrow()
         }
     }
@@ -421,7 +418,6 @@ impl<'a> FamiqWidgetBuilder<'a> {
     /// builder.use_font_path("fonts/Some-font.ttf");
     /// ```
     pub fn use_font_path(mut self, font_path: &str) -> Self {
-        self.font_path = Some(font_path.to_string());
         self.resource.font_path = font_path.to_string();
         self
     }
@@ -431,7 +427,6 @@ impl<'a> FamiqWidgetBuilder<'a> {
     /// # Argument
     /// * style_path: Full path to the json file, relative to root directory.
     pub fn use_style_path(mut self, style_path: &str) -> Self {
-        self.style_path = Some(style_path.to_string());
         self.resource.style_path = style_path.to_string();
         self
     }
@@ -447,28 +442,15 @@ impl<'a> FamiqWidgetBuilder<'a> {
     /// If `use_font_path` is called, `register_tooltip` must be called **after** `use_font_path`
     /// to ensure that the custom font is applied to the tooltip.
     pub fn register_tooltip(mut self) -> Self {
-        let font_handle = self.asset_server.load(self.font_path.as_ref().unwrap().as_str());
-        FaToolTip::new(
-            &mut self.ui_root_node,
-            font_handle
-        );
+        if !self.resource.tooltip_registered {
+            let font_handle = self.asset_server.load(&self.resource.font_path);
+            FaToolTip::new(
+                &mut self.ui_root_node,
+                font_handle
+            );
+            self.resource.tooltip_registered = true;
+        }
         self
-    }
-
-    fn create_ui_root_node(commands: &'a mut Commands) -> EntityCommands<'a> {
-        commands.spawn((
-            Node {
-                width: Val::Percent(100.0),
-                height: Val::Percent(100.0),
-                flex_direction: FlexDirection::Column,
-                justify_content: JustifyContent::FlexStart,
-                align_items: AlignItems::Stretch,
-                ..default()
-            },
-            FamiqWidgetId("#fa_root".to_string()),
-            IsFaWidgetRoot,
-            GlobalZIndex(1)
-        ))
     }
 
     pub fn insert_component<T: Bundle>(&mut self, entity: Entity, components: T) {
@@ -489,11 +471,11 @@ impl<'a> FamiqWidgetBuilder<'a> {
     }
 }
 
-pub fn hot_reload_is_enabled(builder_res: Res<FamiqWidgetResource>) -> bool {
+pub fn hot_reload_is_enabled(builder_res: Res<FamiqResource>) -> bool {
     builder_res.hot_reload_styles
 }
 
-pub fn hot_reload_is_disabled(builder_res: Res<FamiqWidgetResource>) -> bool {
+pub fn hot_reload_is_disabled(builder_res: Res<FamiqResource>) -> bool {
     !builder_res.hot_reload_styles && !builder_res.external_style_applied
 }
 

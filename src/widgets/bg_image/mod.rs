@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::widgets::FamiqWidgetBuilder;
+use crate::widgets::FamiqBuilder;
 
 /// Marker component indicating that an entity is a Famiq background image.
 #[derive(Component)]
@@ -79,7 +79,7 @@ impl<'a> FaBgImageBuilder<'a> {
 }
 
 /// API to create a `FaBgImageBuilder` for a background image.
-pub fn fa_bg_image<'a>(builder: &'a mut FamiqWidgetBuilder, path: &str) -> FaBgImageBuilder<'a> {
+pub fn fa_bg_image<'a>(builder: &'a mut FamiqBuilder, path: &str) -> FaBgImageBuilder<'a> {
     let image_handle = builder.asset_server.load(path);
     FaBgImageBuilder::new(
         image_handle,

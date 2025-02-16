@@ -3,7 +3,7 @@ pub mod tests;
 
 use crate::widgets::{
     FamiqWidgetId, DefaultWidgetEntity,
-    FamiqWidgetBuilder, WidgetStyle, ExternalStyleHasChanged
+    FamiqBuilder, WidgetStyle, ExternalStyleHasChanged
 };
 use crate::utils;
 use bevy::prelude::*;
@@ -272,7 +272,7 @@ impl<'a> FaModalBuilder<'a> {
 }
 
 /// API to create `FaModalBuilder`
-pub fn fa_modal<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaModalBuilder<'a> {
+pub fn fa_modal<'a>(builder: &'a mut FamiqBuilder) -> FaModalBuilder<'a> {
     FaModalBuilder::new(
         builder.ui_root_node.reborrow(),
     )

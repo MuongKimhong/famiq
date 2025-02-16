@@ -12,9 +12,9 @@ struct TestEntity(Entity);
 fn setup_test_default_input(
     mut commands: Commands,
     asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
+    mut builder_res: ResMut<FamiqResource>,
 ) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
     let input = fa_text_input(&mut builder, "First name").id("#test-input").build();
     commands.insert_resource(TestEntity(input));
 }
@@ -22,9 +22,9 @@ fn setup_test_default_input(
 fn setup_test_input_with_built_in_class(
     mut commands: Commands,
     asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
+    mut builder_res: ResMut<FamiqResource>,
 ) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
     fa_text_input(&mut builder, "First name")
         .class("is-primary is-rectangle")
         .build();
@@ -35,7 +35,6 @@ fn test_create_default_input() {
     let mut app = utils::create_test_app();
     app.add_plugins(InputPlugin::default());
     app.add_plugins(FamiqPlugin);
-    app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_default_input);
     app.update();
 
@@ -52,7 +51,6 @@ fn test_create_input_with_built_in_class() {
     let mut app = utils::create_test_app();
     app.add_plugins(InputPlugin::default());
     app.add_plugins(FamiqPlugin);
-    app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_input_with_built_in_class);
     app.update();
 
@@ -78,7 +76,6 @@ fn test_get_value_by_id() {
     let mut app = utils::create_test_app();
     app.add_plugins(InputPlugin::default());
     app.add_plugins(FamiqPlugin);
-    app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_default_input);
     app.update();
 
@@ -94,7 +91,6 @@ fn test_get_value_by_entity() {
     let mut app = utils::create_test_app();
     app.add_plugins(InputPlugin::default());
     app.add_plugins(FamiqPlugin);
-    app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_default_input);
     app.update();
 

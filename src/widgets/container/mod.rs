@@ -6,7 +6,7 @@ use bevy::prelude::*;
 
 use crate::utils;
 use crate::widgets::{
-    DefaultWidgetEntity, FamiqWidgetBuilder,
+    DefaultWidgetEntity, FamiqBuilder,
     WidgetStyle, ExternalStyleHasChanged
 };
 use helper::default_container_node;
@@ -118,7 +118,7 @@ impl<'a> FaContainerBuilder<'a> {
 }
 
 /// API to create `FaContainerBuilder`
-pub fn fa_container<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaContainerBuilder<'a> {
+pub fn fa_container<'a>(builder: &'a mut FamiqBuilder) -> FaContainerBuilder<'a> {
     FaContainerBuilder::new(
         builder.ui_root_node.reborrow()
     )

@@ -2,24 +2,24 @@
 
 use crate::plugin::FamiqPlugin;
 use crate::widgets::button::fa_button;
-use crate::widgets::{FamiqWidgetResource, FamiqWidgetId, FamiqWidgetClasses};
+use crate::widgets::{FamiqResource, FamiqWidgetId, FamiqWidgetClasses};
 use super::*;
 
 fn setup_test_default_container(
     mut commands: Commands,
     asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
+    mut builder_res: ResMut<FamiqResource>,
 ) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
     fa_container(&mut builder).id("#test-container").build();
 }
 
 fn setup_test_container_with_class(
     mut commands: Commands,
     asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
+    mut builder_res: ResMut<FamiqResource>,
 ) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
     fa_container(&mut builder)
         .id("#test-container")
         .class("test-class-one test-class-two")
@@ -29,9 +29,9 @@ fn setup_test_container_with_class(
 fn setup_test_container_with_children(
     mut commands: Commands,
     asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
+    mut builder_res: ResMut<FamiqResource>,
 ) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
 
     let test_btn_1 = fa_button(&mut builder, "Button 1").build();
     let test_btn_2 = fa_button(&mut builder, "Button 2").build();
@@ -46,7 +46,6 @@ fn setup_test_container_with_children(
 fn test_create_default_container() {
     let mut app = utils::create_test_app();
     app.add_plugins(FamiqPlugin);
-    app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_default_container);
     app.update();
 
@@ -61,7 +60,6 @@ fn test_create_default_container() {
 fn test_create_container_with_class() {
     let mut app = utils::create_test_app();
     app.add_plugins(FamiqPlugin);
-    app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_container_with_class);
     app.update();
 
@@ -76,7 +74,6 @@ fn test_create_container_with_class() {
 fn test_create_container_with_children() {
     let mut app = utils::create_test_app();
     app.add_plugins(FamiqPlugin);
-    app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_container_with_children);
     app.update();
 

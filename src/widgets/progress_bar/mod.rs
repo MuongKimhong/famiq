@@ -9,7 +9,7 @@ use helper::*;
 
 use super::{
     DefaultWidgetEntity, ExternalStyleHasChanged,
-    FamiqWidgetBuilder, FamiqWidgetId, WidgetStyle
+    FamiqBuilder, FamiqWidgetId, WidgetStyle
 };
 
 /// Animation speed, defined by `speed = INDETERMINATE_SPEED_FACTOR * bar_width`.
@@ -575,7 +575,7 @@ impl<'a> FaProgressBarBuilder<'a> {
 }
 
 /// API to create `FaProgressBar`.
-pub fn fa_progress_bar<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaProgressBarBuilder<'a> {
+pub fn fa_progress_bar<'a>(builder: &'a mut FamiqBuilder) -> FaProgressBarBuilder<'a> {
     FaProgressBarBuilder::new(
         builder.ui_root_node.reborrow()
     )

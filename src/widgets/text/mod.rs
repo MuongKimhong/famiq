@@ -1,7 +1,7 @@
 use super::color::WHITE_COLOR;
 use crate::widgets::{
     DefaultTextEntity, FamiqWidgetId, DefaultWidgetEntity,
-    FamiqWidgetBuilder, WidgetStyle, ExternalStyleHasChanged
+    FamiqBuilder, WidgetStyle, ExternalStyleHasChanged
 };
 use crate::utils::{process_spacing_built_in_class, insert_id_and_class};
 use bevy::ecs::system::EntityCommands;
@@ -329,8 +329,8 @@ impl<'a> FaTextBuilder<'a> {
 }
 
 /// API to create `FaTextBuilder`.
-pub fn fa_text<'a>(builder: &'a mut FamiqWidgetBuilder, value: &str) -> FaTextBuilder<'a> {
-    let font_handle = builder.asset_server.load(builder.font_path.as_ref().unwrap());
+pub fn fa_text<'a>(builder: &'a mut FamiqBuilder, value: &str) -> FaTextBuilder<'a> {
+    let font_handle = builder.asset_server.load(&builder.resource.font_path);
     FaTextBuilder::new(
         value.to_string(),
         font_handle,
@@ -342,7 +342,7 @@ pub fn fa_text<'a>(builder: &'a mut FamiqWidgetBuilder, value: &str) -> FaTextBu
 mod tests {
     use crate::plugin::FamiqPlugin;
     use crate::utils::create_test_app;
-    use crate::widgets::FamiqWidgetResource;
+    use crate::widgets::FamiqResource;
     use super::*;
 
     #[derive(Resource)]
@@ -351,9 +351,9 @@ mod tests {
     fn setup_test_default_text(
         mut commands: Commands,
         asset_server: ResMut<AssetServer>,
-        mut builder_res: ResMut<FamiqWidgetResource>,
+        mut builder_res: ResMut<FamiqResource>,
     ) {
-        let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
+        let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
         let text = fa_text(&mut builder, "Test Text").id("#test-text").build();
         commands.insert_resource(TestResource(text));
     }
@@ -362,7 +362,6 @@ mod tests {
     fn test_create_default_text() {
         let mut app = create_test_app();
         app.add_plugins(FamiqPlugin);
-        app.insert_resource(FamiqWidgetResource::default());
         app.add_systems(Startup, setup_test_default_text);
         app.update();
 
@@ -381,7 +380,6 @@ mod tests {
     fn test_update_text_value_by_id() {
         let mut app = create_test_app();
         app.add_plugins(FamiqPlugin);
-        app.insert_resource(FamiqWidgetResource::default());
         app.insert_resource(FaTextResource::default());
         app.add_systems(Startup, setup_test_default_text);
         app.add_systems(Update, FaText::update_text_value_system); // internal system that handle updating the text
@@ -407,7 +405,6 @@ mod tests {
     fn test_update_text_value_by_entity() {
         let mut app = create_test_app();
         app.add_plugins(FamiqPlugin);
-        app.insert_resource(FamiqWidgetResource::default());
         app.insert_resource(FaTextResource::default());
         app.add_systems(Startup, setup_test_default_text);
         app.add_systems(Update, FaText::update_text_value_system); // internal system that handle updating the text
@@ -433,7 +430,6 @@ mod tests {
     fn test_get_value_by_non_exist_id() {
         let mut app = create_test_app();
         app.add_plugins(FamiqPlugin);
-        app.insert_resource(FamiqWidgetResource::default());
         app.insert_resource(FaTextResource::default());
         app.add_systems(Startup, setup_test_default_text);
         app.add_systems(Update, FaText::update_text_value_system); // internal system that handle updating the text
@@ -450,7 +446,6 @@ mod tests {
     fn test_get_value_by_id() {
         let mut app = create_test_app();
         app.add_plugins(FamiqPlugin);
-        app.insert_resource(FamiqWidgetResource::default());
         app.insert_resource(FaTextResource::default());
         app.add_systems(Startup, setup_test_default_text);
         app.add_systems(Update, FaText::update_text_value_system); // internal system that handle updating the text

@@ -7,18 +7,18 @@ use super::*;
 fn setup_test_default_button(
     mut commands: Commands,
     asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
+    mut builder_res: ResMut<FamiqResource>,
 ) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
     fa_button(&mut builder, "Press me").id("#test-btn").build();
 }
 
 fn setup_test_button_with_built_in_class(
     mut commands: Commands,
     asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
+    mut builder_res: ResMut<FamiqResource>,
 ) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
     fa_button(&mut builder, "Press me")
         .id("#test-btn")
         .class("is-primary is-large is-round")
@@ -29,7 +29,6 @@ fn setup_test_button_with_built_in_class(
 fn test_create_default_button() {
     let mut app = utils::create_test_app();
     app.add_plugins(FamiqPlugin);
-    app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_default_button);
     app.update();
 
@@ -55,7 +54,6 @@ fn test_create_default_button() {
 fn test_create_button_with_built_in_class() {
     let mut app = utils::create_test_app();
     app.add_plugins(FamiqPlugin);
-    app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_button_with_built_in_class);
     app.update();
 

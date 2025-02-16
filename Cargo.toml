@@ -1,6 +1,6 @@
 [package]
 name = "famiq"
-version = "0.2.5"
+version = "0.2.6"
 edition = "2021"
 authors = ["Kimhong Muong <muongkimhong086@gmail.com>"]
 description = "Simplify UI Development in Bevy Engine"
@@ -11,7 +11,7 @@ documentation = "https://docs.rs/famiq"
 keywords = ["bevy", "gui", "rust", "json", "ui"]
 
 [dependencies]
-bevy = {version="0.15.1", features=["jpeg", "png"]}
+bevy = {version="0.15.2", features=["jpeg", "png"]}
 serde = "1.0.215"
 serde_json = "1.0.133"
 smol_str = "0.2.2"

@@ -2,7 +2,7 @@
 
 use crate::plugin::FamiqPlugin;
 use crate::widgets::color::PRIMARY_DARK_COLOR;
-use crate::widgets::FamiqWidgetResource;
+use crate::widgets::FamiqResource;
 use super::*;
 
 #[derive(Resource)]
@@ -11,9 +11,9 @@ struct TestEntity(Entity);
 fn setup_test_default_selection(
     mut commands: Commands,
     asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
+    mut builder_res: ResMut<FamiqResource>,
 ) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
     let selection = fa_selection(&mut builder, "Test select choice").id("#test-selection").build();
     commands.insert_resource(TestEntity(selection));
 }
@@ -21,9 +21,9 @@ fn setup_test_default_selection(
 fn setup_test_selection_with_built_in_class_color(
     mut commands: Commands,
     asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
+    mut builder_res: ResMut<FamiqResource>,
 ) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
     fa_selection(&mut builder, "Test select choice")
         .class("is-primary")
         .build();
@@ -32,9 +32,9 @@ fn setup_test_selection_with_built_in_class_color(
 fn setup_test_selection_with_built_in_class_shape(
     mut commands: Commands,
     asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
+    mut builder_res: ResMut<FamiqResource>,
 ) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
     fa_selection(&mut builder, "Test select choice")
         .class("is-rectangle")
         .build();
@@ -43,9 +43,9 @@ fn setup_test_selection_with_built_in_class_shape(
 fn setup_test_selection_with_choices(
     mut commands: Commands,
     asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
+    mut builder_res: ResMut<FamiqResource>,
 ) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
     fa_selection(&mut builder, "Test select choice")
         .choices(vec!["Test one", "Test two"])
         .build();
@@ -55,7 +55,6 @@ fn setup_test_selection_with_choices(
 fn test_create_default_selection() {
     let mut app = create_test_app();
     app.add_plugins(FamiqPlugin);
-    app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_default_selection);
     app.update();
 
@@ -73,7 +72,6 @@ fn test_create_default_selection() {
 fn test_create_selection_with_built_in_class_color() {
     let mut app = create_test_app();
     app.add_plugins(FamiqPlugin);
-    app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_selection_with_built_in_class_color);
     app.update();
 
@@ -92,7 +90,6 @@ fn test_create_selection_with_built_in_class_color() {
 fn test_create_selection_with_built_in_class_shape() {
     let mut app = create_test_app();
     app.add_plugins(FamiqPlugin);
-    app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_selection_with_built_in_class_shape);
     app.update();
 
@@ -111,7 +108,6 @@ fn test_create_selection_with_built_in_class_shape() {
 fn test_create_selection_with_choices() {
     let mut app = create_test_app();
     app.add_plugins(FamiqPlugin);
-    app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_selection_with_choices);
     app.update();
 
@@ -127,7 +123,6 @@ fn test_create_selection_with_choices() {
 fn test_get_value_by_id() {
     let mut app = create_test_app();
     app.add_plugins(FamiqPlugin);
-    app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_default_selection);
     app.update();
 
@@ -141,7 +136,6 @@ fn test_get_value_by_id() {
 fn test_get_value_by_entity() {
     let mut app = create_test_app();
     app.add_plugins(FamiqPlugin);
-    app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_default_selection);
     app.update();
 

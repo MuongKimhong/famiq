@@ -2,7 +2,7 @@
 
 use crate::utils::create_test_app;
 use crate::plugin::FamiqPlugin;
-use crate::widgets::{FamiqWidgetId, FamiqWidgetClasses, FamiqWidgetResource};
+use crate::widgets::{FamiqWidgetId, FamiqWidgetClasses, FamiqResource};
 use super::*;
 
 #[derive(Resource)]
@@ -11,18 +11,18 @@ struct TestEntityForUpdateByEntity(Entity);
 fn setup_test_default_bar(
     mut commands: Commands,
     asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
+    mut builder_res: ResMut<FamiqResource>,
 ) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
     fa_progress_bar(&mut builder).id("#test-bar").build();
 }
 
 fn setup_test_bar_with_built_in_class(
     mut commands: Commands,
     asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
+    mut builder_res: ResMut<FamiqResource>,
 ) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
     fa_progress_bar(&mut builder)
         .class("is-primary is-large")
         .build();
@@ -31,9 +31,9 @@ fn setup_test_bar_with_built_in_class(
 fn setup_test_bar_with_percentage(
     mut commands: Commands,
     asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
+    mut builder_res: ResMut<FamiqResource>,
 ) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
     fa_progress_bar(&mut builder)
         .id("#test-bar")
         .percentage(50.0)
@@ -43,9 +43,9 @@ fn setup_test_bar_with_percentage(
 fn setup_test_update_by_entity(
     mut commands: Commands,
     asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
+    mut builder_res: ResMut<FamiqResource>,
 ) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
     let bar = fa_progress_bar(&mut builder)
         .percentage(40.0)
         .build();
@@ -57,7 +57,6 @@ fn setup_test_update_by_entity(
 fn test_create_default_bar() {
     let mut app = create_test_app();
     app.add_plugins(FamiqPlugin);
-    app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_default_bar);
     app.update();
 
@@ -73,7 +72,6 @@ fn test_create_default_bar() {
 fn test_create_bar_with_built_in_class() {
     let mut app = create_test_app();
     app.add_plugins(FamiqPlugin);
-    app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_bar_with_built_in_class);
     app.update();
 
@@ -88,7 +86,6 @@ fn test_create_bar_with_built_in_class() {
 fn test_create_bar_with_percentage() {
     let mut app = create_test_app();
     app.add_plugins(FamiqPlugin);
-    app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_bar_with_percentage);
     app.update();
 
@@ -103,7 +100,6 @@ fn test_create_bar_with_percentage() {
 fn test_get_percentage_by_non_exist_id() {
     let mut app = create_test_app();
     app.add_plugins(FamiqPlugin);
-    app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_default_bar);
     app.update();
 
@@ -118,7 +114,6 @@ fn test_get_percentage_by_non_exist_id() {
 fn test_get_percentage_by_entity() {
     let mut app = create_test_app();
     app.add_plugins(FamiqPlugin);
-    app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_update_by_entity);
     app.update();
 
@@ -132,7 +127,6 @@ fn test_get_percentage_by_entity() {
 fn test_update_percentage_by_entity() {
     let mut app = create_test_app();
     app.add_plugins(FamiqPlugin);
-    app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_update_by_entity);
     app.add_systems(Update, FaProgressBar::handle_progress_value_change_by_entity);
     app.update();

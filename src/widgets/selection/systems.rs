@@ -1,5 +1,5 @@
 use crate::widgets::selection::*;
-use crate::widgets::{WidgetType, FamiqWidgetResource};
+use crate::widgets::{WidgetType, FamiqResource};
 use crate::event_writer::FaInteractionEvent;
 use super::FaSelection;
 use bevy::prelude::*;
@@ -29,7 +29,7 @@ pub fn update_choices_panel_position_and_width_system(
         )
     >,
     mut panel_q: Query<(&mut Node, &mut Visibility), With<IsFamiqSelectionChoicesPanel>>,
-    builder_res: Res<FamiqWidgetResource>
+    builder_res: Res<FamiqResource>
 ) {
     for (entity, computed_node, transform, panel_entity) in selection_q.iter() {
         let Some(focused) = builder_res.get_widget_focus_state(&entity) else { continue };
@@ -59,7 +59,7 @@ pub fn handle_selection_interaction_system(
         ),
         Without<IsFamiqSelectionChoicesPanel>
     >,
-    mut builder_res: ResMut<FamiqWidgetResource>,
+    mut builder_res: ResMut<FamiqResource>,
     mut arrow_q: Query<&mut Text, With<ArrowIcon>>,
 
 ) {
@@ -104,17 +104,13 @@ pub fn detect_new_selection_widget_system(
     selection_q: Query<
         (
             Entity,
-            Option<&FamiqWidgetId>,
-            &ComputedNode,
-            &GlobalTransform,
-            &SelectionChoicesPanelEntity
+            Option<&FamiqWidgetId>
         ),
         Added<IsFamiqSelectionSelector>
     >,
-    mut panel_q: Query<&mut Node, With<IsFamiqSelectionChoicesPanel>>,
     mut selection_res: ResMut<FaSelectionResource>
 ) {
-    for (entity, id, computed_node, transform, panel_entity) in selection_q.iter() {
+    for (entity, id) in selection_q.iter() {
         if let Some(id) = id {
             if !selection_res.exists_by_id(id.0.as_str()) {
                 selection_res._insert_by_id(id.0.clone(), String::new());
@@ -124,13 +120,6 @@ pub fn detect_new_selection_widget_system(
         if !selection_res.exists_by_entity(entity) {
             selection_res._insert_by_entity(entity, String::new());
         }
-
-        let Ok(mut panel_node) = panel_q.get_mut(panel_entity.0) else { continue };
-        _set_choice_panel_position_and_width(
-            &transform.translation(),
-            computed_node,
-            &mut panel_node
-        );
     }
 }
 
@@ -154,7 +143,7 @@ pub fn handle_selection_choice_interaction_system(
     mut selection_res: ResMut<FaSelectionResource>,
     mut text_q: Query<&mut Text, Without<ArrowIcon>>,
     mut arrow_q: Query<&mut Text, With<ArrowIcon>>,
-    mut builder_res: ResMut<FamiqWidgetResource>
+    mut builder_res: ResMut<FamiqResource>
 ) {
     for e in events.read() {
         if let Ok((

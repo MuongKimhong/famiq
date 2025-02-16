@@ -7,7 +7,7 @@ use crate::utils::{self, process_spacing_built_in_class, mask_string, insert_id_
 use crate::widgets::color::WHITE_COLOR;
 use crate::widgets::{
     DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId,
-     WidgetType, FamiqWidgetResource, FamiqWidgetBuilder,
+     WidgetType, FamiqResource, FamiqBuilder,
     WidgetStyle, ExternalStyleHasChanged, ResourceMap
 };
 use crate::event_writer::FaInteractionEvent;
@@ -424,7 +424,7 @@ impl<'a> FaTextInput {
             Without<CharacterSize>
         >,
         mut placeholder_q: Query<(&Text, &TextLayoutInfo), With<IsFamiqTextInputPlaceholder>>,
-        builder_res: Res<FamiqWidgetResource>
+        builder_res: Res<FamiqResource>
     ) {
         if !builder_res.is_changed() {
             return;
@@ -466,7 +466,7 @@ impl<'a> FaTextInput {
         mut input_q_for_hover: Query<
             (&mut BoxShadow, &mut TextInput, &DefaultWidgetEntity)
         >,
-        mut builder_res: ResMut<FamiqWidgetResource>,
+        mut builder_res: ResMut<FamiqResource>,
         mut cursor_blink_timer: ResMut<FaTextInputCursorBlinkTimer>,
     ) {
         for e in events.read() {
@@ -526,7 +526,7 @@ impl<'a> FaTextInput {
         mut text_q: Query<(&mut Text, &IsFamiqTextInputPlaceholder)>,
         toggle_icon_q: Query<&TogglePasswordIcon>,
         mut cursor_q: Query<(&mut Node, &mut Visibility, &IsFamiqTextInputCursor), Without<CharacterSize>>,
-        builder_res: Res<FamiqWidgetResource>
+        builder_res: Res<FamiqResource>
     ) {
         for e in evr_kbd.read() {
             if e.state == ButtonState::Released {
@@ -644,7 +644,7 @@ impl<'a> FaTextInput {
         input_q: Query<(Entity, &FamiqTextInputCursorEntity, &BackgroundColor)>,
         mut cursor_q: Query<(&mut BackgroundColor, &IsFamiqTextInputCursor), Without<FamiqTextInputCursorEntity>>,
         mut cursor_blink_timer: ResMut<FaTextInputCursorBlinkTimer>,
-        builder_res: Res<FamiqWidgetResource>
+        builder_res: Res<FamiqResource>
     ) {
         for (entity, cursor_entity, input_bg_color) in input_q.iter() {
             match builder_res.get_widget_focus_state(&entity) {
@@ -814,10 +814,10 @@ impl<'a> FaTextInputBuilder<'a> {
 
 /// API to create `FaTextInputBuilder`
 pub fn fa_text_input<'a>(
-    builder: &'a mut FamiqWidgetBuilder,
+    builder: &'a mut FamiqBuilder,
     placeholder: &str
 ) -> FaTextInputBuilder<'a> {
-    let font_handle = builder.asset_server.load(builder.font_path.as_ref().unwrap());
+    let font_handle = builder.asset_server.load(&builder.resource.font_path);
     FaTextInputBuilder::new(
         placeholder.to_string(),
         font_handle,

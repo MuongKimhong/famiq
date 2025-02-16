@@ -3,7 +3,7 @@ pub mod tests;
 use bevy::prelude::*;
 use crate::utils::{process_spacing_built_in_class, insert_id_and_class};
 use crate::widgets::{
-    DefaultWidgetEntity, FamiqWidgetBuilder,
+    DefaultWidgetEntity, FamiqBuilder,
     WidgetStyle, ExternalStyleHasChanged
 };
 
@@ -119,7 +119,7 @@ impl<'a> FaImageBuilder<'a> {
 }
 
 /// API to create `FaImageBuilder`
-pub fn fa_image<'a>(builder: &'a mut FamiqWidgetBuilder, path: &str) -> FaImageBuilder<'a> {
+pub fn fa_image<'a>(builder: &'a mut FamiqBuilder, path: &str) -> FaImageBuilder<'a> {
     let image_handle = builder.asset_server.load(path);
     FaImageBuilder::new(
         image_handle,

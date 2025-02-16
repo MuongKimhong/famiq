@@ -2,15 +2,15 @@
 
 use crate::plugin::FamiqPlugin;
 use crate::utils::create_test_app;
-use crate::widgets::{FamiqWidgetResource, FamiqWidgetId, FamiqWidgetClasses};
+use crate::widgets::{FamiqResource, FamiqWidgetId, FamiqWidgetClasses};
 use super::*;
 
 fn setup_test_default_fps(
     mut commands: Commands,
     asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
+    mut builder_res: ResMut<FamiqResource>,
 ) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
     fa_fps(&mut builder)
         .id("#test-fps")
         .class("test-class")
@@ -20,9 +20,9 @@ fn setup_test_default_fps(
 fn setup_test_fps_with_change_color(
     mut commands: Commands,
     asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
+    mut builder_res: ResMut<FamiqResource>,
 ) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
     fa_fps(&mut builder)
         .change_color()
         .build();
@@ -31,9 +31,9 @@ fn setup_test_fps_with_change_color(
 fn setup_test_fps_with_right_side(
     mut commands: Commands,
     asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
+    mut builder_res: ResMut<FamiqResource>,
 ) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
     fa_fps(&mut builder)
         .right_side()
         .build();
@@ -43,7 +43,6 @@ fn setup_test_fps_with_right_side(
 fn test_create_default_fps() {
     let mut app = create_test_app();
     app.add_plugins(FamiqPlugin);
-    app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_default_fps);
     app.update();
 
@@ -62,7 +61,6 @@ fn test_create_default_fps() {
 fn test_create_fps_with_change_color() {
     let mut app = create_test_app();
     app.add_plugins(FamiqPlugin);
-    app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_fps_with_change_color);
     app.update();
 
@@ -76,7 +74,6 @@ fn test_create_fps_with_change_color() {
 fn test_create_fps_with_right_side() {
     let mut app = create_test_app();
     app.add_plugins(FamiqPlugin);
-    app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_fps_with_right_side);
     app.update();
 

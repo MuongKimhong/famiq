@@ -8,7 +8,7 @@ use helper::*;
 use crate::utils;
 use super::{
     DefaultTextEntity, DefaultWidgetEntity,
-    FamiqWidgetResource, FamiqWidgetBuilder,
+    FamiqResource, FamiqBuilder,
     WidgetStyle, ExternalStyleHasChanged, FamiqToolTipText
 };
 use super::tooltip::FaToolTipResource;
@@ -211,7 +211,7 @@ impl<'a> FaButton {
     /// Internal system to handle `fa_button` interaction events.
     pub fn handle_button_on_interaction_system(
         mut events: EventReader<FaInteractionEvent>,
-        mut builder_res: ResMut<FamiqWidgetResource>,
+        mut builder_res: ResMut<FamiqResource>,
         mut button_q: Query<
             (
             &Node,
@@ -381,8 +381,8 @@ impl<'a> FaButtonBuilder<'a> {
 }
 
 /// API to create a `FaButtonBuilder`.
-pub fn fa_button<'a>(builder: &'a mut FamiqWidgetBuilder, text: &str) -> FaButtonBuilder<'a> {
-    let font_handle = builder.asset_server.load(builder.font_path.as_ref().unwrap());
+pub fn fa_button<'a>(builder: &'a mut FamiqBuilder, text: &str) -> FaButtonBuilder<'a> {
+    let font_handle = builder.asset_server.load(&builder.resource.font_path);
     FaButtonBuilder::new(
         text.to_string(),
         font_handle,

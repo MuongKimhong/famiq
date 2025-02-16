@@ -2,25 +2,25 @@
 
 use crate::plugin::FamiqPlugin;
 use crate::widgets::button::fa_button;
-use crate::widgets::FamiqWidgetResource;
+use crate::widgets::FamiqResource;
 use bevy::input::InputPlugin;
 use super::*;
 
 fn setup_test_default_listview(
     mut commands: Commands,
     asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
+    mut builder_res: ResMut<FamiqResource>,
 ) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
     fa_listview(&mut builder).id("#test-listview").build();
 }
 
 fn setup_test_listview_with_children(
     mut commands: Commands,
     asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
+    mut builder_res: ResMut<FamiqResource>,
 ) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
     let button_one = fa_button(&mut builder, "Button 1").build();
     let button_two = fa_button(&mut builder, "Button 2").build();
 
@@ -34,7 +34,6 @@ fn test_create_default_listview() {
     let mut app = utils::create_test_app();
     app.add_plugins(InputPlugin::default());
     app.add_plugins(FamiqPlugin);
-    app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_default_listview);
 
     app.update();
@@ -58,7 +57,6 @@ fn test_create_listview_with_children() {
     let mut app = utils::create_test_app();
     app.add_plugins(InputPlugin::default());
     app.add_plugins(FamiqPlugin);
-    app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_listview_with_children);
     app.update();
 

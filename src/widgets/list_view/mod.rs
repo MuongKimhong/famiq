@@ -4,7 +4,7 @@ pub mod tests;
 use crate::utils;
 use crate::widgets::{
     DefaultWidgetEntity, FamiqWidgetId,
-    WidgetType, FamiqWidgetBuilder,
+    WidgetType, FamiqBuilder,
     WidgetStyle, ExternalStyleHasChanged
 };
 use crate::event_writer::FaInteractionEvent;
@@ -284,7 +284,7 @@ impl<'a> FaListViewBuilder<'a> {
 }
 
 /// API to create `FaListViewBuilder`.
-pub fn fa_listview<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaListViewBuilder<'a> {
+pub fn fa_listview<'a>(builder: &'a mut FamiqBuilder) -> FaListViewBuilder<'a> {
     FaListViewBuilder::new(builder.ui_root_node.reborrow())
 }
 

@@ -177,12 +177,13 @@ impl Plugin for FamiqPlugin {
     fn build(&self, app: &mut App) {
         // embedded assets
         embedded_asset!(app, "embedded_assets/fonts/fira-mono-regular.ttf");
-        embedded_asset!(app, "embedded_assets/fonts/fira-mono-medium.ttf");
-        embedded_asset!(app, "embedded_assets/fonts/fira-mono-bold.ttf");
         embedded_asset!(app, "embedded_assets/logo.jpeg"); // for testing
+
+        app.add_systems(PreStartup, _spawn_root_node);
 
         app.add_plugins(FrameTimeDiagnosticsPlugin::default());
         app.insert_resource(StylesKeyValueResource(StylesKeyValue::new()));
+        app.insert_resource(FamiqResource::new());
         app.insert_resource(CanBeScrolledListView { entity: None });
         app.insert_resource(FaSelectionResource::default());
         app.insert_resource(FaTextInputResource::default());
@@ -192,7 +193,6 @@ impl Plugin for FamiqPlugin {
         app.insert_resource(FaToolTipResource::default());
         app.insert_resource(FaModalState::default());
         app.insert_resource(FaTextResource::default());
-        app.insert_resource(FamiqWidgetResource::default());
 
         app.add_event::<event_writer::FaInteractionEvent>();
 
@@ -210,4 +210,21 @@ impl Plugin for FamiqPlugin {
 
         app.add_systems(Update, FaToolTip::handle_show_hide_tooltip_system);
     }
+}
+
+fn _spawn_root_node(mut commands: Commands, mut res: ResMut<FamiqResource>) {
+    let entity = commands.spawn((
+        Node {
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            flex_direction: FlexDirection::Column,
+            justify_content: JustifyContent::FlexStart,
+            align_items: AlignItems::Stretch,
+            ..default()
+        },
+        IsFaWidgetRoot,
+        GlobalZIndex(1)
+    )).id();
+
+    res.root_node_entity = Some(entity);
 }

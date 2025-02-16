@@ -7,7 +7,7 @@ pub mod tests;
 use crate::utils::*;
 use crate::widgets::{
     DefaultTextEntity, DefaultWidgetEntity,
-    FamiqWidgetId, FamiqWidgetBuilder, WidgetStyle,
+    FamiqWidgetId, FamiqBuilder, WidgetStyle,
     ExternalStyleHasChanged, ResourceMap
 };
 use bevy::ecs::system::EntityCommands;
@@ -555,10 +555,10 @@ impl<'a> FaSelectionBuilder<'a> {
 }
 
 pub fn fa_selection<'a>(
-    builder: &'a mut FamiqWidgetBuilder,
+    builder: &'a mut FamiqBuilder,
     placeholder: &str
 ) -> FaSelectionBuilder<'a> {
-    let font_handle = builder.asset_server.load(builder.font_path.as_ref().unwrap());
+    let font_handle = builder.asset_server.load(&builder.resource.font_path);
     FaSelectionBuilder::new(
         placeholder.to_string(),
         font_handle,

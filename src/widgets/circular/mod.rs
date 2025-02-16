@@ -4,7 +4,7 @@ pub mod tests;
 
 use bevy::prelude::*;
 use crate::widgets::{
-    DefaultWidgetEntity, FamiqWidgetBuilder, WidgetStyle,
+    DefaultWidgetEntity, FamiqBuilder, WidgetStyle,
     ExternalStyleHasChanged, FamiqToolTipText
 };
 use crate::event_writer::FaInteractionEvent;
@@ -324,7 +324,7 @@ impl<'a> FaCircularBuilder<'a> {
 }
 
 /// API to create `FaCircularBuilder`
-pub fn fa_circular<'a>(builder: &'a mut FamiqWidgetBuilder) -> FaCircularBuilder<'a> {
+pub fn fa_circular<'a>(builder: &'a mut FamiqBuilder) -> FaCircularBuilder<'a> {
     FaCircularBuilder::new(builder.ui_root_node.reborrow())
 }
 

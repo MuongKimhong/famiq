@@ -1,16 +1,16 @@
 #![cfg(test)]
 
 use crate::plugin::FamiqPlugin;
-use crate::widgets::{FamiqWidgetResource, FamiqWidgetId, FamiqWidgetClasses};
+use crate::widgets::{FamiqResource, FamiqWidgetId, FamiqWidgetClasses};
 use crate::utils::{get_embedded_asset_path, create_test_app};
 use super::*;
 
 fn setup_test_default_image(
     mut commands: Commands,
     asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
+    mut builder_res: ResMut<FamiqResource>,
 ) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
     let path = get_embedded_asset_path("embedded_assets/logo.jpeg").to_string();
     fa_image(&mut builder, path.as_str()).id("#test-image").build();
 }
@@ -18,9 +18,9 @@ fn setup_test_default_image(
 fn setup_test_image_with_class(
     mut commands: Commands,
     asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
+    mut builder_res: ResMut<FamiqResource>,
 ) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
     let path = get_embedded_asset_path("embedded_assets/logo.jpeg").to_string();
     fa_image(&mut builder, path.as_str())
         .class("test-class-one")
@@ -30,9 +30,9 @@ fn setup_test_image_with_class(
 fn setup_test_image_with_custom_size(
     mut commands: Commands,
     asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
+    mut builder_res: ResMut<FamiqResource>,
 ) {
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
     let path = get_embedded_asset_path("embedded_assets/logo.jpeg").to_string();
     fa_image(&mut builder, path.as_str())
         .size(Val::Px(200.0), Val::Px(200.0))
@@ -43,7 +43,6 @@ fn setup_test_image_with_custom_size(
 fn test_create_default_image() {
     let mut app = create_test_app();
     app.add_plugins(FamiqPlugin);
-    app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_default_image);
     app.update();
 
@@ -58,7 +57,6 @@ fn test_create_default_image() {
 fn test_create_image_with_class() {
     let mut app = create_test_app();
     app.add_plugins(FamiqPlugin);
-    app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_image_with_class);
     app.update();
 
@@ -71,7 +69,6 @@ fn test_create_image_with_class() {
 fn test_create_image_with_custom_size() {
     let mut app = create_test_app();
     app.add_plugins(FamiqPlugin);
-    app.insert_resource(FamiqWidgetResource::default());
     app.add_systems(Startup, setup_test_image_with_custom_size);
     app.update();
 
