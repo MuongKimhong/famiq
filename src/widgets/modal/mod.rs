@@ -125,7 +125,6 @@ impl<'a> FaModal {
     ) -> Entity {
         let mut style_components = BaseStyleComponents::default();
         style_components.node = default_modal_background_node();
-        style_components.global_z_index = GlobalZIndex(5);
         style_components.visibility = Visibility::Hidden;
         style_components.border_color = BorderColor(Color::srgba(0.0, 0.0, 0.0, 0.6));
 
@@ -139,7 +138,8 @@ impl<'a> FaModal {
                 style_components,
                 IsFamiqModalBackground,
                 FocusPolicy::Block,
-                FaModalContainerEntity(container_entity)
+                FaModalContainerEntity(container_entity),
+                GlobalZIndex(5)
             ))
             .id();
 

@@ -267,7 +267,6 @@ impl<'a> FaSelection {
         style_components.border_color = get_choice_panel_border_color(color);
         style_components.background_color = get_choice_panel_background_color(color);
         style_components.visibility = Visibility::Hidden;
-        style_components.global_z_index = GlobalZIndex(2);
         style_components.border_radius = BorderRadius::all(Val::Px(5.0));
 
         let panel = root_node
@@ -276,7 +275,8 @@ impl<'a> FaSelection {
                 style_components,
                 IsFamiqSelectionChoicesPanel,
                 SelectionContainerEntity(container_entity),
-                FocusPolicy::Block
+                FocusPolicy::Block,
+                GlobalZIndex(2)
             ))
             .id();
 

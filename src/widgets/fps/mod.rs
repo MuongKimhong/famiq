@@ -53,7 +53,6 @@ impl<'a> FaFpsText {
         let mut style_components = BaseStyleComponents::default();
         style_components.node = node;
         style_components.visibility = Visibility::Visible;
-        style_components.global_z_index = GlobalZIndex(6);
 
         let label_txt_font = TextFont {
             font: font_handle,
@@ -77,6 +76,7 @@ impl<'a> FaFpsText {
                 ),
                 IsFamiqFPSTextLabel,
                 style_components.clone(),
+                GlobalZIndex(6),
                 DefaultWidgetEntity::from(style_components)
             ))
             .id();
