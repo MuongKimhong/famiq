@@ -12,6 +12,21 @@ pub struct FamiqWidgetId(pub String);
 #[derive(Component, Deref)]
 pub struct FamiqWidgetClasses(pub String);
 
+/// Base styles components required by all widgets
+#[derive(Bundle, Default, Clone)]
+pub struct BaseStyleComponents {
+    pub node: Node,
+    pub border_color: BorderColor,
+    pub border_radius: BorderRadius,
+    pub background_color: BackgroundColor,
+    pub z_index: ZIndex,
+    pub visibility: Visibility,
+    pub global_z_index: GlobalZIndex,
+    pub interaction: Interaction,
+    pub widget_style: WidgetStyle,
+    pub external_style_changed: ExternalStyleHasChanged
+}
+
 #[derive(Component)]
 pub struct DefaultWidgetEntity {
     pub node: Node,
@@ -20,24 +35,19 @@ pub struct DefaultWidgetEntity {
     pub background_color: BackgroundColor,
     pub z_index: ZIndex,
     pub visibility: Visibility,
+    pub global_z_index: GlobalZIndex
 }
 
-impl DefaultWidgetEntity {
-    pub fn new(
-        node: Node,
-        border_color: BorderColor,
-        border_radius: BorderRadius,
-        background_color: BackgroundColor,
-        z_index: ZIndex,
-        visibility: Visibility,
-    ) -> Self {
-        Self {
-            node,
-            border_color,
-            border_radius,
-            background_color,
-            z_index,
-            visibility,
+impl From<BaseStyleComponents> for DefaultWidgetEntity {
+    fn from(base: BaseStyleComponents) -> Self {
+        DefaultWidgetEntity {
+            node: base.node,
+            border_color: base.border_color,
+            border_radius: base.border_radius,
+            background_color: base.background_color,
+            z_index: base.z_index,
+            visibility: base.visibility,
+            global_z_index: base.global_z_index
         }
     }
 }
@@ -88,7 +98,7 @@ impl DefaultTextSpanEntity {
 }
 
 
-#[derive(Component)]
+#[derive(Component, Default, Clone)]
 pub struct ExternalStyleHasChanged(pub bool);
 
 #[derive(Component)]

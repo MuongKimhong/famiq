@@ -1,7 +1,7 @@
 use super::color::WHITE_COLOR;
 use crate::widgets::{
     DefaultTextEntity, FamiqWidgetId, DefaultWidgetEntity,
-    FamiqBuilder, WidgetStyle, ExternalStyleHasChanged
+    FamiqBuilder, BaseStyleComponents
 };
 use crate::utils::{process_spacing_built_in_class, insert_id_and_class};
 use bevy::ecs::system::EntityCommands;
@@ -127,6 +127,9 @@ impl<'a> FaText {
         let mut node = _default_text_container_node();
         process_spacing_built_in_class(&mut node, &class);
 
+        let mut style_components = BaseStyleComponents::default();
+        style_components.node = node;
+
         let entity = root_node
             .commands()
             .spawn((
@@ -135,26 +138,9 @@ impl<'a> FaText {
                 txt_color.clone(),
                 txt_layout.clone(),
                 DefaultTextEntity::new(txt, txt_font, txt_color, txt_layout),
-                Interaction::default(),
-                WidgetStyle::default(),
-                ExternalStyleHasChanged(false),
-                IsFamiqText
-            ))
-            .insert((
-                node.clone(),
-                BorderColor::default(),
-                BackgroundColor::default(),
-                BorderRadius::default(),
-                ZIndex::default(),
-                Visibility::Inherited,
-                DefaultWidgetEntity::new(
-                    node,
-                    BorderColor::default(),
-                    BorderRadius::default(),
-                    BackgroundColor::default(),
-                    ZIndex::default(),
-                    Visibility::Inherited,
-                )
+                IsFamiqText,
+                style_components.clone(),
+                DefaultWidgetEntity::from(style_components)
             ))
             .id();
 

@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::widgets::FamiqBuilder;
+use crate::widgets::{FamiqBuilder, BaseStyleComponents};
 
 /// Marker component indicating that an entity is a Famiq background image.
 #[derive(Component)]
@@ -24,18 +24,19 @@ impl<'a> FaBgImage {
             border: UiRect::all(Val::Px(0.0)),
             ..default()
         };
-        let z_index = ZIndex::default();
-        let visibility = Visibility::Visible;
+        let mut style_components = BaseStyleComponents::default();
+        style_components.visibility = Visibility::Visible;
+        style_components.node = node;
+        style_components.global_z_index = GlobalZIndex(-1);
 
-        let entity = root_node.commands().spawn((
-            ImageNode::new(image_handle),
-            node,
-            z_index,
-            visibility,
-            IsFamiqBgImage,
-            Interaction::default(),
-            GlobalZIndex(-1)
-        )).id();
+        let entity = root_node
+            .commands()
+            .spawn((
+                ImageNode::new(image_handle),
+                IsFamiqBgImage,
+                style_components,
+            ))
+            .id();
 
         if !independent {
             root_node.add_child(entity);

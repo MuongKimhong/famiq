@@ -4,8 +4,7 @@ pub mod tests;
 
 use bevy::prelude::*;
 use crate::widgets::{
-    DefaultWidgetEntity, FamiqBuilder, WidgetStyle,
-    ExternalStyleHasChanged, FamiqToolTipText
+    DefaultWidgetEntity, FamiqBuilder, FamiqToolTipText, BaseStyleComponents
 };
 use bevy::reflect::TypePath;
 use bevy::render::render_resource::*;
@@ -74,27 +73,15 @@ impl<'a> FaCircular {
         let mut node = default_circular_node(size);
         process_spacing_built_in_class(&mut node, &class);
 
+        let mut style_components = BaseStyleComponents::default();
+        style_components.node = node;
+
         let outer_entity = root_node
             .commands()
             .spawn((
-                node.clone(),
-                BorderColor::default(),
-                BorderRadius::default(),
-                BackgroundColor::default(),
-                ZIndex::default(),
-                Visibility::Inherited,
-                DefaultWidgetEntity::new(
-                    node,
-                    BorderColor::default(),
-                    BorderRadius::default(),
-                    BackgroundColor::default(),
-                    ZIndex::default(),
-                    Visibility::Inherited
-                ),
+                style_components.clone(),
+                DefaultWidgetEntity::from(style_components),
                 IsFamiqCircular,
-                Interaction::default(),
-                WidgetStyle::default(),
-                ExternalStyleHasChanged(false),
                 SpinnerColor(color)
             ))
             .id();

@@ -16,8 +16,7 @@ pub use components::*;
 use helper::*;
 
 use super::{
-    DefaultWidgetEntity, ExternalStyleHasChanged,
-    FamiqBuilder, FamiqWidgetId, WidgetStyle
+    DefaultWidgetEntity, FamiqBuilder, FamiqWidgetId, BaseStyleComponents
 };
 
 #[derive(AsBindGroup, Asset, TypePath, Debug, Clone)]
@@ -166,25 +165,17 @@ impl<'a> FaProgressBar {
         let mut node = default_progress_bar_node(&size);
         process_spacing_built_in_class(&mut node, &class);
 
+        let mut style_components = BaseStyleComponents::default();
+        style_components.node = node;
+        style_components.visibility = Visibility::Visible;
+        style_components.background_color = BackgroundColor(color);
+        style_components.border_color = BorderColor(color);
+
         let entity = root_node
             .commands()
             .spawn((
-                node.clone(),
-                BorderColor(color),
-                BackgroundColor(color),
-                BorderRadius::all(Val::Px(5.0)),
-                ZIndex::default(),
-                Visibility::Visible,
-                WidgetStyle::default(),
-                ExternalStyleHasChanged(false),
-                DefaultWidgetEntity::new(
-                    node,
-                    BorderColor(color),
-                    BorderRadius::all(Val::Px(5.0)),
-                    BackgroundColor(color),
-                    ZIndex::default(),
-                    Visibility::Visible
-                ),
+                style_components.clone(),
+                DefaultWidgetEntity::from(style_components),
                 IsFamiqProgressBar
             ))
             .id();
@@ -199,15 +190,13 @@ impl<'a> FaProgressBar {
         color: Color,
         bar_entity: Entity
     ) -> Entity {
+        let mut style_components = BaseStyleComponents::default();
+        style_components.node = default_progress_value_node(percentage);
+
         let entity = root_node
             .commands()
             .spawn((
-                default_progress_value_node(percentage),
-                BorderColor::default(),
-                BackgroundColor::default(),
-                BorderRadius::default(),
-                ZIndex::default(),
-                Visibility::Inherited,
+                style_components,
                 IsFamiqProgressValue,
                 FamiqProgressBarEntity(bar_entity),
                 ProgressValueColor(color)

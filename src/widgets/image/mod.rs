@@ -2,10 +2,7 @@ pub mod tests;
 
 use bevy::prelude::*;
 use crate::utils::{process_spacing_built_in_class, insert_id_and_class};
-use crate::widgets::{
-    DefaultWidgetEntity, FamiqBuilder,
-    WidgetStyle, ExternalStyleHasChanged
-};
+use crate::widgets::{DefaultWidgetEntity, FamiqBuilder, BaseStyleComponents};
 
 /// Marker component identifyijng Famiq Image widget.
 #[derive(Component)]
@@ -25,39 +22,24 @@ impl<'a> FaImage {
         let mut node = Node::default();
         process_spacing_built_in_class(&mut node, &class);
 
-        let bg_color = BackgroundColor::default();
-        let border_color = BorderColor::default();
-        let border_radius = BorderRadius::default();
-        let z_index = ZIndex::default();
-        let visibility = Visibility::Inherited;
-
         if let Some(w) = width {
             node.width = w;
         }
         if let Some(h) = height {
             node.height = h;
         }
-        let image_entity = root_node.commands().spawn((
-            ImageNode::new(image_handle),
-            node.clone(),
-            bg_color.clone(),
-            border_radius.clone(),
-            border_color.clone(),
-            z_index.clone(),
-            visibility.clone(),
-            IsFamiqImage,
-            DefaultWidgetEntity::new(
-                node,
-                border_color,
-                border_radius,
-                bg_color,
-                z_index,
-                visibility
-            ),
-            Interaction::default(),
-            WidgetStyle::default(),
-            ExternalStyleHasChanged(false)
-        )).id();
+        let mut style_components = BaseStyleComponents::default();
+        style_components.node = node;
+
+        let image_entity = root_node
+            .commands()
+            .spawn((
+                ImageNode::new(image_handle),
+                style_components.clone(),
+                IsFamiqImage,
+                DefaultWidgetEntity::from(style_components)
+            ))
+            .id();
 
         insert_id_and_class(root_node, image_entity, &id, &class);
         image_entity

@@ -3,7 +3,7 @@ pub mod tests;
 
 use crate::widgets::{
     FamiqWidgetId, DefaultWidgetEntity,
-    FamiqBuilder, WidgetStyle, ExternalStyleHasChanged
+    FamiqBuilder, BaseStyleComponents
 };
 use crate::utils;
 use bevy::prelude::*;
@@ -94,30 +94,14 @@ impl<'a> FaModal {
         root_node: &'a mut EntityCommands,
         items: &Vec<Entity>
     ) -> Entity {
-        let node = default_modal_container_node();
-        let border_color = BorderColor::default();
-        let border_radius = BorderRadius::default();
-        let bg_color = BackgroundColor::default();
-        let z_index = ZIndex::default();
-        let visibility = Visibility::Inherited;
+        let mut style_components = BaseStyleComponents::default();
+        style_components.node = default_modal_container_node();
 
         let container_entity = root_node
             .commands()
             .spawn((
-                node.clone(),
-                border_color.clone(),
-                border_radius.clone(),
-                bg_color.clone(),
-                z_index.clone(),
-                visibility.clone(),
-                DefaultWidgetEntity::new(
-                    node,
-                    border_color,
-                    border_radius,
-                    bg_color,
-                    z_index,
-                    visibility
-                ),
+                style_components.clone(),
+                DefaultWidgetEntity::from(style_components),
                 IsFamiqModalContainer,
                 FocusPolicy::Block,
                 AnimationProgress(0.0)
@@ -139,26 +123,23 @@ impl<'a> FaModal {
         root_node: &'a mut EntityCommands,
         container_entity: Entity
     ) -> Entity {
-        let mut bg = BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.6));
-        if clear_bg {
-            bg = BackgroundColor::default();
+        let mut style_components = BaseStyleComponents::default();
+        style_components.node = default_modal_background_node();
+        style_components.global_z_index = GlobalZIndex(5);
+        style_components.visibility = Visibility::Hidden;
+        style_components.border_color = BorderColor(Color::srgba(0.0, 0.0, 0.0, 0.6));
+
+        if !clear_bg {
+            style_components.background_color = BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.6));
         }
 
         let entity = root_node
             .commands()
             .spawn((
-                default_modal_background_node(),
-                BorderColor(Color::srgba(0.0, 0.0, 0.0, 0.6)),
-                BorderRadius::default(),
-                bg,
-                ZIndex::default(),
-                GlobalZIndex(5),
-                Visibility::Hidden,
+                style_components,
                 IsFamiqModalBackground,
                 FocusPolicy::Block,
-                FaModalContainerEntity(container_entity),
-                WidgetStyle::default(),
-                ExternalStyleHasChanged(false)
+                FaModalContainerEntity(container_entity)
             ))
             .id();
 
