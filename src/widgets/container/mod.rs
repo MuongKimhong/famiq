@@ -5,11 +5,10 @@ use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 
 use crate::utils;
-use crate::widgets::{
-    DefaultWidgetEntity, FamiqBuilder,
-    WidgetStyle, ExternalStyleHasChanged
-};
+use crate::widgets::{DefaultWidgetEntity, FamiqBuilder};
 use helper::default_container_node;
+
+use super::BaseStyleComponents;
 
 /// Marker component for identifying a Famiq container.
 #[derive(Component)]
@@ -30,33 +29,16 @@ impl<'a> FaContainer {
         let mut node = default_container_node();
         utils::process_spacing_built_in_class(&mut node, &class);
 
-        let bg_color = BackgroundColor::default();
-        let border_color = BorderColor::default();
-        let border_radius = BorderRadius::default();
-        let z_index = ZIndex::default();
-        let visibility = Visibility::Visible;
+        let mut style_components = BaseStyleComponents::default();
+        style_components.node = node;
+        style_components.visibility = Visibility::Visible;
 
         let container_entity = root_node
             .commands()
             .spawn((
-                node.clone(),
-                bg_color.clone(),
-                border_color.clone(),
-                border_radius.clone(),
-                z_index.clone(),
-                visibility.clone(),
+                style_components.clone(),
                 IsFamiqContainer,
-                DefaultWidgetEntity::new(
-                    node,
-                    border_color,
-                    border_radius,
-                    bg_color,
-                    z_index,
-                    visibility,
-                ),
-                Interaction::default(),
-                WidgetStyle::default(),
-                ExternalStyleHasChanged(false)
+                DefaultWidgetEntity::from(style_components)
             ))
             .id();
 

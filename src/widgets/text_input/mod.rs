@@ -8,7 +8,7 @@ use crate::widgets::color::WHITE_COLOR;
 use crate::widgets::{
     DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId,
      WidgetType, FamiqResource, FamiqBuilder,
-    WidgetStyle, ExternalStyleHasChanged, ResourceMap
+    WidgetStyle, ExternalStyleHasChanged, ResourceMap, BaseStyleComponents
 };
 use crate::event_writer::FaInteractionEvent;
 
@@ -294,18 +294,12 @@ impl<'a> FaTextInput {
         let mut node = default_input_node();
         process_spacing_built_in_class(&mut node, &class);
 
-        let border_color = get_input_border_color(&color);
-        let bg_color = get_input_background_color(&color);
-        let z_index = ZIndex::default();
-        let visibility = Visibility::Visible;
         let mut border_radius = outlined_border_radius();
-
         match shape {
             TextInputShape::Round => border_radius = round_border_radius(),
             TextInputShape::Rectangle => border_radius = rectangle_border_radius(),
             _ => ()
         }
-
         match variant {
             TextInputVariant::Underlined => {
                 border_radius = underlined_border_radius();
@@ -319,15 +313,17 @@ impl<'a> FaTextInput {
             _ => (),
         }
 
+        let mut style_components = BaseStyleComponents::default();
+        style_components.node = node;
+        style_components.border_color = get_input_border_color(&color);
+        style_components.background_color = get_input_background_color(&color);
+        style_components.visibility = Visibility::Visible;
+        style_components.border_radius = border_radius;
+
         let entity = root_node
             .commands()
             .spawn((
-                node.clone(),
-                border_color.clone(),
-                bg_color.clone(),
-                border_radius.clone(),
-                z_index.clone(),
-                visibility.clone(),
+                style_components.clone(),
                 BoxShadow {
                     color: Color::NONE,
                     x_offset: Val::Px(0.0),
@@ -336,23 +332,11 @@ impl<'a> FaTextInput {
                     blur_radius: Val::Px(1.0)
                 },
                 IsFamiqTextInput,
-                DefaultWidgetEntity::new(
-                    node,
-                    border_color,
-                    border_radius,
-                    bg_color,
-                    z_index,
-                    visibility,
-                ),
+                DefaultWidgetEntity::from(style_components),
                 TextInput::new("", placeholder),
-                Interaction::default(),
                 FamiqTextInputPlaceholderEntity(placeholder_entity),
                 FamiqTextInputCursorEntity(cursor_entity),
-            ))
-            .insert((
                 CharacterSize { width: 0.0, height: 0.0 },
-                WidgetStyle::default(),
-                ExternalStyleHasChanged(false)
             ))
             .id();
 

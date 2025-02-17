@@ -4,7 +4,7 @@ pub mod tests;
 use crate::utils::{entity_add_child, insert_id_and_class, process_spacing_built_in_class};
 use crate::widgets::{
     DefaultTextEntity, DefaultWidgetEntity, DefaultTextSpanEntity,
-    FamiqBuilder, WidgetStyle, ExternalStyleHasChanged
+    FamiqBuilder, WidgetStyle, ExternalStyleHasChanged, BaseStyleComponents
 };
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::ecs::system::EntityCommands;
@@ -49,6 +49,12 @@ impl<'a> FaFpsText {
             node.left = Val::Auto;
             node.right = Val::Px(6.0);
         }
+
+        let mut style_components = BaseStyleComponents::default();
+        style_components.node = node;
+        style_components.visibility = Visibility::Visible;
+        style_components.global_z_index = GlobalZIndex(6);
+
         let label_txt_font = TextFont {
             font: font_handle,
             font_size: DEFAULT_FPS_TEXT_SIZE,
@@ -70,26 +76,8 @@ impl<'a> FaFpsText {
                     TextLayout::new_with_justify(JustifyText::Center),
                 ),
                 IsFamiqFPSTextLabel,
-                WidgetStyle::default(),
-                ExternalStyleHasChanged(false)
-            ))
-            .insert((
-                node.clone(),
-                BorderColor::default(),
-                BorderRadius::default(),
-                BackgroundColor::default(),
-                ZIndex::default(),
-                Visibility::Visible,
-                DefaultWidgetEntity::new(
-                    node,
-                    BorderColor::default(),
-                    BorderRadius::default(),
-                    BackgroundColor::default(),
-                    ZIndex::default(),
-                    Visibility::Visible,
-                ),
-                Interaction::default(),
-                GlobalZIndex(6)
+                style_components.clone(),
+                DefaultWidgetEntity::from(style_components)
             ))
             .id();
 

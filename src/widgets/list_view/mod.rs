@@ -4,8 +4,7 @@ pub mod tests;
 use crate::utils;
 use crate::widgets::{
     DefaultWidgetEntity, FamiqWidgetId,
-    WidgetType, FamiqBuilder,
-    WidgetStyle, ExternalStyleHasChanged
+    WidgetType, FamiqBuilder, BaseStyleComponents
 };
 use crate::event_writer::FaInteractionEvent;
 use bevy::ecs::system::EntityCommands;
@@ -60,31 +59,15 @@ impl<'a> FaListView {
         root_node: &'a mut EntityCommands,
         scroll_height: f32
     ) -> Entity {
-        let node = default_move_panel_node();
-        let bg_color = BackgroundColor::default();
-        let border_color = BorderColor::default();
-        let border_radius = BorderRadius::default();
-        let z_index = ZIndex::default();
-        let visibility = Visibility::Inherited;
+        let mut style_components = BaseStyleComponents::default();
+        style_components.node = default_move_panel_node();
 
         let move_panel_entity = root_node
             .commands()
             .spawn((
-                node.clone(),
-                bg_color.clone(),
-                border_color.clone(),
-                border_radius.clone(),
-                z_index.clone(),
-                visibility.clone(),
+                style_components.clone(),
                 IsFamiqListViewMovePanel,
-                DefaultWidgetEntity::new(
-                    node,
-                    border_color,
-                    border_radius,
-                    bg_color,
-                    z_index,
-                    visibility,
-                ),
+                DefaultWidgetEntity::from(style_components),
                 ScrollList::new(scroll_height)
             ))
             .id();
@@ -114,34 +97,17 @@ impl<'a> FaListView {
         let mut node = default_listview_node();
         utils::process_spacing_built_in_class(&mut node, &class);
 
-        let bg_color = BackgroundColor::default();
-        let border_color = BorderColor::default();
-        let border_radius = BorderRadius::default();
-        let z_index = ZIndex::default();
-        let visibility = Visibility::Visible;
+        let mut style_components = BaseStyleComponents::default();
+        style_components.node = node;
+        style_components.visibility = Visibility::Visible;
 
         let listview_entity = root_node
             .commands()
             .spawn((
-                node.clone(),
-                border_color.clone(),
-                border_radius.clone(),
-                bg_color.clone(),
-                z_index.clone(),
-                visibility.clone(),
+                style_components.clone(),
                 IsFamiqListView,
-                DefaultWidgetEntity::new(
-                    node,
-                    border_color,
-                    border_radius,
-                    bg_color,
-                    z_index,
-                    visibility,
-                ),
-                Interaction::default(),
-                ListViewMovePanelEntity(panel_entity),
-                WidgetStyle::default(),
-                ExternalStyleHasChanged(false)
+                DefaultWidgetEntity::from(style_components),
+                ListViewMovePanelEntity(panel_entity)
             ))
             .id();
 

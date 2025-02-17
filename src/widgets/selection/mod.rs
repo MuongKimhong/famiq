@@ -8,7 +8,7 @@ use crate::utils::*;
 use crate::widgets::{
     DefaultTextEntity, DefaultWidgetEntity,
     FamiqWidgetId, FamiqBuilder, WidgetStyle,
-    ExternalStyleHasChanged, ResourceMap
+    ExternalStyleHasChanged, ResourceMap, BaseStyleComponents
 };
 use bevy::ecs::system::EntityCommands;
 use bevy::ui::FocusPolicy;
@@ -95,28 +95,13 @@ pub struct FaSelection;
 // Needs container
 impl<'a> FaSelection {
     fn _build_container(root_node: &'a mut EntityCommands) -> Entity {
+        let mut style_components = BaseStyleComponents::default();
+        style_components.node = default_selection_container_node();
+        style_components.visibility = Visibility::Visible;
+
         root_node
             .commands()
-            .spawn((
-                default_selection_container_node(),
-                BorderColor::default(),
-                BorderRadius::default(),
-                BackgroundColor::default(),
-                ZIndex::default(),
-                Visibility::Visible,
-                IsFamiqSelectionContainer,
-                DefaultWidgetEntity::new(
-                    default_selection_container_node(),
-                    BorderColor::default(),
-                    BorderRadius::default(),
-                    BackgroundColor::default(),
-                    ZIndex::default(),
-                    Visibility::Visible,
-                ),
-                Interaction::default(),
-                WidgetStyle::default(),
-                ExternalStyleHasChanged(false)
-            ))
+            .spawn((style_components, IsFamiqSelectionContainer))
             .id()
     }
 
@@ -227,15 +212,17 @@ impl<'a> FaSelection {
         let mut node = default_selector_node(border_width);
         process_spacing_built_in_class(&mut node, class);
 
+        let mut style_components = BaseStyleComponents::default();
+        style_components.node = node;
+        style_components.border_color = get_selector_border_color(color);
+        style_components.background_color = get_selector_background_color(color);
+        style_components.border_radius = border_radius;
+        style_components.visibility = Visibility::Visible;
+
         let selector_entity = root_node
             .commands()
             .spawn((
-                node.clone(),
-                get_selector_border_color(color),
-                border_radius.clone(),
-                get_selector_background_color(color),
-                ZIndex::default(),
-                Visibility::Visible,
+                style_components.clone(),
                 BoxShadow {
                     color: Color::NONE,
                     x_offset: Val::Px(0.0),
@@ -244,20 +231,11 @@ impl<'a> FaSelection {
                     blur_radius: Val::Px(1.0)
                 },
                 IsFamiqSelectionSelector,
-                DefaultWidgetEntity::new(
-                    node,
-                    get_selector_border_color(color),
-                    border_radius,
-                    get_selector_background_color(color),
-                    ZIndex::default(),
-                    Visibility::Visible,
-                ),
-                Interaction::default(),
+                DefaultWidgetEntity::from(style_components),
                 Selection::new(placeholder.to_string()),
                 SelectorPlaceHolderEntity(placeholder_entity),
                 SelectorArrowIconEntity(arrow_icon_entity)
             ))
-            .insert((WidgetStyle::default(), ExternalStyleHasChanged(false)))
             .id();
 
         insert_id_and_class(root_node, selector_entity, id, class);
@@ -284,18 +262,20 @@ impl<'a> FaSelection {
             choice_entities.push(container);
         }
 
+        let mut style_components = BaseStyleComponents::default();
+        style_components.node = default_selection_choices_panel_node();
+        style_components.border_color = get_choice_panel_border_color(color);
+        style_components.background_color = get_choice_panel_background_color(color);
+        style_components.visibility = Visibility::Hidden;
+        style_components.global_z_index = GlobalZIndex(2);
+        style_components.border_radius = BorderRadius::all(Val::Px(5.0));
+
         let panel = root_node
             .commands()
             .spawn((
-                default_selection_choices_panel_node(),
-                get_choice_panel_border_color(color),
-                BorderRadius::all(Val::Px(5.0)),
-                get_choice_panel_background_color(color),
-                ZIndex::default(),
-                Visibility::Hidden,
+                style_components,
                 IsFamiqSelectionChoicesPanel,
                 SelectionContainerEntity(container_entity),
-                GlobalZIndex(2),
                 FocusPolicy::Block
             ))
             .id();
@@ -309,18 +289,16 @@ impl<'a> FaSelection {
         text_entity: Entity,
         selector_entity: Entity
     ) -> Entity {
+        let mut style_components = BaseStyleComponents::default();
+        style_components.node = default_choice_container_node();
+        style_components.border_radius = BorderRadius::all(Val::Px(5.0));
+
         root_node
             .commands()
             .spawn((
-                default_choice_container_node(),
-                BorderColor::default(),
-                BorderRadius::all(Val::Px(5.0)),
-                BackgroundColor::default(),
-                ZIndex::default(),
-                Visibility::Inherited,
+                style_components,
                 IsFamiqSelectionChoice,
                 SelectionChoiceTextEntity(text_entity),
-                Interaction::default(),
                 SelectorEntity(selector_entity)
             ))
             .id()

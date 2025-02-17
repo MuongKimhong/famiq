@@ -9,7 +9,7 @@ use crate::utils;
 use super::{
     DefaultTextEntity, DefaultWidgetEntity,
     FamiqResource, FamiqBuilder,
-    WidgetStyle, ExternalStyleHasChanged, FamiqToolTipText
+    WidgetStyle, ExternalStyleHasChanged, FamiqToolTipText, BaseStyleComponents
 };
 use super::tooltip::{FaToolTip, FaToolTipResource, IsFamiqToolTipText};
 use crate::event_writer::FaInteractionEvent;
@@ -93,19 +93,14 @@ impl<'a> FaButton {
             BtnShape::Rectangle => border_radius = BorderRadius::all(Val::Px(0.0)),
             _ => ()
         }
+        let mut style_components = BaseStyleComponents::default();
+        style_components.node = default_button_overlay_node();
+        style_components.border_radius = border_radius;
+        style_components.z_index = ZIndex(2);
 
         root_node
             .commands()
-            .spawn((
-                default_button_overlay_node(),
-                BorderColor::default(),
-                BackgroundColor::default(),
-                border_radius,
-                ZIndex(2),
-                Visibility::Inherited,
-                Interaction::default(),
-                IsFamiqButtonOverlay
-            ))
+            .spawn((style_components, IsFamiqButtonOverlay))
             .id()
     }
 
@@ -127,39 +122,26 @@ impl<'a> FaButton {
         let mut node = default_button_node();
         utils::process_spacing_built_in_class(&mut node, &class);
 
-        let border_color = get_button_border_color(&color);
-        let bg_color = get_button_background_color(&color);
-        let z_index = ZIndex::default();
-        let visibility = Visibility::Inherited;
         let mut border_radius =  BorderRadius::all(Val::Px(6.0));
-
         match shape {
             BtnShape::Round => border_radius = BorderRadius::all(Val::Percent(50.0)),
             BtnShape::Rectangle => border_radius = BorderRadius::all(Val::Px(0.0)),
             _ => ()
         }
+
+        let mut style_components = BaseStyleComponents::default();
+        style_components.node = node;
+        style_components.border_color = get_button_border_color(&color);
+        style_components.background_color = get_button_background_color(&color);
+        style_components.border_radius = border_radius;
+
         let btn_entity = root_node
             .commands()
             .spawn((
-                node.clone(),
-                border_color.clone(),
-                bg_color.clone(),
-                border_radius.clone(),
-                z_index.clone(),
-                visibility.clone(),
+                style_components.clone(),
                 IsFamiqButton,
-                DefaultWidgetEntity::new(
-                    node,
-                    border_color,
-                    border_radius,
-                    bg_color,
-                    z_index,
-                    visibility,
-                ),
-                Interaction::default(),
+                DefaultWidgetEntity::from(style_components),
                 ButtonTextEntity(txt_entity),
-                WidgetStyle::default(),
-                ExternalStyleHasChanged(false),
                 ButtonOverlayEntity(overlay_entity)
             ))
             .id();
@@ -214,12 +196,12 @@ impl<'a> FaButton {
         mut builder_res: ResMut<FamiqResource>,
         mut button_q: Query<
             (
-            &Node,
-            &ComputedNode,
-            &GlobalTransform,
-            &ButtonOverlayEntity,
-            &BorderRadius,
-            Option<&FamiqToolTipText>
+                &Node,
+                &ComputedNode,
+                &GlobalTransform,
+                &ButtonOverlayEntity,
+                &BorderRadius,
+                Option<&FamiqToolTipText>
             ),
             With<IsFamiqButton>
         >,
