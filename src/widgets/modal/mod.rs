@@ -32,7 +32,8 @@ pub struct AnimationProgress(pub f32);
 #[derive(Resource, Default, Debug)]
 pub struct FaModalState {
     pub id_states: HashMap<String, bool>,
-    pub entity_states: HashMap<Entity, bool>
+    pub entity_states: HashMap<Entity, bool>,
+    pub state_changed: bool
 }
 
 impl FaModalState {
@@ -58,22 +59,26 @@ impl FaModalState {
     pub fn show_by_id(&mut self, id: &str) {
         self._hide_all();
         self._update_or_insert_id(id, true);
+        self.state_changed = true;
     }
 
     /// Show modal by Entity (Only one can be `true`)
     pub fn show_by_entity(&mut self, entity: Entity) {
         self._hide_all();
         self._update_or_insert_entity(entity, true);
+        self.state_changed = true;
     }
 
     /// Hide modal by ID
     pub fn hide_by_id(&mut self, id: &str) {
         self._update_or_insert_id(id, false);
+        self.state_changed = true;
     }
 
     /// Hide modal by Entity
     pub fn hide_by_entity(&mut self, entity: Entity) {
         self._update_or_insert_entity(entity, false);
+        self.state_changed = true;
     }
 
     pub fn get_state_by_id(&self, id: &str) -> Option<&bool> {
@@ -90,7 +95,6 @@ pub struct FaModal;
 // Doesn't need container
 impl<'a> FaModal {
     fn _build_modal_container(
-        id: &Option<String>,
         root_node: &'a mut EntityCommands,
         items: &Vec<Entity>
     ) -> Entity {
@@ -107,10 +111,6 @@ impl<'a> FaModal {
                 AnimationProgress(0.0)
             ))
             .id();
-
-        if let Some(id) = id {
-            root_node.commands().entity(container_entity).insert(FamiqWidgetId(format!("{id}_modal_container")));
-        }
 
         utils::entity_add_children(root_node, items, container_entity);
         container_entity
@@ -155,11 +155,31 @@ impl<'a> FaModal {
         items: &Vec<Entity>,
         root_node: &'a mut EntityCommands
     ) -> Entity {
-        let container = Self::_build_modal_container(&id, root_node, items);
+        let container = Self::_build_modal_container(root_node, items);
         let background = Self::_build_modal_background(id, class, clear_bg, root_node, container);
 
         utils::entity_add_child(root_node, container, background);
         background
+    }
+
+    pub fn detect_new_modal_system(
+        mut modal_res: ResMut<FaModalState>,
+        mut modal_container_q: Query<&mut Transform, With<IsFamiqModalContainer>>,
+        modal_bg_q: Query<
+            (Entity, Option<&FamiqWidgetId>, &FaModalContainerEntity),
+            Added<IsFamiqModalBackground>
+        >,
+    ) {
+        for (entity, id, container_entity) in modal_bg_q.iter() {
+            if let Some(id) = id {
+                modal_res._update_or_insert_id(&id.0, false);
+            }
+            modal_res._update_or_insert_entity(entity, false);
+
+            if let Ok(mut transform) = modal_container_q.get_mut(container_entity.0) {
+                transform.scale = Vec3::splat(0.0);
+            }
+        }
     }
 
     /// Internal system to hide or display via `FaModalState` resource.
@@ -167,27 +187,35 @@ impl<'a> FaModal {
         mut modal_bg_q: Query<(&mut Visibility, Entity, &FamiqWidgetId, &FaModalContainerEntity)>,
         mut modal_container_q: Query<(&mut AnimationProgress, &mut Transform), With<IsFamiqModalContainer>>,
         time: Res<Time>,
-        modal_res: Res<FaModalState>,
+        mut modal_res: ResMut<FaModalState>,
     ) {
-        let delta = time.delta_secs() * 6.0;
+        if modal_res.state_changed {
+            let delta = time.delta_secs() * 6.0;
 
-        for (mut visibility, modal_entity, modal_id, container_entity) in modal_bg_q.iter_mut() {
-            let is_visible = modal_res
-                .get_state_by_id(&modal_id.0)
-                .copied()
-                .or_else(|| modal_res.get_state_by_entity(modal_entity).copied())
-                .unwrap_or(false);
+            for (mut visibility, modal_entity, modal_id, container_entity) in modal_bg_q.iter_mut() {
+                let is_visible = modal_res
+                    .get_state_by_id(&modal_id.0)
+                    .copied()
+                    .or_else(|| modal_res.get_state_by_entity(modal_entity).copied())
+                    .unwrap_or(false);
 
-            // Try to get the corresponding modal container
-            if let Ok((mut progress, mut transform)) = modal_container_q.get_mut(container_entity.0) {
-                if is_visible {
-                    *visibility = Visibility::Visible;
-                    progress.0 = (progress.0 + delta).min(1.0);
-                } else {
-                    *visibility = Visibility::Hidden;
-                    progress.0 = (progress.0 - delta).max(0.0);
+                // Try to get the corresponding modal container
+                if let Ok((mut progress, mut transform)) = modal_container_q.get_mut(container_entity.0) {
+                    let old_progress = progress.0;
+
+                    if is_visible {
+                        *visibility = Visibility::Visible;
+                        progress.0 = (progress.0 + delta).min(1.0);
+                    } else {
+                        *visibility = Visibility::Hidden;
+                        progress.0 = (progress.0 - delta).max(0.0);
+                    }
+                    transform.scale = Vec3::splat(progress.0); // Uniform scaling
+
+                    if old_progress != progress.0 && (progress.0 == 1.0 || progress.0 == 0.0) {
+                        modal_res.state_changed = false;
+                    }
                 }
-                transform.scale = Vec3::splat(progress.0); // Uniform scaling
             }
         }
     }
