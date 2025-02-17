@@ -1,7 +1,6 @@
 use crate::utils;
 use crate::widgets::{
     style_parse::*,
-    helper::*,
     DefaultTextEntity, DefaultWidgetEntity, FamiqResource,
     FamiqWidgetId, FamiqWidgetClasses, StylesKeyValueResource, WidgetStyle,
     ExternalStyleHasChanged
@@ -193,10 +192,10 @@ pub fn apply_styles_from_external_json(
     widget_style: &WidgetStyle,
     default_widget_entity: &DefaultWidgetEntity
 ) {
-    handle_apply_padding(widget_style, default_widget_entity, node);
-    handle_apply_margin(widget_style, default_widget_entity, node);
-    handle_apply_border(widget_style, default_widget_entity, node);
-    handle_apply_border_radius(widget_style, default_widget_entity, border_radius);
+    utils::_handle_apply_padding(widget_style, default_widget_entity, node);
+    utils::_handle_apply_margin(widget_style, default_widget_entity, node);
+    utils::_handle_apply_border(widget_style, default_widget_entity, node);
+    utils::_handle_apply_border_radius(widget_style, default_widget_entity, border_radius);
 
     if let Some(bg_color_value) = &widget_style.background_color {
         if let Some(v) = parse_background_color(&bg_color_value) {
