@@ -47,7 +47,7 @@ fn test_create_default_fps() {
     app.update();
 
     let fps_q = app.world_mut()
-        .query::<(&FamiqWidgetId, &FamiqWidgetClasses, &IsFamiqFPSTextContainer)>()
+        .query::<(&FamiqWidgetId, &FamiqWidgetClasses, &IsFamiqFPSTextLabel)>()
         .get_single(app.world());
 
     let fps_id = fps_q.as_ref().unwrap().0;
@@ -77,7 +77,7 @@ fn test_create_fps_with_right_side() {
     app.add_systems(Startup, setup_test_fps_with_right_side);
     app.update();
 
-    let fps_q = app.world_mut().query::<(&Node, &IsFamiqFPSTextContainer)>().get_single(app.world());
+    let fps_q = app.world_mut().query::<(&Node, &IsFamiqFPSTextLabel)>().get_single(app.world());
 
     let fps_node = fps_q.unwrap().0;
 

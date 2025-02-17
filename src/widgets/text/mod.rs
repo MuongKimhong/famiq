@@ -162,42 +162,6 @@ impl<'a> FaText {
         entity
     }
 
-    // fn _build_container(
-    //     id: Option<String>,
-    //     class: Option<String>,
-    //     root_node: &'a mut EntityCommands,
-    // ) -> Entity {
-    //     let mut node = _default_text_container_node();
-    //     process_spacing_built_in_class(&mut node, &class);
-
-    //     let container_entity = root_node
-    //         .commands()
-    //         .spawn((
-    //             node.clone(),
-    //             BorderColor::default(),
-    //             BackgroundColor::default(),
-    //             BorderRadius::default(),
-    //             ZIndex::default(),
-    //             Visibility::Inherited,
-    //             IsFamiqTextContainer,
-    //             DefaultWidgetEntity::new(
-    //                 node,
-    //                 BorderColor::default(),
-    //                 BorderRadius::default(),
-    //                 BackgroundColor::default(),
-    //                 ZIndex::default(),
-    //                 Visibility::Inherited,
-    //             ),
-    //             Interaction::default(),
-    //             WidgetStyle::default(),
-    //             ExternalStyleHasChanged(false)
-    //         ))
-    //         .id();
-
-    //     insert_id_and_class(root_node, container_entity, &id, &class);
-    //     container_entity
-    // }
-
     pub fn new(
         id: Option<String>,
         text: &str,
@@ -206,10 +170,7 @@ impl<'a> FaText {
         font_handle: Handle<Font>,
         size: TextSize
     ) -> Entity {
-        let txt_entity = Self::_build_text(&id, &class, text, root_node, font_handle, size);
-        // let container = Self::_build_container(id, class, root_node);
-        // entity_add_child(root_node, txt_entity, container);
-        txt_entity
+        Self::_build_text(&id, &class, text, root_node, font_handle, size)
     }
 
     /// Internal system that reads `FaTextResource` and update the corresponding text widget's value

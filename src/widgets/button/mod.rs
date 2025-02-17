@@ -382,5 +382,5 @@ pub fn fa_button<'a>(builder: &'a mut FamiqBuilder, text: &str) -> FaButtonBuild
 ///
 /// `True` only if there is a button widget created.
 pub fn can_run_button_systems(button_q: Query<&IsFamiqButton>) -> bool {
-    button_q.iter().count() > 0
+    !button_q.is_empty()
 }

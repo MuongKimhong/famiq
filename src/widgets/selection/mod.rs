@@ -567,5 +567,5 @@ pub fn fa_selection<'a>(
 }
 
 pub fn can_run_selection_systems(selection_q: Query<&IsFamiqSelectionContainer>) -> bool {
-    selection_q.iter().count() > 0
+    !selection_q.is_empty()
 }

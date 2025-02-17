@@ -152,3 +152,7 @@ impl<'a> FaToolTip {
         }
     }
 }
+
+pub fn can_run_tooltip_systems(tooltip_q: Query<&IsFamiqToolTipText>) -> bool {
+    !tooltip_q.is_empty()
+}

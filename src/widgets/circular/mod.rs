@@ -315,5 +315,5 @@ pub fn fa_circular<'a>(builder: &'a mut FamiqBuilder) -> FaCircularBuilder<'a> {
 ///
 /// True only if circular widget is created.
 pub fn can_run_circular_systems(circular_q: Query<&IsFamiqCircular>) -> bool {
-    circular_q.iter().count() > 0
+    !circular_q.is_empty()
 }

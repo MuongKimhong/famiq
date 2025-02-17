@@ -829,5 +829,5 @@ pub fn fa_text_input<'a>(
 ///
 /// True only if there is a text_input widget created.
 pub fn can_run_text_input_systems(input_q: Query<&IsFamiqTextInput>) -> bool {
-    input_q.iter().count() > 0
+    !input_q.is_empty()
 }
