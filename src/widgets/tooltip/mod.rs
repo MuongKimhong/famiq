@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use crate::utils::entity_add_child;
 
 use super::color::BLACK_COLOR;
 
@@ -7,13 +6,7 @@ const TOP_OFFSET: f32 = 20.0;
 const BOTTOM_OFFSET: f32 = 15.0;
 
 #[derive(Component)]
-pub struct IsFamiqToolTipContainer;
-
-#[derive(Component)]
 pub struct IsFamiqToolTipText;
-
-#[derive(Component)]
-pub struct FamiqToolTipTextEntity(pub Entity);
 
 #[derive(Resource, Default)]
 pub struct FaToolTipResource {
@@ -60,7 +53,10 @@ impl FaToolTipResource {
 pub struct FaToolTip;
 
 impl<'a> FaToolTip {
-    fn _build_container(root_node: &'a mut EntityCommands, txt_entity: Entity) -> Entity {
+    fn _build_tooltip(
+        root_node: &'a mut EntityCommands,
+        font_handle: Handle<Font>
+    ) -> Entity {
         let node = Node {
             width: Val::Auto,
             height: Val::Auto,
@@ -70,30 +66,16 @@ impl<'a> FaToolTip {
             border: UiRect::all(Val::Px(1.0)),
             left: Val::Px(0.0),
             top: Val::Px(0.0),
-            padding: UiRect::all(Val::Px(4.0)),
+            padding: UiRect {
+                left: Val::Px(5.0),
+                right: Val::Px(5.0),
+                top: Val::Px(2.0),
+                bottom: Val::Px(0.0),
+            },
             ..default()
         };
         let color = Color::srgba(1.0, 1.0, 1.0, 0.8);
-        root_node
-            .commands()
-            .spawn((
-                node,
-                BorderColor(color),
-                BackgroundColor(color),
-                BorderRadius::all(Val::Px(5.0)),
-                ZIndex::default(),
-                Visibility::Hidden,
-                IsFamiqToolTipContainer,
-                GlobalZIndex(4),
-                FamiqToolTipTextEntity(txt_entity)
-            ))
-            .id()
-    }
 
-    fn _build_text(
-        root_node: &'a mut EntityCommands,
-        font_handle: Handle<Font>
-    ) -> Entity {
         root_node
             .commands()
             .spawn((
@@ -105,17 +87,22 @@ impl<'a> FaToolTip {
                 },
                 TextColor(BLACK_COLOR),
                 TextLayout::new_with_justify(JustifyText::Center),
-                Visibility::Inherited,
                 IsFamiqToolTipText
+            ))
+            .insert((
+                node,
+                BorderColor(color),
+                BackgroundColor(color),
+                BorderRadius::all(Val::Px(5.0)),
+                ZIndex::default(),
+                Visibility::Hidden,
+                GlobalZIndex(4)
             ))
             .id()
     }
 
     pub fn new(root_node: &'a mut EntityCommands, font_handle: Handle<Font>) -> Entity {
-        let txt = Self::_build_text(root_node, font_handle);
-        let container = Self::_build_container(root_node, txt);
-        entity_add_child(root_node, txt, container);
-        container
+        Self::_build_tooltip(root_node, font_handle)
     }
 
     pub fn _update_toolitp_text(
@@ -136,7 +123,7 @@ impl<'a> FaToolTip {
             &mut Visibility,
             &mut Node,
             &ComputedNode
-        )>,
+        ), With<IsFamiqToolTipText>>,
     ) {
         if tooltip_res.is_changed() {
             if let Ok((mut visibility, mut node, computed_node)) = tooltip_q.get_single_mut() {
