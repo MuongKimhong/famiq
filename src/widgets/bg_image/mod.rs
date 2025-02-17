@@ -27,7 +27,6 @@ impl<'a> FaBgImage {
         let mut style_components = BaseStyleComponents::default();
         style_components.visibility = Visibility::Visible;
         style_components.node = node;
-        style_components.global_z_index = GlobalZIndex(-1);
 
         let entity = root_node
             .commands()
@@ -35,6 +34,7 @@ impl<'a> FaBgImage {
                 ImageNode::new(image_handle),
                 IsFamiqBgImage,
                 style_components,
+                GlobalZIndex(-1)
             ))
             .id();
 

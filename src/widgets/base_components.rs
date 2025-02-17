@@ -21,7 +21,6 @@ pub struct BaseStyleComponents {
     pub background_color: BackgroundColor,
     pub z_index: ZIndex,
     pub visibility: Visibility,
-    pub global_z_index: GlobalZIndex,
     pub interaction: Interaction,
     pub widget_style: WidgetStyle,
     pub external_style_changed: ExternalStyleHasChanged
@@ -35,7 +34,6 @@ pub struct DefaultWidgetEntity {
     pub background_color: BackgroundColor,
     pub z_index: ZIndex,
     pub visibility: Visibility,
-    pub global_z_index: GlobalZIndex
 }
 
 impl From<BaseStyleComponents> for DefaultWidgetEntity {
@@ -46,8 +44,7 @@ impl From<BaseStyleComponents> for DefaultWidgetEntity {
             border_radius: base.border_radius,
             background_color: base.background_color,
             z_index: base.z_index,
-            visibility: base.visibility,
-            global_z_index: base.global_z_index
+            visibility: base.visibility
         }
     }
 }
