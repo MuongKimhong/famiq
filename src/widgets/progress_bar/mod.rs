@@ -531,8 +531,6 @@ pub fn fa_progress_bar<'a>(builder: &'a mut FamiqBuilder) -> FaProgressBarBuilde
     )
 }
 
-pub fn can_run_fa_progress_bar_systems(
-    bar_q: Query<&IsFamiqProgressBar>
-) -> bool {
-    bar_q.iter().count() > 0
+pub fn can_run_fa_progress_bar_systems(bar_q: Query<&IsFamiqProgressBar>) -> bool {
+    !bar_q.is_empty()
 }

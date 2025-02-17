@@ -126,3 +126,10 @@ pub fn fa_image<'a>(builder: &'a mut FamiqBuilder, path: &str) -> FaImageBuilder
         builder.ui_root_node.reborrow()
     )
 }
+
+/// a system to check if Image internal system(s) can run.
+///
+/// True only if image widget is created.
+pub fn can_run_image_systems(image_q: Query<&IsFamiqImage>) -> bool {
+    !image_q.is_empty()
+}

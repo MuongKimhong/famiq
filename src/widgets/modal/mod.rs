@@ -282,5 +282,5 @@ pub fn fa_modal<'a>(builder: &'a mut FamiqBuilder) -> FaModalBuilder<'a> {
 ///
 /// True only if there is a modal widget created.
 pub fn can_run_modal_systems(modal_q: Query<&IsFamiqModalBackground>) -> bool {
-    modal_q.iter().count() > 0
+    !modal_q.is_empty()
 }

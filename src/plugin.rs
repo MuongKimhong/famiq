@@ -10,6 +10,7 @@ use crate::widgets::{
     text::*,
     tooltip::*,
     progress_bar::*,
+    image::*,
     *
 };
 
@@ -149,7 +150,10 @@ fn fa_modal_systems(app: &mut App) {
 }
 
 fn fa_image_systems(app: &mut App) {
-    app.add_systems(Update, event_writer::image_interaction_system);
+    app.add_systems(
+        Update,
+        event_writer::image_interaction_system.run_if(can_run_image_systems)
+    );
 }
 
 fn fa_progress_bar_systems(app: &mut App) {
@@ -205,7 +209,10 @@ impl Plugin for FamiqPlugin {
         fa_image_systems(app);
         fa_progress_bar_systems(app);
 
-        app.add_systems(Update, FaToolTip::handle_show_hide_tooltip_system);
+        app.add_systems(
+            Update,
+            FaToolTip::handle_show_hide_tooltip_system.run_if(can_run_tooltip_systems)
+        );
     }
 }
 

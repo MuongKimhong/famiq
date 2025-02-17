@@ -311,5 +311,5 @@ pub fn fa_listview<'a>(builder: &'a mut FamiqBuilder) -> FaListViewBuilder<'a> {
 ///
 /// True only if there is a listview widget created.
 pub fn can_run_list_view_systems(listview_q: Query<&IsFamiqListView>) -> bool {
-    listview_q.iter().count() > 0
+    !listview_q.is_empty()
 }

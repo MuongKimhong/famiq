@@ -23,10 +23,6 @@ pub struct IsFamiqFPSTextLabel;
 #[derive(Component)]
 pub struct IsFamiqFPSTextCount;
 
-/// Marker component for identifying the FPS text container that holds
-/// both label & text count (eg. FPS: 60.0).
-#[derive(Component)]
-pub struct IsFamiqFPSTextContainer;
 
 /// Component to indicate whether the FPS text color can change dynamically.
 /// - `true`: The FPS text will change color based on the FPS value.
@@ -37,9 +33,10 @@ pub struct CanChangeColor(pub bool);
 
 pub struct FaFpsText;
 
-// Doesn't need container
 impl<'a> FaFpsText {
-    fn _build_container(
+    fn _build_fps(
+        font_handle: Handle<Font>,
+        change_color: bool,
         id: Option<String>,
         class: Option<String>,
         right_side: bool,
@@ -48,107 +45,74 @@ impl<'a> FaFpsText {
         let mut node = default_fps_text_container_node();
         process_spacing_built_in_class(&mut node, &class);
 
-        let border_color = BorderColor::default();
-        let border_radius = BorderRadius::default();
-        let bg_color = BackgroundColor::default();
-        let z_index = ZIndex::default();
-        let visibility = Visibility::Visible;
-
         if right_side {
             node.left = Val::Auto;
             node.right = Val::Px(6.0);
         }
-
-        let entity = root_node
-            .commands()
-            .spawn((
-                node.clone(),
-                border_color.clone(),
-                border_radius.clone(),
-                bg_color.clone(),
-                z_index.clone(),
-                visibility.clone(),
-                IsFamiqFPSTextContainer,
-                DefaultWidgetEntity::new(
-                    node,
-                    border_color,
-                    border_radius,
-                    bg_color,
-                    z_index,
-                    visibility,
-                ),
-                Interaction::default(),
-                GlobalZIndex(6),
-                WidgetStyle::default(),
-                ExternalStyleHasChanged(false)
-            ))
-            .id();
-
-        insert_id_and_class(root_node, entity, &id, &class);
-        root_node.add_child(entity);
-        entity
-    }
-
-    fn _build_text(
-        id: &Option<String>,
-        class: &Option<String>,
-        root_node: &'a mut EntityCommands,
-        font_handle: Handle<Font>,
-        change_color: bool
-    ) -> Entity {
-        let label_txt = Text::new("FPS:");
         let label_txt_font = TextFont {
             font: font_handle,
             font_size: DEFAULT_FPS_TEXT_SIZE,
             ..default()
         };
-        let label_txt_color = TextColor(WHITE_COLOR);
-        let label_txt_layout = TextLayout::new_with_justify(JustifyText::Center);
-
-        let count_txt = TextSpan::default();
         let count_txt_font = label_txt_font.clone();
-        let count_txt_color = TextColor(GREEN_COLOR);
 
         let label_txt_entity = root_node
             .commands()
             .spawn((
-                label_txt.clone(),
+                Text::new("FPS:"),
                 label_txt_font.clone(),
-                label_txt_color.clone(),
-                label_txt_layout.clone(),
+                TextColor(WHITE_COLOR),
+                TextLayout::new_with_justify(JustifyText::Center),
                 DefaultTextEntity::new(
-                    label_txt,
+                    Text::new("FPS:"),
                     label_txt_font,
-                    label_txt_color,
-                    label_txt_layout,
+                    TextColor(WHITE_COLOR),
+                    TextLayout::new_with_justify(JustifyText::Center),
                 ),
                 IsFamiqFPSTextLabel,
-                Visibility::Inherited,
                 WidgetStyle::default(),
                 ExternalStyleHasChanged(false)
+            ))
+            .insert((
+                node.clone(),
+                BorderColor::default(),
+                BorderRadius::default(),
+                BackgroundColor::default(),
+                ZIndex::default(),
+                Visibility::Visible,
+                DefaultWidgetEntity::new(
+                    node,
+                    BorderColor::default(),
+                    BorderRadius::default(),
+                    BackgroundColor::default(),
+                    ZIndex::default(),
+                    Visibility::Visible,
+                ),
+                Interaction::default(),
+                GlobalZIndex(6)
             ))
             .id();
 
         let count_txt_entity = root_node
             .commands()
             .spawn((
-                count_txt.clone(),
+                TextSpan::default(),
                 count_txt_font.clone(),
-                count_txt_color.clone(),
+                TextColor(GREEN_COLOR),
                 IsFamiqFPSTextCount,
                 CanChangeColor(change_color),
                 WidgetStyle::default(),
                 ExternalStyleHasChanged(false),
                 DefaultTextSpanEntity::new(
-                    count_txt,
+                    TextSpan::default(),
                     count_txt_font,
-                    count_txt_color,
+                    TextColor(GREEN_COLOR),
                 )
             ))
             .id();
 
-        insert_id_and_class(root_node, label_txt_entity, id, class);
-        insert_id_and_class(root_node, count_txt_entity, id, class);
+        insert_id_and_class(root_node, label_txt_entity, &id, &class);
+        insert_id_and_class(root_node, count_txt_entity, &id, &class);
         entity_add_child(root_node, count_txt_entity, label_txt_entity);
         label_txt_entity
     }
@@ -161,11 +125,7 @@ impl<'a> FaFpsText {
         change_color: bool,
         right_side: bool,
     ) -> Entity {
-        let text_entity = Self::_build_text(&id, &class, root_node, font_handle, change_color);
-        let container_entity = Self::_build_container(id, class, right_side, root_node);
-
-        entity_add_child(root_node, text_entity, container_entity);
-        text_entity
+        Self::_build_fps(font_handle, change_color, id, class, right_side, root_node)
     }
 
     /// Internal system to update the FPS count and optionally change its color based on the value.
@@ -269,6 +229,6 @@ pub fn fa_fps<'a>(builder: &'a mut FamiqBuilder) -> FaFpsTextBuilder<'a> {
 /// a system to check if FPS internal system(s) can run.
 ///
 /// True only if fps widget is created.
-pub fn can_run_fps_systems(fps_q: Query<&IsFamiqFPSTextContainer>) -> bool {
-    fps_q.iter().count() > 0
+pub fn can_run_fps_systems(fps_q: Query<&IsFamiqFPSTextLabel>) -> bool {
+    !fps_q.is_empty()
 }
