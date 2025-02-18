@@ -307,6 +307,10 @@ pub fn fa_text<'a>(builder: &'a mut FamiqBuilder, value: &str) -> FaTextBuilder<
     )
 }
 
+pub fn can_run_text_systems(text_q: Query<&IsFamiqText>) -> bool {
+    !text_q.is_empty()
+}
+
 #[cfg(test)]
 mod tests {
     use crate::plugin::FamiqPlugin;

@@ -345,6 +345,52 @@ pub fn _handle_apply_border(
     }
 }
 
+pub fn _handle_apply_box_shadow(
+    widget_style: &WidgetStyle,
+    default_widget_entity: &DefaultWidgetEntity,
+    box_shadow: &mut BoxShadow
+) {
+    if let Some(shadow_color_value) = &widget_style.shadow_color {
+        if let Some(v) = parse_color(&shadow_color_value) {
+            box_shadow.color = v;
+        }
+    } else {
+        box_shadow.color = default_widget_entity.box_shadow.color;
+    }
+
+    if let Some(shadow_spread_value) = &widget_style.shadow_spread {
+        if let Some(v) = parse_val(&shadow_spread_value) {
+            box_shadow.spread_radius = v;
+        }
+    } else {
+        box_shadow.spread_radius = default_widget_entity.box_shadow.spread_radius;
+    }
+
+    if let Some(shadow_blur_value) = &widget_style.shadow_blur {
+        if let Some(v) = parse_val(&shadow_blur_value) {
+            box_shadow.blur_radius = v;
+        }
+    } else {
+        box_shadow.blur_radius = default_widget_entity.box_shadow.blur_radius;
+    }
+
+    if let Some(shadow_x_value) = &widget_style.shadow_x_offset {
+        if let Some(v) = parse_val(&shadow_x_value) {
+            box_shadow.x_offset = v;
+        }
+    } else {
+        box_shadow.x_offset = default_widget_entity.box_shadow.x_offset;
+    }
+
+    if let Some(shadow_y_value) = &widget_style.shadow_y_offset {
+        if let Some(v) = parse_val(&shadow_y_value) {
+            box_shadow.y_offset = v;
+        }
+    } else {
+        box_shadow.y_offset = default_widget_entity.box_shadow.y_offset;
+    }
+}
+
 pub fn _handle_apply_border_radius(
     widget_style: &WidgetStyle,
     default_widget_entity: &DefaultWidgetEntity,

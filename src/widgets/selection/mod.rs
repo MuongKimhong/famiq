@@ -223,13 +223,6 @@ impl<'a> FaSelection {
             .commands()
             .spawn((
                 style_components.clone(),
-                BoxShadow {
-                    color: Color::NONE,
-                    x_offset: Val::Px(0.0),
-                    y_offset: Val::Px(0.0),
-                    spread_radius: Val::Px(0.5),
-                    blur_radius: Val::Px(1.0)
-                },
                 IsFamiqSelectionSelector,
                 DefaultWidgetEntity::from(style_components),
                 Selection::new(placeholder.to_string()),

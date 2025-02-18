@@ -123,6 +123,7 @@ fn fa_text_systems(app: &mut App) {
             FaText::detect_new_text_widget_system,
             FaText::handle_text_interaction_system
         )
+        .run_if(can_run_text_systems)
     );
 }
 
