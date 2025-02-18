@@ -143,8 +143,7 @@ fn fa_modal_systems(app: &mut App) {
     app.add_systems(
         Update,
         (
-            FaModal::hide_or_display_modal_system,
-            FaModal::detect_new_modal_system
+            FaModal::hide_or_display_modal_system
         )
         .run_if(can_run_modal_systems)
     );

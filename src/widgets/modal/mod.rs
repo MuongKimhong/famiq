@@ -108,7 +108,8 @@ impl<'a> FaModal {
                 DefaultWidgetEntity::from(style_components),
                 IsFamiqModalContainer,
                 FocusPolicy::Block,
-                AnimationProgress(0.0)
+                AnimationProgress(0.0),
+                Transform::from_scale(Vec3::splat(0.0))
             ))
             .id();
 
@@ -160,26 +161,6 @@ impl<'a> FaModal {
 
         utils::entity_add_child(root_node, container, background);
         background
-    }
-
-    pub fn detect_new_modal_system(
-        mut modal_res: ResMut<FaModalState>,
-        mut modal_container_q: Query<&mut Transform, With<IsFamiqModalContainer>>,
-        modal_bg_q: Query<
-            (Entity, Option<&FamiqWidgetId>, &FaModalContainerEntity),
-            Added<IsFamiqModalBackground>
-        >,
-    ) {
-        for (entity, id, container_entity) in modal_bg_q.iter() {
-            if let Some(id) = id {
-                modal_res._update_or_insert_id(&id.0, false);
-            }
-            modal_res._update_or_insert_entity(entity, false);
-
-            if let Ok(mut transform) = modal_container_q.get_mut(container_entity.0) {
-                transform.scale = Vec3::splat(0.0);
-            }
-        }
     }
 
     /// Internal system to hide or display via `FaModalState` resource.
