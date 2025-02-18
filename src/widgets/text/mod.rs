@@ -1,9 +1,11 @@
 use super::color::WHITE_COLOR;
+use crate::event_writer::FaInteractionEvent;
+use crate::plugin::{CursorType, CursorIcons};
 use crate::widgets::{
     DefaultTextEntity, FamiqWidgetId, DefaultWidgetEntity,
-    FamiqBuilder, BaseStyleComponents
+    FamiqBuilder, BaseStyleComponents, WidgetType
 };
-use crate::utils::{process_spacing_built_in_class, insert_id_and_class};
+use crate::utils::{_change_cursor_icon, insert_id_and_class, process_spacing_built_in_class};
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
@@ -204,6 +206,26 @@ impl<'a> FaText {
 
             if !text_res.entity_value.contains_key(&entity) {
                 text_res.entity_value.insert(entity, text.0.clone());
+            }
+        }
+    }
+
+    pub fn handle_text_interaction_system(
+        mut events: EventReader<FaInteractionEvent>,
+        window: Single<Entity, With<Window>>,
+        mut commands: Commands,
+        cursor_icons: Res<CursorIcons>,
+    ) {
+        for e in events.read() {
+            if e.widget == WidgetType::Text {
+                match e.interaction {
+                    Interaction::None => {
+                        _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Default);
+                    },
+                    _ => {
+                        _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Text);
+                    }
+                }
             }
         }
     }

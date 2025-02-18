@@ -3,7 +3,8 @@ pub mod tests;
 
 use bevy::ui::FocusPolicy;
 use helper::*;
-use crate::utils::{self, process_spacing_built_in_class, mask_string, insert_id_and_class};
+use crate::plugin::{CursorIcons, CursorType};
+use crate::utils::*;
 use crate::widgets::color::WHITE_COLOR;
 use crate::widgets::{
     DefaultTextEntity, DefaultWidgetEntity, FamiqWidgetId,
@@ -386,7 +387,7 @@ impl<'a> FaTextInput {
             children.push(toggle_icon);
         }
 
-        utils::entity_add_children(root_node, &children, input_entity);
+        entity_add_children(root_node, &children, input_entity);
         input_entity
     }
 
@@ -452,6 +453,10 @@ impl<'a> FaTextInput {
         >,
         mut builder_res: ResMut<FamiqResource>,
         mut cursor_blink_timer: ResMut<FaTextInputCursorBlinkTimer>,
+
+        window: Single<Entity, With<Window>>,
+        mut commands: Commands,
+        cursor_icons: Res<CursorIcons>,
     ) {
         for e in events.read() {
             if e.widget == WidgetType::TextInput {
@@ -459,6 +464,7 @@ impl<'a> FaTextInput {
                     match e.interaction {
                         Interaction::Hovered => {
                             box_shadow.color = default_style.border_color.0.clone();
+                            _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Text);
                         },
                         Interaction::Pressed => {
                             // global focus
@@ -469,8 +475,12 @@ impl<'a> FaTextInput {
                             if text_input.cursor_index > 0 {
                                 text_input.cursor_index = text_input.text.len();
                             }
+                            _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Text);
                         },
-                        _ => box_shadow.color = Color::NONE
+                        _ => {
+                            box_shadow.color = Color::NONE;
+                            _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Default);
+                        }
                     }
                 }
             }

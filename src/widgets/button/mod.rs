@@ -5,6 +5,7 @@ pub mod tests;
 pub use components::*;
 use helper::*;
 
+use crate::plugin::{CursorIcons, CursorType};
 use crate::utils;
 use super::{
     DefaultTextEntity, DefaultWidgetEntity,
@@ -174,12 +175,12 @@ impl<'a> FaButton {
 
             match update_to {
                 "hover" => {
-                    bg_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.3);
-                    bd_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.3);
+                    bg_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.2);
+                    bd_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.2);
                 },
                 "press" => {
-                    bg_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.6);
-                    bd_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.6);
+                    bg_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.5);
+                    bd_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.5);
                 },
                 "none" => {
                     *bg_color = BackgroundColor::default();
@@ -210,7 +211,11 @@ impl<'a> FaButton {
             (&mut Node, &mut BackgroundColor, &mut BorderColor, &mut BorderRadius),
             (With<IsFamiqButtonOverlay>, Without<IsFamiqButton>)
         >,
-        mut tooltip_text_q: Query<&mut Text, With<IsFamiqToolTipText>>
+        mut tooltip_text_q: Query<&mut Text, With<IsFamiqToolTipText>>,
+
+        window: Single<Entity, With<Window>>,
+        mut commands: Commands,
+        cursor_icons: Res<CursorIcons>,
     ) {
         for e in events.read() {
             if let Ok((
@@ -228,17 +233,20 @@ impl<'a> FaButton {
                             tooltip_res.show(text.0.clone(), computed.size(), transform.translation());
                         }
                         FaButton::_update_overlay(&mut overlay_q, border_radius, node, computed, overlay_entity.0, "hover");
+                        utils::_change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Pointer);
                     },
                     Interaction::Pressed => {
                         builder_res.update_all_focus_states(false);
                         builder_res.update_or_insert_focus_state(e.entity, true);
                         FaButton::_update_overlay(&mut overlay_q, border_radius, node, computed, overlay_entity.0, "press");
+                        utils::_change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Pointer);
                     },
                     Interaction::None => {
                         if tooltip_text.is_some() {
                             tooltip_res.hide();
                         }
                         FaButton::_update_overlay(&mut overlay_q, border_radius, node, computed, overlay_entity.0, "none");
+                        utils::_change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Default);
                     },
                 }
             }

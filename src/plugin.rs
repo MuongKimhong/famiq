@@ -19,6 +19,31 @@ use bevy::time::common_conditions::on_timer;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::prelude::*;
 use bevy::asset::embedded_asset;
+use bevy::winit::cursor::CursorIcon;
+use bevy::window::SystemCursorIcon;
+
+pub enum CursorType {
+    Pointer,
+    Text,
+    Default
+}
+
+#[derive(Resource)]
+pub struct CursorIcons {
+    pub pointer: CursorIcon,
+    pub text: CursorIcon,
+    pub normal: CursorIcon
+}
+
+impl Default for CursorIcons {
+    fn default() -> Self {
+        Self {
+            pointer: SystemCursorIcon::Pointer.into(),
+            text: SystemCursorIcon::Text.into(),
+            normal: SystemCursorIcon::Default.into(),
+        }
+    }
+}
 
 fn external_styles_file_systems(app: &mut App) {
     app.add_systems(
@@ -95,7 +120,8 @@ fn fa_text_systems(app: &mut App) {
         (
             event_writer::text_interaction_system,
             FaText::update_text_value_system,
-            FaText::detect_new_text_widget_system
+            FaText::detect_new_text_widget_system,
+            FaText::handle_text_interaction_system
         )
     );
 }
@@ -194,6 +220,7 @@ impl Plugin for FamiqPlugin {
         app.insert_resource(FaToolTipResource::default());
         app.insert_resource(FaModalState::default());
         app.insert_resource(FaTextResource::default());
+        app.insert_resource(CursorIcons::default());
 
         app.add_event::<event_writer::FaInteractionEvent>();
 

@@ -1,5 +1,6 @@
 use crate::widgets::selection::*;
 use crate::widgets::{WidgetType, FamiqResource};
+use crate::plugin::{CursorType, CursorIcons};
 use crate::event_writer::FaInteractionEvent;
 use super::FaSelection;
 use bevy::prelude::*;
@@ -31,6 +32,9 @@ pub fn update_choices_panel_position_and_width_system(
     mut panel_q: Query<(&mut Node, &mut Visibility), With<IsFamiqSelectionChoicesPanel>>,
     builder_res: Res<FamiqResource>
 ) {
+    if !builder_res.is_changed() {
+        return;
+    }
     for (entity, computed_node, transform, panel_entity) in selection_q.iter() {
         let Some(focused) = builder_res.get_widget_focus_state(&entity) else { continue };
         let Ok((mut panel_node, mut panel_visibility)) = panel_q.get_mut(panel_entity.0) else { continue };
@@ -62,6 +66,9 @@ pub fn handle_selection_interaction_system(
     mut builder_res: ResMut<FamiqResource>,
     mut arrow_q: Query<&mut Text, With<ArrowIcon>>,
 
+    window: Single<Entity, With<Window>>,
+    mut commands: Commands,
+    cursor_icons: Res<CursorIcons>,
 ) {
     for e in events.read() {
         if e.widget == WidgetType::Selection {
@@ -74,6 +81,7 @@ pub fn handle_selection_interaction_system(
                 match e.interaction {
                     Interaction::Hovered => {
                         box_shadow.color = default_style.border_color.0.clone();
+                        _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Pointer);
                     },
                     Interaction::Pressed => {
                         // currently true, set back to false
@@ -89,9 +97,11 @@ pub fn handle_selection_interaction_system(
                         builder_res.update_all_focus_states(false);
                         builder_res.update_or_insert_focus_state(e.entity, true);
                         FaSelection::arrow_up(&mut arrow_q, arrow_entity.0);
+                        _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Pointer);
                     },
                     _ => {
                         box_shadow.color = Color::NONE;
+                        _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Default);
                     }
                 }
             }
@@ -143,60 +153,69 @@ pub fn handle_selection_choice_interaction_system(
     mut selection_res: ResMut<FaSelectionResource>,
     mut text_q: Query<&mut Text, Without<ArrowIcon>>,
     mut arrow_q: Query<&mut Text, With<ArrowIcon>>,
-    mut builder_res: ResMut<FamiqResource>
+    mut builder_res: ResMut<FamiqResource>,
+
+    window: Single<Entity, With<Window>>,
+    mut commands: Commands,
+    cursor_icons: Res<CursorIcons>,
 ) {
     for e in events.read() {
-        if let Ok((
-            mut choice_bg_color,
-            choice_txt_entity,
-            selector_entity
-        )) = selection_choice_q.get_mut(e.entity) {
+        if e.widget == WidgetType::SelectionChoice {
+            if let Ok((
+                mut choice_bg_color,
+                choice_txt_entity,
+                selector_entity
+            )) = selection_choice_q.get_mut(e.entity) {
 
 
-            match e.interaction {
-                Interaction::Hovered => {
-                    *choice_bg_color = ITEM_ON_HOVER_BG_COLOR.into();
-                },
-                Interaction::Pressed => {
-                    if let Ok((
-                        selection_entity,
-                        selection,
-                        selection_id,
-                        placeholder_entity,
-                        arrow_entity,
-                    )) = selection_q.get_mut(selector_entity.0) {
-                        let mut selected_choice = String::new();
+                match e.interaction {
+                    Interaction::Hovered => {
+                        *choice_bg_color = ITEM_ON_HOVER_BG_COLOR.into();
+                        _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Pointer);
+                    },
+                    Interaction::Pressed => {
+                        if let Ok((
+                            selection_entity,
+                            selection,
+                            selection_id,
+                            placeholder_entity,
+                            arrow_entity,
+                        )) = selection_q.get_mut(selector_entity.0) {
+                            let mut selected_choice = String::new();
 
-                        // Update selected items resource
-                        if let Ok(text) = text_q.get_mut(choice_txt_entity.0) {
-                            selected_choice = if text.0 == "-/-" {
-                                String::from("")
-                            } else {
-                                text.0.clone()
-                            };
-                            if let Some(id) = selection_id {
-                                selection_res._insert_by_id(id.0.clone(), text.0.clone());
+                            // Update selected items resource
+                            if let Ok(text) = text_q.get_mut(choice_txt_entity.0) {
+                                selected_choice = if text.0 == "-/-" {
+                                    String::from("")
+                                } else {
+                                    text.0.clone()
+                                };
+                                if let Some(id) = selection_id {
+                                    selection_res._insert_by_id(id.0.clone(), text.0.clone());
+                                }
+                                selection_res._insert_by_entity(selection_entity, text.0.clone());
                             }
-                            selection_res._insert_by_entity(selection_entity, text.0.clone());
-                        }
 
-                        // update placeholder value
-                        if let Ok(mut text) = text_q.get_mut(placeholder_entity.0) {
-                            if selected_choice != "" {
-                                text.0 = selected_choice.clone();
-                            } else {
-                                text.0 = selection.placeholder.clone();
+                            // update placeholder value
+                            if let Ok(mut text) = text_q.get_mut(placeholder_entity.0) {
+                                if selected_choice != "" {
+                                    text.0 = selected_choice.clone();
+                                } else {
+                                    text.0 = selection.placeholder.clone();
+                                }
                             }
-                        }
 
-                        // set selection to unfocus after choice is selected
-                        builder_res.update_or_insert_focus_state(selection_entity, false);
-                        FaSelection::arrow_down(&mut arrow_q, arrow_entity.0);
-                        *choice_bg_color = BackgroundColor(ITEM_NORMAL_BG_COLOR);
+                            // set selection to unfocus after choice is selected
+                            builder_res.update_or_insert_focus_state(selection_entity, false);
+                            FaSelection::arrow_down(&mut arrow_q, arrow_entity.0);
+                            *choice_bg_color = BackgroundColor(ITEM_NORMAL_BG_COLOR);
+                        }
+                        _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Pointer);
+                    },
+                    _ => {
+                        *choice_bg_color = ITEM_NORMAL_BG_COLOR.into();
+                        _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Default);
                     }
-                },
-                Interaction::None => {
-                    *choice_bg_color = ITEM_NORMAL_BG_COLOR.into();
                 }
             }
         }
