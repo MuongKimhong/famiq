@@ -5,6 +5,7 @@ use std::path::Path;
 use std::fs::File;
 use std::io::Read;
 
+use crate::plugin::{CursorIcons, CursorType};
 use crate::widgets::style_parse::*;
 use crate::widgets::{WidgetStyle, DefaultWidgetEntity};
 use crate::errors::StylesFileError;
@@ -388,6 +389,19 @@ pub fn _handle_apply_border_radius(
             border_radius.bottom_right = default_widget_entity.border_radius.bottom_right.clone();
         }
     }
+}
+
+pub fn _change_cursor_icon(
+    commands: &mut Commands,
+    res: &Res<CursorIcons>,
+    window_entity: Entity,
+    _type: CursorType
+) {
+    commands.entity(window_entity).insert(match _type {
+        CursorType::Pointer => res.pointer.clone(),
+        CursorType::Text => res.text.clone(),
+        _ => res.normal.clone(),
+    });
 }
 
 #[cfg(test)]
