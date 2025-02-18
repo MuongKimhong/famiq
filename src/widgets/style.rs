@@ -21,6 +21,7 @@ type WidgetStyleQuery<'a, 'w, 's> = Query<
         &'a mut BorderRadius,
         &'a mut ZIndex,
         &'a mut Visibility,
+        &'a mut BoxShadow,
         &'a WidgetStyle,
         &'a ExternalStyleHasChanged,
         &'a DefaultWidgetEntity,
@@ -111,6 +112,7 @@ pub fn apply_widgets_styles_system(
         mut border_radius,
         mut z_index,
         mut visibility,
+        mut box_shadow,
         local_widget_style,
         has_external_changed,
         default_widget_entity,
@@ -125,6 +127,7 @@ pub fn apply_widgets_styles_system(
                     &mut visibility,
                     &mut z_index,
                     &mut node,
+                    &mut box_shadow,
                     local_widget_style,
                     default_widget_entity
                 );
@@ -140,6 +143,7 @@ pub fn apply_widgets_styles_system(
                     &mut visibility,
                     &mut z_index,
                     &mut node,
+                    &mut box_shadow,
                     local_widget_style,
                     default_widget_entity
                 );
@@ -189,6 +193,7 @@ pub fn apply_styles_from_external_json(
     visibility: &mut Visibility,
     z_index: &mut ZIndex,
     node: &mut Node,
+    box_shadow: &mut BoxShadow,
     widget_style: &WidgetStyle,
     default_widget_entity: &DefaultWidgetEntity
 ) {
@@ -196,6 +201,7 @@ pub fn apply_styles_from_external_json(
     utils::_handle_apply_margin(widget_style, default_widget_entity, node);
     utils::_handle_apply_border(widget_style, default_widget_entity, node);
     utils::_handle_apply_border_radius(widget_style, default_widget_entity, border_radius);
+    utils::_handle_apply_box_shadow(widget_style, default_widget_entity, box_shadow);
 
     if let Some(bg_color_value) = &widget_style.background_color {
         if let Some(v) = parse_background_color(&bg_color_value) {

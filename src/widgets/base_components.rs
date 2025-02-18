@@ -13,7 +13,7 @@ pub struct FamiqWidgetId(pub String);
 pub struct FamiqWidgetClasses(pub String);
 
 /// Base styles components required by all widgets
-#[derive(Bundle, Default, Clone)]
+#[derive(Bundle, Clone)]
 pub struct BaseStyleComponents {
     pub node: Node,
     pub border_color: BorderColor,
@@ -23,7 +23,31 @@ pub struct BaseStyleComponents {
     pub visibility: Visibility,
     pub interaction: Interaction,
     pub widget_style: WidgetStyle,
-    pub external_style_changed: ExternalStyleHasChanged
+    pub external_style_changed: ExternalStyleHasChanged,
+    pub box_shadow: BoxShadow
+}
+
+impl Default for BaseStyleComponents {
+    fn default() -> Self {
+        Self {
+            node: Node::default(),
+            border_color: BorderColor::default(),
+            border_radius: BorderRadius::default(),
+            background_color: BackgroundColor::default(),
+            z_index: ZIndex::default(),
+            visibility: Visibility::default(),
+            interaction: Interaction::default(),
+            widget_style: WidgetStyle::default(),
+            external_style_changed: ExternalStyleHasChanged::default(),
+            box_shadow: BoxShadow {
+                color: Color::NONE,
+                x_offset: Val::Px(0.0),
+                y_offset: Val::Px(0.0),
+                spread_radius: Val::Px(0.5),
+                blur_radius: Val::Px(1.0)
+            }
+        }
+    }
 }
 
 #[derive(Component)]
@@ -34,6 +58,7 @@ pub struct DefaultWidgetEntity {
     pub background_color: BackgroundColor,
     pub z_index: ZIndex,
     pub visibility: Visibility,
+    pub box_shadow: BoxShadow
 }
 
 impl From<BaseStyleComponents> for DefaultWidgetEntity {
@@ -44,7 +69,8 @@ impl From<BaseStyleComponents> for DefaultWidgetEntity {
             border_radius: base.border_radius,
             background_color: base.background_color,
             z_index: base.z_index,
-            visibility: base.visibility
+            visibility: base.visibility,
+            box_shadow: base.box_shadow
         }
     }
 }
@@ -106,6 +132,11 @@ pub struct WidgetStyle {
     pub color: Option<String>,     // for fa_text, fa_fps, Text color only
     pub font_size: Option<String>, // for fa_text, fa_fps, Text font_size only
     pub background_color: Option<String>,
+    pub shadow_color: Option<String>,
+    pub shadow_spread: Option<String>,
+    pub shadow_blur: Option<String>,
+    pub shadow_x_offset: Option<String>,
+    pub shadow_y_offset: Option<String>,
     pub border_color: Option<String>,
     pub border_radius: Option<String>,
     pub visibility: Option<String>,
