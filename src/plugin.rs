@@ -11,6 +11,7 @@ use crate::widgets::{
     tooltip::*,
     progress_bar::*,
     image::*,
+    bg_image::*,
     *
 };
 
@@ -20,7 +21,7 @@ use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::prelude::*;
 use bevy::asset::embedded_asset;
 use bevy::winit::cursor::CursorIcon;
-use bevy::window::SystemCursorIcon;
+use bevy::window::{SystemCursorIcon, WindowResized};
 
 pub enum CursorType {
     Pointer,
@@ -41,6 +42,17 @@ impl Default for CursorIcons {
             pointer: SystemCursorIcon::Pointer.into(),
             text: SystemCursorIcon::Text.into(),
             normal: SystemCursorIcon::Default.into(),
+        }
+    }
+}
+
+fn handle_window_resized_system(
+    mut resize_events: EventReader<WindowResized>,
+    mut fa_bg_q: Query<&mut Sprite, With<IsFamiqBgImage>>
+) {
+    for resize_event in resize_events.read() {
+        if let Ok(mut sprite) = fa_bg_q.get_single_mut() {
+            sprite.custom_size = Some(Vec2::new(resize_event.width, resize_event.height));
         }
     }
 }
@@ -196,6 +208,17 @@ fn fa_progress_bar_systems(app: &mut App) {
     );
 }
 
+fn fa_bg_image_systems(app: &mut App) {
+    app.add_systems(
+        Update,
+        (
+            FaBgImage::detect_new_bg_image_system,
+            FaBgImage::handle_image_changed
+        )
+        .run_if(can_run_bg_image_systems)
+    );
+}
+
 pub struct FamiqPlugin;
 
 impl Plugin for FamiqPlugin {
@@ -207,12 +230,14 @@ impl Plugin for FamiqPlugin {
         embedded_asset!(app, "embedded_assets/logo.jpeg"); // for testing
 
         app.add_systems(PreStartup, _spawn_root_node);
+        app.add_systems(Update, handle_window_resized_system);
 
         app.add_plugins(UiMaterialPlugin::<ProgressBarMaterial>::default());
         app.add_plugins(UiMaterialPlugin::<CircularMaterial>::default());
         app.add_plugins(FrameTimeDiagnosticsPlugin::default());
         app.insert_resource(StylesKeyValueResource(StylesKeyValue::new()));
         app.insert_resource(FamiqResource::new());
+        app.insert_resource(FaBgImageResource::default());
         app.insert_resource(CanBeScrolledListView { entity: None });
         app.insert_resource(FaSelectionResource::default());
         app.insert_resource(FaTextInputResource::default());
@@ -236,11 +261,13 @@ impl Plugin for FamiqPlugin {
         fa_modal_systems(app);
         fa_image_systems(app);
         fa_progress_bar_systems(app);
+        fa_bg_image_systems(app);
 
         app.add_systems(
             Update,
             FaToolTip::handle_show_hide_tooltip_system.run_if(can_run_tooltip_systems)
         );
+
     }
 }
 
