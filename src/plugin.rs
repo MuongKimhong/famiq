@@ -155,12 +155,15 @@ fn fa_listview_systems(app: &mut App) {
 }
 
 fn fa_fps_text_systems(app: &mut App) {
-    // update fps every 450 millisecond, default Update schedule is too fast
     app.add_systems(
         Update,
-        FaFpsText::update_fps_count_system.run_if(
-            on_timer(Duration::from_millis(450)).and(can_run_fps_systems)
+        (
+            event_writer::fps_interaction_system,
 
+            // update fps every 450 millisecond, default Update schedule is too fast
+            FaFpsText::update_fps_count_system.run_if(
+                on_timer(Duration::from_millis(450)).and(can_run_fps_systems)
+            )
         )
     );
 }
@@ -199,6 +202,7 @@ fn fa_progress_bar_systems(app: &mut App) {
     app.add_systems(
         Update,
         (
+            event_writer::progress_bar_interaction_system,
             FaProgressBar::handle_progress_value_change_by_id,
             FaProgressBar::handle_progress_value_change_by_entity,
             FaProgressBar::detect_new_progress_bar_widget_system,

@@ -6,6 +6,8 @@ use crate::widgets::{
     text_input::*,
     image::*,
     circular::*,
+    progress_bar::*,
+    fps::*,
     *,
 };
 
@@ -53,14 +55,19 @@ impl FaInteractionEvent {
         }
     }
 
-    /// Check if emitted event is a button pressed event.
-    pub fn is_button_pressed(&self) -> bool {
-        self.widget == WidgetType::Button && self.interaction == Interaction::Pressed
+    /// true provided widget type is pressed
+    pub fn is_pressed(&self, _type: WidgetType) -> bool {
+        self.widget == _type && self.interaction == Interaction::Pressed
     }
 
-    /// Check if emitted event is a text_input's toggle-icon password pressed.
-    pub fn is_password_toggle_icon_pressed(&self) -> bool {
-        self.widget == WidgetType::TextInputTogglePasswordIcon && self.interaction == Interaction::Pressed
+    /// true provided widget type is hovered
+    pub fn is_hovered(&self, _type: WidgetType) -> bool {
+        self.widget == _type && self.interaction == Interaction::Hovered
+    }
+
+    /// true if nothing has happened
+    pub fn is_left(&self, _type: WidgetType) -> bool {
+        self.widget == _type && self.interaction == Interaction::None
     }
 }
 
@@ -72,6 +79,16 @@ pub fn btn_interaction_system(
     mut writer: EventWriter<FaInteractionEvent>,
 ) {
     FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::Button);
+}
+
+pub fn fps_interaction_system(
+    mut interaction_q: Query<
+        (Entity, &IsFamiqFPSTextLabel, Option<&FamiqWidgetId>, &Interaction),
+        Changed<Interaction>,
+    >,
+    mut writer: EventWriter<FaInteractionEvent>,
+) {
+    FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::FpsText);
 }
 
 pub fn image_interaction_system(
@@ -142,6 +159,16 @@ pub fn circular_interaction_system(
     mut writer: EventWriter<FaInteractionEvent>,
 ) {
     FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::Circular);
+}
+
+pub fn progress_bar_interaction_system(
+    mut interaction_q: Query<
+        (Entity, &IsFamiqProgressBar, Option<&FamiqWidgetId>, &Interaction),
+        Changed<Interaction>,
+    >,
+    mut writer: EventWriter<FaInteractionEvent>,
+) {
+    FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::ProgressBar);
 }
 
 pub fn listview_interaction_system(

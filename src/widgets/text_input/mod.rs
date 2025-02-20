@@ -668,7 +668,7 @@ impl<'a> FaTextInput {
         mut placeholder_q: Query<&mut Text, With<IsFamiqTextInputPlaceholder>>
     ) {
         for e in events.read() {
-            if !e.is_password_toggle_icon_pressed() {
+            if !e.is_pressed(WidgetType::TextInputTogglePasswordIcon) {
                 continue;
             }
 

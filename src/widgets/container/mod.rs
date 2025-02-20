@@ -13,9 +13,6 @@ use helper::default_container_node;
 #[derive(Component)]
 pub struct IsFamiqContainer;
 
-#[derive(Component)]
-pub struct FaContainerChildren(pub Vec<Entity>);
-
 /// Represents a Famiq container widget.
 /// Think of it as a Div element in HTML.
 pub struct FaContainer;
@@ -41,7 +38,6 @@ impl<'a> FaContainer {
                 style_components.clone(),
                 IsFamiqContainer,
                 DefaultWidgetEntity::from(style_components),
-                FaContainerChildren(children.clone()),
             ))
             .id();
 
