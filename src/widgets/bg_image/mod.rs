@@ -6,7 +6,6 @@ pub struct FaBgImageResource {
     pub image_path: String,
 
     /// only one bg image widget is allowed
-    widget_created: bool,
     widget_entity: Option<Entity>
 }
 
@@ -46,15 +45,10 @@ impl<'a> FaBgImage {
         window: Single<&Window>
     ) {
         // only one widget is allowed, if multiple detected, despawn
-
-        if bg_resource.widget_created {
-            return;
-        }
-        let mut first_entity = None;
         let size = window.physical_size();
 
         for (entity, path) in bg_q.iter() {
-            if first_entity.is_none() {
+            if bg_resource.widget_entity.is_none() {
                 commands
                     .entity(entity)
                     .insert((
@@ -67,8 +61,6 @@ impl<'a> FaBgImage {
                     ));
                 bg_resource.image_path = path.0.clone();
                 bg_resource.widget_entity = Some(entity);
-                bg_resource.widget_created = true;
-                first_entity = Some(entity);
             }
             else {
                 commands.entity(entity).despawn();

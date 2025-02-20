@@ -31,10 +31,9 @@ pub use bg_image::fa_bg_image;
 pub use progress_bar::fa_progress_bar;
 pub use base_components::*;
 use tooltip::FaToolTip;
-
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
-use std::collections::HashMap;
+use bevy::utils::HashMap;
 use crate::utils::get_embedded_asset_path;
 
 /// ResourceMap trait for `fa_text_input` and `fa_selection`
