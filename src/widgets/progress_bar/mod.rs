@@ -7,17 +7,11 @@ use bevy::utils::HashMap;
 use bevy::utils::hashbrown::HashSet;
 use bevy::reflect::TypePath;
 use bevy::render::render_resource::*;
-use crate::utils::{
-    entity_add_child, process_spacing_built_in_class, insert_id_and_class,
-    get_embedded_asset_path
-};
-use crate::widgets::color::built_in_color_parser;
+use crate::utils::*;
+use crate::widgets::*;
+
 pub use components::*;
 use helper::*;
-
-use super::{
-    DefaultWidgetEntity, FamiqBuilder, FamiqWidgetId, BaseStyleComponents
-};
 
 #[derive(AsBindGroup, Asset, TypePath, Debug, Clone)]
 pub struct ProgressBarMaterial {
@@ -155,18 +149,13 @@ pub struct FaProgressBar;
 
 impl<'a> FaProgressBar {
     fn _build_progress_bar(
-        id: &Option<String>,
-        class: Option<String>,
+        attributes: &WidgetAttributes,
         root_node: &'a mut EntityCommands,
-        size: ProgressBarSize
     ) -> Entity {
         let color = Color::srgba(0.6, 0.6, 0.6, 0.7);
 
-        let mut node = default_progress_bar_node(&size);
-        process_spacing_built_in_class(&mut node, &class);
-
         let mut style_components = BaseStyleComponents::default();
-        style_components.node = node;
+        style_components.node = attributes.node.clone();
         style_components.visibility = Visibility::Visible;
         style_components.background_color = BackgroundColor(color);
         style_components.border_color = BorderColor(color);
@@ -180,14 +169,14 @@ impl<'a> FaProgressBar {
             ))
             .id();
 
-        insert_id_and_class(root_node, entity, id, &class);
+        insert_id_and_class(root_node, entity, &attributes.id, &attributes.class);
         entity
     }
 
     fn _build_progress_value(
         root_node: &'a mut EntityCommands,
         percentage: Option<f32>,
-        color: Color,
+        color: &WidgetColor,
         bar_entity: Entity
     ) -> Entity {
         let mut style_components = BaseStyleComponents::default();
@@ -199,7 +188,7 @@ impl<'a> FaProgressBar {
                 style_components,
                 IsFamiqProgressValue,
                 FamiqProgressBarEntity(bar_entity),
-                ProgressValueColor(color)
+                ProgressValueColor(get_progress_value_color(color))
             ))
             .id();
 
@@ -213,15 +202,12 @@ impl<'a> FaProgressBar {
     }
 
     pub fn new(
-        id: Option<String>,
-        class: Option<String>,
+        attributes: &WidgetAttributes,
         root_node: &'a mut EntityCommands,
         percentage: Option<f32>,
-        size: ProgressBarSize,
-        color: Color
     ) -> Entity {
-        let bar = Self::_build_progress_bar(&id, class, root_node, size);
-        let value = Self::_build_progress_value(root_node, percentage, color, bar);
+        let bar = Self::_build_progress_bar(attributes, root_node);
+        let value = Self::_build_progress_value(root_node, percentage, &attributes.color, bar);
 
         root_node.commands().entity(bar).insert(FamiqProgressValueEntity(value));
         entity_add_child(root_node, value, bar);
@@ -419,71 +405,18 @@ impl<'a> FaProgressBar {
 
 /// Builder for creating `FaProgressBar` widget.
 pub struct FaProgressBarBuilder<'a> {
-    pub id: Option<String>,
-    pub class: Option<String>,
+    pub attributes: WidgetAttributes,
     pub root_node: EntityCommands<'a>,
     pub percentage: Option<f32>,
-    pub color: Option<Color>
-
 }
 
 impl<'a> FaProgressBarBuilder<'a> {
     pub fn new(root_node: EntityCommands<'a>) -> Self {
         Self {
-            id: None,
-            class: None,
+            attributes: WidgetAttributes::default(),
             root_node,
             percentage: None,
-            color: None
         }
-    }
-
-    fn _process_built_in_classes(&mut self) -> ProgressBarSize {
-        let mut use_color = ProgressBarColor::Default;
-        let mut use_size = ProgressBarSize::Normal;
-
-        if let Some(class) = self.class.as_ref() {
-            let class_split: Vec<&str> = class.split_whitespace().collect();
-
-            for class_name in class_split {
-                match class_name {
-                    // Check for colors
-                    "is-primary" => use_color = ProgressBarColor::Primary,
-                    "is-primary-dark" => use_color = ProgressBarColor::PrimaryDark,
-                    "is-secondary" => use_color = ProgressBarColor::Secondary,
-                    "is-danger" => use_color = ProgressBarColor::Danger,
-                    "is-danger-dark" => use_color = ProgressBarColor::DangerDark,
-                    "is-success" => use_color = ProgressBarColor::Success,
-                    "is-success-dark" => use_color = ProgressBarColor::SuccessDark,
-                    "is-warning" => use_color = ProgressBarColor::Warning,
-                    "is-warning-dark" => use_color = ProgressBarColor::WarningDark,
-                    "is-info" => use_color = ProgressBarColor::Info,
-                    "is-info-dark" => use_color = ProgressBarColor::InfoDark,
-
-                    // Check for sizes
-                    "is-small" => use_size = ProgressBarSize::Small,
-                    "is-large" => use_size = ProgressBarSize::Large,
-                    "is-normal" => use_size = ProgressBarSize::Normal,
-                        _ => (),
-                }
-            }
-        }
-        if self.color.is_none() {
-            self.color = Some(get_progress_value_color(&use_color));
-        }
-        use_size
-    }
-
-    /// Method to add class to progress bar.
-    pub fn class(mut self, class: &str) -> Self {
-        self.class = Some(class.to_string());
-        self
-    }
-
-    /// Method to add id to progress bar.
-    pub fn id(mut self, id: &str) -> Self {
-        self.id = Some(id.to_string());
-        self
     }
 
     /// Method to set percentage value
@@ -492,24 +425,27 @@ impl<'a> FaProgressBarBuilder<'a> {
         self
     }
 
-    /// Method to set color.
-    pub fn set_color(mut self, color: &str) -> Self {
-        self.color = built_in_color_parser(color);
-        self
-    }
-
     /// Spawn progress bar into UI World.
     pub fn build(&mut self) -> Entity {
-        let use_size = self._process_built_in_classes();
-
+        self._process_built_in_color_class();
+        self._process_built_in_size_class();
+        self._node();
         FaProgressBar::new(
-            self.id.clone(),
-            self.class.clone(),
+            &self.attributes,
             &mut self.root_node,
             self.percentage.clone(),
-            use_size,
-            self.color.unwrap()
         )
+    }
+}
+
+impl<'a> SetWidgetAttributes for FaProgressBarBuilder<'a> {
+    fn attributes(&mut self) -> &mut WidgetAttributes {
+        &mut self.attributes
+    }
+
+    fn _node(&mut self) {
+        self.attributes.node = default_progress_bar_node(&self.attributes.size);
+        process_spacing_built_in_class(&mut self.attributes.node, &self.attributes.class);
     }
 }
 

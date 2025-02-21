@@ -2,10 +2,7 @@ pub mod helper;
 pub mod tests;
 
 use crate::utils;
-use crate::widgets::{
-    DefaultWidgetEntity, FamiqWidgetId,
-    WidgetType, FamiqBuilder, BaseStyleComponents
-};
+use crate::widgets::*;
 use crate::event_writer::FaInteractionEvent;
 use bevy::ecs::system::EntityCommands;
 use bevy::input::mouse::{MouseScrollUnit, MouseWheel};
@@ -89,16 +86,12 @@ impl<'a> FaListView {
     }
 
     fn _build_listview(
-        id: Option<String>,
-        class: Option<String>,
+        attributes: &WidgetAttributes,
         root_node: &'a mut EntityCommands,
         panel_entity: Entity,
     ) -> Entity {
-        let mut node = default_listview_node();
-        utils::process_spacing_built_in_class(&mut node, &class);
-
         let mut style_components = BaseStyleComponents::default();
-        style_components.node = node;
+        style_components.node = attributes.node.clone();
         style_components.visibility = Visibility::Visible;
 
         let listview_entity = root_node
@@ -111,19 +104,18 @@ impl<'a> FaListView {
             ))
             .id();
 
-        utils::insert_id_and_class(root_node, listview_entity, &id, &class);
+        utils::insert_id_and_class(root_node, listview_entity, &attributes.id, &attributes.class);
         listview_entity
     }
 
     pub fn new(
-        id: Option<String>,
-        class: Option<String>,
+        attributes: &WidgetAttributes,
         root_node: &'a mut EntityCommands,
         items: &Vec<Entity>,
         scroll_height: f32
     ) -> Entity {
-        let move_panel = Self::_build_move_panel(&id, items, root_node, scroll_height);
-        let listview = Self::_build_listview(id, class, root_node, move_panel);
+        let move_panel = Self::_build_move_panel(&attributes.id, items, root_node, scroll_height);
+        let listview = Self::_build_listview(attributes, root_node, move_panel);
 
         utils::entity_add_child(root_node, move_panel, listview);
         root_node.add_child(listview);
@@ -214,9 +206,8 @@ impl<'a> FaListView {
 
 /// Builder for creating `FaListView` entities with customizable options.
 pub struct FaListViewBuilder<'a> {
-    pub id: Option<String>,
-    pub class: Option<String>,
-    pub children: Option<Vec<Entity>>,
+    pub attributes: WidgetAttributes,
+    pub children: Vec<Entity>,
     pub root_node: EntityCommands<'a>,
     pub scroll_height: f32
 }
@@ -224,24 +215,11 @@ pub struct FaListViewBuilder<'a> {
 impl<'a> FaListViewBuilder<'a> {
     pub fn new(root_node: EntityCommands<'a>) -> Self {
         Self {
-            id: None,
-            class: None,
-            children: Some(Vec::new()),
+            attributes: WidgetAttributes::default(),
+            children: Vec::new(),
             root_node,
             scroll_height: 15.0
         }
-    }
-
-    /// Method to add class to listview.
-    pub fn class(mut self, class: &str) -> Self {
-        self.class = Some(class.to_string());
-        self
-    }
-
-    /// Method to add id to listview.
-    pub fn id(mut self, id: &str) -> Self {
-        self.id = Some(id.to_string());
-        self
     }
 
     ///' Method to set scroll height.
@@ -252,19 +230,30 @@ impl<'a> FaListViewBuilder<'a> {
 
     /// Adds child entities to the ListView.
     pub fn children<I: IntoIterator<Item = Entity>>(mut self, children: I) -> Self {
-        self.children = Some(children.into_iter().collect());
+        self.children = children.into_iter().collect();
         self
     }
 
     /// Spawn listview into UI World.
     pub fn build(&mut self) -> Entity {
+        self._node();
         FaListView::new(
-            self.id.clone(),
-            self.class.clone(),
+            &self.attributes,
             &mut self.root_node,
-            self.children.as_ref().unwrap(),
+            &self.children,
             self.scroll_height
         )
+    }
+}
+
+impl<'a> SetWidgetAttributes for FaListViewBuilder<'a> {
+    fn attributes(&mut self) -> &mut WidgetAttributes {
+        &mut self.attributes
+    }
+
+    fn _node(&mut self) {
+        self.attributes.node = default_listview_node();
+        utils::process_spacing_built_in_class(&mut self.attributes.node, &self.attributes.class);
     }
 }
 

@@ -1,10 +1,7 @@
 use super::color::WHITE_COLOR;
 use crate::event_writer::FaInteractionEvent;
 use crate::plugin::{CursorType, CursorIcons};
-use crate::widgets::{
-    DefaultTextEntity, FamiqWidgetId, DefaultWidgetEntity,
-    FamiqBuilder, BaseStyleComponents, WidgetType
-};
+use crate::widgets::*;
 use crate::utils::{_change_cursor_icon, insert_id_and_class, process_spacing_built_in_class};
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
@@ -101,16 +98,14 @@ fn _default_text_container_node() -> Node {
 
 impl<'a> FaText {
     fn _build_text(
-        id: &Option<String>,
-        class: &Option<String>,
+        attributes: &WidgetAttributes,
         text: &str,
         root_node: &'a mut EntityCommands,
-        font_handle: Handle<Font>,
         size: TextSize
     ) -> Entity {
         let txt = Text::new(text);
         let mut txt_font = TextFont {
-            font: font_handle,
+            font: attributes.font_handle.clone().unwrap(),
             ..default()
         };
         match size {
@@ -126,11 +121,8 @@ impl<'a> FaText {
         let txt_color = TextColor(WHITE_COLOR);
         let txt_layout = TextLayout::new_with_justify(JustifyText::Center);
 
-        let mut node = _default_text_container_node();
-        process_spacing_built_in_class(&mut node, &class);
-
         let mut style_components = BaseStyleComponents::default();
-        style_components.node = node;
+        style_components.node = attributes.node.clone();
 
         let entity = root_node
             .commands()
@@ -146,19 +138,17 @@ impl<'a> FaText {
             ))
             .id();
 
-        insert_id_and_class(root_node, entity, id, class);
+        insert_id_and_class(root_node, entity, &attributes.id, &attributes.class);
         entity
     }
 
     pub fn new(
-        id: Option<String>,
+        attributes: &WidgetAttributes,
         text: &str,
-        class: Option<String>,
         root_node: &'a mut EntityCommands,
-        font_handle: Handle<Font>,
         size: TextSize
     ) -> Entity {
-        Self::_build_text(&id, &class, text, root_node, font_handle, size)
+        Self::_build_text(attributes, text, root_node, size)
     }
 
     /// Internal system that reads `FaTextResource` and update the corresponding text widget's value
@@ -233,28 +223,26 @@ impl<'a> FaText {
 
 /// Builder for creating `FaText` entities with customizable options.
 pub struct FaTextBuilder<'a> {
-    pub id: Option<String>,
+    pub attributes: WidgetAttributes,
     pub value: String,
-    pub class: Option<String>,
-    pub font_handle: Handle<Font>,
     pub root_node: EntityCommands<'a>
 }
 
 impl<'a> FaTextBuilder<'a> {
     pub fn new(value: String, font_handle: Handle<Font>, root_node: EntityCommands<'a>) -> Self {
+        let mut attributes = WidgetAttributes::default();
+        attributes.font_handle = Some(font_handle);
         Self {
-            id: None,
+            attributes,
             value,
-            class: None,
-            font_handle,
             root_node
         }
     }
 
-    fn _process_built_in_size_class(&self) -> TextSize {
+    fn _process_built_in_text_size_class(&self) -> TextSize {
         let mut use_size = TextSize::Default;
 
-        if let Some(class) = self.class.as_ref() {
+        if let Some(class) = self.attributes.class.as_ref() {
             let class_split: Vec<&str> = class.split_whitespace().collect();
 
             for class_name in class_split {
@@ -271,29 +259,27 @@ impl<'a> FaTextBuilder<'a> {
         use_size
     }
 
-    /// Method to add class to text.
-    pub fn class(mut self, class: &str) -> Self {
-        self.class = Some(class.to_string());
-        self
-    }
-
-    /// Method to add id to text.
-    pub fn id(mut self, id: &str) -> Self {
-        self.id = Some(id.to_string());
-        self
-    }
-
     /// Spawn text into UI World.
     pub fn build(&mut self) -> Entity {
-        let size = self._process_built_in_size_class();
+        self._node();
+        let size = self._process_built_in_text_size_class();
         FaText::new(
-            self.id.clone(),
+            &self.attributes,
             self.value.as_str(),
-            self.class.clone(),
             &mut self.root_node,
-            self.font_handle.clone(),
             size
         )
+    }
+}
+
+impl<'a> SetWidgetAttributes for FaTextBuilder<'a> {
+    fn attributes(&mut self) -> &mut WidgetAttributes {
+        &mut self.attributes
+    }
+
+    fn _node(&mut self) {
+        self.attributes.node = _default_text_container_node();
+        process_spacing_built_in_class(&mut self.attributes.node, &self.attributes.class);
     }
 }
 

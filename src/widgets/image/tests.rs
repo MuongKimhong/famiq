@@ -35,7 +35,7 @@ fn setup_test_image_with_custom_size(
     let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
     let path = get_embedded_asset_path("embedded_assets/logo.jpeg").to_string();
     fa_image(&mut builder, path.as_str())
-        .size(Val::Px(200.0), Val::Px(200.0))
+        .set_size(Val::Px(200.0), Val::Px(200.0))
         .build();
 }
 

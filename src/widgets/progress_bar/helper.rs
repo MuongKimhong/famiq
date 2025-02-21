@@ -1,20 +1,21 @@
 use bevy::prelude::*;
 use crate::widgets::color::*;
-use super::{ProgressBarColor, ProgressBarSize};
+use super::*;
 
-fn _get_progress_bar_size(size: &ProgressBarSize) -> f32 {
+fn _get_progress_bar_size(size: &WidgetSize) -> f32 {
     let size_small = 5.0;
     let size_normal = 9.0;
     let size_large = 13.0;
 
     match size {
-        ProgressBarSize::Small => size_small,
-        ProgressBarSize::Normal => size_normal,
-        ProgressBarSize::Large => size_large,
+        WidgetSize::Small => size_small,
+        WidgetSize::Large => size_large,
+        WidgetSize::Custom(v) => *v,
+        _ => size_normal
     }
 }
 
-pub fn default_progress_bar_node(size: &ProgressBarSize) -> Node {
+pub fn default_progress_bar_node(size: &WidgetSize) -> Node {
     Node {
         padding: UiRect::all(Val::Px(0.0)),
         margin: UiRect {
@@ -45,20 +46,27 @@ pub fn default_progress_value_node(percentage: Option<f32>) -> Node {
     node
 }
 
-pub fn get_progress_value_color(color: &ProgressBarColor) -> Color {
+pub fn get_progress_value_color(color: &WidgetColor) -> Color {
     let bg_color = match color {
-        ProgressBarColor::Default => BUTTON_DEFAULT_COLOR,
-        ProgressBarColor::Primary => PRIMARY_COLOR,
-        ProgressBarColor::PrimaryDark => PRIMARY_DARK_COLOR,
-        ProgressBarColor::Secondary => SECONDARY_COLOR,
-        ProgressBarColor::Success => SUCCESS_COLOR,
-        ProgressBarColor::SuccessDark => SUCCESS_DARK_COLOR,
-        ProgressBarColor::Danger => DANGER_COLOR,
-        ProgressBarColor::DangerDark => DANGER_DARK_COLOR,
-        ProgressBarColor::Warning => WARNING_COLOR,
-        ProgressBarColor::WarningDark => WARNING_DARK_COLOR,
-        ProgressBarColor::Info => INFO_COLOR,
-        ProgressBarColor::InfoDark => INFO_DARK_COLOR,
+        WidgetColor::Primary => PRIMARY_COLOR,
+        WidgetColor::PrimaryDark => PRIMARY_DARK_COLOR,
+        WidgetColor::Secondary => SECONDARY_COLOR,
+        WidgetColor::Success => SUCCESS_COLOR,
+        WidgetColor::SuccessDark => SUCCESS_DARK_COLOR,
+        WidgetColor::Danger => DANGER_COLOR,
+        WidgetColor::DangerDark => DANGER_DARK_COLOR,
+        WidgetColor::Warning => WARNING_COLOR,
+        WidgetColor::WarningDark => WARNING_DARK_COLOR,
+        WidgetColor::Info => INFO_COLOR,
+        WidgetColor::InfoDark => INFO_DARK_COLOR,
+        WidgetColor::Custom(color) => {
+            if let Some(parsed_color) = built_in_color_parser(color) {
+                parsed_color
+            } else {
+                DEFAULT_COLOR
+            }
+        },
+        _ => DEFAULT_COLOR
     };
     bg_color
 }

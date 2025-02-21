@@ -1,10 +1,7 @@
 pub mod helper;
 pub mod tests;
 
-use crate::widgets::{
-    FamiqWidgetId, DefaultWidgetEntity,
-    FamiqBuilder, BaseStyleComponents
-};
+use crate::widgets::*;
 use crate::utils;
 use bevy::prelude::*;
 use bevy::ui::FocusPolicy;
@@ -118,14 +115,13 @@ impl<'a> FaModal {
     }
 
     fn _build_modal_background(
-        id: Option<String>,
-        class: Option<String>,
+        attributes: &WidgetAttributes,
         clear_bg: bool,
         root_node: &'a mut EntityCommands,
         container_entity: Entity
     ) -> Entity {
         let mut style_components = BaseStyleComponents::default();
-        style_components.node = default_modal_background_node();
+        style_components.node = attributes.node.clone();
         style_components.visibility = Visibility::Hidden;
         style_components.border_color = BorderColor(Color::srgba(0.0, 0.0, 0.0, 0.6));
 
@@ -144,20 +140,19 @@ impl<'a> FaModal {
             ))
             .id();
 
-        utils::insert_id_and_class(root_node, entity, &id, &class);
+        utils::insert_id_and_class(root_node, entity, &attributes.id, &attributes.class);
         root_node.add_child(entity);
         entity
     }
 
     pub fn new(
-        id: Option<String>,
-        class: Option<String>,
+        attributes: &WidgetAttributes,
         clear_bg: bool,
         items: &Vec<Entity>,
         root_node: &'a mut EntityCommands
     ) -> Entity {
         let container = Self::_build_modal_container(root_node, items);
-        let background = Self::_build_modal_background(id, class, clear_bg, root_node, container);
+        let background = Self::_build_modal_background(attributes, clear_bg, root_node, container);
 
         utils::entity_add_child(root_node, container, background);
         background
@@ -204,34 +199,20 @@ impl<'a> FaModal {
 
 /// Builder for creating modal widgets.
 pub struct FaModalBuilder<'a> {
-    pub id: Option<String>,
-    pub class: Option<String>,
+    pub attributes: WidgetAttributes,
     pub clear_bg: bool,
-    pub children: Option<Vec<Entity>>,
+    pub children: Vec<Entity>,
     pub root_node: EntityCommands<'a>
 }
 
 impl<'a> FaModalBuilder<'a> {
     pub fn new(root_node: EntityCommands<'a>) -> Self {
         Self {
-            id: None,
-            class: None,
+            attributes: WidgetAttributes::default(),
             clear_bg: false,
-            children: Some(Vec::new()),
+            children: Vec::new(),
             root_node
         }
-    }
-
-    /// Method to add class to modal.
-    pub fn class(mut self, class: &str) -> Self {
-        self.class = Some(class.to_string());
-        self
-    }
-
-    /// Method to add id to modal.
-    pub fn id(mut self, id: &str) -> Self {
-        self.id = Some(id.to_string());
-        self
     }
 
     /// Method to make modal background full transparent
@@ -245,19 +226,29 @@ impl<'a> FaModalBuilder<'a> {
     /// # Parameters
     /// - `children`: An iterable collection of entities to add as children.
     pub fn children<I: IntoIterator<Item = Entity>>(mut self, children: I) -> Self {
-        self.children = Some(children.into_iter().collect());
+        self.children = children.into_iter().collect();
         self
     }
 
     /// Spawn modal into UI World.
     pub fn build(&mut self) -> Entity {
+        self._node();
         FaModal::new(
-            self.id.clone(),
-            self.class.clone(),
+            &self.attributes,
             self.clear_bg,
-            self.children.as_ref().unwrap(),
+            &self.children,
             &mut self.root_node
         )
+    }
+}
+
+impl<'a> SetWidgetAttributes for FaModalBuilder<'a> {
+    fn attributes(&mut self) -> &mut WidgetAttributes {
+        &mut self.attributes
+    }
+
+    fn _node(&mut self) {
+        self.attributes.node = default_modal_background_node();
     }
 }
 

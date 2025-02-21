@@ -2,7 +2,7 @@ pub mod tests;
 
 use bevy::prelude::*;
 use crate::utils::{process_spacing_built_in_class, insert_id_and_class};
-use crate::widgets::{DefaultWidgetEntity, FamiqBuilder, BaseStyleComponents};
+use crate::widgets::*;
 
 /// Marker component identifyijng Famiq Image widget.
 #[derive(Component)]
@@ -12,91 +12,64 @@ pub struct FaImage;
 
 impl<'a> FaImage {
     pub fn new(
-        id: Option<String>,
-        class: Option<String>,
-        width: Option<Val>,
-        height: Option<Val>,
+        attributes: &WidgetAttributes,
         root_node: &'a mut EntityCommands,
-        image_handle: Handle<Image>
     ) -> Entity {
-        let mut node = Node::default();
-        process_spacing_built_in_class(&mut node, &class);
-
-        if let Some(w) = width {
-            node.width = w;
-        }
-        if let Some(h) = height {
-            node.height = h;
-        }
         let mut style_components = BaseStyleComponents::default();
-        style_components.node = node;
+        style_components.node = attributes.node.clone();
 
         let image_entity = root_node
             .commands()
             .spawn((
-                ImageNode::new(image_handle),
+                ImageNode::new(attributes.image_handle.clone().unwrap()),
                 style_components.clone(),
                 IsFamiqImage,
                 DefaultWidgetEntity::from(style_components)
             ))
             .id();
 
-        insert_id_and_class(root_node, image_entity, &id, &class);
+        insert_id_and_class(root_node, image_entity, &attributes.id, &attributes.class);
         image_entity
     }
 }
 
 /// Builder for creating image widget.
 pub struct FaImageBuilder<'a> {
-    pub id: Option<String>,
-    pub image_handle: Handle<Image>,
-    pub class: Option<String>,
-    pub width: Option<Val>,
-    pub height: Option<Val>,
+    pub attributes: WidgetAttributes,
     pub root_node: EntityCommands<'a>
 }
 
 impl<'a> FaImageBuilder<'a> {
     pub fn new(image_handle: Handle<Image>, root_node: EntityCommands<'a>) -> Self {
+        let mut attributes = WidgetAttributes::default();
+        attributes.image_handle = Some(image_handle);
         Self {
-            id: None,
-            class: None,
-            width: None,
-            height: None,
-            image_handle,
+            attributes,
             root_node
         }
     }
 
-    /// Method to add class to image.
-    pub fn class(mut self, class: &str) -> Self {
-        self.class = Some(class.to_string());
-        self
-    }
-
-    /// Method to add id to image.
-    pub fn id(mut self, id: &str) -> Self {
-        self.id = Some(id.to_string());
-        self
-    }
-
     /// set custom size for image
-    pub fn size(mut self, width: Val, height: Val) -> Self {
-        self.width = Some(width);
-        self.height = Some(height);
+    pub fn set_size(mut self, width: Val, height: Val) -> Self {
+        self.attributes.node.width = width;
+        self.attributes.node.height = height;
         self
     }
 
     /// Spawn image into UI World.
     pub fn build(&mut self) -> Entity {
-        FaImage::new(
-            self.id.clone(),
-            self.class.clone(),
-            self.width.clone(),
-            self.height.clone(),
-            &mut self.root_node,
-            self.image_handle.clone()
-        )
+        self._node();
+        FaImage::new(&self.attributes, &mut self.root_node)
+    }
+}
+
+impl<'a> SetWidgetAttributes for FaImageBuilder<'a> {
+    fn attributes(&mut self) -> &mut WidgetAttributes {
+        &mut self.attributes
+    }
+
+    fn _node(&mut self) {
+        process_spacing_built_in_class(&mut self.attributes.node, &self.attributes.class);
     }
 }
 

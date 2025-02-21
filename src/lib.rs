@@ -9,6 +9,7 @@ pub mod prelude {
     pub use crate::widgets::{
         FamiqBuilder, FamiqResource, WidgetType, FamiqWidgetId,
         DefaultTextEntity, DefaultWidgetEntity, ResourceMap,
+        SetWidgetAttributes,
         fa_button,
         fa_circular,
         fa_container,

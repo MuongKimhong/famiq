@@ -57,6 +57,118 @@ pub trait ResourceMap {
     fn exists_by_entity(&self, entity: Entity) -> bool;
 }
 
+#[derive(Clone, Default, PartialEq)]
+pub enum WidgetColor {
+    #[default]
+    Default,
+    Primary,
+    PrimaryDark,
+    Secondary,
+    Success,
+    SuccessDark,
+    Danger,
+    DangerDark,
+    Warning,
+    WarningDark,
+    Info,
+    InfoDark,
+    Custom(String)
+}
+
+#[derive(Clone, Copy, Default, PartialEq)]
+pub enum WidgetSize {
+    #[default]
+    Default,
+    Small,
+    Large,
+    Custom(f32)
+}
+
+#[derive(Default, Clone)]
+pub struct WidgetAttributes {
+    pub id: Option<String>,
+    pub class: Option<String>,
+    pub node: Node,
+    pub color: WidgetColor,
+    pub size: WidgetSize,
+    pub font_handle: Option<Handle<Font>>,
+    pub image_handle: Option<Handle<Image>>
+}
+
+pub trait SetWidgetAttributes: Sized {
+    fn attributes(&mut self) -> &mut WidgetAttributes;
+
+    fn id(mut self, id: &str) -> Self {
+        self.attributes().id = Some(id.to_string());
+        self
+    }
+
+    fn class(mut self, class: &str) -> Self {
+        self.attributes().class = Some(class.to_string());
+        self
+    }
+
+    fn color(mut self, color: &str) -> Self {
+        self.attributes().color = WidgetColor::Custom(color.to_string());
+        self
+    }
+
+    fn size(mut self, size: f32) -> Self {
+        self.attributes().size = WidgetSize::Custom(size);
+        self
+    }
+
+    fn _node(&mut self);
+
+    fn _process_built_in_color_class(&mut self) {
+        if self.attributes().color != WidgetColor::Default {
+            return;
+        }
+        let mut use_color = WidgetColor::Default;
+        if let Some(class) = self.attributes().class.as_ref() {
+            let class_split: Vec<&str> = class.split_whitespace().collect();
+
+            for class_name in class_split {
+                match class_name {
+                    "is-primary" => use_color = WidgetColor::Primary,
+                    "is-primary-dark" => use_color = WidgetColor::PrimaryDark,
+                    "is-secondary" => use_color = WidgetColor::Secondary,
+                    "is-danger" => use_color = WidgetColor::Danger,
+                    "is-danger-dark" => use_color = WidgetColor::DangerDark,
+                    "is-success" => use_color = WidgetColor::Success,
+                    "is-success-dark" => use_color= WidgetColor::SuccessDark,
+                    "is-warning" => use_color = WidgetColor::Warning,
+                    "is-warning-dark" => use_color = WidgetColor::WarningDark,
+                    "is-info" => use_color = WidgetColor::Info,
+                    "is-info-dark" => use_color = WidgetColor::InfoDark,
+                    _ => {}
+                }
+            }
+        }
+        self.attributes().color = use_color;
+    }
+
+    fn _process_built_in_size_class(&mut self) {
+        if self.attributes().size != WidgetSize::Default {
+            return;
+        }
+        let mut use_size = WidgetSize::Default;
+        if let Some(class) = self.attributes().class.as_ref() {
+            let class_split: Vec<&str> = class.split_whitespace().collect();
+
+            for class_name in class_split {
+                match class_name {
+                    "is-small" => use_size = WidgetSize::Small,
+                    "is-large" => use_size = WidgetSize::Large,
+                    _ => {}
+                }
+            }
+        }
+        self.attributes().size = use_size;
+    }
+}
+
+
 // key-value of "#widget-id"/".class-name" and all its styles in styles.json
 pub type StyleKeyValue = HashMap<String, WidgetStyle>;
 pub type StylesKeyValue = Vec<StyleKeyValue>;

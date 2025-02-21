@@ -1,81 +1,67 @@
 use crate::widgets::{button::*, color::*};
 use bevy::prelude::*;
 
-pub fn get_text_size(size: &BtnSize) -> f32 {
+pub fn get_text_size(size: &WidgetSize) -> f32 {
     let size_small = 16.0;
     let size_normal = 20.0;
     let size_large = 24.0;
 
     match size {
-        BtnSize::Small => size_small,
-        BtnSize::Normal => size_normal,
-        BtnSize::Large => size_large,
+        WidgetSize::Small => size_small,
+        WidgetSize::Large => size_large,
+        _ => size_normal
     }
 }
 
-pub fn get_text_color(variant: &BtnColor) -> Color {
-    // all variants have text color white except Warning & Defauklt variant which
+pub fn get_text_color(variant: &WidgetColor) -> Color {
+    // all color have text color white except Warning & Default color which
     // has text color black
 
     match variant {
-        BtnColor::Secondary => WHITE_COLOR,
-        BtnColor::PrimaryDark => PRIMARY_COLOR,
-        BtnColor::SuccessDark => SUCCESS_COLOR,
-        BtnColor::DangerDark => DANGER_COLOR,
-        BtnColor::WarningDark => WARNING_COLOR,
-        BtnColor::InfoDark => INFO_COLOR,
+        WidgetColor::Secondary => WHITE_COLOR,
+        WidgetColor::PrimaryDark => PRIMARY_COLOR,
+        WidgetColor::SuccessDark => SUCCESS_COLOR,
+        WidgetColor::DangerDark => DANGER_COLOR,
+        WidgetColor::WarningDark => WARNING_COLOR,
+        WidgetColor::InfoDark => INFO_COLOR,
         _ => BLACK_COLOR,
     }
 }
 
-pub fn get_button_background_color(color: &BtnColor) -> BackgroundColor {
+pub fn get_button_background_color(color: &WidgetColor) -> BackgroundColor {
     let bg_color: BackgroundColor = match color {
-        BtnColor::Default => BackgroundColor(BUTTON_DEFAULT_COLOR),
-        BtnColor::Primary => BackgroundColor(PRIMARY_COLOR),
-        BtnColor::PrimaryDark => BackgroundColor(PRIMARY_DARK_COLOR),
-        BtnColor::Secondary => BackgroundColor(SECONDARY_COLOR),
-        BtnColor::Success => BackgroundColor(SUCCESS_COLOR),
-        BtnColor::SuccessDark => BackgroundColor(SUCCESS_DARK_COLOR),
-        BtnColor::Danger => BackgroundColor(DANGER_COLOR),
-        BtnColor::DangerDark => BackgroundColor(DANGER_DARK_COLOR),
-        BtnColor::Warning => BackgroundColor(WARNING_COLOR),
-        BtnColor::WarningDark => BackgroundColor(WARNING_DARK_COLOR),
-        BtnColor::Info => BackgroundColor(INFO_COLOR),
-        BtnColor::InfoDark => BackgroundColor(INFO_DARK_COLOR),
+        WidgetColor::Primary => BackgroundColor(PRIMARY_COLOR),
+        WidgetColor::PrimaryDark => BackgroundColor(PRIMARY_DARK_COLOR),
+        WidgetColor::Secondary => BackgroundColor(SECONDARY_COLOR),
+        WidgetColor::Success => BackgroundColor(SUCCESS_COLOR),
+        WidgetColor::SuccessDark => BackgroundColor(SUCCESS_DARK_COLOR),
+        WidgetColor::Danger => BackgroundColor(DANGER_COLOR),
+        WidgetColor::DangerDark => BackgroundColor(DANGER_DARK_COLOR),
+        WidgetColor::Warning => BackgroundColor(WARNING_COLOR),
+        WidgetColor::WarningDark => BackgroundColor(WARNING_DARK_COLOR),
+        WidgetColor::Info => BackgroundColor(INFO_COLOR),
+        WidgetColor::InfoDark => BackgroundColor(INFO_DARK_COLOR),
+        _ => BackgroundColor(DEFAULT_COLOR)
     };
     bg_color
 }
 
-pub fn get_button_border_color(variant: &BtnColor) -> BorderColor {
+pub fn get_button_border_color(variant: &WidgetColor) -> BorderColor {
     let border_color: BorderColor = match variant {
-        BtnColor::Default => BorderColor(BUTTON_DEFAULT_COLOR),
-        BtnColor::Primary => BorderColor(PRIMARY_COLOR),
-        BtnColor::PrimaryDark => BorderColor(PRIMARY_DARK_COLOR),
-        BtnColor::Secondary => BorderColor(SECONDARY_COLOR),
-        BtnColor::Success => BorderColor(SUCCESS_COLOR),
-        BtnColor::SuccessDark => BorderColor(SUCCESS_DARK_COLOR),
-        BtnColor::Danger => BorderColor(DANGER_COLOR),
-        BtnColor::DangerDark => BorderColor(DANGER_DARK_COLOR),
-        BtnColor::Warning => BorderColor(WARNING_COLOR),
-        BtnColor::WarningDark => BorderColor(WARNING_DARK_COLOR),
-        BtnColor::Info => BorderColor(INFO_COLOR),
-        BtnColor::InfoDark => BorderColor(INFO_DARK_COLOR),
+        WidgetColor::Primary => BorderColor(PRIMARY_COLOR),
+        WidgetColor::PrimaryDark => BorderColor(PRIMARY_DARK_COLOR),
+        WidgetColor::Secondary => BorderColor(SECONDARY_COLOR),
+        WidgetColor::Success => BorderColor(SUCCESS_COLOR),
+        WidgetColor::SuccessDark => BorderColor(SUCCESS_DARK_COLOR),
+        WidgetColor::Danger => BorderColor(DANGER_COLOR),
+        WidgetColor::DangerDark => BorderColor(DANGER_DARK_COLOR),
+        WidgetColor::Warning => BorderColor(WARNING_COLOR),
+        WidgetColor::WarningDark => BorderColor(WARNING_DARK_COLOR),
+        WidgetColor::Info => BorderColor(INFO_COLOR),
+        WidgetColor::InfoDark => BorderColor(INFO_DARK_COLOR),
+        _ => BorderColor(DEFAULT_COLOR)
     };
     border_color
-}
-
-pub fn get_button_size(size: BtnSize) -> (Val, Val) {
-    let size_small = (Val::Px(24.0), Val::Px(2.0));
-    let size_normal = (Val::Px(30.0), Val::Px(5.0));
-    let size_large = (Val::Px(36.0), Val::Px(5.0));
-
-    let (height, border_width) = match size {
-        BtnSize::Small => size_small,
-        BtnSize::Normal => size_normal,
-        BtnSize::Large => size_large,
-    };
-
-    (height, border_width)
 }
 
 pub fn default_button_node() -> Node {

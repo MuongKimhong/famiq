@@ -1,21 +1,21 @@
 use bevy::prelude::*;
 use crate::widgets::color::*;
-use super::{CircularSize, CircularColor};
+use super::*;
 
-pub fn get_circular_size(size: &CircularSize) -> (Val, Val) {
+pub fn get_circular_size(size: &WidgetSize) -> (Val, Val) {
     let size_small = Val::Px(40.0);
     let size_normal = Val::Px(50.0);
     let size_large = Val::Px(65.0);
 
     match size {
-        CircularSize::Small => (size_small, size_small),
-        CircularSize::Large => (size_large, size_large),
-        CircularSize::CustomSize(v) => (Val::Px(*v), Val::Px(*v)),
+        WidgetSize::Small => (size_small, size_small),
+        WidgetSize::Large => (size_large, size_large),
+        WidgetSize::Custom(v) => (Val::Px(*v), Val::Px(*v)),
         _ => (size_normal, size_normal)
     }
 }
 
-pub fn default_circular_node(size: &CircularSize) -> Node {
+pub fn default_circular_node(size: &WidgetSize) -> Node {
     let (width, height) = get_circular_size(size);
     Node {
         width,
@@ -32,20 +32,27 @@ pub fn default_circular_node(size: &CircularSize) -> Node {
     }
 }
 
-pub fn get_circular_color(color: &CircularColor) -> Color {
+pub fn get_circular_color(color: &WidgetColor) -> Color {
     let bg_color = match color {
-        CircularColor::Default => BUTTON_DEFAULT_COLOR,
-        CircularColor::Primary => PRIMARY_COLOR,
-        CircularColor::PrimaryDark => PRIMARY_DARK_COLOR,
-        CircularColor::Secondary => SECONDARY_COLOR,
-        CircularColor::Success => SUCCESS_COLOR,
-        CircularColor::SuccessDark => SUCCESS_DARK_COLOR,
-        CircularColor::Danger => DANGER_COLOR,
-        CircularColor::DangerDark => DANGER_DARK_COLOR,
-        CircularColor::Warning => WARNING_COLOR,
-        CircularColor::WarningDark => WARNING_DARK_COLOR,
-        CircularColor::Info => INFO_COLOR,
-        CircularColor::InfoDark => INFO_DARK_COLOR,
+        WidgetColor::Primary => PRIMARY_COLOR,
+        WidgetColor::PrimaryDark => PRIMARY_DARK_COLOR,
+        WidgetColor::Secondary => SECONDARY_COLOR,
+        WidgetColor::Success => SUCCESS_COLOR,
+        WidgetColor::SuccessDark => SUCCESS_DARK_COLOR,
+        WidgetColor::Danger => DANGER_COLOR,
+        WidgetColor::DangerDark => DANGER_DARK_COLOR,
+        WidgetColor::Warning => WARNING_COLOR,
+        WidgetColor::WarningDark => WARNING_DARK_COLOR,
+        WidgetColor::Info => INFO_COLOR,
+        WidgetColor::InfoDark => INFO_DARK_COLOR,
+        WidgetColor::Custom(color) => {
+            if let Some(parsed_color) = built_in_color_parser(color) {
+                parsed_color
+            } else {
+                DEFAULT_COLOR
+            }
+        },
+        _ => DEFAULT_COLOR,
     };
     bg_color
 }
