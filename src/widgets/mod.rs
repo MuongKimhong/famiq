@@ -30,14 +30,23 @@ pub use selection::fa_selection;
 pub use bg_image::fa_bg_image;
 pub use progress_bar::fa_progress_bar;
 pub use base_components::*;
+use std::marker::PhantomData;
 use tooltip::FaToolTip;
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use crate::utils::get_embedded_asset_path;
 
-/// ResourceMap trait for `fa_text_input` and `fa_selection`
-pub trait ResourceMap {
+/// Generic resource for `FaTextInputResource` and `FaSelectionResource`
+#[derive(Resource, Default, Debug)]
+pub struct InputResource<T> {
+    pub values_id: HashMap<String, String>,   // id - value
+    pub values_entity: HashMap<Entity, String>, // entity - value
+    _marker: PhantomData<T>
+}
+
+/// trait for `fa_text_input` and `fa_selection`
+pub trait InputResourceMap {
     /// internal method to insert a value by id
     fn _insert_by_id(&mut self, id: String, value: String);
 
@@ -55,6 +64,39 @@ pub trait ResourceMap {
 
     /// Check if an entity exists
     fn exists_by_entity(&self, entity: Entity) -> bool;
+}
+
+/// Generic methods for InputResource<T>
+impl<T> InputResourceMap for InputResource<T> {
+    fn _insert_by_id(&mut self, id: String, value: String) {
+        self.values_id.insert(id, value);
+    }
+
+    fn _insert_by_entity(&mut self, entity: Entity, value: String) {
+        self.values_entity.insert(entity, value);
+    }
+
+    fn get_value_by_id(&self, id: &str) -> String {
+        self.values_id.get(id).map_or_else(
+            || String::from(""),
+            |v| if v == "-/-" { String::from("") } else { v.clone() },
+        )
+    }
+
+    fn get_value_by_entity(&self, entity: Entity) -> String {
+        self.values_entity.get(&entity).map_or_else(
+            || String::from(""),
+            |v| if v == "-/-" { String::from("") } else { v.clone() },
+        )
+    }
+
+    fn exists_by_id(&self, id: &str) -> bool {
+        self.values_id.contains_key(id)
+    }
+
+    fn exists_by_entity(&self, entity: Entity) -> bool {
+        self.values_entity.contains_key(&entity)
+    }
 }
 
 #[derive(Clone, Default, PartialEq)]

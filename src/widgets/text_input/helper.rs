@@ -1,12 +1,9 @@
 use bevy::prelude::*;
 use smol_str::SmolStr;
-use crate::{utils, widgets::FamiqWidgetId};
+use crate::{utils, widgets::*};
 use super::*;
 use bevy::text::TextLayoutInfo;
 use crate::widgets::color::*;
-
-pub const PLACEHOLDER_COLOR: Color = Color::srgba(0.749, 0.749, 0.749, 1.0);
-pub const TEXT_INPUT_VALUE_COLOR: Color = Color::srgba(1.0, 1.0, 1.0, 0.922);
 
 pub fn default_input_node() -> Node {
     Node {
@@ -49,52 +46,34 @@ pub fn outlined_border_radius() -> BorderRadius {
     BorderRadius::all(Val::Px(6.0))
 }
 
-pub fn underlined_border_radius() -> BorderRadius {
-    BorderRadius::all(Val::Px(0.0))
-}
-
-pub fn round_border_radius() -> BorderRadius {
-    BorderRadius::all(Val::Percent(50.0))
-}
-
-pub fn rectangle_border_radius() -> BorderRadius {
-    BorderRadius::all(Val::Px(0.0))
-}
-
-pub fn get_text_size(size: &TextInputSize) -> f32 {
+pub fn get_text_size(size: &WidgetSize) -> f32 {
     let size_small = 16.0;
     let size_normal = 20.0;
     let size_large = 24.0;
 
     let text_size = match size {
-        TextInputSize::Small => size_small,
-        TextInputSize::Normal => size_normal,
-        TextInputSize::Large => size_large,
+        WidgetSize::Small => size_small,
+        WidgetSize::Large => size_large,
+        _ => size_normal
+
     };
     text_size
 }
 
-pub fn get_input_background_color(color: &TextInputColor) -> BackgroundColor {
+pub fn get_input_color(color: &WidgetColor) -> Color {
     match color {
-        TextInputColor::Primary => BackgroundColor(PRIMARY_DARK_COLOR),
-        TextInputColor::Secondary => BackgroundColor(SECONDARY_DARK_COLOR),
-        TextInputColor::Success => BackgroundColor(SUCCESS_DARK_COLOR),
-        TextInputColor::Danger => BackgroundColor(DANGER_DARK_COLOR),
-        TextInputColor::Warning => BackgroundColor(WARNING_DARK_COLOR),
-        TextInputColor::Info => BackgroundColor(INFO_DARK_COLOR),
-        _ => BackgroundColor(WHITE_COLOR)
-    }
-}
-
-pub fn get_input_border_color(color: &TextInputColor) -> BorderColor {
-    match color {
-        TextInputColor::Primary => BorderColor(PRIMARY_COLOR),
-        TextInputColor::Secondary => BorderColor(SECONDARY_COLOR),
-        TextInputColor::Success => BorderColor(SUCCESS_COLOR),
-        TextInputColor::Danger => BorderColor(DANGER_COLOR),
-        TextInputColor::Warning => BorderColor(WARNING_COLOR),
-        TextInputColor::Info => BorderColor(INFO_COLOR),
-        _ => BorderColor(WHITE_COLOR)
+        WidgetColor::Primary => PRIMARY_COLOR,
+        WidgetColor::PrimaryDark => PRIMARY_DARK_COLOR,
+        WidgetColor::Secondary => SECONDARY_COLOR,
+        WidgetColor::Success => SUCCESS_COLOR,
+        WidgetColor::SuccessDark => SUCCESS_DARK_COLOR,
+        WidgetColor::Danger => DANGER_COLOR,
+        WidgetColor::DangerDark => DANGER_DARK_COLOR,
+        WidgetColor::Warning => WARNING_COLOR,
+        WidgetColor::WarningDark => WARNING_DARK_COLOR,
+        WidgetColor::Info => INFO_COLOR,
+        WidgetColor::InfoDark => INFO_DARK_COLOR,
+        _ => WHITE_COLOR
     }
 }
 
@@ -118,30 +97,6 @@ pub fn _update_cursor_position(
         else {
             node.left = Val::Px(left - char_width);
         }
-    }
-}
-
-/// Internal helper function to set placeholder color
-/// based on text_input focus state.
-pub fn _handle_update_placeholder_color(
-    placeholder_text_color: &mut TextColor,
-    input_bg_color: &BackgroundColor,
-    placeholder_internal_widget_style: &WidgetStyle,
-    focused: bool
-) {
-    if placeholder_internal_widget_style.color.is_some() {
-        return;
-    }
-
-    if focused {
-        if input_bg_color.0 == WHITE_COLOR {
-            placeholder_text_color.0 = BLACK_COLOR;
-        } else {
-            placeholder_text_color.0 = TEXT_INPUT_VALUE_COLOR;
-        }
-    }
-    else {
-        placeholder_text_color.0 = PLACEHOLDER_COLOR;
     }
 }
 

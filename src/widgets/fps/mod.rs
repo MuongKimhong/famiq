@@ -133,6 +133,7 @@ impl<'a> FaFpsText {
 pub struct FaFpsTextBuilder<'a> {
     pub attributes: WidgetAttributes,
     pub change_color: bool,
+    pub right_side: bool,
     pub root_node: EntityCommands<'a>
 }
 
@@ -143,7 +144,8 @@ impl<'a> FaFpsTextBuilder<'a> {
         Self {
             attributes,
             root_node,
-            change_color: false
+            change_color: false,
+            right_side: false
         }
     }
 
@@ -155,14 +157,19 @@ impl<'a> FaFpsTextBuilder<'a> {
 
     /// Aligns the FPS widget to the right top corner of the screen.
     pub fn right_side(mut self) -> Self {
-        self.attributes.node.left = Val::Auto;
-        self.attributes.node.right = Val::Px(6.0);
+        self.right_side = true;
         self
     }
 
     /// Spawn fps into UI World.
     pub fn build(&mut self) -> Entity {
         self._node();
+
+        if self.right_side {
+            self.attributes.node.left = Val::Auto;
+            self.attributes.node.right = Val::Px(6.0);
+        }
+
         FaFpsText::new(
             &self.attributes,
             &mut self.root_node,

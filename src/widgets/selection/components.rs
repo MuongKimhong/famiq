@@ -24,9 +24,6 @@ pub struct SelectorArrowIconEntity(pub Entity);
 #[derive(Component)]
 pub struct SelectionChoicesPanelEntity(pub Entity);
 
-#[derive(Component)]
-pub struct SelectionContainerEntity(pub Entity);
-
 /// Component storing selector entity, to be used in _build_choice_container
 #[derive(Component)]
 pub struct SelectorEntity(pub Entity);
