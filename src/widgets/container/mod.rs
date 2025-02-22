@@ -100,6 +100,10 @@ impl<'a> FaContainer {
                         commands
                             .entity(changed_container)
                             .remove_children(&container_res.to_use_children);
+
+                        for child in container_res.to_use_children.iter() {
+                            commands.entity(*child).despawn_recursive();
+                        }
                     }
                 }
                 let mut changed_json_style_keys: Vec<String> = Vec::new();

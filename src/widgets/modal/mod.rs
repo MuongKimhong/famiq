@@ -20,6 +20,9 @@ pub struct IsFamiqModalContainer;
 #[derive(Component)]
 pub struct FaModalContainerEntity(pub Entity);
 
+#[derive(Component)]
+pub struct FaModalChildren(pub Vec<Entity>);
+
 /// Component that keep tracking of modal show/hide animation.
 #[derive(Component)]
 pub struct AnimationProgress(pub f32);
@@ -87,6 +90,10 @@ impl FaModalState {
     }
 }
 
+#[derive(Default)]
+pub struct IsFamiqModalResource;
+pub type FaModalResource = ContainableResource<IsFamiqModalResource>;
+
 pub struct FaModal;
 
 // Doesn't need container
@@ -118,7 +125,8 @@ impl<'a> FaModal {
         attributes: &WidgetAttributes,
         clear_bg: bool,
         root_node: &'a mut EntityCommands,
-        container_entity: Entity
+        container_entity: Entity,
+        items: &Vec<Entity>
     ) -> Entity {
         let mut style_components = BaseStyleComponents::default();
         style_components.node = attributes.node.clone();
@@ -136,6 +144,7 @@ impl<'a> FaModal {
                 IsFamiqModalBackground,
                 FocusPolicy::Block,
                 FaModalContainerEntity(container_entity),
+                FaModalChildren(items.clone()),
                 GlobalZIndex(5)
             ))
             .id();
@@ -152,7 +161,7 @@ impl<'a> FaModal {
         root_node: &'a mut EntityCommands
     ) -> Entity {
         let container = Self::_build_modal_container(root_node, items);
-        let background = Self::_build_modal_background(attributes, clear_bg, root_node, container);
+        let background = Self::_build_modal_background(attributes, clear_bg, root_node, container, items);
 
         utils::entity_add_child(root_node, container, background);
         background
@@ -193,6 +202,95 @@ impl<'a> FaModal {
                     }
                 }
             }
+        }
+    }
+
+    pub fn detect_new_modal_system(
+        mut commands: Commands,
+        mut modal_res: ResMut<FaModalResource>,
+        modal_q: Query<(Entity, Option<&FamiqWidgetId>, &FaModalChildren), Added<IsFamiqModalBackground>>
+    ) {
+        for (entity, id, children) in modal_q.iter() {
+            if let Some(_id) = id {
+                if modal_res.containers.get(&_id.0).is_none() {
+                    modal_res.containers.insert(_id.0.clone(), ContainableData {
+                        entity: Some(entity),
+                        children: children.0.clone()
+                    });
+                    commands.entity(entity).remove::<FaModalChildren>();
+                }
+            }
+        }
+    }
+
+    pub fn detect_modal_resource_change(
+        mut commands: Commands,
+        modal_res: Res<FaModalResource>,
+        modal_q: Query<&FaModalContainerEntity>,
+        mut child_q: Query<(
+            &mut Node,
+            &mut DefaultWidgetEntity,
+            Option<&FamiqWidgetId>,
+            Option<&FamiqWidgetClasses>
+        )>,
+        mut styles: ResMut<StylesKeyValueResource>
+    ) {
+        if modal_res.is_changed() && !modal_res.is_added() {
+            if modal_res.changed_container.is_none() {
+                return;
+            }
+
+            let changed_modal = modal_res.changed_container.unwrap();
+
+            let modal_container_entity = match modal_q.get(changed_modal) {
+                Ok(v) => v.0,
+                Err(_) => return,
+            };
+
+            match modal_res.method_called {
+                ContainableMethodCall::AddChildren => {
+                    commands
+                        .entity(modal_container_entity)
+                        .add_children(&modal_res.to_use_children);
+                }
+                ContainableMethodCall::InsertChildren => {
+                    commands
+                        .entity(modal_container_entity)
+                        .insert_children(modal_res.insert_index, &modal_res.to_use_children);
+                }
+                ContainableMethodCall::RemoveChildren => {
+                    commands
+                        .entity(modal_container_entity)
+                        .remove_children(&modal_res.to_use_children);
+
+                    for child in modal_res.to_use_children.iter() {
+                        commands.entity(*child).despawn_recursive();
+                    }
+                }
+            }
+
+            let mut changed_json_style_keys: Vec<String> = Vec::new();
+            for child in modal_res.to_use_children.iter() {
+                if let Ok((mut node, mut default_widget, id, class)) = child_q.get_mut(*child) {
+                    if node.display == Display::None {
+                        node.display = Display::Flex;
+                        default_widget.node.display = Display::Flex;
+                    }
+                    if let Some(id) = id {
+                        changed_json_style_keys.push(id.0.clone());
+                    }
+                    if let Some(classes) = class {
+                        let classes_split: Vec<&str> = classes.0.split_whitespace().collect();
+                        for class_name in classes_split {
+                            let formatted = format!(".{class_name}");
+                            if !changed_json_style_keys.contains(&formatted) {
+                                changed_json_style_keys.push(formatted);
+                            }
+                        }
+                    }
+                }
+            }
+            styles.changed_key = changed_json_style_keys;
         }
     }
 }

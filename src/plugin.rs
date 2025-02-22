@@ -194,7 +194,9 @@ fn fa_modal_systems(app: &mut App) {
     app.add_systems(
         Update,
         (
-            FaModal::hide_or_display_modal_system
+            FaModal::hide_or_display_modal_system,
+            FaModal::detect_new_modal_system,
+            FaModal::detect_modal_resource_change
         )
         .run_if(can_run_modal_systems)
     );
@@ -263,6 +265,7 @@ impl Plugin for FamiqPlugin {
         app.insert_resource(FamiqResource::new());
         app.insert_resource(FaBgImageResource::default());
         app.insert_resource(FaContainerResource::default());
+        app.insert_resource(FaModalResource::default());
         app.insert_resource(FaListViewResource::default());
         app.insert_resource(CanBeScrolledListView { entity: None });
         app.insert_resource(FaSelectionResource::default());

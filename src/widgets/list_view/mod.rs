@@ -279,6 +279,10 @@ impl<'a> FaListView {
                     commands
                         .entity(panel_entity)
                         .remove_children(&listview_res.to_use_children);
+
+                    for child in listview_res.to_use_children.iter() {
+                        commands.entity(*child).despawn_recursive();
+                    }
                 }
             }
 
