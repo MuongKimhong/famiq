@@ -60,27 +60,27 @@ fn handle_window_resized_system(
 
 fn external_styles_file_systems(app: &mut App) {
     app.add_systems(
-        PostUpdate,
+        Update,
         (
-            style::read_styles_from_file_system,
-            style::detect_external_style_changes,
-            style::apply_widgets_styles_system,
-            style::apply_text_style_system
+            style::detect_widget_internal_styles_change,
+            style::detect_text_internal_styles_change
         )
-            .chain()
-            .run_if(hot_reload_is_enabled)
+        .chain()
     );
+
     app.add_systems(
-        PostUpdate,
+        PreUpdate,
+        style::read_styles_from_file_system.run_if(hot_reload_is_enabled)
+    );
+
+    app.add_systems(
+        PreUpdate,
         (
             style::read_styles_from_file_system,
-            style::inject_external_style,
-            style::apply_widgets_styles_system,
-            style::apply_text_style_system,
             style::finish_style_applying_system
         )
-            .chain()
-            .run_if(hot_reload_is_disabled)
+        .chain()
+        .run_if(hot_reload_is_disabled)
     );
 }
 
@@ -251,7 +251,7 @@ impl Plugin for FamiqPlugin {
         app.add_plugins(UiMaterialPlugin::<ProgressBarMaterial>::default());
         app.add_plugins(UiMaterialPlugin::<CircularMaterial>::default());
         app.add_plugins(FrameTimeDiagnosticsPlugin::default());
-        app.insert_resource(StylesKeyValueResource(StylesKeyValue::new()));
+        app.insert_resource(StylesKeyValueResource::default());
         app.insert_resource(FamiqResource::new());
         app.insert_resource(FaBgImageResource::default());
         app.insert_resource(FaContainerResource::default());

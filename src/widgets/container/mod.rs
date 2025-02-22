@@ -72,7 +72,15 @@ impl<'a> FaContainer {
     pub fn detect_container_resource_change(
         mut commands: Commands,
         container_res: Res<FaContainerResource>,
-        mut child_q: Query<&mut Node>
+        mut child_q: Query<
+            (
+                &mut Node,
+                &mut DefaultWidgetEntity,
+                Option<&FamiqWidgetId>,
+                Option<&FamiqWidgetClasses>,
+            )
+        >,
+        mut styles: ResMut<StylesKeyValueResource>
     ) {
         if container_res.is_changed() && !container_res.is_added() {
             if let Some(changed_container) = container_res.changed_container {
@@ -94,14 +102,28 @@ impl<'a> FaContainer {
                             .remove_children(&container_res.to_use_children);
                     }
                 }
-
+                let mut changed_json_style_keys: Vec<String> = Vec::new();
                 for child in container_res.to_use_children.iter() {
-                    if let Ok(mut node) = child_q.get_mut(*child) {
+                    if let Ok((mut node, mut default_widget, id, class)) = child_q.get_mut(*child) {
                         if node.display == Display::None {
                             node.display = Display::Flex;
+                            default_widget.node.display = Display::Flex;
+                        }
+                        if let Some(id) = id {
+                            changed_json_style_keys.push(id.0.clone());
+                        }
+                        if let Some(classes) = class {
+                            let classes_split: Vec<&str> = classes.0.split_whitespace().collect();
+                            for class_name in classes_split {
+                                let formatted = format!(".{class_name}");
+                                if !changed_json_style_keys.contains(&formatted) {
+                                    changed_json_style_keys.push(formatted);
+                                }
+                            }
                         }
                     }
                 }
+                styles.changed_key = changed_json_style_keys;
             }
         }
     }

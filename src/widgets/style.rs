@@ -22,134 +22,178 @@ type WidgetStyleQuery<'a, 'w, 's> = Query<
         &'a mut ZIndex,
         &'a mut Visibility,
         &'a mut BoxShadow,
-        &'a WidgetStyle,
-        &'a ExternalStyleHasChanged,
         &'a DefaultWidgetEntity,
     ),
 >;
 
 pub fn read_styles_from_file_system(
     mut styles: ResMut<StylesKeyValueResource>,
-    builder_res: ResMut<FamiqResource>,
+    famiq_res: ResMut<FamiqResource>,
 ) {
-    if builder_res.hot_reload_styles || !builder_res.external_style_applied {
-        if let Ok(s) = utils::read_styles_json_file(&builder_res.style_path) {
-            styles.0 = s;
+    if let Ok(json_styles) = utils::read_styles_json_file(&famiq_res.style_path) {
+        let mut changed_keys: Vec<String> = Vec::new();
+
+        for (external_key, external_value) in json_styles.iter() {
+
+            if styles.values.get(external_key).is_none() {
+                styles.values.insert(external_key.to_owned(), external_value.to_owned());
+                changed_keys.push(external_key.to_owned());
+                continue;
+            }
+
+            if let Some(internal_value) = styles.values.get(external_key) {
+                if internal_value == external_value {
+                    continue;
+                }
+                styles.values.insert(external_key.to_owned(), external_value.to_owned());
+                changed_keys.push(external_key.to_owned());
+            }
+        }
+
+        // Find keys that exist in `styles.values` but are missing from `json_styles`
+        let keys_to_remove: Vec<String> = styles
+            .values
+            .keys()
+            .filter(|key| !json_styles.contains_key(*key))
+            .cloned()
+            .collect();
+
+        // Remove missing keys
+        for key in keys_to_remove.iter() {
+            styles.values.remove(key);
+        }
+        changed_keys.extend(keys_to_remove);
+
+        if !changed_keys.is_empty() {
+            styles.changed_key = changed_keys;
         }
     }
 }
 
-pub fn detect_external_style_changes(
+pub fn detect_widget_internal_styles_change(
     styles: Res<StylesKeyValueResource>,
-    mut query: Query<(
-        Option<&FamiqWidgetId>,
-        Option<&FamiqWidgetClasses>,
-        &mut ExternalStyleHasChanged,
-        &mut WidgetStyle
-    )>
+    mut widget_query: WidgetStyleQuery
 ) {
-    for (id, class, mut has_changed, mut widget_style) in query.iter_mut() {
-        let mut empty_style = WidgetStyle::default();
+    if styles.is_changed() {
+        for (
+            id,
+            class,
+            mut node,
+            mut bg_color,
+            mut bd_color,
+            mut bd_radius,
+            mut z_index,
+            mut visibility,
+            mut box_shadow,
+            default_widget,
+        ) in widget_query.iter_mut() {
+            let mut changed = false;
+            let mut empty_style = WidgetStyle::default();
 
-        if let Some(id) = id {
-            if let Some(external_style) = styles.get_style_by_id(&id.0) {
-                empty_style.update_from(external_style);
-            }
-        }
-
-        if let Some(classes) = class {
-            let classes_split: Vec<&str> = classes.0.split_whitespace().collect();
-            for class_name in classes_split {
-                if let Some(external_style) = styles.get_style_by_class_name(class_name) {
-                    empty_style.merge_external(external_style);
+            if let Some(id) = id {
+                if styles.changed_key.contains(&id.0) {
+                    if let Some(external_style) = styles.get_style_by_id(&id.0) {
+                        changed = empty_style.update_from(external_style);
+                    }
+                    else {
+                        // Style was removed from json, Reset to default
+                        changed = true;
+                    }
                 }
             }
+
+            if let Some(classes) = class {
+                let classes_split: Vec<&str> = classes.0.split_whitespace().collect();
+                for class_name in classes_split {
+                    let formatted = format!(".{class_name}");
+                    if styles.changed_key.contains(&formatted) {
+                        if let Some(external_style) = styles.get_style_by_class_name(&formatted) {
+                            changed = empty_style.merge_external(external_style);
+                        }
+                        else {
+                            // Style was removed from json, Reset to default
+                            changed = true;
+                        }
+                    }
+                }
+            }
+
+            if changed {
+                apply_styles_from_external_json(
+                    &mut bg_color,
+                    &mut bd_color,
+                    &mut bd_radius,
+                    &mut visibility,
+                    &mut z_index,
+                    &mut node,
+                    &mut box_shadow,
+                    &empty_style,
+                    default_widget
+                );
+            }
         }
-        has_changed.0 = widget_style.update_from(&empty_style);
     }
 }
 
-pub fn inject_external_style(
-    styles: Res<StylesKeyValueResource>,
-    mut query: Query<(
+pub fn detect_text_internal_styles_change(
+    mut styles: ResMut<StylesKeyValueResource>,
+    mut text_query: Query<(
+        &mut TextFont,
+        &mut TextColor,
         Option<&FamiqWidgetId>,
         Option<&FamiqWidgetClasses>,
-        &mut WidgetStyle
+        Option<&DefaultTextEntity>,
+        Option<&DefaultTextSpanEntity>
     )>
 ) {
-    for (id, class, mut widget_style) in query.iter_mut() {
-        if let Some(id) = id {
-            if let Some(external_style) = styles.get_style_by_id(&id.0) {
-                widget_style.from_external(external_style);
-            }
-        }
+    if styles.is_changed() {
+        for (
+            mut text_font,
+            mut text_color,
+            id,
+            class,
+            default_text_entity,
+            default_text_span_entity
+        ) in text_query.iter_mut() {
+            let mut changed = false;
+            let mut empty_style = WidgetStyle::default();
 
-        if let Some(classes) = class {
-            let classes_split: Vec<&str> = classes.0.split_whitespace().collect();
-            for class_name in classes_split {
-                if let Some(external_style) = styles.get_style_by_class_name(class_name) {
-                    widget_style.merge_external(external_style);
+            if let Some(id) = id {
+                if styles.changed_key.contains(&id.0) {
+                    if let Some(external_style) = styles.get_style_by_id(&id.0) {
+                        changed = empty_style.update_from(external_style);
+                    }
                 }
             }
+
+            if let Some(classes) = class {
+                let classes_split: Vec<&str> = classes.0.split_whitespace().collect();
+                for class_name in classes_split {
+                    let formatted = format!(".{class_name}");
+                    if styles.changed_key.contains(&formatted) {
+                        if let Some(external_style) = styles.get_style_by_class_name(&formatted) {
+                            changed = empty_style.merge_external(external_style);
+                        }
+                    }
+                }
+            }
+
+            if changed {
+                apply_text_styles_from_external_json(
+                    &empty_style,
+                    default_text_entity,
+                    default_text_span_entity,
+                    &mut text_font,
+                    &mut text_color
+                );
+            }
         }
+        styles.changed_key.clear();
     }
 }
 
 pub fn finish_style_applying_system(mut builder_res: ResMut<FamiqResource>) {
     builder_res.external_style_applied = true;
-}
-
-pub fn apply_widgets_styles_system(
-    builder_res: Res<FamiqResource>,
-    mut query: WidgetStyleQuery,
-) {
-    for (
-        widget_id,
-        widget_classes,
-        mut node,
-        mut bg_color,
-        mut border_color,
-        mut border_radius,
-        mut z_index,
-        mut visibility,
-        mut box_shadow,
-        local_widget_style,
-        has_external_changed,
-        default_widget_entity,
-    ) in query.iter_mut()
-    {
-        if builder_res.hot_reload_styles {
-            if has_external_changed.0 && (widget_id.is_some() || widget_classes.is_some()) {
-                apply_styles_from_external_json(
-                    &mut bg_color,
-                    &mut border_color,
-                    &mut border_radius,
-                    &mut visibility,
-                    &mut z_index,
-                    &mut node,
-                    &mut box_shadow,
-                    local_widget_style,
-                    default_widget_entity
-                );
-            }
-        }
-
-        if !builder_res.hot_reload_styles && !builder_res.external_style_applied {
-            if widget_id.is_some() || widget_classes.is_some() {
-                apply_styles_from_external_json(
-                    &mut bg_color,
-                    &mut border_color,
-                    &mut border_radius,
-                    &mut visibility,
-                    &mut z_index,
-                    &mut node,
-                    &mut box_shadow,
-                    local_widget_style,
-                    default_widget_entity
-                );
-            }
-        }
-    }
 }
 
 pub fn apply_text_styles_from_external_json(

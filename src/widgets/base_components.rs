@@ -127,7 +127,7 @@ pub struct ExternalStyleHasChanged(pub bool);
 #[derive(Component)]
 pub struct IsFaWidgetRoot;
 
-#[derive(Default, Debug, Serialize, Deserialize, Clone, Component)]
+#[derive(Default, Debug, Serialize, Deserialize, Clone, Component, PartialEq)]
 pub struct WidgetStyle {
     pub color: Option<String>,     // for fa_text, fa_fps, Text color only
     pub font_size: Option<String>, // for fa_text, fa_fps, Text font_size only

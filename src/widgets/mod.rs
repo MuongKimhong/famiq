@@ -291,11 +291,6 @@ pub trait SetWidgetAttributes: Sized {
     }
 }
 
-
-// key-value of "#widget-id"/".class-name" and all its styles in styles.json
-pub type StyleKeyValue = HashMap<String, WidgetStyle>;
-pub type StylesKeyValue = Vec<StyleKeyValue>;
-
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum WidgetType {
     Root, // globalzindex 1
@@ -316,17 +311,19 @@ pub enum WidgetType {
     Image
 }
 
-#[derive(Resource)]
-pub struct StylesKeyValueResource(pub StylesKeyValue);
+#[derive(Resource, Default)]
+pub struct StylesKeyValueResource {
+    pub values: HashMap<String, WidgetStyle>, // key-value of "#widget-id"/".class-name" and all its styles in styles.json
+    changed_key: Vec<String>
+}
 
 impl StylesKeyValueResource {
     pub fn get_style_by_id(&self, widget_id: &str) -> Option<&WidgetStyle> {
-        self.0.iter().flat_map(|map| map.get(widget_id)).next()
+        self.values.get(widget_id)
     }
 
     pub fn get_style_by_class_name(&self, class_name: &str) -> Option<&WidgetStyle> {
-        let classname = format!(".{class_name}");
-        self.0.iter().flat_map(|map| map.get(&classname)).next()
+        self.values.get(class_name)
     }
 }
 
@@ -392,16 +389,11 @@ pub struct FamiqBuilder<'a> {
 }
 
 impl<'a> FamiqBuilder<'a> {
-    fn _reset_builder_resource(builder_resource: &mut ResMut<FamiqResource>) {
-        builder_resource.external_style_applied = false;
-    }
-
     pub fn new(
         commands: &'a mut Commands,
         builder_resource: &'a mut ResMut<FamiqResource>,
         asset_server: &'a ResMut<'a, AssetServer>,
     ) -> Self {
-        Self::_reset_builder_resource(builder_resource);
         Self {
             asset_server,
             ui_root_node: commands.entity(builder_resource.root_node_entity.unwrap()),
@@ -505,10 +497,10 @@ impl<'a> FamiqBuilder<'a> {
     }
 }
 
-pub fn hot_reload_is_enabled(builder_res: Res<FamiqResource>) -> bool {
-    builder_res.hot_reload_styles
+pub fn hot_reload_is_enabled(famiq_res: Res<FamiqResource>) -> bool {
+    famiq_res.hot_reload_styles
 }
 
-pub fn hot_reload_is_disabled(builder_res: Res<FamiqResource>) -> bool {
-    !builder_res.hot_reload_styles && !builder_res.external_style_applied
+pub fn hot_reload_is_disabled(famiq_res: Res<FamiqResource>) -> bool {
+    !famiq_res.hot_reload_styles && !famiq_res.external_style_applied
 }

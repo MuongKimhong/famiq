@@ -1,4 +1,5 @@
 use bevy::ecs::system::EntityCommands;
+use bevy::utils::HashMap;
 use bevy::asset::{io::AssetSourceId, AssetPath, AssetPlugin};
 use bevy::prelude::*;
 use std::path::Path;
@@ -9,9 +10,9 @@ use crate::plugin::{CursorIcons, CursorType};
 use crate::widgets::style_parse::*;
 use crate::widgets::{WidgetStyle, DefaultWidgetEntity};
 use crate::errors::StylesFileError;
-use crate::widgets::{StyleKeyValue, StylesKeyValue, FamiqWidgetId, FamiqWidgetClasses};
+use crate::widgets::{FamiqWidgetId, FamiqWidgetClasses};
 
-pub fn read_styles_json_file(path: &str) -> Result<StylesKeyValue, StylesFileError> {
+pub fn read_styles_json_file(path: &str) -> Result<HashMap<String, WidgetStyle>, StylesFileError> {
     let mut file = match File::open(path) {
         Ok(f) => f,
         Err(_) => return Err(StylesFileError::StylesFileDoesNotExist),
@@ -25,29 +26,10 @@ pub fn read_styles_json_file(path: &str) -> Result<StylesKeyValue, StylesFileErr
         .replace("\t", "    ")
         .replace("\\\"", "\"");
 
-    let maps = get_widget_styles_maps(&contents).unwrap();
-    Ok(maps)
-}
+    let styles: HashMap<String, WidgetStyle> = serde_json::from_str(&contents)
+        .map_err(|_| StylesFileError::ReadStylesFromFileToStructFail)?;
 
-// get all style key-value pairs as Vector
-pub fn get_widget_styles_maps(
-    widget_styles_str: &String,
-) -> Result<StylesKeyValue, StylesFileError> {
-    let widget_styles: StyleKeyValue = match serde_json::from_str(&widget_styles_str) {
-        Ok(v) => v,
-        Err(_) => {
-            return Err(StylesFileError::ReadStylesFromFileToStructFail);
-        }
-    };
-    let maps: StylesKeyValue = widget_styles
-        .into_iter()
-        .map(|(key, value)| {
-            let mut map = StyleKeyValue::new();
-            map.insert(key, value);
-            map
-        })
-        .collect();
-    Ok(maps)
+    Ok(styles)
 }
 
 // extract bevy Val enum value
