@@ -150,6 +150,7 @@ pub fn parse_display(value: &str) -> Option<Display> {
         "flex" => Some(Display::Flex),
         "grid" => Some(Display::Grid),
         "block" => Some(Display::Block),
+        "none" => Some(Display::None),
         _ => None,
     }
 }

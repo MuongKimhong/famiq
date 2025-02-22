@@ -253,6 +253,9 @@ impl<'a> SetWidgetAttributes for FaListViewBuilder<'a> {
 
     fn _node(&mut self) {
         self.attributes.node = default_listview_node();
+        if self.attributes.default_display_changed {
+            self.attributes.node.display = self.attributes.default_display;
+        }
         utils::process_spacing_built_in_class(&mut self.attributes.node, &self.attributes.class);
     }
 }

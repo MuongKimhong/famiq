@@ -636,6 +636,9 @@ impl<'a> SetWidgetAttributes for FaTextInputBuilder<'a> {
 
     fn _node(&mut self) {
         self.attributes.node = default_input_node();
+        if self.attributes.default_display_changed {
+            self.attributes.node.display = self.attributes.default_display;
+        }
         process_spacing_built_in_class(&mut self.attributes.node, &self.attributes.class);
     }
 }

@@ -12,6 +12,7 @@ use crate::widgets::{
     progress_bar::*,
     image::*,
     bg_image::*,
+    container::*,
     *
 };
 
@@ -59,7 +60,7 @@ fn handle_window_resized_system(
 
 fn external_styles_file_systems(app: &mut App) {
     app.add_systems(
-        Update,
+        PostUpdate,
         (
             style::read_styles_from_file_system,
             style::detect_external_style_changes,
@@ -70,7 +71,7 @@ fn external_styles_file_systems(app: &mut App) {
             .run_if(hot_reload_is_enabled)
     );
     app.add_systems(
-        Update,
+        PostUpdate,
         (
             style::read_styles_from_file_system,
             style::inject_external_style,
@@ -223,6 +224,17 @@ fn fa_bg_image_systems(app: &mut App) {
     );
 }
 
+fn fa_container_systems(app: &mut App) {
+    app.add_systems(
+        Update,
+        (
+            FaContainer::detect_new_container_system,
+            FaContainer::detect_container_resource_change
+        )
+        .run_if(can_run_container_systems)
+    );
+}
+
 pub struct FamiqPlugin;
 
 impl Plugin for FamiqPlugin {
@@ -242,6 +254,7 @@ impl Plugin for FamiqPlugin {
         app.insert_resource(StylesKeyValueResource(StylesKeyValue::new()));
         app.insert_resource(FamiqResource::new());
         app.insert_resource(FaBgImageResource::default());
+        app.insert_resource(FaContainerResource::default());
         app.insert_resource(CanBeScrolledListView { entity: None });
         app.insert_resource(FaSelectionResource::default());
         app.insert_resource(FaTextInputResource::default());
@@ -266,6 +279,7 @@ impl Plugin for FamiqPlugin {
         fa_image_systems(app);
         fa_progress_bar_systems(app);
         fa_bg_image_systems(app);
+        fa_container_systems(app);
 
         app.add_systems(
             Update,

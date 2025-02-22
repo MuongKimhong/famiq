@@ -9,7 +9,7 @@ pub mod prelude {
     pub use crate::widgets::{
         FamiqBuilder, FamiqResource, WidgetType, FamiqWidgetId,
         DefaultTextEntity, DefaultWidgetEntity, InputResourceMap,
-        SetWidgetAttributes,
+        SetWidgetAttributes, ContainableResourceAction,
         fa_button,
         fa_circular,
         fa_container,
@@ -27,7 +27,7 @@ pub mod prelude {
     pub use crate::widgets::text_input::{IsFamiqTextInput, FaTextInputResource};
     pub use crate::widgets::selection::{IsFamiqSelectionSelector, FaSelectionResource};
     pub use crate::widgets::progress_bar::{IsFamiqProgressBar, IsFamiqProgressValue, FaProgressBarResource};
-    pub use crate::widgets::container::{IsFamiqContainer, FaContainer};
+    pub use crate::widgets::container::{IsFamiqContainer, FaContainerResource};
     pub use crate::widgets::fps::IsFamiqFPSTextCount;
     pub use crate::widgets::text::{IsFamiqText, FaTextResource};
     pub use crate::widgets::list_view::IsFamiqListView;

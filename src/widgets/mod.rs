@@ -30,12 +30,82 @@ pub use selection::fa_selection;
 pub use bg_image::fa_bg_image;
 pub use progress_bar::fa_progress_bar;
 pub use base_components::*;
+use crate::widgets::style_parse::*;
 use std::marker::PhantomData;
 use tooltip::FaToolTip;
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use crate::utils::get_embedded_asset_path;
+
+#[derive(Clone, Default)]
+pub struct ContainableData {
+    pub entity: Option<Entity>,
+    pub children: Vec<Entity>
+}
+
+#[derive(PartialEq, Clone, Default)]
+enum ContainableMethodCall {
+    #[default]
+    AddChildren,
+    InsertChildren,
+    RemoveChildren
+}
+
+/// Generic resource for containable widgets `FaContainerResource`,
+/// `FaModalResource`, `FaListViewResource`.
+#[derive(Resource, Default)]
+pub struct ContainableResource<T> {
+    pub containers: HashMap<String, ContainableData>, // id - ContainableData
+    method_called: ContainableMethodCall,
+    changed_container: Option<Entity>,
+    to_use_children: Vec<Entity>,
+    insert_index: usize,
+    _marker: PhantomData<T>
+}
+
+/// trait for `fa_container`, `fa_modal` and `fa_listview`
+pub trait ContainableResourceAction {
+    fn add_children(&mut self, id: &str, children: &[Entity]);
+
+    fn insert_children(&mut self, id: &str, index: usize, children: &[Entity]);
+
+    fn remove_children(&mut self, id: &str, children: &[Entity]);
+}
+
+impl<T> ContainableResourceAction for ContainableResource<T> {
+    fn add_children(&mut self, id: &str, children: &[Entity]) {
+        if let Some(container) = self.containers.get_mut(id) {
+            container.children.extend(children.iter().cloned());
+            self.method_called = ContainableMethodCall::AddChildren;
+            self.to_use_children.clear();
+            self.to_use_children.extend_from_slice(children);
+            self.changed_container = container.entity;
+        }
+    }
+
+    fn insert_children(&mut self, id: &str, index: usize, children: &[Entity]) {
+        if let Some(container) = self.containers.get_mut(id) {
+            container.children.splice(index..index, children.iter().cloned());
+            self.method_called = ContainableMethodCall::InsertChildren;
+            self.to_use_children.clear();
+            self.to_use_children.extend_from_slice(children);
+            self.changed_container = container.entity;
+            self.insert_index = index;
+        }
+    }
+
+    fn remove_children(&mut self, id: &str, children: &[Entity]) {
+        if let Some(container) = self.containers.get_mut(id) {
+            let to_remove: std::collections::HashSet<Entity> = children.iter().cloned().collect();
+            container.children.retain(|child| !to_remove.contains(child));
+            self.method_called = ContainableMethodCall::RemoveChildren;
+            self.to_use_children.clear();
+            self.to_use_children.extend_from_slice(children);
+            self.changed_container = container.entity;
+        }
+    }
+}
 
 /// Generic resource for `FaTextInputResource` and `FaSelectionResource`
 #[derive(Resource, Default, Debug)]
@@ -134,7 +204,9 @@ pub struct WidgetAttributes {
     pub color: WidgetColor,
     pub size: WidgetSize,
     pub font_handle: Option<Handle<Font>>,
-    pub image_handle: Option<Handle<Image>>
+    pub image_handle: Option<Handle<Image>>,
+    default_display_changed: bool,
+    default_display: Display
 }
 
 pub trait SetWidgetAttributes: Sized {
@@ -157,6 +229,15 @@ pub trait SetWidgetAttributes: Sized {
 
     fn size(mut self, size: f32) -> Self {
         self.attributes().size = WidgetSize::Custom(size);
+        self
+    }
+
+    fn display(mut self, display: &str) -> Self {
+        if let Some(parsed_display) = parse_display(display) {
+            self.attributes().node.display = parsed_display;
+            self.attributes().default_display_changed = true;
+            self.attributes().default_display = parsed_display;
+        }
         self
     }
 

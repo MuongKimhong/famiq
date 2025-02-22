@@ -9,9 +9,16 @@ use crate::widgets::*;
 use super::BaseStyleComponents;
 use helper::*;
 
+#[derive(Default)]
+pub struct IsFamiqContainerResource;
+pub type FaContainerResource = ContainableResource<IsFamiqContainerResource>;
+
 /// Marker component for identifying a Famiq container.
 #[derive(Component)]
 pub struct IsFamiqContainer;
+
+#[derive(Component)]
+pub struct FaContainerChildren(pub Vec<Entity>);
 
 /// Represents a Famiq container widget.
 /// Think of it as a Div element in HTML.
@@ -34,6 +41,7 @@ impl<'a> FaContainer {
                 style_components.clone(),
                 IsFamiqContainer,
                 DefaultWidgetEntity::from(style_components),
+                FaContainerChildren(children.to_owned())
             ))
             .id();
 
@@ -41,6 +49,61 @@ impl<'a> FaContainer {
         utils::insert_id_and_class(root_node, container_entity, &attributes.id, &attributes.class);
         utils::entity_add_children(root_node, children, container_entity);
         container_entity
+    }
+
+    pub fn detect_new_container_system(
+        mut commands: Commands,
+        mut container_res: ResMut<FaContainerResource>,
+        container_q: Query<(Entity, Option<&FamiqWidgetId>, &FaContainerChildren), Added<IsFamiqContainer>>
+    ) {
+        for (entity, id, children) in container_q.iter() {
+            if let Some(_id) = id {
+                if container_res.containers.get(&_id.0).is_none() {
+                    container_res.containers.insert(_id.0.clone(), ContainableData {
+                        entity: Some(entity),
+                        children: children.0.clone()
+                    });
+                    commands.entity(entity).remove::<FaContainerChildren>();
+                }
+            }
+        }
+    }
+
+    pub fn detect_container_resource_change(
+        mut commands: Commands,
+        container_res: Res<FaContainerResource>,
+        mut child_q: Query<&mut Node>
+    ) {
+        if container_res.is_changed() && !container_res.is_added() {
+            if let Some(changed_container) = container_res.changed_container {
+
+                match container_res.method_called {
+                    ContainableMethodCall::AddChildren => {
+                        commands
+                            .entity(changed_container)
+                            .add_children(&container_res.to_use_children);
+                    }
+                    ContainableMethodCall::InsertChildren => {
+                        commands
+                            .entity(changed_container)
+                            .insert_children(container_res.insert_index, &container_res.to_use_children);
+                    }
+                    ContainableMethodCall::RemoveChildren => {
+                        commands
+                            .entity(changed_container)
+                            .remove_children(&container_res.to_use_children);
+                    }
+                }
+
+                for child in container_res.to_use_children.iter() {
+                    if let Ok(mut node) = child_q.get_mut(*child) {
+                        if node.display == Display::None {
+                            node.display = Display::Flex;
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -87,6 +150,11 @@ impl<'a> SetWidgetAttributes for FaContainerBuilder<'a> {
 
     fn _node(&mut self) {
         self.attributes.node = default_container_node();
+
+        if self.attributes.default_display_changed {
+            self.attributes.node.display = self.attributes.default_display;
+        }
+
         utils::process_spacing_built_in_class(&mut self.attributes.node, &self.attributes.class);
     }
 }

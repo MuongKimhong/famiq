@@ -249,6 +249,9 @@ impl<'a> SetWidgetAttributes for FaModalBuilder<'a> {
 
     fn _node(&mut self) {
         self.attributes.node = default_modal_background_node();
+        if self.attributes.default_display_changed {
+            self.attributes.node.display = self.attributes.default_display;
+        }
     }
 }
 
