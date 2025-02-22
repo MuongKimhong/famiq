@@ -23,6 +23,9 @@ pub struct IsFamiqListViewItem;
 pub struct IsFamiqListViewMovePanel;
 
 #[derive(Component)]
+pub struct FaListViewChildren(pub Vec<Entity>);
+
+#[derive(Component)]
 pub struct ListViewMovePanelEntity(pub Entity);
 
 #[derive(Component)]
@@ -46,6 +49,10 @@ pub struct CanBeScrolledListView {
     pub entity: Option<Entity>,
 }
 
+#[derive(Default)]
+pub struct IsFamiqListViewResource;
+pub type FaListViewResource = ContainableResource<IsFamiqListViewResource>;
+
 pub struct FaListView;
 
 // Doesn't need container
@@ -59,7 +66,7 @@ impl<'a> FaListView {
         let mut style_components = BaseStyleComponents::default();
         style_components.node = default_move_panel_node();
 
-        let move_panel_entity = root_node
+        let panel_entity = root_node
             .commands()
             .spawn((
                 style_components.clone(),
@@ -70,7 +77,8 @@ impl<'a> FaListView {
             .id();
 
         if let Some(id) = id {
-            root_node.commands().entity(move_panel_entity).insert(FamiqWidgetId(format!("{id}_move_panel")));
+            // root_node.commands().entity(move_panel_entity).insert(FamiqWidgetId(format!("{id}_move_panel")));
+            root_node.commands().entity(panel_entity).insert(FamiqWidgetId(id.to_owned()));
         }
 
         // insert IsFamiqListViewItem component into user provided items's entities
@@ -81,14 +89,15 @@ impl<'a> FaListView {
                 .entity(cloned)
                 .insert((IsFamiqListViewItem,));
         }
-        utils::entity_add_children(root_node, items, move_panel_entity);
-        move_panel_entity
+        utils::entity_add_children(root_node, items, panel_entity);
+        panel_entity
     }
 
     fn _build_listview(
         attributes: &WidgetAttributes,
         root_node: &'a mut EntityCommands,
         panel_entity: Entity,
+        items: &Vec<Entity>
     ) -> Entity {
         let mut style_components = BaseStyleComponents::default();
         style_components.node = attributes.node.clone();
@@ -100,7 +109,8 @@ impl<'a> FaListView {
                 style_components.clone(),
                 IsFamiqListView,
                 DefaultWidgetEntity::from(style_components),
-                ListViewMovePanelEntity(panel_entity)
+                ListViewMovePanelEntity(panel_entity),
+                FaListViewChildren(items.clone())
             ))
             .id();
 
@@ -115,7 +125,7 @@ impl<'a> FaListView {
         scroll_height: f32
     ) -> Entity {
         let move_panel = Self::_build_move_panel(&attributes.id, items, root_node, scroll_height);
-        let listview = Self::_build_listview(attributes, root_node, move_panel);
+        let listview = Self::_build_listview(attributes, root_node, move_panel, items);
 
         utils::entity_add_child(root_node, move_panel, listview);
         root_node.add_child(listview);
@@ -200,6 +210,100 @@ impl<'a> FaListView {
                 }
 
             }
+        }
+    }
+
+    pub fn detect_new_listview_system(
+        mut commands: Commands,
+        mut listview_res: ResMut<FaListViewResource>,
+        listview_q: Query<
+            (Entity, Option<&FamiqWidgetId>, &FaListViewChildren, &ListViewMovePanelEntity),
+            Added<IsFamiqListView>
+        >,
+        mut panel_q: Query<&mut Node, With<IsFamiqListViewMovePanel>>
+    ) {
+        for (entity, id, children, panel_entity) in listview_q.iter() {
+            if let Some(_id) = id {
+                if listview_res.containers.get(&_id.0).is_none() {
+                    listview_res.containers.insert(_id.0.clone(), ContainableData {
+                        entity: Some(entity),
+                        children: children.0.clone()
+                    });
+                    commands.entity(entity).remove::<FaListViewChildren>();
+                }
+            }
+            if let Ok(mut panel_node) = panel_q.get_mut(panel_entity.0) {
+                panel_node.padding = UiRect::all(Val::Px(0.0));
+            }
+        }
+    }
+
+    pub fn detect_listview_resource_change(
+        mut commands: Commands,
+        listview_res: Res<FaListViewResource>,
+        listview_q: Query<&ListViewMovePanelEntity>,
+        mut child_q: Query<
+            (
+                &mut Node,
+                &mut DefaultWidgetEntity,
+                Option<&FamiqWidgetId>,
+                Option<&FamiqWidgetClasses>,
+            )
+        >,
+        mut styles: ResMut<StylesKeyValueResource>
+    ) {
+        if listview_res.is_changed() && !listview_res.is_added() {
+            if listview_res.changed_container.is_none() {
+                return;
+            }
+
+            let changed_listview = listview_res.changed_container.unwrap();
+
+            let panel_entity = match listview_q.get(changed_listview) {
+                Ok(v) => v.0,
+                Err(_) => return,
+            };
+
+            match listview_res.method_called {
+                ContainableMethodCall::AddChildren => {
+                    commands
+                        .entity(panel_entity)
+                        .add_children(&listview_res.to_use_children);
+                }
+                ContainableMethodCall::InsertChildren => {
+                    commands
+                        .entity(panel_entity)
+                        .insert_children(listview_res.insert_index, &listview_res.to_use_children);
+                }
+                ContainableMethodCall::RemoveChildren => {
+                    commands
+                        .entity(panel_entity)
+                        .remove_children(&listview_res.to_use_children);
+                }
+            }
+
+            let mut changed_json_style_keys: Vec<String> = Vec::new();
+            for child in listview_res.to_use_children.iter() {
+                if let Ok((mut node, mut default_widget, id, class)) = child_q.get_mut(*child) {
+                    if node.display == Display::None {
+                        node.display = Display::Flex;
+                        default_widget.node.display = Display::Flex;
+                    }
+                    if let Some(id) = id {
+                        changed_json_style_keys.push(id.0.clone());
+                    }
+                    if let Some(classes) = class {
+                        let classes_split: Vec<&str> = classes.0.split_whitespace().collect();
+                        for class_name in classes_split {
+                            let formatted = format!(".{class_name}");
+                            if !changed_json_style_keys.contains(&formatted) {
+                                changed_json_style_keys.push(formatted);
+                            }
+                        }
+                    }
+                }
+            }
+            styles.changed_key = changed_json_style_keys;
         }
     }
 }

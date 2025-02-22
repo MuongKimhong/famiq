@@ -149,9 +149,17 @@ fn fa_listview_systems(app: &mut App) {
             // event_writer::listview_item_interaction_system,
             FaListView::on_scroll_system,
         )
-            .chain()
-            .run_if(can_run_list_view_systems)
-        ,
+        .chain()
+        .run_if(can_run_list_view_systems)
+
+    );
+    app.add_systems(
+        Update,
+        (
+            FaListView::detect_new_listview_system,
+            FaListView::detect_listview_resource_change
+        )
+        .run_if(can_run_list_view_systems)
     );
 }
 
@@ -255,6 +263,7 @@ impl Plugin for FamiqPlugin {
         app.insert_resource(FamiqResource::new());
         app.insert_resource(FaBgImageResource::default());
         app.insert_resource(FaContainerResource::default());
+        app.insert_resource(FaListViewResource::default());
         app.insert_resource(CanBeScrolledListView { entity: None });
         app.insert_resource(FaSelectionResource::default());
         app.insert_resource(FaTextInputResource::default());
