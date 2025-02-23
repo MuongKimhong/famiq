@@ -22,8 +22,6 @@ pub struct BaseStyleComponents {
     pub z_index: ZIndex,
     pub visibility: Visibility,
     pub interaction: Interaction,
-    pub widget_style: WidgetStyle,
-    pub external_style_changed: ExternalStyleHasChanged,
     pub box_shadow: BoxShadow
 }
 
@@ -119,10 +117,6 @@ impl DefaultTextSpanEntity {
         }
     }
 }
-
-
-#[derive(Component, Default, Clone)]
-pub struct ExternalStyleHasChanged(pub bool);
 
 #[derive(Component)]
 pub struct IsFaWidgetRoot;
