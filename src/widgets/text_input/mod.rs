@@ -119,18 +119,13 @@ impl<'a> FaTextInput {
         placeholder: &str,
         root_node: &'a mut EntityCommands,
     ) -> Entity {
-        let mut use_color = WHITE_COLOR;
-
-        if attributes.color == WidgetColor::Default {
-            use_color = BLACK_COLOR;
-        }
+        let use_color = get_text_color(&attributes.color);
         let txt = Text::new(placeholder);
         let txt_font = TextFont {
             font: attributes.font_handle.clone().unwrap(),
             font_size: get_text_size(&attributes.size),
             ..default()
         };
-        let txt_color = TextColor(use_color);
         let txt_layout = TextLayout::new_with_justify(JustifyText::Left);
 
         let entity = root_node
@@ -138,9 +133,9 @@ impl<'a> FaTextInput {
             .spawn((
                 txt.clone(),
                 txt_font.clone(),
-                txt_color.clone(),
+                TextColor(use_color),
                 txt_layout.clone(),
-                DefaultTextEntity::new(txt, txt_font, txt_color, txt_layout),
+                DefaultTextEntity::new(txt, txt_font, TextColor(use_color), txt_layout),
                 IsFamiqTextInputPlaceholder,
                 WidgetStyle::default(),
                 ExternalStyleHasChanged(false)
@@ -156,11 +151,7 @@ impl<'a> FaTextInput {
         root_node: &'a mut EntityCommands,
         input_entity: Entity,
     ) -> Entity {
-        let mut use_color = WHITE_COLOR;
-
-        if attributes.color == WidgetColor::Default {
-            use_color = BLACK_COLOR;
-        }
+        let use_color = get_text_color(&attributes.color);
 
         let txt_font = TextFont {
             font: attributes.font_handle.clone().unwrap(),
@@ -184,11 +175,7 @@ impl<'a> FaTextInput {
     }
 
     fn _build_cursor(root_node: &'a mut EntityCommands, color: &WidgetColor) -> Entity {
-        let mut use_color = WHITE_COLOR;
-
-        if *color == WidgetColor::Default {
-            use_color = BLACK_COLOR;
-        }
+        let use_color = get_text_color(color);
         root_node
             .commands()
             .spawn((

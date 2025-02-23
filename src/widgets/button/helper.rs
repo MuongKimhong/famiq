@@ -14,9 +14,6 @@ pub fn get_text_size(size: &WidgetSize) -> f32 {
 }
 
 pub fn get_text_color(variant: &WidgetColor) -> Color {
-    // all color have text color white except Warning & Default color which
-    // has text color black
-
     match variant {
         WidgetColor::Secondary => WHITE_COLOR,
         WidgetColor::PrimaryDark => PRIMARY_COLOR,

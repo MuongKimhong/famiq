@@ -3,9 +3,9 @@ use crate::widgets::color::*;
 use super::*;
 
 fn _get_progress_bar_size(size: &WidgetSize) -> f32 {
-    let size_small = 5.0;
-    let size_normal = 9.0;
-    let size_large = 13.0;
+    let size_small = 8.0;
+    let size_normal = 12.0;
+    let size_large = 15.0;
 
     match size {
         WidgetSize::Small => size_small,

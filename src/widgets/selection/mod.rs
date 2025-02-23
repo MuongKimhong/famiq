@@ -11,8 +11,6 @@ use bevy::ui::FocusPolicy;
 use bevy::prelude::*;
 
 pub use components::*;
-
-use super::color::{BLACK_COLOR, WHITE_COLOR};
 pub use styling::*;
 pub use systems::*;
 
@@ -54,11 +52,7 @@ impl<'a> FaSelection {
         placeholder: &str,
         root_node: &'a mut EntityCommands,
     ) -> Entity {
-        let mut use_color = WHITE_COLOR;
-
-        if attributes.color == WidgetColor::Default {
-            use_color = BLACK_COLOR;
-        }
+        let use_color = get_text_color(&attributes.color);
         let txt_font = TextFont {
             font: attributes.font_handle.clone().unwrap(),
             font_size: get_text_size(&attributes.size),
@@ -92,11 +86,7 @@ impl<'a> FaSelection {
         attributes: &WidgetAttributes,
         root_node: &'a mut EntityCommands,
     ) -> Entity {
-        let mut use_color = WHITE_COLOR;
-
-        if attributes.color == WidgetColor::Default {
-            use_color = BLACK_COLOR;
-        }
+        let use_color = get_text_color(&attributes.color);
         let txt_font = TextFont {
             font: attributes.font_handle.clone().unwrap(),
             font_size: get_text_size(&attributes.size),
@@ -215,16 +205,13 @@ impl<'a> FaSelection {
             font: attributes.font_handle.clone().unwrap(),
             ..default()
         };
-        let mut txt_color = TextColor(WHITE_COLOR);
-        if attributes.color == WidgetColor::Default {
-            txt_color = TextColor(BLACK_COLOR);
-        }
+        let use_color = get_text_color(&attributes.color);
         root_node
             .commands()
             .spawn((
                 Text::new(choice),
                 txt_font,
-                txt_color,
+                TextColor(use_color),
                 TextLayout::new_with_justify(JustifyText::Center),
                 Visibility::Inherited,
             ))

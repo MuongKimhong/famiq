@@ -77,6 +77,18 @@ pub fn get_input_color(color: &WidgetColor) -> Color {
     }
 }
 
+pub fn get_text_color(color: &WidgetColor) -> Color {
+    match color {
+        WidgetColor::Secondary => WHITE_COLOR,
+        WidgetColor::PrimaryDark => PRIMARY_COLOR,
+        WidgetColor::SuccessDark => SUCCESS_COLOR,
+        WidgetColor::DangerDark => DANGER_COLOR,
+        WidgetColor::WarningDark => WARNING_COLOR,
+        WidgetColor::InfoDark => INFO_COLOR,
+        _ => BLACK_COLOR,
+    }
+}
+
 /// Internal helper function to updates the cursor position based on character width and action.
 /// `add` indicates whether a character is added (true) or removed (false).
 pub fn _update_cursor_position(

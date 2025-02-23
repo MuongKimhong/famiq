@@ -59,7 +59,7 @@ pub struct FaListView;
 // Doesn't need container
 impl<'a> FaListView {
     fn _build_move_panel(
-        id: &Option<String>,
+        // id: &Option<String>,
         items: &Vec<Entity>,
         root_node: &'a mut EntityCommands,
         scroll_height: f32
@@ -77,10 +77,10 @@ impl<'a> FaListView {
             ))
             .id();
 
-        if let Some(id) = id {
-            // root_node.commands().entity(move_panel_entity).insert(FamiqWidgetId(format!("{id}_move_panel")));
-            root_node.commands().entity(panel_entity).insert(FamiqWidgetId(id.to_owned()));
-        }
+        // if let Some(id) = id {
+        //     // root_node.commands().entity(move_panel_entity).insert(FamiqWidgetId(format!("{id}_move_panel")));
+        //     root_node.commands().entity(panel_entity).insert(FamiqWidgetId(id.to_owned()));
+        // }
 
         // insert IsFamiqListViewItem component into user provided items's entities
         for (_index, item_entity) in items.iter().enumerate() {
@@ -125,7 +125,7 @@ impl<'a> FaListView {
         items: &Vec<Entity>,
         scroll_height: f32
     ) -> Entity {
-        let move_panel = Self::_build_move_panel(&attributes.id, items, root_node, scroll_height);
+        let move_panel = Self::_build_move_panel(items, root_node, scroll_height);
         let listview = Self::_build_listview(attributes, root_node, move_panel, items);
 
         utils::entity_add_child(root_node, move_panel, listview);

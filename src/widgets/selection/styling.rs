@@ -91,3 +91,15 @@ pub fn get_selection_color(color: &WidgetColor) -> Color {
         _ => WHITE_COLOR
     }
 }
+
+pub fn get_text_color(color: &WidgetColor) -> Color {
+    match color {
+        WidgetColor::Secondary => WHITE_COLOR,
+        WidgetColor::PrimaryDark => PRIMARY_COLOR,
+        WidgetColor::SuccessDark => SUCCESS_COLOR,
+        WidgetColor::DangerDark => DANGER_COLOR,
+        WidgetColor::WarningDark => WARNING_COLOR,
+        WidgetColor::InfoDark => INFO_COLOR,
+        _ => BLACK_COLOR,
+    }
+}
