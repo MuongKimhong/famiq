@@ -7,7 +7,7 @@ use super::*;
 
 fn setup_test_default_image(
     mut commands: Commands,
-    asset_server: ResMut<AssetServer>,
+    asset_server: Res<AssetServer>,
     mut builder_res: ResMut<FamiqResource>,
 ) {
     let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
@@ -17,7 +17,7 @@ fn setup_test_default_image(
 
 fn setup_test_image_with_class(
     mut commands: Commands,
-    asset_server: ResMut<AssetServer>,
+    asset_server: Res<AssetServer>,
     mut builder_res: ResMut<FamiqResource>,
 ) {
     let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
@@ -29,7 +29,7 @@ fn setup_test_image_with_class(
 
 fn setup_test_image_with_custom_size(
     mut commands: Commands,
-    asset_server: ResMut<AssetServer>,
+    asset_server: Res<AssetServer>,
     mut builder_res: ResMut<FamiqResource>,
 ) {
     let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);

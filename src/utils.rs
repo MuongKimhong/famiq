@@ -1,5 +1,6 @@
 use bevy::ecs::system::EntityCommands;
 use bevy::utils::HashMap;
+use bevy::window::WindowResized;
 use bevy::asset::{io::AssetSourceId, AssetPath, AssetPlugin};
 use bevy::prelude::*;
 use std::path::Path;
@@ -12,7 +13,7 @@ use crate::widgets::{WidgetStyle, DefaultWidgetEntity};
 use crate::errors::StylesFileError;
 use crate::widgets::{FamiqWidgetId, FamiqWidgetClasses};
 
-pub fn read_styles_json_file(path: &str) -> Result<HashMap<String, WidgetStyle>, StylesFileError> {
+pub(crate) fn read_styles_json_file(path: &str) -> Result<HashMap<String, WidgetStyle>, StylesFileError> {
     let mut file = match File::open(path) {
         Ok(f) => f,
         Err(_) => return Err(StylesFileError::StylesFileDoesNotExist),
@@ -32,8 +33,8 @@ pub fn read_styles_json_file(path: &str) -> Result<HashMap<String, WidgetStyle>,
     Ok(styles)
 }
 
-// extract bevy Val enum value
-pub fn extract_val(val: Val) -> Option<f32> {
+/// extract bevy Val enum value
+pub(crate) fn extract_val(val: Val) -> Option<f32> {
     match val {
         Val::Px(value) => Some(value),
         Val::Percent(value) => Some(value),
@@ -43,13 +44,13 @@ pub fn extract_val(val: Val) -> Option<f32> {
     }
 }
 
-// add an entity as child to another entity
-pub fn entity_add_child<'a>(root_node: &'a mut EntityCommands, child: Entity, parent: Entity) {
+/// add an entity as child to another entity
+pub(crate) fn entity_add_child<'a>(root_node: &'a mut EntityCommands, child: Entity, parent: Entity) {
     root_node.commands().entity(parent).add_child(child);
 }
 
-// add multiple entities as children to another entity
-pub fn entity_add_children<'a>(
+/// add multiple entities as children to another entity
+pub(crate) fn entity_add_children<'a>(
     root_node: &'a mut EntityCommands,
     children: &Vec<Entity>,
     parent: Entity,
@@ -102,7 +103,7 @@ pub fn darken_color(percentage: f32, color: &Color) -> Option<Color> {
     None
 }
 
-pub fn get_embedded_asset_path(file_path: &str) -> AssetPath {
+pub(crate) fn get_embedded_asset_path(file_path: &str) -> AssetPath {
     // path: relative to embedded_assets dir
 
     let path = Path::new("famiq").join(file_path);
@@ -116,6 +117,7 @@ pub fn create_test_app() -> App {
     app.add_plugins(MinimalPlugins);
     app.add_plugins(AssetPlugin::default());
     app.init_resource::<Assets<Shader>>();
+    app.insert_resource(Events::<WindowResized>::default());
     app.init_asset::<Font>();
     app.init_asset::<Image>();
     // Spawning a fake window allows testing systems that require a window.
@@ -123,7 +125,7 @@ pub fn create_test_app() -> App {
     app
 }
 
-pub fn process_spacing_built_in_class(node: &mut Node, class: &Option<String>) {
+pub(crate) fn process_spacing_built_in_class(node: &mut Node, class: &Option<String>) {
     if let Some(class) = class {
         for class_name in class.split_whitespace() {
             if let Some((prefix, value)) = class_name.split_once('-') {
@@ -171,11 +173,11 @@ pub fn process_spacing_built_in_class(node: &mut Node, class: &Option<String>) {
     }
 }
 
-pub fn mask_string(input: &str) -> String {
+pub(crate) fn mask_string(input: &str) -> String {
     "*".repeat(input.len())
 }
 
-pub fn insert_id_and_class<'a>(
+pub(crate) fn insert_id_and_class<'a>(
     root_node: &'a mut EntityCommands,
     entity: Entity,
     id: &Option<String>,
@@ -189,7 +191,7 @@ pub fn insert_id_and_class<'a>(
     }
 }
 
-pub fn _handle_apply_margin(
+pub(crate) fn _handle_apply_margin(
     widget_style: &WidgetStyle,
     default_widget_entity: &DefaultWidgetEntity,
     node: &mut Node
@@ -235,7 +237,7 @@ pub fn _handle_apply_margin(
     }
 }
 
-pub fn _handle_apply_padding(
+pub(crate) fn _handle_apply_padding(
     widget_style: &WidgetStyle,
     default_widget_entity: &DefaultWidgetEntity,
     node: &mut Node
@@ -281,7 +283,7 @@ pub fn _handle_apply_padding(
     }
 }
 
-pub fn _handle_apply_border(
+pub(crate) fn _handle_apply_border(
     widget_style: &WidgetStyle,
     default_widget_entity: &DefaultWidgetEntity,
     node: &mut Node
@@ -327,7 +329,7 @@ pub fn _handle_apply_border(
     }
 }
 
-pub fn _handle_apply_box_shadow(
+pub(crate) fn _handle_apply_box_shadow(
     widget_style: &WidgetStyle,
     default_widget_entity: &DefaultWidgetEntity,
     box_shadow: &mut BoxShadow
@@ -373,7 +375,7 @@ pub fn _handle_apply_box_shadow(
     }
 }
 
-pub fn _handle_apply_border_radius(
+pub(crate) fn _handle_apply_border_radius(
     widget_style: &WidgetStyle,
     default_widget_entity: &DefaultWidgetEntity,
     border_radius: &mut BorderRadius
@@ -419,7 +421,7 @@ pub fn _handle_apply_border_radius(
     }
 }
 
-pub fn _change_cursor_icon(
+pub(crate) fn _change_cursor_icon(
     commands: &mut Commands,
     res: &Res<CursorIcons>,
     window_entity: Entity,

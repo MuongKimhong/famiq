@@ -6,6 +6,7 @@ use bevy::prelude::*;
 
 use crate::utils;
 use crate::widgets::*;
+use crate::resources::*;
 use super::BaseStyleComponents;
 use helper::*;
 

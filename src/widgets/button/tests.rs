@@ -6,7 +6,7 @@ use super::*;
 
 fn setup_test_default_button(
     mut commands: Commands,
-    asset_server: ResMut<AssetServer>,
+    asset_server: Res<AssetServer>,
     mut builder_res: ResMut<FamiqResource>,
 ) {
     let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
@@ -15,7 +15,7 @@ fn setup_test_default_button(
 
 fn setup_test_button_with_built_in_class(
     mut commands: Commands,
-    asset_server: ResMut<AssetServer>,
+    asset_server: Res<AssetServer>,
     mut builder_res: ResMut<FamiqResource>,
 ) {
     let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);

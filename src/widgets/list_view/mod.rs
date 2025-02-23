@@ -2,6 +2,7 @@ pub mod helper;
 pub mod tests;
 
 use crate::utils;
+use crate::resources::*;
 use crate::widgets::*;
 use crate::event_writer::FaInteractionEvent;
 use bevy::ecs::system::EntityCommands;

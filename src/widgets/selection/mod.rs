@@ -3,6 +3,7 @@ pub mod styling;
 pub mod systems;
 pub mod tests;
 
+use crate::resources::*;
 use crate::utils::*;
 use crate::widgets::*;
 use bevy::ecs::system::EntityCommands;

@@ -1,6 +1,7 @@
 pub mod helper;
 pub mod tests;
 
+use crate::resources::*;
 use crate::widgets::*;
 use crate::utils;
 use bevy::prelude::*;

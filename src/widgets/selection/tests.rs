@@ -1,7 +1,7 @@
 #![cfg(test)]
 
 use crate::plugin::FamiqPlugin;
-use crate::widgets::color::PRIMARY_DARK_COLOR;
+use crate::widgets::color::PRIMARY_COLOR;
 use crate::widgets::FamiqResource;
 use super::*;
 
@@ -10,7 +10,7 @@ struct TestEntity(Entity);
 
 fn setup_test_default_selection(
     mut commands: Commands,
-    asset_server: ResMut<AssetServer>,
+    asset_server: Res<AssetServer>,
     mut builder_res: ResMut<FamiqResource>,
 ) {
     let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
@@ -20,7 +20,7 @@ fn setup_test_default_selection(
 
 fn setup_test_selection_with_built_in_class_color(
     mut commands: Commands,
-    asset_server: ResMut<AssetServer>,
+    asset_server: Res<AssetServer>,
     mut builder_res: ResMut<FamiqResource>,
 ) {
     let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
@@ -29,20 +29,9 @@ fn setup_test_selection_with_built_in_class_color(
         .build();
 }
 
-fn setup_test_selection_with_built_in_class_shape(
-    mut commands: Commands,
-    asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqResource>,
-) {
-    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
-    fa_selection(&mut builder, "Test select choice")
-        .class("is-rectangle")
-        .build();
-}
-
 fn setup_test_selection_with_choices(
     mut commands: Commands,
-    asset_server: ResMut<AssetServer>,
+    asset_server: Res<AssetServer>,
     mut builder_res: ResMut<FamiqResource>,
 ) {
     let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
@@ -81,26 +70,8 @@ fn test_create_selection_with_built_in_class_color() {
 
     let selector_bg = selector_q.unwrap().0;
     assert_eq!(
-        BackgroundColor(PRIMARY_DARK_COLOR),
+        BackgroundColor(PRIMARY_COLOR),
         *selector_bg
-    );
-}
-
-#[test]
-fn test_create_selection_with_built_in_class_shape() {
-    let mut app = create_test_app();
-    app.add_plugins(FamiqPlugin);
-    app.add_systems(Startup, setup_test_selection_with_built_in_class_shape);
-    app.update();
-
-    let selector_q = app.world_mut()
-        .query::<(&BorderRadius, &IsFamiqSelectionSelector)>()
-        .get_single(app.world());
-
-    let selector_border = selector_q.unwrap().0;
-    assert_eq!(
-        BorderRadius::all(Val::Px(0.0)),
-        *selector_border
     );
 }
 

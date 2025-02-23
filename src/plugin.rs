@@ -1,4 +1,7 @@
+//! Famiq's plugin.
+
 use crate::event_writer;
+use crate::resources::*;
 use crate::widgets::{
     list_view::*,
     selection::*,

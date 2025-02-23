@@ -1,7 +1,7 @@
 #![cfg(test)]
 
 use crate::plugin::FamiqPlugin;
-use crate::widgets::color::PRIMARY_DARK_COLOR;
+use crate::widgets::color::PRIMARY_COLOR;
 use crate::widgets::FamiqWidgetClasses;
 use crate::utils;
 use bevy::input::InputPlugin;
@@ -12,7 +12,7 @@ struct TestEntity(Entity);
 
 fn setup_test_default_input(
     mut commands: Commands,
-    asset_server: ResMut<AssetServer>,
+    asset_server: Res<AssetServer>,
     mut builder_res: ResMut<FamiqResource>,
 ) {
     let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
@@ -22,12 +22,12 @@ fn setup_test_default_input(
 
 fn setup_test_input_with_built_in_class(
     mut commands: Commands,
-    asset_server: ResMut<AssetServer>,
+    asset_server: Res<AssetServer>,
     mut builder_res: ResMut<FamiqResource>,
 ) {
     let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
     fa_text_input(&mut builder, "First name")
-        .class("is-primary is-rectangle")
+        .class("is-primary")
         .build();
 }
 
@@ -56,20 +56,14 @@ fn test_create_input_with_built_in_class() {
     app.update();
 
     let input_q = app.world_mut()
-        .query::<(&FamiqWidgetClasses, &BackgroundColor, &BorderRadius, &IsFamiqTextInput)>()
+        .query::<(&FamiqWidgetClasses, &BackgroundColor, &IsFamiqTextInput)>()
         .get_single(app.world());
 
     let input_class = input_q.as_ref().unwrap().0;
-    assert_eq!("is-primary is-rectangle".to_string(), input_class.0);
+    assert_eq!("is-primary".to_string(), input_class.0);
 
     let input_bg = input_q.as_ref().unwrap().1;
-    assert_eq!(BackgroundColor(PRIMARY_DARK_COLOR), *input_bg);
-
-    let input_border_radius = input_q.unwrap().2;
-    assert_eq!(
-        BorderRadius::all(Val::Px(0.0)),
-        *input_border_radius
-    );
+    assert_eq!(BackgroundColor(PRIMARY_COLOR), *input_bg);
 }
 
 #[test]
