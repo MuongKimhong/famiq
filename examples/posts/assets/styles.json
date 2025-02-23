@@ -2,7 +2,6 @@
   "#container": {
     "justify_content": "center",
     "align_items": "center",
-    "padding": "20px 25px 0px 0px",
     "width": "90%",
     "height": "90%",
     "margin": "auto auto auto auto"
@@ -25,20 +24,18 @@
     "border_radius": "5px 5px 5px 5px"
   },
   ".post-container": {
-    "border": "0px 0px 2px 2px",
     "border_color": "srgba 0.929, 0.929, 0.929, 1.0",
     "background_color": "srgba 0.929, 0.929, 0.929, 1.0",
     "margin_top": "5px",
-    "margin_bottom": "5px",
-    "padding": "10px 10px 10px 10px",
-    "width": "99.5%"
+    "margin_bottom": "5px"
   },
   ".like-txt": {
     "color": "srgba 0.0, 0.0, 0.0, 1.0",
     "font_size": "28"
   },
   ".like-btn": {
-    "margin_left": "10px"
+    "margin_left": "10px",
+    "margin_top": "5px"
   },
   ".action-container": {
     "margin_top": "15px",

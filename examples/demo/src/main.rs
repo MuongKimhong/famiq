@@ -2,12 +2,25 @@ mod left;
 mod right;
 
 use bevy::prelude::*;
+use bevy::window::PresentMode;
 use famiq::prelude::*;
+
+pub fn set_window() -> WindowPlugin {
+    WindowPlugin {
+        primary_window: Some(Window {
+            title: "Famiq - Demo".into(),
+            present_mode: PresentMode::Immediate,
+            resizable: false,
+            ..default()
+        }),
+        ..default()
+    }
+}
 
 fn main() {
 
     App::new()
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(set_window()))
         .add_plugins(FamiqPlugin)
         .add_systems(Startup, setup)
         .add_systems(Update, (handle_left_buttons_press, handle_like_button_press))
@@ -16,12 +29,13 @@ fn main() {
 
 fn setup(
     mut commands: Commands,
-    asset_server: ResMut<AssetServer>,
-    mut builder_res: ResMut<FamiqWidgetResource>,
+    asset_server: Res<AssetServer>,
+    mut famiq_res: ResMut<FamiqResource>,
 ) {
     commands.spawn(Camera2d::default());
 
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server)
+    let mut builder = FamiqBuilder::new(&mut commands, &mut famiq_res, &asset_server)
+        .hot_reload()
         .register_tooltip();
 
     fa_fps(&mut builder).change_color().build();
@@ -38,7 +52,7 @@ fn setup(
     let left_container = fa_container(&mut builder)
         .id("#left-container")
         .children([
-            inputs, selections, enter_btn, modal, circulars, progress_bars
+            inputs, selections, enter_btn, circulars, progress_bars
         ])
         .build();
 
@@ -65,7 +79,7 @@ fn handle_left_buttons_press(
     select_res: Res<FaSelectionResource>,
 ) {
     for e in events.read() {
-        if e.is_button_pressed() {
+        if e.is_pressed(WidgetType::Button) {
             if let Some(id) = e.widget_id.as_ref() {
                 match id.as_str() {
                     "#minus-btn" => {
@@ -124,7 +138,7 @@ fn handle_like_button_press(
     like_btn_q: Query<&right::LikeTextEntity>
 ) {
     for e in events.read() {
-        if e.is_button_pressed() {
+        if e.is_pressed(WidgetType::Button) {
             if let Ok(txt_entity) = like_btn_q.get(e.entity) {
 
                 if let Ok((entity, mut count)) = like_txt_q.get_mut(txt_entity.0) {

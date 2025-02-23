@@ -1,9 +1,10 @@
 use bevy::prelude::*;
+use bevy::window::PresentMode;
 use famiq::prelude::*;
 use super::{LikeCount, LikeTextEntity};
 
 pub fn create_post(
-    builder: &mut FamiqWidgetBuilder,
+    builder: &mut FamiqBuilder,
     username: &str,
     caption: &str,
     image_path: &str
@@ -18,7 +19,7 @@ pub fn create_post(
 
     let image = fa_image(builder, image_path)
         .class("image")
-        .size(Val::Percent(100.0), Val::Px(450.0))
+        .set_size(Val::Percent(100.0), Val::Px(450.0))
         .build();
 
     let like_txt = fa_text(builder, "0").class("like-txt").build();
@@ -46,6 +47,7 @@ pub fn set_window() -> WindowPlugin {
         primary_window: Some(Window {
             title: "Bevy Engine - Famiq".into(),
             resolution: (500., 1000.).into(),
+            present_mode: PresentMode::Immediate,
             resizable: false,
             ..default()
         }),

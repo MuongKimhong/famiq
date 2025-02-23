@@ -12,17 +12,11 @@
   },
   "#name-container": {
     "flex_direction": "row",
-    "justify_content": "center",
-    "align_items": "center",
-    "margin": "0px 0px 15px 0px"
+    "justify_content": "space_between",
+    "margin_top": "15px"
   },
-  "#first-name": {
-    "width": "50%",
-    "margin": "0px 5px 0px 0px"
-  },
-  "#last-name": {
-    "width": "50%",
-    "margin": "5px 0px 0px 0px"
+  ".text-input": {
+    "width": "49.5%"
   },
   "#ask-container": {
     "margin": "0px 0px 5px 15px",

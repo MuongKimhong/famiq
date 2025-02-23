@@ -20,14 +20,16 @@ fn main() {
 }
 
 fn setup(
-    asset_server: ResMut<AssetServer>, // required
-    mut commands: Commands,
-    mut builder_res: ResMut<FamiqWidgetResource>, // required
+    asset_server: Res<AssetServer>, // required
+    mut commands: Commands, // required
+    mut famiq_res: ResMut<FamiqResource>, // required
 ) {
     commands.spawn(Camera2d::default());
 
     // create a widget builder
-    let mut builder = FamiqWidgetBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut commands, &mut famiq_res, &asset_server)
+        .hot_reload();
+
     fa_fps(&mut builder).change_color().build();
 
     let post_1 = create_post(&mut builder, "Richard", "My dog is so lovely", "dog.jpg");
@@ -37,6 +39,7 @@ fn setup(
 
     fa_listview(&mut builder)
         .id("#container")
+        .scroll_height(30.)
         .children([post_1, post_2, post_3, post_4])
         .build();
 }
@@ -48,7 +51,7 @@ fn handle_like_btn_press(
     like_btn_q: Query<&LikeTextEntity>
 ) {
     for e in events.read() {
-        if e.is_button_pressed() {
+        if e.is_pressed(WidgetType::Button) {
             if let Ok(txt_entity) = like_btn_q.get(e.entity) {
 
                 if let Ok((entity, mut count)) = like_txt_q.get_mut(txt_entity.0) {

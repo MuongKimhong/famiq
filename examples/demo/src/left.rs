@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use famiq::prelude::*;
 
-pub fn create_inputs(builder: &mut FamiqWidgetBuilder) -> Entity {
+pub fn create_inputs(builder: &mut FamiqBuilder) -> Entity {
     let input_one = fa_text_input(builder, "First name").id("#firstname").class("input").build();
     let input_two = fa_text_input(builder, "Last name").id("#lastname").class("input is-primary").build();
 
@@ -11,7 +11,7 @@ pub fn create_inputs(builder: &mut FamiqWidgetBuilder) -> Entity {
         .build()
 }
 
-pub fn create_selections(builder: &mut FamiqWidgetBuilder) -> Entity {
+pub fn create_selections(builder: &mut FamiqBuilder) -> Entity {
     let select_one = fa_selection(builder, "Flash or Teleport?")
         .id("#select-one")
         .class("select")
@@ -27,7 +27,7 @@ pub fn create_selections(builder: &mut FamiqWidgetBuilder) -> Entity {
     fa_container(builder).class("flex-container").children([select_one, select_two]).build()
 }
 
-pub fn create_modal(builder: &mut FamiqWidgetBuilder) -> Entity {
+pub fn create_modal(builder: &mut FamiqBuilder) -> Entity {
     let your_name = fa_text(builder, "").id("#yourname").class("my-2 h3").build();
     let flash_or_tp = fa_text(builder, "").id("#flash-tp").class("my-2 h3").build();
     let shield_blade = fa_text(builder, "").id("#shield-blade").class("my-2 h3").build();
@@ -41,7 +41,7 @@ pub fn create_modal(builder: &mut FamiqWidgetBuilder) -> Entity {
     fa_modal(builder).id("#modal").children([modal_container]).build()
 }
 
-pub fn create_circulars(builder: &mut FamiqWidgetBuilder) -> Entity {
+pub fn create_circulars(builder: &mut FamiqBuilder) -> Entity {
     let custom_cir = fa_circular(builder).size(90.0).class("is-warning")
         .tooltip("This is circular with Custom size 50.0")
         .build();
@@ -61,7 +61,7 @@ pub fn create_circulars(builder: &mut FamiqWidgetBuilder) -> Entity {
         .build()
 }
 
-pub fn create_progress_bars(builder: &mut FamiqWidgetBuilder) -> Entity {
+pub fn create_progress_bars(builder: &mut FamiqBuilder) -> Entity {
     let large_bar = fa_progress_bar(builder).class("is-large is-danger my-5").build();
 
     let normal_bar = fa_progress_bar(builder)

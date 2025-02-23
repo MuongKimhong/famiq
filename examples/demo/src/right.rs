@@ -8,7 +8,7 @@ pub struct LikeCount(pub i32);
 pub struct LikeTextEntity(pub Entity);
 
 pub fn create_post(
-    builder: &mut FamiqWidgetBuilder,
+    builder: &mut FamiqBuilder,
     username: &str,
     caption: &str,
     image_path: &str
@@ -23,7 +23,7 @@ pub fn create_post(
 
     let image = fa_image(builder, image_path)
         .class("image")
-        .size(Val::Percent(100.0), Val::Px(400.0))
+        .set_size(Val::Percent(100.0), Val::Px(400.0))
         .build();
 
     let like_txt = fa_text(builder, "0").class("like-txt").build();
@@ -46,7 +46,7 @@ pub fn create_post(
         .build()
 }
 
-pub fn create_posts(builder: &mut FamiqWidgetBuilder) -> Entity {
+pub fn create_posts(builder: &mut FamiqBuilder) -> Entity {
     let post_1 = create_post(builder, "Richard", "My dog is so lovely", "dog.jpg");
     let post_2 = create_post(builder, "Lux", "Feeling sad today", "lux.jpg");
     let post_3 = create_post(builder, "Sett", "I'm sett the beast", "sett.jpg");
@@ -54,6 +54,7 @@ pub fn create_posts(builder: &mut FamiqWidgetBuilder) -> Entity {
 
     fa_listview(builder)
         .id("#posts-listview")
+        .scroll_height(35.0)
         .children([post_1, post_2, post_3, post_4])
         .build()
 }
