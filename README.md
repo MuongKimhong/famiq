@@ -4,12 +4,12 @@
   Simplifying UI Development in Bevy engine
 </p>
 <p align="center">
-  <img width="200" height="200" src="logo.jpeg">
+  <img width="250" height="250" src="logo.png">
 </p>
 
 ## What is Famiq?
 **Famiq** is a UI library wrapped around Bevy UI module by providing default
-widgets and a simple way to manage styles. 
+widgets and a simple way to manage styles.
 
 Instead of writing Rust code for styling,
 developers can define styles in a well known JSON file. These styles are then parsed

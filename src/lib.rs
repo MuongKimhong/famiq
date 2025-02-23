@@ -1,11 +1,9 @@
-#![doc(html_logo_url = "https://i.imgur.com/YYRbhX4.png")]
-
 //! <p align="center">
-//!  <img src="https://i.imgur.com/YYRbhX4.png" width="220" alt="Widget Styles Logo">
+//!  <img src="https://i.imgur.com/C5GvBd2.png" width="250" alt="Widget Styles Logo">
 //! </p>
 //!
 //! <p align="center">
-//!  Build fast desktop GUI with pure rust, powered by Bevy game engine.
+//!  Build beatiful desktop GUI with pure rust, powered by Bevy game engine.
 //! </p>
 //!
 //! Example:
