@@ -238,7 +238,7 @@ impl<'a> FaListView {
         }
     }
 
-    pub fn detect_listview_resource_change(
+    pub(crate) fn detect_listview_resource_change(
         mut commands: Commands,
         listview_res: Res<FaListViewResource>,
         listview_q: Query<&ListViewMovePanelEntity>,
@@ -307,7 +307,7 @@ impl<'a> FaListView {
                     }
                 }
             }
-            styles.changed_key = changed_json_style_keys;
+            styles.changed_keys = changed_json_style_keys;
         }
     }
 }

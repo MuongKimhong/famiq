@@ -69,7 +69,7 @@ impl<'a> FaContainer {
         }
     }
 
-    pub fn detect_container_resource_change(
+    pub(crate) fn detect_container_resource_change(
         mut commands: Commands,
         container_res: Res<FaContainerResource>,
         mut child_q: Query<
@@ -127,7 +127,7 @@ impl<'a> FaContainer {
                         }
                     }
                 }
-                styles.changed_key = changed_json_style_keys;
+                styles.changed_keys = changed_json_style_keys;
             }
         }
     }

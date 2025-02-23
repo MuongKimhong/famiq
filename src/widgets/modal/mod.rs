@@ -223,7 +223,7 @@ impl<'a> FaModal {
         }
     }
 
-    pub fn detect_modal_resource_change(
+    pub(crate) fn detect_modal_resource_change(
         mut commands: Commands,
         modal_res: Res<FaModalResource>,
         modal_q: Query<&FaModalContainerEntity>,
@@ -290,7 +290,7 @@ impl<'a> FaModal {
                     }
                 }
             }
-            styles.changed_key = changed_json_style_keys;
+            styles.changed_keys= changed_json_style_keys;
         }
     }
 }

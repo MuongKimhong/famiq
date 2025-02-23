@@ -84,6 +84,18 @@ fn external_styles_file_systems(app: &mut App) {
     );
 }
 
+fn internal_styles_systems(app: &mut App) {
+    app.add_systems(Update, FaStyleResource::detect_new_widget_with_id);
+    app.add_systems(
+        PostUpdate,
+        (
+            FaStyleResource::detect_internal_widget_style_change,
+            FaStyleResource::detect_internal_text_style_change
+        )
+        .chain()
+    );
+}
+
 fn fa_selection_systems(app: &mut App) {
     app.add_systems(
         Update,
@@ -263,6 +275,7 @@ impl Plugin for FamiqPlugin {
         app.add_plugins(FrameTimeDiagnosticsPlugin::default());
         app.insert_resource(StylesKeyValueResource::default());
         app.insert_resource(FamiqResource::new());
+        app.insert_resource(FaStyleResource::default());
         app.insert_resource(FaBgImageResource::default());
         app.insert_resource(FaContainerResource::default());
         app.insert_resource(FaModalResource::default());
@@ -280,6 +293,7 @@ impl Plugin for FamiqPlugin {
         app.add_event::<event_writer::FaInteractionEvent>();
 
         external_styles_file_systems(app);
+        internal_styles_systems(app);
         fa_button_systems(app);
         fa_text_systems(app);
         fa_selection_systems(app);
