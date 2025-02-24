@@ -17,7 +17,7 @@ use bevy::input::ButtonState;
 use bevy::prelude::*;
 use smol_str::SmolStr;
 
-use super::color::BLACK_COLOR;
+use super::color::{BLACK_COLOR, SECONDARY_COLOR};
 
 /// Represents the text input field containing the user-entered text and placeholder.
 #[derive(Component)]
@@ -185,7 +185,7 @@ impl<'a> FaTextInput {
                 },
                 BackgroundColor(use_color),
                 BorderRadius::all(Val::Px(0.0)),
-                BorderColor(WHITE_COLOR),
+                BorderColor(use_color),
                 ZIndex(10),
                 Visibility::Hidden,
                 IsFamiqTextInputCursor
@@ -510,11 +510,11 @@ impl<'a> FaTextInput {
 
                         if cursor_blink_timer.timer.finished() {
                             if cursor_blink_timer.is_transparent {
-                                if input_bg_color.0 == WHITE_COLOR {
-                                    bg_color.0 = BLACK_COLOR;
+                                if input_bg_color.0 == SECONDARY_COLOR {
+                                    bg_color.0 = WHITE_COLOR;
                                 }
                                 else {
-                                    bg_color.0 = WHITE_COLOR;
+                                    bg_color.0 = BLACK_COLOR;
                                 }
                             }
                             else {
