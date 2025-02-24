@@ -136,9 +136,7 @@ impl<'a> FaTextInput {
                 TextColor(use_color),
                 txt_layout.clone(),
                 DefaultTextEntity::new(txt, txt_font, TextColor(use_color), txt_layout),
-                IsFamiqTextInputPlaceholder,
-                WidgetStyle::default(),
-                ExternalStyleHasChanged(false)
+                IsFamiqTextInputPlaceholder
             ))
             .id();
 

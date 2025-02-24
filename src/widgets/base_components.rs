@@ -35,8 +35,6 @@ impl Default for BaseStyleComponents {
             z_index: ZIndex::default(),
             visibility: Visibility::default(),
             interaction: Interaction::default(),
-            widget_style: WidgetStyle::default(),
-            external_style_changed: ExternalStyleHasChanged::default(),
             box_shadow: BoxShadow {
                 color: Color::NONE,
                 x_offset: Val::Px(0.0),

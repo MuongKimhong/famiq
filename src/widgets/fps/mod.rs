@@ -75,8 +75,6 @@ impl<'a> FaFpsText {
                 TextColor(GREEN_COLOR),
                 IsFamiqFPSTextCount,
                 CanChangeColor(change_color),
-                WidgetStyle::default(),
-                ExternalStyleHasChanged(false),
                 DefaultTextSpanEntity::new(
                     TextSpan::default(),
                     count_txt_font,

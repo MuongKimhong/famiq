@@ -72,9 +72,7 @@ impl<'a> FaSelection {
                     txt_font,
                     TextColor(use_color),
                     TextLayout::new_with_justify(JustifyText::Left)
-                ),
-                WidgetStyle::default(),
-                ExternalStyleHasChanged(false)
+                )
             ))
             .id();
 

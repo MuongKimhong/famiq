@@ -213,7 +213,7 @@ pub fn finish_style_applying_system(mut builder_res: ResMut<FamiqResource>) {
     builder_res.external_style_applied = true;
 }
 
-pub fn apply_text_styles_from_external_json(
+pub(crate) fn apply_text_styles_from_external_json(
     local_style: &WidgetStyle,
     default_text_entity: Option<&DefaultTextEntity>,
     default_text_span_entity: Option<&DefaultTextSpanEntity>,
@@ -247,7 +247,7 @@ pub fn apply_text_styles_from_external_json(
     }
 }
 
-pub fn apply_styles_from_external_json(
+pub(crate) fn apply_styles_from_external_json(
     bg_color: &mut BackgroundColor,
     border_color: &mut BorderColor,
     border_radius: &mut BorderRadius,
@@ -502,57 +502,5 @@ pub fn apply_styles_from_external_json(
         }
     } else {
         node.grid_auto_flow = default_widget_entity.node.grid_auto_flow.clone();
-    }
-}
-
-// for fa_text & Text only
-pub fn apply_text_style_system(
-    builder_res: Res<FamiqResource>,
-    mut text_q: Query<(
-        &mut TextFont,
-        &mut TextColor,
-        Option<&FamiqWidgetId>,
-        Option<&FamiqWidgetClasses>,
-        &WidgetStyle,
-        &ExternalStyleHasChanged,
-        Option<&DefaultTextEntity>,
-        Option<&DefaultTextSpanEntity>
-    )>,
-) {
-    for (
-        mut text_font,
-        mut text_color,
-        widget_id,
-        widget_classes,
-        local_widget_style,
-        has_external_changed,
-        default_text_entity,
-        default_text_span_entity
-    )
-    in text_q.iter_mut() {
-
-        if builder_res.hot_reload_styles {
-            if has_external_changed.0 && (widget_id.is_some() || widget_classes.is_some()) {
-                apply_text_styles_from_external_json(
-                    local_widget_style,
-                    default_text_entity,
-                    default_text_span_entity,
-                    &mut text_font,
-                    &mut text_color
-                );
-            }
-        }
-
-        if !builder_res.hot_reload_styles && !builder_res.external_style_applied {
-            if widget_id.is_some() || widget_classes.is_some() {
-                apply_text_styles_from_external_json(
-                    local_widget_style,
-                    default_text_entity,
-                    default_text_span_entity,
-                    &mut text_font,
-                    &mut text_color
-                );
-            }
-        }
     }
 }

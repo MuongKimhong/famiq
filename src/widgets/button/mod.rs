@@ -39,9 +39,7 @@ impl<'a> FaButton {
                 txt_color.clone(),
                 txt_layout.clone(),
                 DefaultTextEntity::new(txt, txt_font, txt_color, txt_layout),
-                IsFamiqButtonText,
-                WidgetStyle::default(),
-                ExternalStyleHasChanged(false)
+                IsFamiqButtonText
             ))
             .id();
 
