@@ -8,37 +8,9 @@
 # Famiq
 Build GUI with rust, based on ECS pattern, powered by Bevy game engine.
 
-https://github.com/user-attachments/assets/739b0141-891e-4dea-ac26-3ab56f661992
+https://github.com/user-attachments/assets/2bc006f9-3f2b-4692-8214-9cc63ee53c50
 
 See the [examples](https://github.com/MuongKimhong/famiq/tree/master/examples) directory.
-
-```rust
-use bevy::prelude::*;
-use famiq::prelude::*;
-
-fn main() {
-    App::new()
-        .add_plugins(DefaultPlugins)
-        .add_plugins(FamiqPlugin)
-        .add_systems(Startup, setup_ui)
-        .run();
-}
-
-fn setup_ui(
-    mut commands: Commands,
-    mut famiq_res: ResMut<FamiqResource>,
-    asset_server: Res<AssetServer>
-) {
-    commands.spawn(Camera2d::default());
-
-    let mut builder = FamiqBuilder::new(&mut commands, &mut famiq_res, &asset_server);
-
-    let txt = fa_text(&mut builder, "Hello world").build();
-    let btn = fa_button(&mut builder, "Press me").build();
-
-    fa_container(&mut builder).children([txt, btn]).build();
-}
-```
 
 ## Installation
 Get latest version of `Famiq`
