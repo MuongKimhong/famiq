@@ -29,23 +29,6 @@ pub fn default_input_node() -> Node {
     }
 }
 
-pub fn outlined_border_width() -> UiRect {
-    UiRect::all(Val::Px(2.0))
-}
-
-pub fn underlined_border_width() -> UiRect {
-    UiRect {
-        left: Val::Px(0.0),
-        right: Val::Px(0.0),
-        top: Val::Px(0.0),
-        bottom: Val::Px(2.0),
-    }
-}
-
-pub fn outlined_border_radius() -> BorderRadius {
-    BorderRadius::all(Val::Px(6.0))
-}
-
 pub fn get_text_size(size: &WidgetSize) -> f32 {
     let size_small = 16.0;
     let size_normal = 20.0;
@@ -58,23 +41,6 @@ pub fn get_text_size(size: &WidgetSize) -> f32 {
 
     };
     text_size
-}
-
-pub fn get_input_color(color: &WidgetColor) -> Color {
-    match color {
-        WidgetColor::Primary => PRIMARY_COLOR,
-        WidgetColor::PrimaryDark => PRIMARY_DARK_COLOR,
-        WidgetColor::Secondary => SECONDARY_COLOR,
-        WidgetColor::Success => SUCCESS_COLOR,
-        WidgetColor::SuccessDark => SUCCESS_DARK_COLOR,
-        WidgetColor::Danger => DANGER_COLOR,
-        WidgetColor::DangerDark => DANGER_DARK_COLOR,
-        WidgetColor::Warning => WARNING_COLOR,
-        WidgetColor::WarningDark => WARNING_DARK_COLOR,
-        WidgetColor::Info => INFO_COLOR,
-        WidgetColor::InfoDark => INFO_DARK_COLOR,
-        _ => WHITE_COLOR
-    }
 }
 
 pub fn get_text_color(color: &WidgetColor) -> Color {

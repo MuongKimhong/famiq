@@ -25,42 +25,6 @@ pub fn get_text_color(variant: &WidgetColor) -> Color {
     }
 }
 
-pub fn get_button_background_color(color: &WidgetColor) -> BackgroundColor {
-    let bg_color: BackgroundColor = match color {
-        WidgetColor::Primary => BackgroundColor(PRIMARY_COLOR),
-        WidgetColor::PrimaryDark => BackgroundColor(PRIMARY_DARK_COLOR),
-        WidgetColor::Secondary => BackgroundColor(SECONDARY_COLOR),
-        WidgetColor::Success => BackgroundColor(SUCCESS_COLOR),
-        WidgetColor::SuccessDark => BackgroundColor(SUCCESS_DARK_COLOR),
-        WidgetColor::Danger => BackgroundColor(DANGER_COLOR),
-        WidgetColor::DangerDark => BackgroundColor(DANGER_DARK_COLOR),
-        WidgetColor::Warning => BackgroundColor(WARNING_COLOR),
-        WidgetColor::WarningDark => BackgroundColor(WARNING_DARK_COLOR),
-        WidgetColor::Info => BackgroundColor(INFO_COLOR),
-        WidgetColor::InfoDark => BackgroundColor(INFO_DARK_COLOR),
-        _ => BackgroundColor(DEFAULT_COLOR)
-    };
-    bg_color
-}
-
-pub fn get_button_border_color(variant: &WidgetColor) -> BorderColor {
-    let border_color: BorderColor = match variant {
-        WidgetColor::Primary => BorderColor(PRIMARY_COLOR),
-        WidgetColor::PrimaryDark => BorderColor(PRIMARY_DARK_COLOR),
-        WidgetColor::Secondary => BorderColor(SECONDARY_COLOR),
-        WidgetColor::Success => BorderColor(SUCCESS_COLOR),
-        WidgetColor::SuccessDark => BorderColor(SUCCESS_DARK_COLOR),
-        WidgetColor::Danger => BorderColor(DANGER_COLOR),
-        WidgetColor::DangerDark => BorderColor(DANGER_DARK_COLOR),
-        WidgetColor::Warning => BorderColor(WARNING_COLOR),
-        WidgetColor::WarningDark => BorderColor(WARNING_DARK_COLOR),
-        WidgetColor::Info => BorderColor(INFO_COLOR),
-        WidgetColor::InfoDark => BorderColor(INFO_DARK_COLOR),
-        _ => BorderColor(DEFAULT_COLOR)
-    };
-    border_color
-}
-
 pub fn default_button_node() -> Node {
     Node {
         width: Val::Auto,

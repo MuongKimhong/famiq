@@ -7,11 +7,7 @@ use crate::widgets::*;
 use bevy::reflect::TypePath;
 use bevy::render::render_resource::*;
 use crate::event_writer::FaInteractionEvent;
-use crate::utils::{
-    process_spacing_built_in_class,
-    insert_id_and_class,
-    get_embedded_asset_path
-};
+use crate::utils::*;
 use super::tooltip::{FaToolTip, FaToolTipResource, IsFamiqToolTipText};
 
 pub use components::*;
@@ -40,7 +36,7 @@ impl<'a> FaCircular {
         let mut style_components = BaseStyleComponents::default();
         style_components.node = attributes.node.clone();
 
-        let color = get_circular_color(&attributes.color);
+        let color = get_color(&attributes.color);
         let outer_entity = root_node
             .commands()
             .spawn((

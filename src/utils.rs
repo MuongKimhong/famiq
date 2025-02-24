@@ -9,7 +9,8 @@ use std::io::Read;
 
 use crate::plugin::{CursorIcons, CursorType};
 use crate::widgets::style_parse::*;
-use crate::widgets::{WidgetStyle, DefaultWidgetEntity};
+use crate::widgets::{WidgetStyle, DefaultWidgetEntity, WidgetColor};
+use crate::widgets::color::*;
 use crate::errors::StylesFileError;
 use crate::widgets::{FamiqWidgetId, FamiqWidgetClasses};
 
@@ -432,6 +433,31 @@ pub(crate) fn _change_cursor_icon(
         CursorType::Text => res.text.clone(),
         _ => res.normal.clone(),
     });
+}
+
+/// Turn WigetColor to actual color
+pub(crate) fn get_color(color: &WidgetColor) -> Color {
+    match color {
+        WidgetColor::Primary => PRIMARY_COLOR,
+        WidgetColor::PrimaryDark => PRIMARY_DARK_COLOR,
+        WidgetColor::Secondary => SECONDARY_COLOR,
+        WidgetColor::Success => SUCCESS_COLOR,
+        WidgetColor::SuccessDark => SUCCESS_DARK_COLOR,
+        WidgetColor::Danger => DANGER_COLOR,
+        WidgetColor::DangerDark => DANGER_DARK_COLOR,
+        WidgetColor::Warning => WARNING_COLOR,
+        WidgetColor::WarningDark => WARNING_DARK_COLOR,
+        WidgetColor::Info => INFO_COLOR,
+        WidgetColor::InfoDark => INFO_DARK_COLOR,
+        WidgetColor::Custom(color) => {
+            if let Some(parsed_color) = built_in_color_parser(color) {
+                parsed_color
+            } else {
+                DEFAULT_COLOR
+            }
+        },
+        _ => WHITE_COLOR
+    }
 }
 
 #[cfg(test)]

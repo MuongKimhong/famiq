@@ -73,8 +73,8 @@ impl<'a> FaButton {
 
         let mut style_components = BaseStyleComponents::default();
         style_components.node = attributes.node;
-        style_components.border_color = get_button_border_color(&attributes.color);
-        style_components.background_color = get_button_background_color(&attributes.color);
+        style_components.border_color = utils::get_color(&attributes.color).into();
+        style_components.background_color = utils::get_color(&attributes.color).into();
         style_components.border_radius = BorderRadius::all(Val::Px(6.0));
 
         let btn_entity = root_node

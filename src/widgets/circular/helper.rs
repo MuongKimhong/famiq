@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use crate::widgets::color::*;
 use super::*;
 
 pub fn get_circular_size(size: &WidgetSize) -> (Val, Val) {
@@ -30,29 +29,4 @@ pub fn default_circular_node(size: &WidgetSize) -> Node {
         },
         ..default()
     }
-}
-
-pub fn get_circular_color(color: &WidgetColor) -> Color {
-    let bg_color = match color {
-        WidgetColor::Primary => PRIMARY_COLOR,
-        WidgetColor::PrimaryDark => PRIMARY_DARK_COLOR,
-        WidgetColor::Secondary => SECONDARY_COLOR,
-        WidgetColor::Success => SUCCESS_COLOR,
-        WidgetColor::SuccessDark => SUCCESS_DARK_COLOR,
-        WidgetColor::Danger => DANGER_COLOR,
-        WidgetColor::DangerDark => DANGER_DARK_COLOR,
-        WidgetColor::Warning => WARNING_COLOR,
-        WidgetColor::WarningDark => WARNING_DARK_COLOR,
-        WidgetColor::Info => INFO_COLOR,
-        WidgetColor::InfoDark => INFO_DARK_COLOR,
-        WidgetColor::Custom(color) => {
-            if let Some(parsed_color) = built_in_color_parser(color) {
-                parsed_color
-            } else {
-                DEFAULT_COLOR
-            }
-        },
-        _ => DEFAULT_COLOR,
-    };
-    bg_color
 }

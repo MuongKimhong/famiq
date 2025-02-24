@@ -191,7 +191,7 @@ impl<'a> FaProgressBar {
                 style_components,
                 IsFamiqProgressValue,
                 FamiqProgressBarEntity(bar_entity),
-                ProgressValueColor(get_progress_value_color(color))
+                ProgressValueColor(get_color(color))
             ))
             .id();
 

@@ -202,7 +202,7 @@ impl<'a> FaTextInput {
         placeholder_entity: Entity,
         cursor_entity: Entity
     ) -> Entity {
-        let input_color = get_input_color(&attributes.color);
+        let input_color = get_color(&attributes.color);
         let mut style_components = BaseStyleComponents::default();
         style_components.node = attributes.node.clone();
         style_components.border_color = BorderColor(input_color);

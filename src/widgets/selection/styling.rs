@@ -74,24 +74,6 @@ pub fn default_choice_container_node() -> Node {
     }
 }
 
-// color for both selector and choice panel
-pub fn get_selection_color(color: &WidgetColor) -> Color {
-    match color {
-        WidgetColor::Primary => PRIMARY_COLOR,
-        WidgetColor::PrimaryDark => PRIMARY_DARK_COLOR,
-        WidgetColor::Secondary => SECONDARY_COLOR,
-        WidgetColor::Success => SUCCESS_COLOR,
-        WidgetColor::SuccessDark => SUCCESS_DARK_COLOR,
-        WidgetColor::Danger => DANGER_COLOR,
-        WidgetColor::DangerDark => DANGER_DARK_COLOR,
-        WidgetColor::Warning => WARNING_COLOR,
-        WidgetColor::WarningDark => WARNING_DARK_COLOR,
-        WidgetColor::Info => INFO_COLOR,
-        WidgetColor::InfoDark => INFO_DARK_COLOR,
-        _ => WHITE_COLOR
-    }
-}
-
 pub fn get_text_color(color: &WidgetColor) -> Color {
     match color {
         WidgetColor::Secondary => WHITE_COLOR,

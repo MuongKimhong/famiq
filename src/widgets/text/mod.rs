@@ -1,8 +1,7 @@
-use super::color::WHITE_COLOR;
 use crate::event_writer::FaInteractionEvent;
 use crate::plugin::{CursorType, CursorIcons};
 use crate::widgets::*;
-use crate::utils::{_change_cursor_icon, insert_id_and_class, process_spacing_built_in_class};
+use crate::utils::{_change_cursor_icon, get_color, insert_id_and_class, process_spacing_built_in_class};
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
@@ -118,7 +117,7 @@ impl<'a> FaText {
             _ => {}
         }
 
-        let txt_color = TextColor(WHITE_COLOR);
+        let txt_color = TextColor(get_color(&attributes.color));
         let txt_layout = TextLayout::new_with_justify(JustifyText::Center);
 
         let mut style_components = BaseStyleComponents::default();
@@ -261,6 +260,7 @@ impl<'a> FaTextBuilder<'a> {
 
     /// Spawn text into UI World.
     pub fn build(&mut self) -> Entity {
+        self._process_built_in_color_class();
         self._node();
         let size = self._process_built_in_text_size_class();
         FaText::new(

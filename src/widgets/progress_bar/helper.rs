@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use crate::widgets::color::*;
 use super::*;
 
 fn _get_progress_bar_size(size: &WidgetSize) -> f32 {
@@ -44,29 +43,4 @@ pub fn default_progress_value_node(percentage: Option<f32>) -> Node {
         node.width = Val::Percent(percentage);
     }
     node
-}
-
-pub fn get_progress_value_color(color: &WidgetColor) -> Color {
-    let bg_color = match color {
-        WidgetColor::Primary => PRIMARY_COLOR,
-        WidgetColor::PrimaryDark => PRIMARY_DARK_COLOR,
-        WidgetColor::Secondary => SECONDARY_COLOR,
-        WidgetColor::Success => SUCCESS_COLOR,
-        WidgetColor::SuccessDark => SUCCESS_DARK_COLOR,
-        WidgetColor::Danger => DANGER_COLOR,
-        WidgetColor::DangerDark => DANGER_DARK_COLOR,
-        WidgetColor::Warning => WARNING_COLOR,
-        WidgetColor::WarningDark => WARNING_DARK_COLOR,
-        WidgetColor::Info => INFO_COLOR,
-        WidgetColor::InfoDark => INFO_DARK_COLOR,
-        WidgetColor::Custom(color) => {
-            if let Some(parsed_color) = built_in_color_parser(color) {
-                parsed_color
-            } else {
-                DEFAULT_COLOR
-            }
-        },
-        _ => DEFAULT_COLOR
-    };
-    bg_color
 }

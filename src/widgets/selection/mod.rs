@@ -112,7 +112,7 @@ impl<'a> FaSelection {
         placeholder_entity: Entity,
         arrow_icon_entity: Entity
     ) -> Entity {
-        let selection_color = get_selection_color(&attributes.color);
+        let selection_color = get_color(&attributes.color);
 
         let mut style_components = BaseStyleComponents::default();
         style_components.node = attributes.node.clone();
@@ -154,7 +154,7 @@ impl<'a> FaSelection {
             entity_add_child(root_node, txt, container);
             choice_entities.push(container);
         }
-        let selection_color = get_selection_color(&attributes.color);
+        let selection_color = get_color(&attributes.color);
         let mut style_components = BaseStyleComponents::default();
         style_components.node = default_selection_choices_panel_node();
         style_components.border_color = BorderColor(selection_color);
@@ -247,7 +247,6 @@ impl<'a> FaSelection {
         );
 
         root_node.commands().entity(selector).insert(SelectionChoicesPanelEntity(choices_panel));
-
         entity_add_children(root_node, &vec![placeholder_entity, arrow_icon_entity], selector);
         entity_add_children(root_node, &vec![selector, choices_panel], container);
 
