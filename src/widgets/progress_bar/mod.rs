@@ -20,7 +20,9 @@ pub struct ProgressBarMaterial {
     #[uniform(1)]
     u_color: Vec3,
     #[uniform(2)]
-    u_blend: f32
+    u_blend: f32,
+    #[uniform(3)]
+    u_size: Vec2
 }
 
 impl UiMaterial for ProgressBarMaterial {
@@ -152,13 +154,14 @@ impl<'a> FaProgressBar {
         attributes: &WidgetAttributes,
         root_node: &'a mut EntityCommands,
     ) -> Entity {
-        let color = Color::srgba(0.6, 0.6, 0.6, 0.7);
+        let color = Color::srgba(0.6, 0.6, 0.6, 0.2);
 
         let mut style_components = BaseStyleComponents::default();
         style_components.node = attributes.node.clone();
         style_components.visibility = Visibility::Visible;
         style_components.background_color = BackgroundColor(color);
         style_components.border_color = BorderColor(color);
+        style_components.border_radius = BorderRadius::all(Val::Px(5.0));
 
         let entity = root_node
             .commands()
@@ -336,11 +339,14 @@ impl<'a> FaProgressBar {
     pub fn detect_new_progress_bar_widget_system(
         mut commands: Commands,
         mut progress_materials: ResMut<Assets<ProgressBarMaterial>>,
-        bar_q: Query<(Entity, Option<&FamiqWidgetId>, &FamiqProgressValueEntity), Added<IsFamiqProgressBar>>,
+        bar_q: Query<
+            (Entity, &ComputedNode, Option<&FamiqWidgetId>, &FamiqProgressValueEntity),
+            Or<(Added<IsFamiqProgressBar>, Changed<ComputedNode>)>
+        >,
         value_q: Query<(&ProgressValueColor, Option<&FaProgressValuePercentage>)>,
         mut bar_res: ResMut<FaProgressBarResource>
     ) {
-        for (entity, id, value_entity) in bar_q.iter() {
+        for (entity, computed_node, id, value_entity) in bar_q.iter() {
             if let Ok((value_color, percentage)) = value_q.get(value_entity.0) {
 
                 if let Color::Srgba(value) = value_color.0 {
@@ -355,7 +361,8 @@ impl<'a> FaProgressBar {
                             MaterialNode(progress_materials.add(ProgressBarMaterial {
                                 u_time: 0.0,
                                 u_color: Vec3::new(value.red, value.green, value.blue),
-                                u_blend
+                                u_blend,
+                                u_size: computed_node.size()
                             }))
                         );
                 }
