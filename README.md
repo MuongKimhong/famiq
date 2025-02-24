@@ -1,3 +1,6 @@
+![Static Badge](https://img.shields.io/badge/Version-0.2.6-blue)
+![Static Badge](https://img.shields.io/badge/OS-Mac%20Linux%20Window-orange)
+
 <p align="center">
   <img width="250" src="logo.png">
 </p>
@@ -56,7 +59,6 @@ Famiq needs your contributions. Please see [contributing](https://github.com/Muo
 
 ## Versions
 Currently, it supports only 0.15.x onward. Currently, the latest version of bevy is `0.15.2`.
-
 
 > [!NOTE]
 > - **Famiq is new** and still in early stage of development, many useful features are missing.
