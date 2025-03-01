@@ -35,17 +35,6 @@ pub fn get_text_size(size: &WidgetSize) -> f32 {
 pub struct FaSelection;
 
 impl<'a> FaSelection {
-    // fn _build_container(root_node: &'a mut EntityCommands) -> Entity {
-    //     let mut style_components = BaseStyleComponents::default();
-    //     style_components.node = default_selection_container_node();
-    //     style_components.visibility = Visibility::Visible;
-
-    //     root_node
-    //         .commands()
-    //         .spawn((style_components, IsFamiqSelectionContainer))
-    //         .id()
-    // }
-
     fn _build_selector_placeholder(
         attributes: &WidgetAttributes,
         placeholder: &str,

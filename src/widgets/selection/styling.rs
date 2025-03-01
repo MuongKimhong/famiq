@@ -27,17 +27,6 @@ pub fn default_selector_node() -> Node {
     }
 }
 
-pub fn default_selection_container_node() -> Node {
-    Node {
-        width: Val::Percent(100.0),
-        flex_direction: FlexDirection::Column,
-        align_items: AlignItems::FlexStart,
-        justify_content: JustifyContent::FlexStart, // Align children at the top
-        height: Val::Auto,
-        ..default()
-    }
-}
-
 pub fn default_selection_choices_panel_node() -> Node {
     Node {
         width: Val::Percent(100.),
