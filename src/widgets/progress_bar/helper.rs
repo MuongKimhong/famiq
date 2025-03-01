@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use super::*;
 
-fn _get_progress_bar_size(size: &WidgetSize) -> f32 {
+fn get_progress_bar_size(size: &WidgetSize) -> f32 {
     let size_small = 8.0;
     let size_normal = 12.0;
     let size_large = 15.0;
@@ -14,7 +14,7 @@ fn _get_progress_bar_size(size: &WidgetSize) -> f32 {
     }
 }
 
-pub fn default_progress_bar_node(size: &WidgetSize) -> Node {
+pub(crate) fn default_progress_bar_node(size: &WidgetSize) -> Node {
     Node {
         padding: UiRect::all(Val::Px(0.0)),
         margin: UiRect {
@@ -23,14 +23,14 @@ pub fn default_progress_bar_node(size: &WidgetSize) -> Node {
             left: Val::Px(0.0),
             bottom: Val::Px(2.0),
         },
-        height: Val::Px(_get_progress_bar_size(size)),
+        height: Val::Px(get_progress_bar_size(size)),
         width: Val::Percent(100.0),
         border: UiRect::all(Val::Px(0.0)),
         ..default()
     }
 }
 
-pub fn default_progress_value_node(percentage: Option<f32>) -> Node {
+pub(crate) fn default_progress_value_node(percentage: Option<f32>) -> Node {
     let mut node = Node {
         width: Val::Percent(100.0),
         height: Val::Percent(100.0),

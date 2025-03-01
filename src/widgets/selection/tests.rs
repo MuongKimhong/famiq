@@ -5,17 +5,13 @@ use crate::widgets::color::PRIMARY_COLOR;
 use crate::widgets::FamiqResource;
 use super::*;
 
-#[derive(Resource)]
-struct TestEntity(Entity);
-
 fn setup_test_default_selection(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut builder_res: ResMut<FamiqResource>,
 ) {
     let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
-    let selection = fa_selection(&mut builder, "Test select choice").id("#test-selection").build();
-    commands.insert_resource(TestEntity(selection));
+    fa_selection(&mut builder, "Test select choice").id("#test-selection").build();
 }
 
 fn setup_test_selection_with_built_in_class_color(
@@ -98,21 +94,7 @@ fn test_get_value_by_id() {
     app.update();
 
     let selection_res = app.world_mut().resource::<FaSelectionResource>();
-    let value = selection_res.get_value_by_id("#test-selection");
-
-    assert_eq!("".to_string(), value);
-}
-
-#[test]
-fn test_get_value_by_entity() {
-    let mut app = create_test_app();
-    app.add_plugins(FamiqPlugin);
-    app.add_systems(Startup, setup_test_default_selection);
-    app.update();
-
-    let entity = app.world_mut().resource::<TestEntity>().0;
-    let selection_res = app.world_mut().resource::<FaSelectionResource>();
-    let value = selection_res.get_value_by_entity(entity);
+    let value = selection_res.get_value("#test-selection");
 
     assert_eq!("".to_string(), value);
 }

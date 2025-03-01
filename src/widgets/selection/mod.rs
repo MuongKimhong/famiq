@@ -19,9 +19,9 @@ pub struct IsFamiqSelectionResource;
 pub type FaSelectionResource = InputResource<IsFamiqSelectionResource>;
 
 pub fn get_text_size(size: &WidgetSize) -> f32 {
-    let size_small = 16.0;
-    let size_normal = 20.0;
-    let size_large = 24.0;
+    let size_small = 14.0;
+    let size_normal = 18.0;
+    let size_large = 22.0;
 
     let text_size = match size {
         WidgetSize::Small => size_small,

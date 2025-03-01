@@ -4,8 +4,7 @@ use crate::widgets::*;
 use crate::utils::{_change_cursor_icon, get_color, insert_id_and_class, process_spacing_built_in_class};
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
-use bevy::utils::HashMap;
-use bevy::utils::hashbrown::HashSet;
+use bevy::utils::hashbrown::{HashSet, HashMap};
 
 /// Marker component for identifying Famiq text widgets.
 #[derive(Component)]
@@ -31,50 +30,25 @@ pub struct FaTextResource {
     /// id-value
     pub text_value: HashMap<String, String>,
 
-    /// entity-value pair
-    pub entity_value: HashMap<Entity, String>,
-
     /// Tracks which text IDs changed
-    pub changed_texts: HashSet<String>,
-
-    /// Tracks which entities' text changed
-    pub changed_entities: HashSet<Entity>,
+    pub changed_texts: HashSet<String>
 }
 
 impl FaTextResource {
     /// Update fa_text's value by id
-    pub fn update_value_by_id(&mut self, id: &str, new_value: &str) {
+    pub fn update_value(&mut self, id: &str, new_value: &str) {
         if let Some(existing) = self.text_value.get(id) {
             if existing == new_value {
                 return;
             }
         }
-        self.text_value.insert(id.to_string(), new_value.to_string());
-        self.changed_texts.insert(id.to_string()); // Mark as changed
-    }
-
-    /// Update fa_text's value by entity
-    pub fn update_value_by_entity(&mut self, entity: Entity, new_value: &str) {
-        if let Some(existing) = self.entity_value.get(&entity) {
-            if existing == new_value {
-                return;
-            }
-        }
-        self.entity_value.insert(entity, new_value.to_string());
-        self.changed_entities.insert(entity); // Mark as changed
+        self.text_value.insert(String::from(id), String::from(new_value));
+        self.changed_texts.insert(String::from(id));
     }
 
     /// Get `fa_text` value by id, return empty string if id doesn't exist.
-    pub fn get_value_by_id(&self, id: &str) -> String {
+    pub fn get_value(&self, id: &str) -> String {
         if let Some(v) = self.text_value.get(id) {
-            return v.clone();
-        }
-        String::new()
-    }
-
-    /// Get `fa_text` value by entity, return emtpty string if entity doesn't exist.
-    pub fn get_value_by_entity(&self, entity: Entity) -> String {
-        if let Some(v) = self.entity_value.get(&entity) {
             return v.clone();
         }
         String::new()
@@ -152,11 +126,11 @@ impl<'a> FaText {
 
     /// Internal system that reads `FaTextResource` and update the corresponding text widget's value
     pub fn update_text_value_system(
-        mut text_q: Query<(&mut Text, Entity, Option<&FamiqWidgetId>), With<IsFamiqText>>,
+        mut text_q: Query<(&mut Text, Option<&FamiqWidgetId>), With<IsFamiqText>>,
         mut text_res: ResMut<FaTextResource>
     ) {
         if text_res.is_changed() {
-            for (mut text, entity, id) in text_q.iter_mut() {
+            for (mut text, id) in text_q.iter_mut() {
                 // Check by id
                 if let Some(id) = id {
                     if text_res.changed_texts.contains(&id.0) {
@@ -165,36 +139,22 @@ impl<'a> FaText {
                         }
                     }
                 }
-
-                // Check by entity
-                if text_res.changed_entities.contains(&entity) {
-                    if let Some(value) = text_res.entity_value.get(&entity) {
-                        text.0 = value.clone();
-                    }
-                }
             }
-
-            // Clear changed lists after updates
             text_res.changed_texts.clear();
-            text_res.changed_entities.clear();
         }
     }
 
     /// Internal system to insert text value into `FaTextResource` after created.
     pub fn detect_new_text_widget_system(
-        text_q: Query<(Entity, &Text, Option<&FamiqWidgetId>), Added<IsFamiqText>>,
+        text_q: Query<(&Text, Option<&FamiqWidgetId>), Added<IsFamiqText>>,
         mut text_res: ResMut<FaTextResource>
     ) {
-        for (entity, text, id) in text_q.iter() {
+        for (text, id) in text_q.iter() {
 
             if let Some(id) = id {
                 if !text_res.text_value.contains_key(id.0.as_str()) {
                     text_res.text_value.insert(id.0.clone(), text.0.clone());
                 }
-            }
-
-            if !text_res.entity_value.contains_key(&entity) {
-                text_res.entity_value.insert(entity, text.0.clone());
             }
         }
     }
@@ -307,17 +267,13 @@ mod tests {
     use crate::widgets::FamiqResource;
     use super::*;
 
-    #[derive(Resource)]
-    struct TestResource(Entity);
-
     fn setup_test_default_text(
         mut commands: Commands,
         asset_server: Res<AssetServer>,
         mut builder_res: ResMut<FamiqResource>,
     ) {
         let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
-        let text = fa_text(&mut builder, "Test Text").id("#test-text").build();
-        commands.insert_resource(TestResource(text));
+        fa_text(&mut builder, "Test Text").id("#test-text").build();
     }
 
     #[test]
@@ -349,32 +305,7 @@ mod tests {
 
         let mut text_res = app.world_mut().resource_mut::<FaTextResource>();
 
-        text_res.update_value_by_id("#test-text", "New test text Hello World");
-
-        app.update(); // update again so update_text_value_system run again
-
-        let txt_q = app.world_mut()
-            .query::<(&Text, &IsFamiqText)>()
-            .get_single(app.world());
-
-        let txt = txt_q.as_ref().unwrap().0;
-
-        // original text is "Test Text"
-        assert_eq!("New test text Hello World".to_string(), txt.0);
-    }
-
-    #[test]
-    fn test_update_text_value_by_entity() {
-        let mut app = create_test_app();
-        app.add_plugins(FamiqPlugin);
-        app.insert_resource(FaTextResource::default());
-        app.add_systems(Startup, setup_test_default_text);
-        app.add_systems(Update, FaText::update_text_value_system); // internal system that handle updating the text
-        app.update();
-
-        let text_entity = app.world_mut().resource::<TestResource>().0;
-        let mut text_res = app.world_mut().resource_mut::<FaTextResource>();
-        text_res.update_value_by_entity(text_entity, "New test text Hello World");
+        text_res.update_value("#test-text", "New test text Hello World");
 
         app.update(); // update again so update_text_value_system run again
 
@@ -399,7 +330,7 @@ mod tests {
 
         let text_res = app.world_mut().resource::<FaTextResource>();
 
-        let value = text_res.get_value_by_id("#random-id");
+        let value = text_res.get_value("#random-id");
 
         assert_eq!(String::new(), value);
     }
@@ -415,7 +346,7 @@ mod tests {
 
         let text_res = app.world_mut().resource::<FaTextResource>();
 
-        let value = text_res.get_value_by_id("#test-text");
+        let value = text_res.get_value("#test-text");
 
         assert_eq!(String::from("Test Text"), value);
     }

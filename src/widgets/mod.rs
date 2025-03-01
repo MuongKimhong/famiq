@@ -42,7 +42,8 @@ use bevy::prelude::*;
 #[derive(Clone, Default, PartialEq)]
 pub enum WidgetColor {
     #[default]
-    Default,
+    Default, // White or Light
+    Dark,
     Primary,
     PrimaryDark,
     Secondary,
@@ -123,6 +124,7 @@ pub trait SetWidgetAttributes: Sized {
 
             for class_name in class_split {
                 match class_name {
+                    "is-dark" => use_color = WidgetColor::Dark,
                     "is-primary" => use_color = WidgetColor::Primary,
                     "is-primary-dark" => use_color = WidgetColor::PrimaryDark,
                     "is-secondary" => use_color = WidgetColor::Secondary,

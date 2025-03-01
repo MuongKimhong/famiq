@@ -351,18 +351,14 @@ impl<'a> FaTextInput {
 
     /// Internal system to detect new text_input being created.
     pub fn detect_new_text_input_widget_system(
-        input_q: Query<(Entity, Option<&FamiqWidgetId>), Added<IsFamiqTextInput>>,
+        input_q: Query<Option<&FamiqWidgetId>, Added<IsFamiqTextInput>>,
         mut input_res: ResMut<FaTextInputResource>
     ) {
-        for (entity, id) in input_q.iter() {
+        for id in input_q.iter() {
             if let Some(id) = id {
-                if !input_res.exists_by_id(id.0.as_str()) {
-                    input_res._insert_by_id(id.0.clone(), String::new());
+                if !input_res.exists(id.0.as_str()) {
+                    input_res._insert(id.0.clone(), String::new());
                 }
-            }
-
-            if !input_res.exists_by_entity(entity) {
-                input_res._insert_by_entity(entity, String::new());
             }
         }
     }
@@ -402,7 +398,7 @@ impl<'a> FaTextInput {
                         ) in input_q.iter_mut()
                     {
                         if let Some(true) = builder_res.get_widget_focus_state(&entity) {
-                            _update_text_input_value(entity, id, &mut input_res, &mut text_input, true, Some(input));
+                            _update_text_input_value(id, &mut input_res, &mut text_input, true, Some(input));
 
                             if let Ok((mut placeholder_text, _)) = text_q.get_mut(placeholder_entity.0) {
                                 placeholder_text.0 = text_input.text.clone();
@@ -426,7 +422,7 @@ impl<'a> FaTextInput {
                         ) in input_q.iter_mut()
                     {
                         if let Some(true) = builder_res.get_widget_focus_state(&entity) {
-                            _update_text_input_value(entity, id, &mut input_res, &mut text_input, true, Some(&SmolStr::new(" ")));
+                            _update_text_input_value(id, &mut input_res, &mut text_input, true, Some(&SmolStr::new(" ")));
 
                             if let Ok((mut placeholder_text, _)) = text_q.get_mut(placeholder_entity.0) {
                                 placeholder_text.0 = text_input.text.clone();
@@ -450,7 +446,7 @@ impl<'a> FaTextInput {
                         ) in input_q.iter_mut()
                     {
                         if let Some(true) = builder_res.get_widget_focus_state(&entity) {
-                            _update_text_input_value(entity, id, &mut input_res, &mut text_input, false, None);
+                            _update_text_input_value(id, &mut input_res, &mut text_input, false, None);
 
                             if let Ok((mut placeholder_text, _)) = text_q.get_mut(placeholder_entity.0) {
                                 if placeholder_text.0 != text_input.placeholder {
@@ -510,7 +506,7 @@ impl<'a> FaTextInput {
 
                         if cursor_blink_timer.timer.finished() {
                             if cursor_blink_timer.is_transparent {
-                                if input_bg_color.0 == SECONDARY_COLOR {
+                                if (input_bg_color.0 == SECONDARY_COLOR) || (input_bg_color.0 == BLACK_COLOR) {
                                     bg_color.0 = WHITE_COLOR;
                                 }
                                 else {

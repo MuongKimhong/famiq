@@ -1,5 +1,3 @@
-use crate::widgets::color::*;
-use super::*;
 use bevy::prelude::*;
 
 pub const ITEM_ON_HOVER_BG_COLOR: Color = Color::srgba(0.0, 0.0, 0.0, 0.3);
@@ -12,10 +10,10 @@ pub fn default_selector_node() -> Node {
         justify_content: JustifyContent::SpaceBetween,
         border: UiRect::all(Val::Px(2.0)),
         padding: UiRect {
-            left: Val::Px(10.0),
-            right: Val::Px(10.0),
-            top: Val::Px(5.0),
-            bottom: Val::Px(5.0),
+            left: Val::Px(5.0),
+            right: Val::Px(5.0),
+            top: Val::Px(3.0),
+            bottom: Val::Px(3.0),
         },
         margin: UiRect {
             top: Val::Px(2.0),
@@ -47,12 +45,7 @@ pub fn default_selection_choices_panel_node() -> Node {
         align_items: AlignItems::Center,
         justify_content: JustifyContent::Start,
         height: Val::Auto,
-        padding: UiRect {
-            top: Val::Px(5.0),
-            bottom: Val::Px(5.0),
-            left: Val::Px(0.0),
-            right: Val::Px(0.0),
-        },
+        padding: UiRect::all(Val::Px(0.0)),
         margin: UiRect::all(Val::Px(2.0)),
         position_type: PositionType::Absolute,
         ..default()
@@ -65,23 +58,11 @@ pub fn default_choice_container_node() -> Node {
         justify_content: JustifyContent::Start,
         align_items: AlignItems::Center,
         padding: UiRect {
-            top: Val::Px(10.0),
-            bottom: Val::Px(10.0),
+            top: Val::Px(5.0),
+            bottom: Val::Px(5.0),
             right: Val::Px(0.0),
             left: Val::Px(10.0),
         },
         ..default()
-    }
-}
-
-pub fn get_text_color(color: &WidgetColor) -> Color {
-    match color {
-        WidgetColor::Secondary => WHITE_COLOR,
-        WidgetColor::PrimaryDark => PRIMARY_COLOR,
-        WidgetColor::SuccessDark => SUCCESS_COLOR,
-        WidgetColor::DangerDark => DANGER_COLOR,
-        WidgetColor::WarningDark => WARNING_COLOR,
-        WidgetColor::InfoDark => INFO_COLOR,
-        _ => BLACK_COLOR,
     }
 }

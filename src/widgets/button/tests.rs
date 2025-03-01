@@ -27,7 +27,7 @@ fn setup_test_button_with_built_in_class(
 
 #[test]
 fn test_create_default_button() {
-    let mut app = utils::create_test_app();
+    let mut app = create_test_app();
     app.add_plugins(FamiqPlugin);
     app.add_systems(Startup, setup_test_default_button);
     app.update();
@@ -52,7 +52,7 @@ fn test_create_default_button() {
 
 #[test]
 fn test_create_button_with_built_in_class() {
-    let mut app = utils::create_test_app();
+    let mut app = create_test_app();
     app.add_plugins(FamiqPlugin);
     app.add_systems(Startup, setup_test_button_with_built_in_class);
     app.update();

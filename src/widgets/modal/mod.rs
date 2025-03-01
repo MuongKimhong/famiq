@@ -33,7 +33,6 @@ pub struct AnimationProgress(pub f32);
 #[derive(Resource, Default, Debug)]
 pub struct FaModalState {
     pub id_states: HashMap<String, bool>,
-    pub entity_states: HashMap<Entity, bool>,
     pub state_changed: bool
 }
 
@@ -44,56 +43,28 @@ impl FaModalState {
         self.id_states.insert(id.to_string(), new_state);
     }
 
-    /// Private: Updates or inserts an Entity state
-    fn _update_or_insert_entity(&mut self, entity: Entity, new_state: bool) {
-        self.entity_states.entry(entity).or_insert(false);
-        self.entity_states.insert(entity, new_state);
-    }
-
     /// Private: Set all modal states to false
     fn _hide_all(&mut self) {
         self.id_states.values_mut().for_each(|v| *v = false);
-        self.entity_states.values_mut().for_each(|v| *v = false);
     }
 
     /// Show modal by ID (Only one can be `true`)
-    pub fn show_by_id(&mut self, id: &str) {
+    pub fn show(&mut self, id: &str) {
         self._hide_all();
         self._update_or_insert_id(id, true);
         self.state_changed = true;
     }
 
-    /// Show modal by Entity (Only one can be `true`)
-    pub fn show_by_entity(&mut self, entity: Entity) {
-        self._hide_all();
-        self._update_or_insert_entity(entity, true);
-        self.state_changed = true;
-    }
-
     /// Hide modal by ID
-    pub fn hide_by_id(&mut self, id: &str) {
+    pub fn hide(&mut self, id: &str) {
         self._update_or_insert_id(id, false);
         self.state_changed = true;
     }
 
-    /// Hide modal by Entity
-    pub fn hide_by_entity(&mut self, entity: Entity) {
-        self._update_or_insert_entity(entity, false);
-        self.state_changed = true;
-    }
-
-    pub fn get_state_by_id(&self, id: &str) -> Option<&bool> {
+    pub fn get_state(&self, id: &str) -> Option<&bool> {
         self.id_states.get(id)
     }
-
-    pub fn get_state_by_entity(&self, entity: Entity) -> Option<&bool> {
-        self.entity_states.get(&entity)
-    }
 }
-
-#[derive(Default)]
-pub struct IsFamiqModalResource;
-pub type FaModalResource = ContainableResource<IsFamiqModalResource>;
 
 pub struct FaModal;
 
@@ -170,7 +141,7 @@ impl<'a> FaModal {
 
     /// Internal system to hide or display via `FaModalState` resource.
     pub fn hide_or_display_modal_system(
-        mut modal_bg_q: Query<(&mut Visibility, Entity, &FamiqWidgetId, &FaModalContainerEntity)>,
+        mut modal_bg_q: Query<(&mut Visibility, &FamiqWidgetId, &FaModalContainerEntity)>,
         mut modal_container_q: Query<(&mut AnimationProgress, &mut Transform), With<IsFamiqModalContainer>>,
         time: Res<Time>,
         mut modal_res: ResMut<FaModalState>,
@@ -178,11 +149,10 @@ impl<'a> FaModal {
         if modal_res.state_changed {
             let delta = time.delta_secs() * 6.0;
 
-            for (mut visibility, modal_entity, modal_id, container_entity) in modal_bg_q.iter_mut() {
+            for (mut visibility, modal_id, container_entity) in modal_bg_q.iter_mut() {
                 let is_visible = modal_res
-                    .get_state_by_id(&modal_id.0)
+                    .get_state(&modal_id.0)
                     .copied()
-                    .or_else(|| modal_res.get_state_by_entity(modal_entity).copied())
                     .unwrap_or(false);
 
                 // Try to get the corresponding modal container
@@ -208,90 +178,19 @@ impl<'a> FaModal {
 
     pub fn detect_new_modal_system(
         mut commands: Commands,
-        mut modal_res: ResMut<FaModalResource>,
+        mut containable_res: ResMut<FaContainableResource>,
         modal_q: Query<(Entity, Option<&FamiqWidgetId>, &FaModalChildren), Added<IsFamiqModalBackground>>
     ) {
         for (entity, id, children) in modal_q.iter() {
             if let Some(_id) = id {
-                if modal_res.containers.get(&_id.0).is_none() {
-                    modal_res.containers.insert(_id.0.clone(), ContainableData {
+                if containable_res.containers.get(&_id.0).is_none() {
+                    containable_res.containers.insert(_id.0.clone(), ContainableData {
                         entity: Some(entity),
                         children: children.0.clone()
                     });
                     commands.entity(entity).remove::<FaModalChildren>();
                 }
             }
-        }
-    }
-
-    pub(crate) fn detect_modal_resource_change(
-        mut commands: Commands,
-        modal_res: Res<FaModalResource>,
-        modal_q: Query<&FaModalContainerEntity>,
-        mut child_q: Query<(
-            &mut Node,
-            &mut DefaultWidgetEntity,
-            Option<&FamiqWidgetId>,
-            Option<&FamiqWidgetClasses>
-        )>,
-        mut styles: ResMut<StylesKeyValueResource>
-    ) {
-        if modal_res.is_changed() && !modal_res.is_added() {
-            if modal_res.changed_container.is_none() {
-                return;
-            }
-
-            let changed_modal = modal_res.changed_container.unwrap();
-
-            let modal_container_entity = match modal_q.get(changed_modal) {
-                Ok(v) => v.0,
-                Err(_) => return,
-            };
-
-            match modal_res.method_called {
-                ContainableMethodCall::AddChildren => {
-                    commands
-                        .entity(modal_container_entity)
-                        .add_children(&modal_res.to_use_children);
-                }
-                ContainableMethodCall::InsertChildren => {
-                    commands
-                        .entity(modal_container_entity)
-                        .insert_children(modal_res.insert_index, &modal_res.to_use_children);
-                }
-                ContainableMethodCall::RemoveChildren => {
-                    commands
-                        .entity(modal_container_entity)
-                        .remove_children(&modal_res.to_use_children);
-
-                    for child in modal_res.to_use_children.iter() {
-                        commands.entity(*child).despawn_recursive();
-                    }
-                }
-            }
-
-            let mut changed_json_style_keys: Vec<String> = Vec::new();
-            for child in modal_res.to_use_children.iter() {
-                if let Ok((mut node, mut default_widget, id, class)) = child_q.get_mut(*child) {
-                    if node.display == Display::None {
-                        node.display = Display::Flex;
-                        default_widget.node.display = Display::Flex;
-                    }
-                    if let Some(id) = id {
-                        changed_json_style_keys.push(id.0.clone());
-                    }
-                    if let Some(classes) = class {
-                        let classes_split: Vec<&str> = classes.0.split_whitespace().collect();
-                        for class_name in classes_split {
-                            let formatted = format!(".{class_name}");
-                            if !changed_json_style_keys.contains(&formatted) {
-                                changed_json_style_keys.push(formatted);
-                            }
-                        }
-                    }
-                }
-            }
-            styles.changed_keys= changed_json_style_keys;
         }
     }
 }

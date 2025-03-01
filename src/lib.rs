@@ -66,15 +66,14 @@ pub mod prelude {
         IsFamiqModalContainer,
         IsFamiqModalBackground,
         FaModalState,
-        FaModalResource
     };
     pub use crate::widgets::text_input::{IsFamiqTextInput, FaTextInputResource};
     pub use crate::widgets::selection::{IsFamiqSelectionSelector, FaSelectionResource};
     pub use crate::widgets::progress_bar::{IsFamiqProgressBar, IsFamiqProgressValue, FaProgressBarResource};
-    pub use crate::widgets::container::{IsFamiqContainer, FaContainerResource};
+    pub use crate::widgets::container::IsFamiqContainer;
     pub use crate::widgets::fps::IsFamiqFPSTextCount;
     pub use crate::widgets::text::{IsFamiqText, FaTextResource};
-    pub use crate::widgets::list_view::{IsFamiqListView, FaListViewResource};
+    pub use crate::widgets::list_view::IsFamiqListView;
     pub use crate::widgets::bg_image::{FaBgImageResource, IsFamiqBgImage};
     pub use crate::event_writer::FaInteractionEvent;
 }

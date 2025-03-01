@@ -65,8 +65,8 @@ fn external_styles_file_systems(app: &mut App) {
     app.add_systems(
         Update,
         (
-            style::detect_widget_internal_styles_change,
-            style::detect_text_internal_styles_change
+            style::detect_widget_external_styles_change,
+            style::detect_text_external_styles_change
         )
         .chain()
     );
@@ -170,11 +170,7 @@ fn fa_listview_systems(app: &mut App) {
     );
     app.add_systems(
         Update,
-        (
-            FaListView::detect_new_listview_system,
-            FaListView::detect_listview_resource_change
-        )
-        .run_if(can_run_list_view_systems)
+        FaListView::detect_new_listview_system.run_if(can_run_list_view_systems)
     );
 }
 
@@ -210,8 +206,7 @@ fn fa_modal_systems(app: &mut App) {
         Update,
         (
             FaModal::hide_or_display_modal_system,
-            FaModal::detect_new_modal_system,
-            FaModal::detect_modal_resource_change
+            FaModal::detect_new_modal_system
         )
         .run_if(can_run_modal_systems)
     );
@@ -229,8 +224,7 @@ fn fa_progress_bar_systems(app: &mut App) {
         Update,
         (
             event_writer::progress_bar_interaction_system,
-            FaProgressBar::handle_progress_value_change_by_id,
-            FaProgressBar::handle_progress_value_change_by_entity,
+            FaProgressBar::handle_progress_value_change,
             FaProgressBar::detect_new_progress_bar_widget_system,
             FaProgressBar::_update_progress_bar_material_u_time
         )
@@ -253,8 +247,8 @@ fn fa_container_systems(app: &mut App) {
     app.add_systems(
         Update,
         (
-            FaContainer::detect_new_container_system,
-            FaContainer::detect_container_resource_change
+            event_writer::container_interaction_system,
+            FaContainer::detect_new_container_system
         )
         .run_if(can_run_container_systems)
     );
@@ -280,9 +274,10 @@ impl Plugin for FamiqPlugin {
         app.insert_resource(FamiqResource::new());
         app.insert_resource(FaStyleResource::default());
         app.insert_resource(FaBgImageResource::default());
-        app.insert_resource(FaContainerResource::default());
-        app.insert_resource(FaModalResource::default());
-        app.insert_resource(FaListViewResource::default());
+        app.insert_resource(FaContainableResource::default());
+        // app.insert_resource(FaContainerResource::default());
+        // app.insert_resource(FaModalResource::default());
+        // app.insert_resource(FaListViewResource::default());
         app.insert_resource(CanBeScrolledListView { entity: None });
         app.insert_resource(FaSelectionResource::default());
         app.insert_resource(FaTextInputResource::default());
@@ -314,7 +309,10 @@ impl Plugin for FamiqPlugin {
             Update,
             FaToolTip::handle_show_hide_tooltip_system.run_if(can_run_tooltip_systems)
         );
-
+        app.add_systems(
+            PostUpdate,
+            detect_fa_containable_resource_change
+        );
     }
 }
 

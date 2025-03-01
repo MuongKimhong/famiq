@@ -50,10 +50,6 @@ pub struct CanBeScrolledListView {
     pub entity: Option<Entity>,
 }
 
-#[derive(Default)]
-pub struct IsFamiqListViewResource;
-pub type FaListViewResource = ContainableResource<IsFamiqListViewResource>;
-
 pub struct FaListView;
 
 // Doesn't need container
@@ -216,7 +212,7 @@ impl<'a> FaListView {
 
     pub fn detect_new_listview_system(
         mut commands: Commands,
-        mut listview_res: ResMut<FaListViewResource>,
+        mut containable_res: ResMut<FaContainableResource>,
         listview_q: Query<
             (Entity, Option<&FamiqWidgetId>, &FaListViewChildren, &ListViewMovePanelEntity),
             Added<IsFamiqListView>
@@ -225,8 +221,8 @@ impl<'a> FaListView {
     ) {
         for (entity, id, children, panel_entity) in listview_q.iter() {
             if let Some(_id) = id {
-                if listview_res.containers.get(&_id.0).is_none() {
-                    listview_res.containers.insert(_id.0.clone(), ContainableData {
+                if containable_res.containers.get(&_id.0).is_none() {
+                    containable_res.containers.insert(_id.0.clone(), ContainableData {
                         entity: Some(entity),
                         children: children.0.clone()
                     });
@@ -236,79 +232,6 @@ impl<'a> FaListView {
             if let Ok(mut panel_node) = panel_q.get_mut(panel_entity.0) {
                 panel_node.padding = UiRect::all(Val::Px(0.0));
             }
-        }
-    }
-
-    pub(crate) fn detect_listview_resource_change(
-        mut commands: Commands,
-        listview_res: Res<FaListViewResource>,
-        listview_q: Query<&ListViewMovePanelEntity>,
-        mut child_q: Query<
-            (
-                &mut Node,
-                &mut DefaultWidgetEntity,
-                Option<&FamiqWidgetId>,
-                Option<&FamiqWidgetClasses>,
-            )
-        >,
-        mut styles: ResMut<StylesKeyValueResource>
-    ) {
-        if listview_res.is_changed() && !listview_res.is_added() {
-            if listview_res.changed_container.is_none() {
-                return;
-            }
-
-            let changed_listview = listview_res.changed_container.unwrap();
-
-            let panel_entity = match listview_q.get(changed_listview) {
-                Ok(v) => v.0,
-                Err(_) => return,
-            };
-
-            match listview_res.method_called {
-                ContainableMethodCall::AddChildren => {
-                    commands
-                        .entity(panel_entity)
-                        .add_children(&listview_res.to_use_children);
-                }
-                ContainableMethodCall::InsertChildren => {
-                    commands
-                        .entity(panel_entity)
-                        .insert_children(listview_res.insert_index, &listview_res.to_use_children);
-                }
-                ContainableMethodCall::RemoveChildren => {
-                    commands
-                        .entity(panel_entity)
-                        .remove_children(&listview_res.to_use_children);
-
-                    for child in listview_res.to_use_children.iter() {
-                        commands.entity(*child).despawn_recursive();
-                    }
-                }
-            }
-
-            let mut changed_json_style_keys: Vec<String> = Vec::new();
-            for child in listview_res.to_use_children.iter() {
-                if let Ok((mut node, mut default_widget, id, class)) = child_q.get_mut(*child) {
-                    if node.display == Display::None {
-                        node.display = Display::Flex;
-                        default_widget.node.display = Display::Flex;
-                    }
-                    if let Some(id) = id {
-                        changed_json_style_keys.push(id.0.clone());
-                    }
-                    if let Some(classes) = class {
-                        let classes_split: Vec<&str> = classes.0.split_whitespace().collect();
-                        for class_name in classes_split {
-                            let formatted = format!(".{class_name}");
-                            if !changed_json_style_keys.contains(&formatted) {
-                                changed_json_style_keys.push(formatted);
-                            }
-                        }
-                    }
-                }
-            }
-            styles.changed_keys = changed_json_style_keys;
         }
     }
 }

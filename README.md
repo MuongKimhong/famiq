@@ -6,9 +6,12 @@
 </p>
 
 # Famiq
-Build GUI with rust, based on ECS pattern, powered by Bevy game engine.
+Build desktop GUI app with rust, based on ECS pattern, powered by Bevy game engine.
 
-https://github.com/user-attachments/assets/2bc006f9-3f2b-4692-8214-9cc63ee53c50
+> [!WARNING]
+> - **Famiq is new**, many useful features are missing.
+> - It's not ready yet.... but feel free to try it and share your feedback!
+> - There are plenty of things that need to be improved.
 
 See the [examples](https://github.com/MuongKimhong/famiq/tree/master/examples) directory.
 
@@ -23,20 +26,14 @@ famiq = "0.2.6"
 ```
 
 ## Documentation
-- [Rust-doc](https://docs.rs/crate/famiq/latest)
+- [Rust-doc](https://docs.rs/famiq/latest/famiq/)
 - [See the docs](https://muongkimhong.github.io/famiq/)
 
 ## Contributing
 Famiq needs your contributions. Please see [contributing](https://github.com/MuongKimhong/famiq/blob/master/CONTRIBUTING.md).
 
 ## Versions
-Currently, it supports only 0.15.x onward. Currently, the latest version of bevy is `0.15.2`.
-
-> [!NOTE]
-> - **Famiq is new** and still in early stage of development, many useful features are missing.
-> - This project **focuses on desktop GUI**, not Game UI.
-> - It might not yet be fully ready for your needs, but feel free to try it and share your feedback!
-
+Currently, it supports only bevy 0.15.x onward. Currently, the latest version of bevy is `0.15.3`.
 
 ## License
 Famiq is released under the [MIT License](https://opensource.org/licenses/MIT).

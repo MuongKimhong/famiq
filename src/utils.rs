@@ -376,52 +376,6 @@ pub(crate) fn _handle_apply_box_shadow(
     }
 }
 
-pub(crate) fn _handle_apply_border_radius(
-    widget_style: &WidgetStyle,
-    default_widget_entity: &DefaultWidgetEntity,
-    border_radius: &mut BorderRadius
-) {
-    // check for full border radius
-    if let Some(border_radius_value) = &widget_style.border_radius {
-        if let Some(v) = parse_border_radius(&border_radius_value) {
-            *border_radius = v;
-        }
-    } else {
-        // If the full border radius is not defined, check sub-properties individually
-        if let Some(border_radius_top_left) = &widget_style.border_radius_top_left {
-            if let Some(v) = parse_val(border_radius_top_left) {
-                border_radius.top_left = v;
-            }
-        } else {
-            border_radius.top_left = default_widget_entity.border_radius.top_left.clone();
-        }
-
-        if let Some(border_radius_top_right) = &widget_style.border_radius_top_right {
-            if let Some(v) = parse_val(border_radius_top_right) {
-                border_radius.top_right = v;
-            }
-        } else {
-            border_radius.top_right = default_widget_entity.border_radius.top_right.clone();
-        }
-
-        if let Some(border_radius_bottom_left) = &widget_style.border_radius_bottom_left {
-            if let Some(v) = parse_val(border_radius_bottom_left) {
-                border_radius.bottom_left = v;
-            }
-        } else {
-            border_radius.bottom_left = default_widget_entity.border_radius.bottom_left.clone();
-        }
-
-        if let Some(border_radius_bottom_right) = &widget_style.border_radius_bottom_right {
-            if let Some(v) = parse_val(border_radius_bottom_right) {
-                border_radius.bottom_right = v;
-            }
-        } else {
-            border_radius.bottom_right = default_widget_entity.border_radius.bottom_right.clone();
-        }
-    }
-}
-
 pub(crate) fn _change_cursor_icon(
     commands: &mut Commands,
     res: &Res<CursorIcons>,
@@ -438,6 +392,7 @@ pub(crate) fn _change_cursor_icon(
 /// Turn WigetColor to actual color
 pub(crate) fn get_color(color: &WidgetColor) -> Color {
     match color {
+        WidgetColor::Dark => BLACK_COLOR,
         WidgetColor::Primary => PRIMARY_COLOR,
         WidgetColor::PrimaryDark => PRIMARY_DARK_COLOR,
         WidgetColor::Secondary => SECONDARY_COLOR,
@@ -457,6 +412,19 @@ pub(crate) fn get_color(color: &WidgetColor) -> Color {
             }
         },
         _ => WHITE_COLOR
+    }
+}
+
+pub(crate) fn get_text_color(variant: &WidgetColor) -> Color {
+    match variant {
+        WidgetColor::Secondary => WHITE_COLOR,
+        WidgetColor::PrimaryDark => PRIMARY_COLOR,
+        WidgetColor::SuccessDark => SUCCESS_COLOR,
+        WidgetColor::DangerDark => DANGER_COLOR,
+        WidgetColor::WarningDark => WARNING_COLOR,
+        WidgetColor::InfoDark => INFO_COLOR,
+        WidgetColor::Dark => WHITE_COLOR,
+        _ => BLACK_COLOR,
     }
 }
 

@@ -6,7 +6,7 @@ pub use components::*;
 use helper::*;
 
 use crate::plugin::{CursorIcons, CursorType};
-use crate::utils;
+use crate::utils::*;
 use crate::widgets::*;
 use crate::widgets::tooltip::{FaToolTip, FaToolTipResource, IsFamiqToolTipText};
 use crate::event_writer::FaInteractionEvent;
@@ -43,7 +43,7 @@ impl<'a> FaButton {
             ))
             .id();
 
-        utils::insert_id_and_class(root_node, entity, &attributes.id, &attributes.class);
+        insert_id_and_class(root_node, entity, &attributes.id, &attributes.class);
         entity
     }
 
@@ -71,8 +71,8 @@ impl<'a> FaButton {
 
         let mut style_components = BaseStyleComponents::default();
         style_components.node = attributes.node;
-        style_components.border_color = utils::get_color(&attributes.color).into();
-        style_components.background_color = utils::get_color(&attributes.color).into();
+        style_components.border_color = get_color(&attributes.color).into();
+        style_components.background_color = get_color(&attributes.color).into();
         style_components.border_radius = BorderRadius::all(Val::Px(6.0));
 
         let btn_entity = root_node
@@ -89,8 +89,8 @@ impl<'a> FaButton {
         if has_tooltip {
             root_node.commands().entity(btn_entity).insert(FamiqToolTipText(tooltip_text.unwrap()));
         }
-        utils::insert_id_and_class(root_node, btn_entity, &attributes.id, &attributes.class);
-        utils::entity_add_children(root_node, &vec![overlay_entity, txt_entity], btn_entity);
+        insert_id_and_class(root_node, btn_entity, &attributes.id, &attributes.class);
+        entity_add_children(root_node, &vec![overlay_entity, txt_entity], btn_entity);
         btn_entity
     }
 
@@ -167,25 +167,25 @@ impl<'a> FaButton {
             )) = button_q.get_mut(e.entity) {
                 match e.interaction {
                     Interaction::Hovered => {
+                        _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Pointer);
                         if let Some(text) = tooltip_text {
                             FaToolTip::_update_toolitp_text(&text.0, &mut tooltip_text_q);
                             tooltip_res.show(text.0.clone(), computed.size(), transform.translation());
                         }
                         FaButton::_update_overlay(&mut overlay_q, border_radius, node, computed, overlay_entity.0, "hover");
-                        utils::_change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Pointer);
                     },
                     Interaction::Pressed => {
+                        _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Pointer);
                         builder_res.update_all_focus_states(false);
                         builder_res.update_or_insert_focus_state(e.entity, true);
                         FaButton::_update_overlay(&mut overlay_q, border_radius, node, computed, overlay_entity.0, "press");
-                        utils::_change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Pointer);
                     },
                     Interaction::None => {
+                        _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Default);
                         if tooltip_text.is_some() {
                             tooltip_res.hide();
                         }
                         FaButton::_update_overlay(&mut overlay_q, border_radius, node, computed, overlay_entity.0, "none");
-                        utils::_change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Default);
                     },
                 }
             }
@@ -253,7 +253,7 @@ impl<'a> SetWidgetAttributes for FaButtonBuilder<'a> {
             self.attributes.node.display = self.attributes.default_display;
         }
 
-        utils::process_spacing_built_in_class(&mut self.attributes.node, &self.attributes.class);
+        process_spacing_built_in_class(&mut self.attributes.node, &self.attributes.class);
     }
 }
 

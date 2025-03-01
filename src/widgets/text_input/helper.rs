@@ -3,7 +3,6 @@ use smol_str::SmolStr;
 use crate::{utils, widgets::*};
 use super::*;
 use bevy::text::TextLayoutInfo;
-use crate::widgets::color::*;
 
 pub fn default_input_node() -> Node {
     Node {
@@ -11,10 +10,10 @@ pub fn default_input_node() -> Node {
         justify_content: JustifyContent::SpaceBetween,
         align_items: AlignItems::Center,
         padding: UiRect {
-            left: Val::Px(10.0),
-            right: Val::Px(10.0),
-            top: Val::Px(5.0),
-            bottom: Val::Px(5.0),
+            left: Val::Px(5.0),
+            right: Val::Px(5.0),
+            top: Val::Px(3.0),
+            bottom: Val::Px(3.0),
         },
         margin: UiRect {
             top: Val::Px(2.0),
@@ -30,9 +29,9 @@ pub fn default_input_node() -> Node {
 }
 
 pub fn get_text_size(size: &WidgetSize) -> f32 {
-    let size_small = 16.0;
-    let size_normal = 20.0;
-    let size_large = 24.0;
+    let size_small = 14.0;
+    let size_normal = 18.0;
+    let size_large = 22.0;
 
     let text_size = match size {
         WidgetSize::Small => size_small,
@@ -41,18 +40,6 @@ pub fn get_text_size(size: &WidgetSize) -> f32 {
 
     };
     text_size
-}
-
-pub fn get_text_color(color: &WidgetColor) -> Color {
-    match color {
-        WidgetColor::Secondary => WHITE_COLOR,
-        WidgetColor::PrimaryDark => PRIMARY_COLOR,
-        WidgetColor::SuccessDark => SUCCESS_COLOR,
-        WidgetColor::DangerDark => DANGER_COLOR,
-        WidgetColor::WarningDark => WARNING_COLOR,
-        WidgetColor::InfoDark => INFO_COLOR,
-        _ => BLACK_COLOR,
-    }
 }
 
 /// Internal helper function to updates the cursor position based on character width and action.
@@ -114,7 +101,6 @@ pub fn _handle_cursor_on_focused(
 
 /// Internal helper function to update text_input value & text_input resource.
 pub fn _update_text_input_value(
-    input_entity: Entity,
     input_id: Option<&FamiqWidgetId>,
     input_resource: &mut ResMut<FaTextInputResource>,
     text_input: &mut TextInput,
@@ -135,9 +121,8 @@ pub fn _update_text_input_value(
 
     // call _insert_by_id & _insert_by_entity because insert will update the value if it exists.
     if let Some(id) = input_id {
-        input_resource._insert_by_id(id.0.clone(), text_input.text.clone());
+        input_resource._insert(id.0.clone(), text_input.text.clone());
     }
-    input_resource._insert_by_entity(input_entity, text_input.text.clone());
 }
 
 /// Internal helper function to mask placeholder as password.

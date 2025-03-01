@@ -1,3 +1,4 @@
+use crate::prelude::IsFamiqContainer;
 use crate::widgets::{
     button::*,
     list_view::*,
@@ -179,6 +180,16 @@ pub fn listview_interaction_system(
     mut writer: EventWriter<FaInteractionEvent>,
 ) {
     FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::ListView);
+}
+
+pub fn container_interaction_system(
+    mut interaction_q: Query<
+        (Entity, &IsFamiqContainer, Option<&FamiqWidgetId>, &Interaction),
+        Changed<Interaction>,
+    >,
+    mut writer: EventWriter<FaInteractionEvent>,
+) {
+    FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::Container);
 }
 
 pub fn listview_item_interaction_system(

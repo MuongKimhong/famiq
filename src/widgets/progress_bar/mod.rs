@@ -3,8 +3,7 @@ pub mod components;
 pub mod tests;
 
 use bevy::prelude::*;
-use bevy::utils::HashMap;
-use bevy::utils::hashbrown::HashSet;
+use bevy::utils::hashbrown::{HashSet, HashMap};
 use bevy::reflect::TypePath;
 use bevy::render::render_resource::*;
 use crate::utils::*;
@@ -37,18 +36,13 @@ pub struct FaProgressBarResource {
     /// Store progress bars as id-value pairs
     pub bars: HashMap<String, Option<f32>>,
 
-    /// Store progress bars as entity-value pairs
-    pub entity_bars: HashMap<Entity, Option<f32>>,
-
     /// Track changed keys (for ID-based bars)
-    changed_bars: HashSet<String>,
-    /// Track changed keys (for Entity-based bars)
-    changed_entity_bars: HashSet<Entity>,
+    changed_bars: HashSet<String>
 }
 
 impl FaProgressBarResource {
     /// Insert a progress value by ID (ensuring non-negative values)
-    fn _insert_by_id(&mut self, id: String, percentage: Option<f32>) {
+    fn _insert(&mut self, id: String, percentage: Option<f32>) {
         if percentage.map_or(true, |v| v >= 0.0) {
             let old_value = self.bars.get(&id);
             if old_value != Some(&percentage) {
@@ -58,35 +52,13 @@ impl FaProgressBarResource {
         }
     }
 
-    /// Insert a progress value by Entity (ensuring non-negative values)
-    fn _insert_by_entity(&mut self, entity: Entity, percentage: Option<f32>) {
-        if percentage.map_or(true, |v| v >= 0.0) { // Allow None or non-negative values
-            let old_value = self.entity_bars.get(&entity);
-            if old_value != Some(&percentage) {
-                self.entity_bars.insert(entity, percentage);
-                self.changed_entity_bars.insert(entity);
-            }
-        }
-    }
-
     /// Retrieve a percentage value by ID
-    pub fn get_percentage_by_id(&self, id: &str) -> Option<f32> {
+    pub fn get_percentage(&self, id: &str) -> Option<f32> {
         self.bars.get(id).copied().flatten()
     }
-
-    /// Retrieve a percentage value by Entity
-    pub fn get_percentage_by_entity(&self, entity: Entity) -> Option<f32> {
-        self.entity_bars.get(&entity).copied().flatten()
-    }
-
     /// Set a progress value by ID
-    pub fn set_percentage_by_id(&mut self, id: &str, percentage: Option<f32>) {
-        self._insert_by_id(id.to_string(), percentage);
-    }
-
-    /// Set a progress value by Entity
-    pub fn set_percentage_by_entity(&mut self, entity: Entity, percentage: Option<f32>) {
-        self._insert_by_entity(entity, percentage);
+    pub fn set_percentage(&mut self, id: &str, percentage: Option<f32>) {
+        self._insert(id.to_string(), percentage);
     }
 
     /// Check which IDs have changed
@@ -94,29 +66,14 @@ impl FaProgressBarResource {
         self.changed_bars.iter().cloned().collect()
     }
 
-    /// Check which Entities have changed
-    pub fn get_changed_entities(&self) -> Vec<Entity> {
-        self.changed_entity_bars.iter().cloned().collect()
-    }
-
     /// Check if an ID exists
     pub fn exists_by_id(&self, id: &str) -> bool {
         self.bars.contains_key(id)
     }
 
-    /// Check if an Entity exists
-    pub fn exists_by_entity(&self, entity: Entity) -> bool {
-        self.entity_bars.contains_key(&entity)
-    }
-
     /// Clear change-list of ids
     pub fn clear_changes_id(&mut self) {
         self.changed_bars.clear();
-    }
-
-    /// Clear change-list of entities
-    pub fn clear_changes_entity(&mut self) {
-        self.changed_entity_bars.clear();
     }
 }
 
@@ -247,7 +204,7 @@ impl<'a> FaProgressBar {
     }
 
     /// Internal system to reflect on percentage changes via `FaProgressBarResource` by id.
-    pub fn handle_progress_value_change_by_id(
+    pub fn handle_progress_value_change(
         mut commands: Commands,
         bar_q: Query<(&FamiqWidgetId, &FamiqProgressValueEntity)>,
         mut value_q: Query<
@@ -270,7 +227,7 @@ impl<'a> FaProgressBar {
 
             if let Ok((mut node, percentage)) = value_q.get_mut(value_entity.0) {
                 if progress_bar_res.get_changed_ids().contains(&id.0) {
-                    match progress_bar_res.get_percentage_by_id(id.0.as_str()) {
+                    match progress_bar_res.get_percentage(id.0.as_str()) {
                         Some(new_percentage) => {
                             Self::_set_to_percentage(
                                 &mut commands,
@@ -290,63 +247,18 @@ impl<'a> FaProgressBar {
         progress_bar_res.clear_changes_id();
     }
 
-    /// Internal system to reflect on percentage changes via `FaProgressBarResource` by entity.
-    pub fn handle_progress_value_change_by_entity(
-        mut commands: Commands,
-        bar_q: Query<(Entity, &FamiqProgressValueEntity)>,
-        mut value_q: Query<
-            (
-                &mut Node,
-                Option<&mut FaProgressValuePercentage>
-            ),
-            With<IsFamiqProgressValue>
-        >,
-        mut progress_bar_res: ResMut<FaProgressBarResource>,
-    ) {
-        if !progress_bar_res.is_changed() {
-            return;
-        }
-
-        for (bar_entity, value_entity) in bar_q.iter() {
-            if !progress_bar_res.exists_by_entity(bar_entity) {
-                continue;
-            }
-
-            if let Ok((mut node, percentage)) = value_q.get_mut(value_entity.0) {
-
-                if progress_bar_res.get_changed_entities().contains(&bar_entity) {
-                    match progress_bar_res.get_percentage_by_entity(bar_entity) {
-                        Some(new_percentage) => {
-                            Self::_set_to_percentage(
-                                &mut commands,
-                                &mut node,
-                                percentage,
-                                new_percentage,
-                                value_entity.0
-                            );
-                        },
-                        None => {
-                            Self::_set_to_indeterminate(&mut commands, &mut node, percentage, value_entity.0);
-                        }
-                    }
-                    progress_bar_res.clear_changes_entity();
-                }
-            }
-        }
-    }
-
     /// Internal system to detect new progress bars bing created.
     pub fn detect_new_progress_bar_widget_system(
         mut commands: Commands,
         mut progress_materials: ResMut<Assets<ProgressBarMaterial>>,
         bar_q: Query<
-            (Entity, &ComputedNode, Option<&FamiqWidgetId>, &FamiqProgressValueEntity),
+            (&ComputedNode, Option<&FamiqWidgetId>, &FamiqProgressValueEntity),
             Or<(Added<IsFamiqProgressBar>, Changed<ComputedNode>)>
         >,
         value_q: Query<(&ProgressValueColor, Option<&FaProgressValuePercentage>)>,
         mut bar_res: ResMut<FaProgressBarResource>
     ) {
-        for (entity, computed_node, id, value_entity) in bar_q.iter() {
+        for (computed_node, id, value_entity) in bar_q.iter() {
             if let Ok((value_color, percentage)) = value_q.get(value_entity.0) {
 
                 if let Color::Srgba(value) = value_color.0 {
@@ -370,23 +282,14 @@ impl<'a> FaProgressBar {
                 if let Some(id) = id {
                     if !bar_res.exists_by_id(id.0.as_str()) {
                         if let Some(percent) = percentage {
-                            bar_res.set_percentage_by_id(id.0.as_str(), Some(percent.0));
+                            bar_res.set_percentage(id.0.as_str(), Some(percent.0));
                         } else {
-                            bar_res.set_percentage_by_id(id.0.as_str(), None);
+                            bar_res.set_percentage(id.0.as_str(), None);
                         }
                     }
                 }
 
-                if !bar_res.exists_by_entity(entity) {
-                    if let Some(percent) = percentage {
-                        bar_res.set_percentage_by_entity(entity, Some(percent.0));
-                    } else {
-                        bar_res.set_percentage_by_entity(entity, None);
-                    }
-                }
-
                 bar_res.clear_changes_id();
-                bar_res.clear_changes_entity();
             }
         }
     }

@@ -1,9 +1,11 @@
 //! Famiq's global resources, used by all modules.
 
-use bevy::utils::HashMap;
+use bevy::utils::hashbrown::HashMap;
 use bevy::prelude::*;
 use std::marker::PhantomData;
 
+use crate::widgets::list_view::ListViewMovePanelEntity;
+use crate::widgets::modal::FaModalContainerEntity;
 use crate::widgets::*;
 use crate::utils::*;
 
@@ -21,16 +23,15 @@ pub enum ContainableMethodCall {
     RemoveChildren
 }
 
-/// Generic resource for containable widgets `FaContainerResource`,
-/// `FaModalResource`, `FaListViewResource`.
+/// Resource to add/insert/remove children for containable widgets
+/// including `fa_container`, `fa_listview` and `fa_modal`.
 #[derive(Resource, Default)]
-pub struct ContainableResource<T> {
+pub struct FaContainableResource {
     pub containers: HashMap<String, ContainableData>, // id - ContainableData
     pub(crate) method_called: ContainableMethodCall,
     pub(crate) changed_container: Option<Entity>,
     pub(crate) to_use_children: Vec<Entity>,
-    pub(crate) insert_index: usize,
-    _marker: PhantomData<T>
+    pub(crate) insert_index: usize
 }
 
 /// trait for `fa_container`, `fa_modal` and `fa_listview`
@@ -42,7 +43,7 @@ pub trait ContainableResourceAction {
     fn remove_children(&mut self, id: &str, children: &[Entity]);
 }
 
-impl<T> ContainableResourceAction for ContainableResource<T> {
+impl ContainableResourceAction for FaContainableResource {
     fn add_children(&mut self, id: &str, children: &[Entity]) {
         if let Some(container) = self.containers.get_mut(id) {
             container.children.extend(children.iter().cloned());
@@ -76,65 +77,106 @@ impl<T> ContainableResourceAction for ContainableResource<T> {
     }
 }
 
+pub(crate) fn detect_fa_containable_resource_change(
+    mut commands: Commands,
+    mut styles_res: ResMut<StylesKeyValueResource>,
+    containable_res: Res<FaContainableResource>,
+    fa_listview_q: Query<&ListViewMovePanelEntity>,
+    fa_modal_q: Query<&FaModalContainerEntity>,
+    mut children_q: Query<(
+        &mut Node,
+        &mut DefaultWidgetEntity,
+        Option<&FamiqWidgetId>,
+        Option<&FamiqWidgetClasses>,
+    )>,
+) {
+    if !containable_res.is_changed() || containable_res.is_added() {
+        return;
+    }
+    let Some(changed_container) = containable_res.changed_container else { return };
+
+    // check the correct entity to use
+    let to_use_entity = fa_listview_q
+        .get(changed_container)
+        .map(|panel_entity| panel_entity.0)
+        .or_else(|_| fa_modal_q.get(changed_container).map(|sub_container| sub_container.0))
+        .unwrap_or(changed_container);
+
+    let mut entity_commands = commands.entity(to_use_entity);
+    match containable_res.method_called {
+        ContainableMethodCall::AddChildren => {
+            entity_commands.add_children(&containable_res.to_use_children);
+        }
+        ContainableMethodCall::InsertChildren => {
+            entity_commands.insert_children(containable_res.insert_index, &containable_res.to_use_children);
+        }
+        ContainableMethodCall::RemoveChildren => {
+            for &child in &containable_res.to_use_children {
+                commands.entity(child).despawn_recursive();
+            }
+        }
+    }
+
+    let mut changed_json_style_keys = Vec::with_capacity(containable_res.to_use_children.len());
+    for &child in &containable_res.to_use_children {
+        if let Ok((mut node, mut default_widget, id, class)) = children_q.get_mut(child) {
+            if node.display == Display::None {
+                node.display = Display::Flex;
+                default_widget.node.display = Display::Flex;
+            }
+            if let Some(id) = id {
+                changed_json_style_keys.push(id.0.clone());
+            }
+            if let Some(classes) = class {
+                classes.0.split_whitespace().for_each(|class_name| {
+                    let formatted = format!(".{class_name}");
+                    if !changed_json_style_keys.contains(&formatted) {
+                        changed_json_style_keys.push(formatted);
+                    }
+                });
+            }
+        }
+    }
+    if !changed_json_style_keys.is_empty() {
+        styles_res.changed_keys = changed_json_style_keys;
+    }
+}
+
+
 /// Generic resource for `FaTextInputResource` and `FaSelectionResource`
 #[derive(Resource, Default, Debug)]
 pub struct InputResource<T> {
     pub values_id: HashMap<String, String>,   // id - value
-    pub values_entity: HashMap<Entity, String>, // entity - value
     _marker: PhantomData<T>
 }
 
 /// trait for `fa_text_input` and `fa_selection`
 pub trait InputResourceMap {
     /// internal method to insert a value by id
-    fn _insert_by_id(&mut self, id: String, value: String);
-
-    /// internal method to insert a value by entity
-    fn _insert_by_entity(&mut self, entity: Entity, value: String);
+    fn _insert(&mut self, id: String, value: String);
 
     /// Get a value by id
-    fn get_value_by_id(&self, id: &str) -> String;
-
-    /// Get a value by entity
-    fn get_value_by_entity(&self, entity: Entity) -> String;
+    fn get_value(&self, id: &str) -> String;
 
     /// Check if an id exists
-    fn exists_by_id(&self, id: &str) -> bool;
-
-    /// Check if an entity exists
-    fn exists_by_entity(&self, entity: Entity) -> bool;
+    fn exists(&self, id: &str) -> bool;
 }
 
 /// Generic methods for InputResource<T>
 impl<T> InputResourceMap for InputResource<T> {
-    fn _insert_by_id(&mut self, id: String, value: String) {
+    fn _insert(&mut self, id: String, value: String) {
         self.values_id.insert(id, value);
     }
 
-    fn _insert_by_entity(&mut self, entity: Entity, value: String) {
-        self.values_entity.insert(entity, value);
-    }
-
-    fn get_value_by_id(&self, id: &str) -> String {
+    fn get_value(&self, id: &str) -> String {
         self.values_id.get(id).map_or_else(
             || String::from(""),
             |v| if v == "-/-" { String::from("") } else { v.clone() },
         )
     }
 
-    fn get_value_by_entity(&self, entity: Entity) -> String {
-        self.values_entity.get(&entity).map_or_else(
-            || String::from(""),
-            |v| if v == "-/-" { String::from("") } else { v.clone() },
-        )
-    }
-
-    fn exists_by_id(&self, id: &str) -> bool {
+    fn exists(&self, id: &str) -> bool {
         self.values_id.contains_key(id)
-    }
-
-    fn exists_by_entity(&self, entity: Entity) -> bool {
-        self.values_entity.contains_key(&entity)
     }
 }
 

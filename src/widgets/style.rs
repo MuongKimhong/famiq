@@ -66,7 +66,7 @@ pub(crate) fn read_styles_from_file_system(
     }
 }
 
-pub(crate) fn detect_widget_internal_styles_change(
+pub(crate) fn detect_widget_external_styles_change(
     styles: Res<StylesKeyValueResource>,
     mut style_res: ResMut<FaStyleResource>,
     mut widget_query: WidgetStyleQuery
@@ -85,34 +85,48 @@ pub(crate) fn detect_widget_internal_styles_change(
             default_widget,
         ) in widget_query.iter_mut() {
             let mut _id = String::new();
+            let mut _class_split: Vec<&str> = Vec::new();
             let mut changed = false;
             let mut empty_style = WidgetStyle::default();
 
+            // true if id or one of the classes is inside styles.changed_key
+            let mut has_external_change = false;
+
             if let Some(id) = id {
-                if styles.changed_keys.contains(&id.0) {
-                    if let Some(external_style) = styles.get_style_by_id(&id.0) {
-                        changed = empty_style.update_from(external_style);
+                _id = id.0.clone();
+
+                if styles.changed_keys.contains(&_id) {
+                    has_external_change = true;
+                }
+            }
+            if let Some(classes) = class {
+                _class_split = classes.0.split_whitespace().collect();
+
+                for class_name in &_class_split {
+                    let formatted = format!(".{class_name}");
+                    if styles.changed_keys.contains(&formatted) {
+                        has_external_change = true;
+                    }
+                }
+            }
+
+            if has_external_change {
+                if let Some(external_style) = styles.get_style_by_id(&_id) {
+                    changed = empty_style.update_from(external_style);
+                }
+                else {
+                    // Style was removed from json, Reset to default
+                    changed = true;
+                }
+
+                for class_name in _class_split {
+                    let formatted = format!(".{class_name}");
+                    if let Some(external_style) = styles.get_style_by_class_name(&formatted) {
+                        changed = empty_style.merge_external(external_style);
                     }
                     else {
                         // Style was removed from json, Reset to default
                         changed = true;
-                    }
-                }
-                _id = id.0.clone();
-            }
-
-            if let Some(classes) = class {
-                let classes_split: Vec<&str> = classes.0.split_whitespace().collect();
-                for class_name in classes_split {
-                    let formatted = format!(".{class_name}");
-                    if styles.changed_keys.contains(&formatted) {
-                        if let Some(external_style) = styles.get_style_by_class_name(&formatted) {
-                            changed = empty_style.merge_external(external_style);
-                        }
-                        else {
-                            // Style was removed from json, Reset to default
-                            changed = true;
-                        }
                     }
                 }
             }
@@ -121,7 +135,6 @@ pub(crate) fn detect_widget_internal_styles_change(
                 if let Some(internal_style) = style_res.values.get_mut(&_id) {
                     internal_style.update_from(&empty_style);
                 }
-
                 apply_styles_from_external_json(
                     &mut bg_color,
                     &mut bd_color,
@@ -138,7 +151,7 @@ pub(crate) fn detect_widget_internal_styles_change(
     }
 }
 
-pub(crate) fn detect_text_internal_styles_change(
+pub(crate) fn detect_text_external_styles_change(
     mut styles: ResMut<StylesKeyValueResource>,
     mut style_res: ResMut<FaStyleResource>,
     mut text_query: Query<(
@@ -160,34 +173,48 @@ pub(crate) fn detect_text_internal_styles_change(
             default_text_span_entity
         ) in text_query.iter_mut() {
             let mut _id = String::new();
+            let mut _class_split: Vec<&str> = Vec::new();
             let mut changed = false;
             let mut empty_style = WidgetStyle::default();
 
+            // true if id or one of the classes is inside styles.changed_key
+            let mut has_external_change = false;
+
             if let Some(id) = id {
-                if styles.changed_keys.contains(&id.0) {
-                    if let Some(external_style) = styles.get_style_by_id(&id.0) {
-                        changed = empty_style.update_from(external_style);
+                _id = id.0.clone();
+
+                if styles.changed_keys.contains(&_id) {
+                    has_external_change = true;
+                }
+            }
+            if let Some(classes) = class {
+                _class_split = classes.0.split_whitespace().collect();
+
+                for class_name in &_class_split {
+                    let formatted = format!(".{class_name}");
+                    if styles.changed_keys.contains(&formatted) {
+                        has_external_change = true;
+                    }
+                }
+            }
+
+            if has_external_change {
+                if let Some(external_style) = styles.get_style_by_id(&_id) {
+                    changed = empty_style.update_from(external_style);
+                }
+                else {
+                    // Style was removed from json, Reset to default
+                    changed = true;
+                }
+
+                for class_name in _class_split {
+                    let formatted = format!(".{class_name}");
+                    if let Some(external_style) = styles.get_style_by_class_name(&formatted) {
+                        changed = empty_style.merge_external(external_style);
                     }
                     else {
                         // Style was removed from json, Reset to default
                         changed = true;
-                    }
-                }
-                _id = id.0.clone();
-            }
-
-            if let Some(classes) = class {
-                let classes_split: Vec<&str> = classes.0.split_whitespace().collect();
-                for class_name in classes_split {
-                    let formatted = format!(".{class_name}");
-                    if styles.changed_keys.contains(&formatted) {
-                        if let Some(external_style) = styles.get_style_by_class_name(&formatted) {
-                            changed = empty_style.merge_external(external_style);
-                        }
-                        else {
-                            // Style was removed from json, Reset to default
-                            changed = true;
-                        }
                     }
                 }
             }
@@ -261,7 +288,6 @@ pub(crate) fn apply_styles_from_external_json(
     utils::_handle_apply_padding(widget_style, default_widget_entity, node);
     utils::_handle_apply_margin(widget_style, default_widget_entity, node);
     utils::_handle_apply_border(widget_style, default_widget_entity, node);
-    utils::_handle_apply_border_radius(widget_style, default_widget_entity, border_radius);
     utils::_handle_apply_box_shadow(widget_style, default_widget_entity, box_shadow);
 
     if let Some(bg_color_value) = &widget_style.background_color {
@@ -270,6 +296,14 @@ pub(crate) fn apply_styles_from_external_json(
         }
     } else {
         *bg_color = default_widget_entity.background_color.clone();
+    }
+
+    if let Some(bd_radius_value) = &widget_style.border_radius {
+        if let Some(v) = parse_border_radius(&bd_radius_value) {
+            *border_radius = v;
+        }
+    }  else {
+        *border_radius = default_widget_entity.border_radius.clone();
     }
 
     if let Some(border_color_value) = &widget_style.border_color {

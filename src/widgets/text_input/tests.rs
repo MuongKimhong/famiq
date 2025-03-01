@@ -7,17 +7,13 @@ use crate::utils;
 use bevy::input::InputPlugin;
 use super::*;
 
-#[derive(Resource)]
-struct TestEntity(Entity);
-
 fn setup_test_default_input(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut builder_res: ResMut<FamiqResource>,
 ) {
     let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
-    let input = fa_text_input(&mut builder, "First name").id("#test-input").build();
-    commands.insert_resource(TestEntity(input));
+    fa_text_input(&mut builder, "First name").id("#test-input").build();
 }
 
 fn setup_test_input_with_built_in_class(
@@ -75,23 +71,7 @@ fn test_get_value_by_id() {
     app.update();
 
     let input_res = app.world_mut().resource::<FaTextInputResource>();
-    let value = input_res.get_value_by_id("#test-input");
-
-    // default value is empty string
-    assert_eq!("".to_string(), value);
-}
-
-#[test]
-fn test_get_value_by_entity() {
-    let mut app = utils::create_test_app();
-    app.add_plugins(InputPlugin::default());
-    app.add_plugins(FamiqPlugin);
-    app.add_systems(Startup, setup_test_default_input);
-    app.update();
-
-    let input_entity = app.world_mut().resource::<TestEntity>().0;
-    let input_res = app.world_mut().resource::<FaTextInputResource>();
-    let value = input_res.get_value_by_entity(input_entity);
+    let value = input_res.get_value("#test-input");
 
     // default value is empty string
     assert_eq!("".to_string(), value);
