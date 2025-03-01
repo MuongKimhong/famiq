@@ -1,9 +1,9 @@
 pub mod components;
-pub mod helper;
+pub mod styling;
 pub mod tests;
 
 pub use components::*;
-use helper::*;
+use styling::*;
 
 use crate::plugin::{CursorIcons, CursorType};
 use crate::utils::*;
@@ -15,7 +15,6 @@ use bevy::prelude::*;
 
 pub struct FaButton;
 
-// Needs container
 impl<'a> FaButton {
     fn _build_text(
         attributes: &WidgetAttributes,
@@ -47,18 +46,6 @@ impl<'a> FaButton {
         entity
     }
 
-    fn _build_overlay(root_node: &'a mut EntityCommands) -> Entity {
-        let mut style_components = BaseStyleComponents::default();
-        style_components.node = default_button_overlay_node();
-        style_components.border_radius = BorderRadius::all(Val::Px(6.0));
-        style_components.z_index = ZIndex(2);
-
-        root_node
-            .commands()
-            .spawn((style_components, IsFamiqButtonOverlay))
-            .id()
-    }
-
     pub fn new(
         attributes: WidgetAttributes,
         text: &str,
@@ -67,7 +54,6 @@ impl<'a> FaButton {
         tooltip_text: Option<String>
     ) -> Entity {
         let txt_entity = Self::_build_text(&attributes, text, root_node);
-        let overlay_entity = Self::_build_overlay(root_node);
 
         let mut style_components = BaseStyleComponents::default();
         style_components.node = attributes.node;
@@ -82,7 +68,7 @@ impl<'a> FaButton {
                 IsFamiqButton,
                 DefaultWidgetEntity::from(style_components),
                 ButtonTextEntity(txt_entity),
-                ButtonOverlayEntity(overlay_entity)
+                ButtonColorWasDarkened(false)
             ))
             .id();
 
@@ -90,66 +76,25 @@ impl<'a> FaButton {
             root_node.commands().entity(btn_entity).insert(FamiqToolTipText(tooltip_text.unwrap()));
         }
         insert_id_and_class(root_node, btn_entity, &attributes.id, &attributes.class);
-        entity_add_children(root_node, &vec![overlay_entity, txt_entity], btn_entity);
+        entity_add_child(root_node, txt_entity, btn_entity);
         btn_entity
     }
 
-    fn _update_overlay(
-        overlay_q: &mut Query<
-            (&mut Node, &mut BackgroundColor, &mut BorderColor, &mut BorderRadius),
-            (With<IsFamiqButtonOverlay>, Without<IsFamiqButton>)
-        >,
-        button_border_radius: &BorderRadius,
-        button_node: &Node,
-        button_computed_node: &ComputedNode,
-        overlay_entity: Entity,
-        update_to: &str
-    ) {
-        if let Ok((mut node, mut bg_color, mut bd_color, mut bd_radius)) = overlay_q.get_mut(overlay_entity) {
-            node.border = button_node.border;
-            node.width = Val::Px(button_computed_node.size().x);
-            node.height = Val::Px(button_computed_node.size().y);
-            *bd_radius = button_border_radius.clone();
-
-
-            match update_to {
-                "hover" => {
-                    bg_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.2);
-                    bd_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.2);
-                },
-                "press" => {
-                    bg_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.5);
-                    bd_color.0 = Color::srgba(0.0, 0.0, 0.0, 0.5);
-                },
-                "none" => {
-                    *bg_color = BackgroundColor::default();
-                    *bd_color = BorderColor::default();
-                }
-                _ => {}
-            }
-        }
-    }
-
     /// Internal system to handle `fa_button` interaction events.
-    pub fn handle_button_on_interaction_system(
+    pub(crate) fn handle_button_on_interaction_system(
         mut events: EventReader<FaInteractionEvent>,
         mut builder_res: ResMut<FamiqResource>,
         mut button_q: Query<
             (
-                &Node,
                 &ComputedNode,
                 &GlobalTransform,
-                &ButtonOverlayEntity,
-                &BorderRadius,
+                &mut BackgroundColor,
+                &mut ButtonColorWasDarkened,
                 Option<&FamiqToolTipText>
             ),
             With<IsFamiqButton>
         >,
         mut tooltip_res: ResMut<FaToolTipResource>,
-        mut overlay_q: Query<
-            (&mut Node, &mut BackgroundColor, &mut BorderColor, &mut BorderRadius),
-            (With<IsFamiqButtonOverlay>, Without<IsFamiqButton>)
-        >,
         mut tooltip_text_q: Query<&mut Text, With<IsFamiqToolTipText>>,
 
         window: Single<Entity, With<Window>>,
@@ -158,11 +103,10 @@ impl<'a> FaButton {
     ) {
         for e in events.read() {
             if let Ok((
-                node,
                 computed,
                 transform,
-                overlay_entity,
-                border_radius,
+                mut background_color,
+                mut was_darkened,
                 tooltip_text
             )) = button_q.get_mut(e.entity) {
                 match e.interaction {
@@ -172,20 +116,34 @@ impl<'a> FaButton {
                             FaToolTip::_update_toolitp_text(&text.0, &mut tooltip_text_q);
                             tooltip_res.show(text.0.clone(), computed.size(), transform.translation());
                         }
-                        FaButton::_update_overlay(&mut overlay_q, border_radius, node, computed, overlay_entity.0, "hover");
+                        if was_darkened.0 {
+                            if let Some(lightened_color) = lighten_color(20.0, &background_color.0) {
+                                background_color.0 = lightened_color;
+                                was_darkened.0 = false;
+                            }
+                        }
                     },
                     Interaction::Pressed => {
                         _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Pointer);
                         builder_res.update_all_focus_states(false);
                         builder_res.update_or_insert_focus_state(e.entity, true);
-                        FaButton::_update_overlay(&mut overlay_q, border_radius, node, computed, overlay_entity.0, "press");
+
+                        if let Some(darkened_color) = darken_color(20.0, &background_color.0) {
+                            background_color.0 = darkened_color;
+                            was_darkened.0 = true;
+                        }
                     },
                     Interaction::None => {
                         _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Default);
                         if tooltip_text.is_some() {
                             tooltip_res.hide();
                         }
-                        FaButton::_update_overlay(&mut overlay_q, border_radius, node, computed, overlay_entity.0, "none");
+                        if was_darkened.0 {
+                            if let Some(lightened_color) = lighten_color(20.0, &background_color.0) {
+                                background_color.0 = lightened_color;
+                                was_darkened.0 = false;
+                            }
+                        }
                     },
                 }
             }

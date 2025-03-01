@@ -60,48 +60,47 @@ pub(crate) fn entity_add_children<'a>(
 }
 
 
-pub fn lighten_color(percentage: f32, color: &Color) -> Option<Color> {
-    let multiplier = percentage / 100.0;
+pub(crate) fn adjust_color(percentage: f32, color: &Color, darken: bool) -> Option<Color> {
+    let factor = percentage / 100.0;
+    
+    let adjust = |channel: f32| -> f32 {
+        if darken {
+            (channel - channel * factor).clamp(0.0, 1.0)  // Darken
+        } else {
+            (channel + channel * factor).clamp(0.0, 1.0)  // Lighten
+        }
+    };
 
-    if let Color::Srgba(mut value) = color {
-        value.red = (value.red + (1.0 - value.red) * multiplier).clamp(0.0, 1.0);
-        value.green = (value.green + (1.0 - value.green) * multiplier).clamp(0.0, 1.0);
-        value.blue = (value.blue + (1.0 - value.blue) * multiplier).clamp(0.0, 1.0);
-        return Some(Color::Srgba(value));
+    match color {
+        Color::Srgba(value) => {
+            let mut value = *value;
+            value.red = adjust(value.red);
+            value.green = adjust(value.green);
+            value.blue = adjust(value.blue);
+            Some(Color::Srgba(value.into()))
+        }
+        Color::LinearRgba(value) => {
+            let mut value = *value;
+            value.red = adjust(value.red);
+            value.green = adjust(value.green);
+            value.blue = adjust(value.blue);
+            Some(Color::Srgba(value.into()))
+        }
+        Color::Hsla(value) => {
+            let mut value = *value;
+            value.lightness = adjust(value.lightness);
+            Some(Color::Hsla(value))
+        }
+        _ => None,
     }
-    if let Color::LinearRgba(mut value) = color {
-        value.red = (value.red + (1.0 - value.red) * multiplier).clamp(0.0, 1.0);
-        value.green = (value.green + (1.0 - value.green) * multiplier).clamp(0.0, 1.0);
-        value.blue = (value.blue + (1.0 - value.blue) * multiplier).clamp(0.0, 1.0);
-        return Some(Color::LinearRgba(value));
-    }
-    if let Color::Hsla(mut value) = color {
-        value.lightness = (value.lightness + (1.0 - value.lightness) * multiplier).clamp(0.0, 1.0);
-        return Some(Color::Hsla(value));
-    }
-    None
 }
 
-pub fn darken_color(percentage: f32, color: &Color) -> Option<Color> {
-    let multiplier = 1.0 - (percentage / 100.0);
+pub(crate) fn darken_color(percentage: f32, color: &Color) -> Option<Color> {
+    adjust_color(percentage, color, true)
+}
 
-    if let Color::Srgba(mut value) = color {
-        value.red = (value.red * multiplier).clamp(0.0, 1.0);
-        value.green = (value.green * multiplier).clamp(0.0, 1.0);
-        value.blue = (value.blue * multiplier).clamp(0.0, 1.0);
-        return Some(Color::Srgba(value));
-    }
-    if let Color::LinearRgba(mut value) = color {
-        value.red = (value.red * multiplier).clamp(0.0, 1.0);
-        value.green = (value.green * multiplier).clamp(0.0, 1.0);
-        value.blue = (value.blue * multiplier).clamp(0.0, 1.0);
-        return Some(Color::LinearRgba(value));
-    }
-    if let Color::Hsla(mut value) = color {
-        value.lightness = (value.lightness * multiplier).clamp(0.0, 1.0);
-        return Some(Color::Hsla(value));
-    }
-    None
+pub(crate) fn lighten_color(percentage: f32, color: &Color) -> Option<Color> {
+    adjust_color(percentage, color, false)
 }
 
 pub(crate) fn get_embedded_asset_path(file_path: &str) -> AssetPath {

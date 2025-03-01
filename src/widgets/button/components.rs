@@ -8,14 +8,11 @@ pub struct IsFamiqButton;
 #[derive(Component)]
 pub struct IsFamiqButtonText;
 
-#[derive(Component)]
-pub struct IsFamiqButtonOverlay;
-
-#[derive(Component)]
-pub struct ButtonOverlayEntity(pub Entity);
-
 /// Component storing the entity associated with a button's text.
 ///
 /// Used to identify which text belongs to which button.
 #[derive(Component)]
 pub struct ButtonTextEntity(pub Entity);
+
+#[derive(Component)]
+pub(crate) struct ButtonColorWasDarkened(pub bool);
