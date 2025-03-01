@@ -13,6 +13,8 @@ Build desktop GUI app with rust, based on ECS pattern, powered by Bevy game engi
 > - It's not ready yet.... but feel free to try it and share your feedback!
 > - There are plenty of things that need to be improved.
 
+https://github.com/user-attachments/assets/26eed04f-2cd2-42a4-9f57-ed2cf0536cb7
+
 See the [examples](https://github.com/MuongKimhong/famiq/tree/master/examples) directory.
 
 ## Installation
