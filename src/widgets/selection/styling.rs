@@ -40,14 +40,20 @@ pub fn default_selection_container_node() -> Node {
 
 pub fn default_selection_choices_panel_node() -> Node {
     Node {
-        width: Val::Percent(100.0),
+        width: Val::Percent(100.),
+        height: Val::Auto,
         flex_direction: FlexDirection::Column,
         align_items: AlignItems::Center,
         justify_content: JustifyContent::Start,
-        height: Val::Auto,
         padding: UiRect::all(Val::Px(0.0)),
-        margin: UiRect::all(Val::Px(2.0)),
+        margin: UiRect {
+            top: Val::Px(2.0),
+            ..default()
+        },
         position_type: PositionType::Absolute,
+        top: Val::Px(0.0),
+        left: Val::Px(0.0),
+        display: Display::None,
         ..default()
     }
 }

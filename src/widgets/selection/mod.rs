@@ -34,18 +34,17 @@ pub fn get_text_size(size: &WidgetSize) -> f32 {
 
 pub struct FaSelection;
 
-// Needs container
 impl<'a> FaSelection {
-    fn _build_container(root_node: &'a mut EntityCommands) -> Entity {
-        let mut style_components = BaseStyleComponents::default();
-        style_components.node = default_selection_container_node();
-        style_components.visibility = Visibility::Visible;
+    // fn _build_container(root_node: &'a mut EntityCommands) -> Entity {
+    //     let mut style_components = BaseStyleComponents::default();
+    //     style_components.node = default_selection_container_node();
+    //     style_components.visibility = Visibility::Visible;
 
-        root_node
-            .commands()
-            .spawn((style_components, IsFamiqSelectionContainer))
-            .id()
-    }
+    //     root_node
+    //         .commands()
+    //         .spawn((style_components, IsFamiqSelectionContainer))
+    //         .id()
+    // }
 
     fn _build_selector_placeholder(
         attributes: &WidgetAttributes,
@@ -157,7 +156,6 @@ impl<'a> FaSelection {
         style_components.node = default_selection_choices_panel_node();
         style_components.border_color = BorderColor(selection_color);
         style_components.background_color = BackgroundColor(selection_color);
-        style_components.visibility = Visibility::Hidden;
         style_components.border_radius = BorderRadius::all(Val::Px(5.0));
 
         let panel = root_node
@@ -166,7 +164,8 @@ impl<'a> FaSelection {
                 style_components,
                 IsFamiqSelectionChoicesPanel,
                 FocusPolicy::Block,
-                GlobalZIndex(2)
+                GlobalZIndex(2),
+                Transform::default()
             ))
             .id();
 
@@ -223,7 +222,6 @@ impl<'a> FaSelection {
         root_node: &'a mut EntityCommands,
         choices: &Vec<String>,
     ) -> Entity {
-        let container = Self::_build_container(root_node);
         let placeholder_entity = Self::_build_selector_placeholder(
             attributes,
             placeholder,
@@ -245,8 +243,7 @@ impl<'a> FaSelection {
         );
 
         root_node.commands().entity(selector).insert(SelectionChoicesPanelEntity(choices_panel));
-        entity_add_children(root_node, &vec![placeholder_entity, arrow_icon_entity], selector);
-        entity_add_children(root_node, &vec![selector, choices_panel], container);
+        entity_add_children(root_node, &vec![placeholder_entity, arrow_icon_entity, choices_panel], selector);
 
         selector
     }
@@ -260,24 +257,6 @@ impl<'a> FaSelection {
     pub fn arrow_down(text_q: &mut Query<&mut Text, With<ArrowIcon>>, arrow_entity: Entity) {
         if let Ok(mut text) = text_q.get_mut(arrow_entity) {
             text.0 = "▼".to_string()
-        }
-    }
-
-    pub fn show_choice_panel(
-        panel_q: &mut Query<&mut Visibility, With<IsFamiqSelectionChoicesPanel>>,
-        panel_entity: Entity
-    ) {
-        if let Ok(mut visibility) = panel_q.get_mut(panel_entity) {
-            *visibility = Visibility::Visible;
-        }
-    }
-
-    pub fn hide_choice_panel(
-        panel_q: &mut Query<&mut Visibility, With<IsFamiqSelectionChoicesPanel>>,
-        panel_entity: Entity
-    ) {
-        if let Ok(mut visibility) = panel_q.get_mut(panel_entity) {
-            *visibility = Visibility::Hidden;
         }
     }
 }
@@ -353,6 +332,6 @@ pub fn fa_selection<'a>(
     )
 }
 
-pub fn can_run_selection_systems(selection_q: Query<&IsFamiqSelectionContainer>) -> bool {
+pub fn can_run_selection_systems(selection_q: Query<&IsFamiqSelectionSelector>) -> bool {
     !selection_q.is_empty()
 }

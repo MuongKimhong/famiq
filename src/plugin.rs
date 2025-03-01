@@ -104,7 +104,7 @@ fn fa_selection_systems(app: &mut App) {
         (
             event_writer::selection_interaction_system,
             event_writer::selection_choice_interaction_system,
-            update_choices_panel_position_and_width_system,
+            handle_show_and_hide_choices_panel,
             handle_selection_interaction_system,
             handle_selection_choice_interaction_system,
             detect_new_selection_widget_system
