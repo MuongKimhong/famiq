@@ -1,86 +1,16 @@
 {
-  "#posts-listview": {
-    "justify_content": "center",
-    "align_items": "center",
-    "width": "90%",
-    "height": "90%",
-    "margin": "auto auto auto auto"
-  },
-  ".username": {
-    "color": "blue",
-    "font_size": "25"
-  },
-  ".title": {
-    "color": "black"
-  },
-  ".title-wrapper": {
-    "border": "0px 0px 0px 0px",
-    "margin_top": "5px",
-    "margin_bottom": "5px"
-  },
-  ".image": {
-    "margin_top": "5px",
-    "border": "1px 1px 1px 1px",
-    "border_radius": "5px 5px 5px 5px"
-  },
-  ".post-container": {
-    "border": "2px 2px 2px 2px",
-    "border_color": "white",
-    "border_radius": "5px 5px 5px 5px",
-    "background_color": "white",
-    "margin_top": "5px",
-    "margin_bottom": "5px",
-    "padding": "5px 5px 5px 5px"
-  },
-  ".like-txt": {
-    "color": "srgba 0.0, 0.0, 0.0, 1.0",
-    "font_size": "28"
-  },
-  ".action-container": {
-    "margin_top": "15px",
-    "flex_direction": "row"
-  },
-
   "#main-container": {
-    "flex_direction": "row",
     "justify_content": "center",
     "align_items": "center",
-    "height": "100%",
-    "width": "100%"
+    "height": "90%"
   },
-  "#left-container": {
-    "width": "70%",
-    "height": "100%",
-    "justify_content": "center",
-    "align_items": "center"
-  },
-  "#right-container": {
-    "width": "40%",
-    "height": "100%"
-  },
-
-  ".flex-container": {
+  ".block": {
     "flex_direction": "row",
-    "justify_content": "space_between",
+    "flex_wrap": "wrap",
+    "justify_content": "center",
     "align_items": "center"
   },
   ".input": {
-    "width": "49%"
-  },
-  ".select": {
-    "width": "49%"
-  },
-
-  "#update-bar-container": {
-    "flex_direction": "row",
-    "justify_content": "center",
-    "align_items": "center"
-  },
-
-  "#modal-container": {
-    "background_color": "grey",
-    "border": "1px 1px 1px 1px",
-    "border_radius": "10px 10px 10px 10px",
-    "padding": "30px 30px 10px 10px"
+    "width": "40%"
   }
 }

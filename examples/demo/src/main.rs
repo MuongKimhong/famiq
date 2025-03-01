@@ -1,16 +1,19 @@
-mod left;
-mod right;
-
 use bevy::prelude::*;
 use bevy::window::PresentMode;
 use famiq::prelude::*;
 
-pub fn set_window() -> WindowPlugin {
+const COLORS: [&str; 12] = [
+    "is-primary", "is-secondary", "is-success", "is-danger", "is-info", "is-warning",
+    "is-primary-dark", "is-success-dark", "is-danger-dark", "is-info-dark", "is-warning-dark",
+    "is-dark"
+];
+
+fn custom_window() -> WindowPlugin {
     WindowPlugin {
         primary_window: Some(Window {
-            title: "Famiq - Demo".into(),
+            title: "Famiq demo".into(),
+            resolution: (850.0, 650.0).into(),
             present_mode: PresentMode::Immediate,
-            resizable: false,
             ..default()
         }),
         ..default()
@@ -18,135 +21,107 @@ pub fn set_window() -> WindowPlugin {
 }
 
 fn main() {
-
     App::new()
-        .add_plugins(DefaultPlugins.set(set_window()))
+        .add_plugins(DefaultPlugins.set(custom_window()))
         .add_plugins(FamiqPlugin)
-        .add_systems(Startup, setup)
-        .add_systems(Update, (handle_left_buttons_press, handle_like_button_press))
+        .add_systems(Startup, setup_ui)
         .run();
 }
 
-fn setup(
+fn create_buttons(builder: &mut FamiqBuilder) -> Entity {
+    let mut buttons: Vec<Entity> = Vec::new();
+
+    for class_name in COLORS.iter() {
+        let btn_class = format!("{class_name} mx-2 my-2");
+        let button = fa_button(builder, class_name).class(btn_class.as_str()).build();
+        buttons.push(button);
+    }
+    fa_container(builder).class("block my-4").children(buttons).build()
+}
+
+fn create_circulars(builder: &mut FamiqBuilder) -> Entity {
+    let mut circulars: Vec<Entity> = Vec::new();
+
+    for class_name in COLORS.iter() {
+        let circular_class = format!("{class_name} mx-2 my-2");
+        let circular = fa_circular(builder).class(circular_class.as_str()).build();
+        circulars.push(circular);
+    }
+    fa_container(builder).class("block my-4").children(circulars).build()
+}
+
+fn create_text_inputs(builder: &mut FamiqBuilder) -> Entity {
+    let input_one = fa_text_input(builder, "What's on your mind?").class("input mx-2").build();
+    let input_two = fa_text_input(builder, "What's on your mind?").class("input is-dark mx-2").build();
+    fa_container(builder).class("my-2  block").children([input_one, input_two]).build()
+}
+
+fn create_selections(builder: &mut FamiqBuilder) -> Entity {
+    let choices: [&str; 2] = ["choice1", "choice2"];
+
+    let selection_one = fa_selection(builder, "Choose a choice").class("input mx-2").choices(choices).build();
+    let selection_two = fa_selection(builder, "Choose a choice").class("input is-dark mx-2").choices(choices).build();
+    fa_container(builder).class("my-2 block").children([selection_one, selection_two]).build()
+}
+
+fn create_images(builder: &mut FamiqBuilder) -> Entity {
+    let img_one = fa_image(builder, "logo.png")
+        .class("mx-2")
+        .set_size(Val::Px(150.), Val::Px(150.))
+        .build();
+
+    let img_two = fa_image(builder, "bevy_logo.png")
+        .class("mx-2")
+        .set_size(Val::Px(320.), Val::Px(150.))
+        .build();
+
+    let img_three = fa_image(builder, "rust_logo.png")
+        .class("mx-2")
+        .set_size(Val::Px(200.), Val::Px(150.))
+        .build();
+
+    fa_container(builder).class("my-3 block").children([img_one, img_two, img_three]).build()
+}
+
+fn create_progress_bar(builder: &mut FamiqBuilder) -> Entity {
+    let bar_one = fa_progress_bar(builder).class("input mx-2").color("cyan_500").build();
+    let bar_two = fa_progress_bar(builder)
+        .class("input mx-2")
+        .percentage(50.)
+        .color("lime_900")
+        .build();
+
+    fa_container(builder).class("my-3 block").children([bar_one, bar_two]).build()
+}
+
+fn setup_ui(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
     mut famiq_res: ResMut<FamiqResource>,
+    asset_server: Res<AssetServer>
 ) {
     commands.spawn(Camera2d::default());
 
     let mut builder = FamiqBuilder::new(&mut commands, &mut famiq_res, &asset_server)
-        .hot_reload()
-        .register_tooltip();
+        .hot_reload();
 
     fa_fps(&mut builder).change_color().build();
     fa_bg_image(&mut builder, "wallpaper.jpg").build();
 
-    // left
-    let inputs = left::create_inputs(&mut builder);
-    let selections = left::create_selections(&mut builder);
-    let enter_btn = fa_button(&mut builder, "Enter now").id("#enter-btn").class("is-success-dark mt-2").build();
-    let modal = left::create_modal(&mut builder);
-    let circulars = left::create_circulars(&mut builder);
-    let progress_bars = left::create_progress_bars(&mut builder);
+    let title = fa_text(&mut builder, "Welcome to Famiq").class("h2 my-2 mx-auto").build();
 
-    let left_container = fa_container(&mut builder)
-        .id("#left-container")
+    let btn_container = create_buttons(&mut builder);
+    let circular_container = create_circulars(&mut builder);
+    let text_input_container = create_text_inputs(&mut builder);
+    let selection_container = create_selections(&mut builder);
+    let image_container = create_images(&mut builder);
+    let bar_container = create_progress_bar(&mut builder);
+
+    fa_listview(&mut builder)
+        .id("#main-container")
+        .class("my-auto mx-auto")
         .children([
-            inputs, selections, enter_btn, circulars, progress_bars
+            title, btn_container, circular_container, text_input_container, selection_container,
+            image_container, bar_container
         ])
         .build();
-
-    // right
-    let posts = right::create_posts(&mut builder);
-    let right_container = fa_container(&mut builder)
-        .id("#right-container")
-        .children([posts])
-        .build();
-
-    fa_container(&mut builder)
-        .id("#main-container")
-        .children([left_container, right_container])
-        .build();
-}
-
-
-fn handle_left_buttons_press(
-    mut events: EventReader<FaInteractionEvent>,
-    mut progress_res: ResMut<FaProgressBarResource>,
-    mut text_res: ResMut<FaTextResource>,
-    mut modal_state: ResMut<FaModalState>,
-    input_res: Res<FaTextInputResource>,
-    select_res: Res<FaSelectionResource>,
-) {
-    for e in events.read() {
-        if e.is_pressed(WidgetType::Button) {
-            if let Some(id) = e.widget_id.as_ref() {
-                match id.as_str() {
-                    "#minus-btn" => {
-                        let mut current_percent = progress_res.get_percentage_by_id("#normal-bar").unwrap();
-
-                        if current_percent > 0.0{
-                            current_percent -= 10.0;
-                            progress_res.set_percentage_by_id("#normal-bar", Some(current_percent));
-                        }
-                    },
-                    "#plus-btn" => {
-                        let mut current_percent = progress_res.get_percentage_by_id("#normal-bar").unwrap();
-
-                        if current_percent < 100.0{
-                            current_percent += 10.0;
-                            progress_res.set_percentage_by_id("#normal-bar", Some(current_percent));
-                        }
-                    },
-                    "#enter-btn" => {
-                        let first_name = input_res.get_value_by_id("#firstname");
-                        let last_name = input_res.get_value_by_id("#lastname");
-                        let flash_or_tp = select_res.get_value_by_id("#select-one");
-                        let shield_or_blade = select_res.get_value_by_id("#select-two");
-
-                        if !first_name.is_empty() && !last_name.is_empty() && !flash_or_tp.is_empty() && !shield_or_blade.is_empty() {
-                            text_res.update_value_by_id(
-                                "#yourname",
-                                format!("Name: {first_name} {last_name}").as_str()
-                            );
-                            text_res.update_value_by_id(
-                                "#flash-tp",
-                                format!("Spell: {flash_or_tp}").as_str()
-                            );
-                            text_res.update_value_by_id(
-                                "#shield-blade",
-                                format!("Weapon: {shield_or_blade}").as_str()
-                            );
-                            modal_state.show_by_id("#modal");
-                        }
-                    },
-                    "#close-btn" => {
-                        modal_state.hide_by_id("#modal");
-                    }
-                    _ => {}
-                }
-            }
-
-        }
-    }
-}
-
-fn handle_like_button_press(
-    mut events: EventReader<FaInteractionEvent>,
-    mut text_res: ResMut<FaTextResource>,
-    mut like_txt_q: Query<(Entity, &mut right::LikeCount)>,
-    like_btn_q: Query<&right::LikeTextEntity>
-) {
-    for e in events.read() {
-        if e.is_pressed(WidgetType::Button) {
-            if let Ok(txt_entity) = like_btn_q.get(e.entity) {
-
-                if let Ok((entity, mut count)) = like_txt_q.get_mut(txt_entity.0) {
-                    count.0 += 1;
-                    text_res.update_value_by_entity(entity, &count.0.to_string());
-                    break;
-                }
-            }
-        }
-    }
 }
