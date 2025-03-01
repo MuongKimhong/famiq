@@ -14,7 +14,6 @@ pub mod circular;
 pub mod modal;
 pub mod image;
 pub mod bg_image;
-pub mod tooltip;
 pub mod progress_bar;
 pub mod tests;
 pub mod base_components;
@@ -35,7 +34,6 @@ pub use base_components::*;
 pub use style::*;
 use crate::resources::*;
 use crate::widgets::style_parse::*;
-use tooltip::FaToolTip;
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 
@@ -264,22 +262,6 @@ impl<'a> FamiqBuilder<'a> {
         self
     }
 
-    /// Registers a tooltip option for widgets.
-    ///
-    /// If `use_font_path` is called, `register_tooltip` must be called **after** `use_font_path`
-    /// to ensure that the custom font is applied to the tooltip.
-    pub fn register_tooltip(mut self) -> Self {
-        if !self.resource.tooltip_registered {
-            let font_handle = self.asset_server.load(&self.resource.font_path);
-            FaToolTip::new(
-                &mut self.ui_root_node,
-                font_handle
-            );
-            self.resource.tooltip_registered = true;
-        }
-        self
-    }
-
     pub fn insert_component<T: Bundle>(&mut self, entity: Entity, components: T) {
         self.ui_root_node.commands().entity(entity).insert(components);
     }
@@ -304,4 +286,44 @@ pub fn hot_reload_is_enabled(famiq_res: Res<FamiqResource>) -> bool {
 
 pub fn hot_reload_is_disabled(famiq_res: Res<FamiqResource>) -> bool {
     !famiq_res.hot_reload_styles && !famiq_res.external_style_applied
+}
+
+pub(crate) fn build_tooltip_node<'a>(
+    text: &str,
+    font_handle: Handle<Font>,
+    root_node: &'a mut EntityCommands,
+) -> Entity {
+    let txt_font = TextFont {
+        font: font_handle,
+        font_size: 18.0,
+        ..default()
+    };
+    root_node
+        .commands()
+        .spawn((
+            Node {
+                position_type: PositionType::Absolute,
+                top: Val::Px(-28.0),
+                width: Val::Auto,
+                height: Val::Auto,
+                display: Display::None,
+                max_width: Val::Px(200.),
+                padding: UiRect {
+                    left: Val::Px(8.0),
+                    right: Val::Px(8.0),
+                    ..default()
+                },
+                ..default()
+            },
+            GlobalZIndex(4),
+            BackgroundColor(Color::srgba(1.0, 1.0, 1.0, 0.6)),
+            BorderRadius::all(Val::Px(5.0)),
+            Transform::default(),
+            Text::new(text),
+            txt_font,
+            TextColor(color::BLACK_COLOR),
+            TextLayout::new_with_justify(JustifyText::Center),
+            IsFamiqTooltip
+        ))
+        .id()
 }

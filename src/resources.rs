@@ -414,7 +414,6 @@ pub struct FamiqResource {
     pub(crate) widget_focus_state: HashMap<Entity, bool>,
     pub(crate) external_style_applied: bool,
     pub(crate) root_node_entity: Option<Entity>,
-    pub(crate) tooltip_registered: bool
 }
 
 impl FamiqResource {
@@ -446,8 +445,7 @@ impl FamiqResource {
             hot_reload_styles: false,
             widget_focus_state: HashMap::new(),
             external_style_applied: false,
-            root_node_entity: None,
-            tooltip_registered: false
+            root_node_entity: None
         }
     }
 }

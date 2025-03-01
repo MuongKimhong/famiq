@@ -8,7 +8,6 @@ use styling::*;
 use crate::plugin::{CursorIcons, CursorType};
 use crate::utils::*;
 use crate::widgets::*;
-use crate::widgets::tooltip::{FaToolTip, FaToolTipResource, IsFamiqToolTipText};
 use crate::event_writer::FaInteractionEvent;
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
@@ -73,7 +72,13 @@ impl<'a> FaButton {
             .id();
 
         if has_tooltip {
-            root_node.commands().entity(btn_entity).insert(FamiqToolTipText(tooltip_text.unwrap()));
+            let tooltip = build_tooltip_node(
+                &tooltip_text.unwrap(),
+                attributes.font_handle.clone().unwrap(),
+                root_node
+            );
+            root_node.commands().entity(btn_entity).insert(FamiqTooltipEntity(tooltip));
+            root_node.commands().entity(btn_entity).add_child(tooltip);
         }
         insert_id_and_class(root_node, btn_entity, &attributes.id, &attributes.class);
         entity_add_child(root_node, txt_entity, btn_entity);
@@ -86,16 +91,14 @@ impl<'a> FaButton {
         mut builder_res: ResMut<FamiqResource>,
         mut button_q: Query<
             (
-                &ComputedNode,
                 &GlobalTransform,
                 &mut BackgroundColor,
                 &mut ButtonColorWasDarkened,
-                Option<&FamiqToolTipText>
+                Option<&FamiqTooltipEntity>
             ),
             With<IsFamiqButton>
         >,
-        mut tooltip_res: ResMut<FaToolTipResource>,
-        mut tooltip_text_q: Query<&mut Text, With<IsFamiqToolTipText>>,
+        mut tooltip_q: Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
 
         window: Single<Entity, With<Window>>,
         mut commands: Commands,
@@ -103,25 +106,26 @@ impl<'a> FaButton {
     ) {
         for e in events.read() {
             if let Ok((
-                computed,
-                transform,
+                btn_transform,
                 mut background_color,
                 mut was_darkened,
-                tooltip_text
+                tooltip_entity
             )) = button_q.get_mut(e.entity) {
                 match e.interaction {
                     Interaction::Hovered => {
                         _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Pointer);
-                        if let Some(text) = tooltip_text {
-                            FaToolTip::_update_toolitp_text(&text.0, &mut tooltip_text_q);
-                            tooltip_res.show(text.0.clone(), computed.size(), transform.translation());
-                        }
+  
                         if was_darkened.0 {
                             if let Some(lightened_color) = lighten_color(20.0, &background_color.0) {
                                 background_color.0 = lightened_color;
                                 was_darkened.0 = false;
                             }
                         }
+                        show_tooltip(
+                            tooltip_entity,
+                            &mut tooltip_q,
+                            btn_transform.translation()
+                        ); 
                     },
                     Interaction::Pressed => {
                         _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Pointer);
@@ -135,15 +139,14 @@ impl<'a> FaButton {
                     },
                     Interaction::None => {
                         _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Default);
-                        if tooltip_text.is_some() {
-                            tooltip_res.hide();
-                        }
+
                         if was_darkened.0 {
                             if let Some(lightened_color) = lighten_color(20.0, &background_color.0) {
                                 background_color.0 = lightened_color;
                                 was_darkened.0 = false;
                             }
                         }
+                        hide_tooltip(tooltip_entity, &mut tooltip_q);
                     },
                 }
             }

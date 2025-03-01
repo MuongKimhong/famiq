@@ -8,7 +8,6 @@ use bevy::reflect::TypePath;
 use bevy::render::render_resource::*;
 use crate::event_writer::FaInteractionEvent;
 use crate::utils::*;
-use super::tooltip::{FaToolTip, FaToolTipResource, IsFamiqToolTipText};
 
 pub use components::*;
 use helper::*;
@@ -60,34 +59,38 @@ impl<'a> FaCircular {
         let circular = Self::_build_circular(attributes, root_node);
 
         if has_tooltip {
-            root_node.commands().entity(circular).insert(FamiqToolTipText(tooltip_text.unwrap()));
+            let tooltip = build_tooltip_node(
+                &tooltip_text.unwrap(),
+                attributes.font_handle.clone().unwrap(),
+                root_node
+            );
+            root_node.commands().entity(circular).insert(FamiqTooltipEntity(tooltip));
+            root_node.commands().entity(circular).add_child(tooltip);
         }
         circular
     }
 
     /// Internal system to handle circular interaction events.
-    pub fn handle_circular_interaction_system(
+    pub(crate) fn handle_circular_interaction_system(
         mut events: EventReader<FaInteractionEvent>,
         mut circular_q: Query<
-            (&ComputedNode, &GlobalTransform, Option<&FamiqToolTipText>),
+            (&GlobalTransform, Option<&FamiqTooltipEntity>),
             With<IsFamiqCircular>
         >,
-        mut tooltip_res: ResMut<FaToolTipResource>,
-        mut tooltip_text_q: Query<&mut Text, With<IsFamiqToolTipText>>
+        mut tooltip_q: Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
     ) {
         for e in events.read() {
-            if let Ok((computed, transform, tooltip_text)) = circular_q.get_mut(e.entity) {
+            if let Ok((circular_transform, tooltip_entity)) = circular_q.get_mut(e.entity) {
                 match e.interaction {
                     Interaction::Hovered => {
-                        if let Some(text) = tooltip_text {
-                            FaToolTip::_update_toolitp_text(&text.0, &mut tooltip_text_q);
-                            tooltip_res.show(text.0.clone(), computed.size(), transform.translation());
-                        }
+                        show_tooltip(
+                            tooltip_entity,
+                            &mut tooltip_q,
+                            circular_transform.translation()
+                        );
                     },
                     Interaction::None => {
-                        if tooltip_text.is_some() {
-                            tooltip_res.hide();
-                        }
+                        hide_tooltip(tooltip_entity, &mut tooltip_q);
                     },
                     _ => {}
                 }
@@ -137,9 +140,11 @@ pub struct FaCircularBuilder<'a> {
 }
 
 impl<'a> FaCircularBuilder<'a> {
-    pub fn new(root_node: EntityCommands<'a>) -> Self {
+    pub fn new(root_node: EntityCommands<'a>, font_handle: Handle<Font>) -> Self {
+        let mut attributes = WidgetAttributes::default();
+        attributes.font_handle = Some(font_handle);
         Self {
-            attributes: WidgetAttributes::default(),
+            attributes,
             root_node,
             has_tooltip: false,
             tooltip_text: String::new()
@@ -185,7 +190,8 @@ impl<'a> SetWidgetAttributes for FaCircularBuilder<'a> {
 
 /// API to create `FaCircularBuilder`
 pub fn fa_circular<'a>(builder: &'a mut FamiqBuilder) -> FaCircularBuilder<'a> {
-    FaCircularBuilder::new(builder.ui_root_node.reborrow())
+    let font_handle = builder.asset_server.load(&builder.resource.font_path);
+    FaCircularBuilder::new(builder.ui_root_node.reborrow(), font_handle)
 }
 
 /// Determines if circular internal system(s) can run.

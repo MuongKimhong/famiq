@@ -12,6 +12,12 @@ pub struct FamiqWidgetId(pub String);
 #[derive(Component, Deref)]
 pub struct FamiqWidgetClasses(pub String);
 
+#[derive(Component)]
+pub(crate) struct IsFamiqTooltip;
+
+#[derive(Component)]
+pub(crate) struct FamiqTooltipEntity(pub Entity);
+
 /// Base styles components required by all widgets
 #[derive(Bundle, Clone)]
 pub struct BaseStyleComponents {

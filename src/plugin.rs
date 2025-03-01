@@ -11,7 +11,6 @@ use crate::widgets::{
     circular::*,
     modal::*,
     text::*,
-    tooltip::*,
     progress_bar::*,
     image::*,
     bg_image::*,
@@ -275,15 +274,11 @@ impl Plugin for FamiqPlugin {
         app.insert_resource(FaStyleResource::default());
         app.insert_resource(FaBgImageResource::default());
         app.insert_resource(FaContainableResource::default());
-        // app.insert_resource(FaContainerResource::default());
-        // app.insert_resource(FaModalResource::default());
-        // app.insert_resource(FaListViewResource::default());
         app.insert_resource(CanBeScrolledListView { entity: None });
         app.insert_resource(FaSelectionResource::default());
         app.insert_resource(FaTextInputResource::default());
         app.insert_resource(FaTextInputCursorBlinkTimer::default());
         app.insert_resource(FaProgressBarResource::default());
-        app.insert_resource(FaToolTipResource::default());
         app.insert_resource(FaModalState::default());
         app.insert_resource(FaTextResource::default());
         app.insert_resource(CursorIcons::default());
@@ -305,10 +300,6 @@ impl Plugin for FamiqPlugin {
         fa_bg_image_systems(app);
         fa_container_systems(app);
 
-        app.add_systems(
-            Update,
-            FaToolTip::handle_show_hide_tooltip_system.run_if(can_run_tooltip_systems)
-        );
         app.add_systems(
             PostUpdate,
             detect_fa_containable_resource_change

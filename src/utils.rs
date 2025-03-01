@@ -12,7 +12,7 @@ use crate::widgets::style_parse::*;
 use crate::widgets::{WidgetStyle, DefaultWidgetEntity, WidgetColor};
 use crate::widgets::color::*;
 use crate::errors::StylesFileError;
-use crate::widgets::{FamiqWidgetId, FamiqWidgetClasses};
+use crate::widgets::{FamiqWidgetId, FamiqWidgetClasses, FamiqTooltipEntity, IsFamiqTooltip};
 
 pub(crate) fn read_styles_json_file(path: &str) -> Result<HashMap<String, WidgetStyle>, StylesFileError> {
     let mut file = match File::open(path) {
@@ -424,6 +424,30 @@ pub(crate) fn get_text_color(variant: &WidgetColor) -> Color {
         WidgetColor::InfoDark => INFO_COLOR,
         WidgetColor::Dark => WHITE_COLOR,
         _ => BLACK_COLOR,
+    }
+}
+
+pub(crate) fn show_tooltip(
+    entity: Option<&FamiqTooltipEntity>,
+    tooltip_q: &mut Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
+    parent_translation: Vec3
+) {
+    if entity.is_some() {
+        if let Ok((mut node, mut transform)) = tooltip_q.get_mut(entity.unwrap().0) {
+            transform.translation = parent_translation;
+            node.display = Display::Flex;
+        }
+    }
+}
+
+pub(crate) fn hide_tooltip(
+    entity: Option<&FamiqTooltipEntity>,
+    tooltip_q: &mut Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
+) {
+    if entity.is_some() {
+        if let Ok((mut node, _)) = tooltip_q.get_mut(entity.unwrap().0) {
+            node.display = Display::None;
+        }
     }
 }
 
