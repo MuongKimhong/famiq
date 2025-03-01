@@ -11,7 +11,6 @@ documentation = "https://docs.rs/famiq"
 keywords = ["bevy", "gui", "rust", "json", "ui"]
 
 [dependencies]
-log = { version = "*", features = ["max_level_debug", "release_max_level_warn"] }
 bevy = {version="0.15.3", features=["jpeg", "png"]}
 serde = "1.0.215"
 serde_json = "1.0.133"
