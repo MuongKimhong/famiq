@@ -1,119 +1,33 @@
-# How styling works?
+# How can I style my widgets?
+**Famiq** uses a **JSON-based styling system**, similar to how **HTML** uses **CSS**.
 
-Bevy's default approach to UI development requires writing Rust code for styling, which can quickly become verbose and repetitive. **Famiq** introduces a way to define styles using JSON file, making UI development in Bevy more accessible and efficient.
+Each widget can have an **id** or **classes**, which are used to apply styles from the JSON file.
 
-## Key Features
-- **JSON-based Styling**: Write styles in a familiar, CSS-like JSON format.
-- **Automatic Parsing**: JSON styles are parsed into Bevy's native style format.
-- **Reduced Boilerplate**: Eliminate repetitive Rust code for UI styling.
-- **Hot-Reload**: Any changes made to json file will be reflected to the running app without needing to re-compile the app.
-
-## Example
-Normal **Bevy UI** styles.
 ```rust
-commands.spawn((
-    Node {
-        border: UiRect::all(Val::Px(3.0)),
-        padding: UiRect {
-            left: Val::Px(5.0),
-            right: Val::Px(5.0),
-            top: Val::Px(10.0),
-            bottom: Val::Px(10.0)
-        },
-        margin: UiRect::All(Val::Auto),
-        width: Val::Percent(100.0),
-        ..default()
-    },
-    BorderColor(Color::srgba(1.0, 1.0, 1.0, 0.3)),
-    BorderRadius::all(Val::Px(5.0))
-));
+// by id
+let button = fa_button(&mut builder, "Press me").id("#button").build();
+
+// by class or classes
+let text_1 = fa_text(&mut builder, "Hello world").class("text important").build();
+let text_2 = fa_text(&mut builder, "Hello mom").class("text").build();
 ```
-With **Famiq**, you can simply give widget an id or class, then write styles in json file.
 ```json
 {
-  "#my-widget-id": {
-    "padding": "5px 5px 10px 10px",
-    "border": "3px 3px 3px 3px",
-    "border_color": "srgba 1.0, 1.0, 1.0, 0.3",
-    "border_radius": "5px 5px 5px 5px",
-    "width": "100%",
-    "margin": "auto auto auto auto"
+  "#button": {
+    "background_color": "blue"
+  },
+
+  ".text": {
+    "font_size": "40"
+  },
+
+  ".important": {
+    "color": "red"
   }
 }
 ```
+**Notes**
+- **IDs (id)** must start with **`#`** and must match between the widget and the JSON file.
+- **Class names (class)** must start with **`.`** in the JSON file.
 
-## Supported & Unsupported styles
-#### Unsupported
-```rust
-grid_template_rows: Vec<RepeatedGridTrack>
-grid_template_columns: Vec<RepeatedGridTrack>
-grid_auto_rows: Vec<GridTrack>
-grid_auto_columns: Vec<GridTrack>
-grid_row: GridPlacement
-grid_column: GridPlacement
-```
-
-#### Supported
-```rust
-color: Color
-font_size: f32
-
-background_color: BackgroundColor
-border_color: BorderColor
-border_radius: BorderRadius
-visibility: Visibility
-z_index: ZIndex
-
-display: Display
-position_type: PositionType
-overflow: Overflow
-direction: Direction
-left: Val
-right: Val
-top: Val
-bottom: Val
-width: Val
-height: Val
-min_width: Val
-min_height: Val
-max_width: Val
-max_height: Val
-aspect_ratio: Option<f32>
-align_items: AlignItems
-justify_items: JustifyItems
-align_self: AlignSelf
-justify_self: JustifySelf
-align_content: AlignContent
-justify_content: JustifyContent
-margin: UiRect
-padding: UiRect
-border: UiRect
-flex_direction: FlexDirection
-flex_wrap: FlexWrap
-flex_grow: f32
-flex_shrink: f32
-flex_basis: Val
-row_gap: Val
-column_gap: Val
-grid_auto_flow: GridAutoFlow
-```
-
-#### Supported Val enum
-```rust
-Val {
-    Auto,
-    Px,
-    Percent,
-    Vw,
-    Vh
-}
-```
-
-#### Supported Color enum
-```rust
-Color {
-    Srgba(Srgba),
-    LinearRgba(LinearRgba),
-    Hsla(Hsla)
-}
-```
+Currently, **id** or **class** assigned to a widget is **immutable**.

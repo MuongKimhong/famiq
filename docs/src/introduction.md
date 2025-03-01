@@ -1,49 +1,31 @@
-# What is Famiq?
+<p align="center">
+  <img width="200" src="logo.png">
+</p>
 
-**Famiq** is a UI library built on top of Bevy UI by providing default
-widgets and a simple way to manage styles.
+<h4 align="center">
+  Build desktop GUI application with rust, based on ECS pattern, powered by Bevy game engine.
+</h4>
 
-Instead of writing Rust code for styling,
-developers can define styles in a well known JSON file. These styles are then parsed
-into Bevy's native UI styles, significantly reducing boilerplate code.
+#### Simple
+Designed with Bevy’s philosophy — widgets are just **Rust functions**.
 
-Built on top of Bevy UI, based on Bevy ECS.
-- **Simple**: Follows Bevy's philosophy—widgets are just Rust functions.
-- **Clean**: Styles can be defined in a JSON file, reducing boilerplate code.
-- **Widgets**: Includes useful default components like button, modal, listview and more.
-- **Flexible**: Just like in `HTML/CSS`, styles can be applied using `id` or `classes`.
+#### Built-in Widgets
+Includes useful widgets like **buttons, modals, list views** and more.
 
-### Simple button
-```rust
-let my_btn = fa_button(&mut builder, "Press me").build();
+#### For High-Performance Apps
+Leverages Bevy’s **massive parallelism** for smooth and efficient rendering.
+
+
+## Installation
 ```
-. `&mut builder` is a mutable reference of `FamiqWidgetBuilder`.
-
-
-If you want to make changes to the widget, you can simply give it an `id` or `class`.
-```rust
-let my_btn = fa_button(&mut builder, "Press me").id("#my-btn").build();
+cargo add famiq
 ```
-```json
-{
-  "#my-btn": {
-    "background_color": "yellow"
-  }
-}
+or adding this to `Cargo.toml`
+```toml
+[dependencies]
+famiq = "0.2.6"
 ```
+Famiq supports only bevy` 0.15.x` onward. Currently, the latest version of bevy is `0.15.3`.
 
-### Hot reload
-Hot-reload can be enabled during development. When it's enabled, every changes in json
-file will reflect the running app immediately without needing to re-compile the app.
-```rust
-let mut builder = FamiqWidgetBuilder::new(
-    &mut commands,
-    &mut builder_res,
-    &asset_server
-);
 
-builder.hot_reload();
-```
-
-### Bevy versions support
-Famiq is new and still in early stage of development. Currently, it supports only 0.15.x onward.
+see [crateio](https://crates.io/crates/famiq) & [rustdoc](https://docs.rs/famiq/latest/famiq/).

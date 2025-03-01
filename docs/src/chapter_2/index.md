@@ -1,7 +1,14 @@
 # Interaction
 
-All widgets provided by **Famiq** have `Interaction` component attached by default.
-That means all those widgets will emit `FaInteractionEvent` to bevy's `EventReader` with either `Pressed`, `Hovered` or `None`.
+There are 3 types of interaction
+- Pressed
+- Hovered
+- None (leaving hovered)
+
+**Famiq** emits an event with type of `FaInteractionEvent` whenever one of the iteraction is matched.
+The event then can be read from bevy's `EventReader`.
+
+Each event has a widget type flag.
 
 ```rust
 pub struct FaInteractionEvent {
@@ -14,42 +21,47 @@ pub struct FaInteractionEvent {
 Available widget types
 ```rust
 pub enum WidgetType {
-    Root,
     Button,
     Container,
     Text,
     FpsText,
     TextInput,
+    TextInputTogglePasswordIcon,
     ListView,
     ListViewItem,
     Selection,
     SelectionChoice,
     Circular,
-    Modal,
+    ProgressBar,
     Image
 }
 ```
 
 ## Handle interaction
-You can write a bevy system to handle Famiq’s widgets interaction.
+You can write a bevy system that runs in `Update` schedule to handle Famiq’s widgets interaction.
+
+Example,
 
 ```rust
 fn handle_button_press_system(mut events: EventReader<FaInteractionEvent>) {
     for e in events.read() {
-        if e.widget == WidgetType::Image && e.interaction == Interaction::Hovered {
-            // make sure this works only with widgets that have id provided
-            if let Some(id) = e.widget_id.as_ref() {
-                match id.as_str() {
-                    "#image-one-id" => {
-                        // do something
-                    },
-                    "#image-two-id" => {
-                        // do something
-                    }
-                    _ => ()
+        if !e.is_pressed(WidgetType::Button) {
+            return;
+        }
+
+        // make sure this works only with widgets that have id provided
+        if let Some(id) = e.widget_id.as_ref() {
+            match id.as_str() {
+                "#button-one" => {
+                    // do something when #button-one is pressed
+                },
+                "#button-two" => {
+                    // do something when #button-two is pressed
                 }
+                _ => ()
             }
         }
     }
 }
 ```
+Beside `is_pressed`, there are also `is_hovered` and `is_left` (from hovered -> none).

@@ -1,26 +1,11 @@
-
-# How to write bevy styles in JSON file.
+# How to write bevy styles in JSON file?
 
 **Famiq** supports almost all UI styles provided by Bevy engine.
 
-### id & Class
-```json
-{
-  "#my-widget-id": {
-    ..
-  },
-  ".some-class": {
-    ..
-  }
-}
-```
-- `class_name` must starts with dot `.`.
-
-### For text widgets
-- `color`: text color. Supports only `srgba`, `linear_rgba`, `hsla` and basic colors.
+- `color`: text color, supports only `srgba`, `linear_rgba`, `hsla` and basic colors.
 
   Examples,
-  - `"color": "srgba 0.961, 0, 0.784, 0.961"`
+  - `"color": "srgba 0.961, 0.0, 0.784, 0.9"`
   - `"color": "yellow"`
 
   [https://docs.rs/bevy/latest/bevy/prelude/struct.TextColor.html](https://docs.rs/bevy/latest/bevy/prelude/struct.TextColor.html)
@@ -31,11 +16,10 @@
 
   [https://docs.rs/bevy/latest/bevy/prelude/struct.TextFont.html#structfield.font_size](https://docs.rs/bevy/latest/bevy/prelude/struct.TextFont.html#structfield.font_size)
 
-### For node widgets
 - `background_color`: supports only `srgba`, `linear_rgba`, `hsla` and basic colors.
 
   Examples,
-  - `"background_color": "srgba 0.961, 0, 0.784, 0.961"`
+  - `"background_color": "srgba 0.961, 0.0, 0.784, 0.95"`
   - `"background_color": "green"`
 
   [https://docs.rs/bevy/latest/bevy/prelude/struct.BackgroundColor.html](https://docs.rs/bevy/latest/bevy/prelude/struct.BackgroundColor.html)
@@ -43,7 +27,7 @@
 - `border_color`: supports only `srgba`, `linear_rgba`, `hsla` and basic colors.
 
   Examples,
-  - `"border_color": "linear_rgba 0.961, 0, 0.784, 0.961"`
+  - `"border_color": "linear_rgba 0.961, 0.0, 0.784, 0.9"`
   - `"border_color": "pink"`
 
   [https://docs.rs/bevy/latest/bevy/prelude/struct.BorderColor.html](https://docs.rs/bevy/latest/bevy/prelude/struct.BorderColor.html)
@@ -54,19 +38,11 @@
 
   [https://docs.rs/bevy/latest/bevy/prelude/struct.BorderRadius.html](https://docs.rs/bevy/latest/bevy/prelude/struct.BorderRadius.html)
 
-- `border_radius_top_left`: this will override top_left value defined in `border_radius`.
-
-- `border_radius_top_right`: this will override top_right value defined in `border_radius`.
-
-- `border_radius_bottom_left`: this will override bottom_left value defined in `border_radius`.
-
-- `border_radius_bottom_right`: this will override bottom_right value defined in `border_radius`.
-
 - `visibility`: supports only `visible`, `hidden` and `inherited`.
 
   [https://docs.rs/bevy/latest/bevy/prelude/enum.Visibility.html](https://docs.rs/bevy/latest/bevy/prelude/enum.Visibility.html)
 
-- `z_index`: indicates that this Node entity’s front-to-back ordering is not controlled solely by its location in the UI hierarchy. A node with a higher z-index will appear on top of sibling nodes with a lower z-index.
+- `z_index`: indicates that a widget’s front-to-back ordering is not controlled solely by its location in the UI hierarchy. A widget with a higher z-index will appear on top of sibling widgets with a lower z-index.
 
   Example, `"z_index": "2"`
 
@@ -88,43 +64,43 @@
 
   [https://docs.rs/bevy/latest/bevy/prelude/struct.Overflow.html](https://docs.rs/bevy/latest/bevy/prelude/struct.Overflow.html)
 
-- `left`: the horizontal position of the left edge of the node.
+- `left`: the horizontal position of the left edge of the widget.
 
   [https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.left](https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.left)
 
-- `right`: the horizontal position of the right edge of the node.
+- `right`: the horizontal position of the right edge of the widget.
 
   [https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.right](https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.right)
 
-- `top`: the vertical position of the top edge of the node.
+- `top`: the vertical position of the top edge of the widget.
 
   [https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.top](https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.top)
 
-- `bottom`: the vertical position of the bottom edge of the node.
+- `bottom`: the vertical position of the bottom edge of the widget.
 
   [https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.bottom](https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.bottom)
 
-- `width`: the ideal width of the node. width is used when it is within the bounds defined by `min_width` and `max_width`.
+- `width`: the ideal width of the widget. width is used when it is within the bounds defined by `min_width` and `max_width`.
 
   [https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.width](https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.width)
 
-- `height`: the ideal height of the node. height is used when it is within the bounds defined by `min_height` and `max_height`.
+- `height`: the ideal height of the widget. height is used when it is within the bounds defined by `min_height` and `max_height`.
 
   [https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.height](https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.height)
 
-- `min_width`: the minimum `width` of the node. `min_width` is used if it is greater than `width` and/or `max_width`.
+- `min_width`: the minimum `width` of the widget. `min_width` is used if it is greater than `width` and/or `max_width`.
 
   [https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.min_width](https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.min_width)
 
-- `min_height`: the minimum `height` of the node. `min_height` is used if it is greater than `height` and/or `max_height`.
+- `min_height`: the minimum `height` of the widget. `min_height` is used if it is greater than `height` and/or `max_height`.
 
   [https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.min_height](https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.min_height)
 
-- `max_width`: the maximum `width` of the node. `max_width` is used if it is within the bounds defined by `min_width` and `width`.
+- `max_width`: the maximum `width` of the widget. `max_width` is used if it is within the bounds defined by `min_width` and `width`.
 
   [https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.max_width](https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.max_width)
 
-- `max_height`: the maximum `height` of the node. `max_height` is used if it is within the bounds defined by `min_height` and `height`.
+- `max_height`: the maximum `height` of the widget. `max_height` is used if it is within the bounds defined by `min_height` and `height`.
 
   [https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.max_height](https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.max_height)
 

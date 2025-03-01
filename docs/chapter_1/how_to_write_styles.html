@@ -155,28 +155,14 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="how-to-write-bevy-styles-in-json-file"><a class="header" href="#how-to-write-bevy-styles-in-json-file">How to write bevy styles in JSON file.</a></h1>
+                        <h1 id="how-to-write-bevy-styles-in-json-file"><a class="header" href="#how-to-write-bevy-styles-in-json-file">How to write bevy styles in JSON file?</a></h1>
 <p><strong>Famiq</strong> supports almost all UI styles provided by Bevy engine.</p>
-<h3 id="id--class"><a class="header" href="#id--class">id &amp; Class</a></h3>
-<pre><code class="language-json">{
-  "#my-widget-id": {
-    ..
-  },
-  ".some-class": {
-    ..
-  }
-}
-</code></pre>
-<ul>
-<li><code>class_name</code> must starts with dot <code>.</code>.</li>
-</ul>
-<h3 id="for-text-widgets"><a class="header" href="#for-text-widgets">For text widgets</a></h3>
 <ul>
 <li>
-<p><code>color</code>: text color. Supports only <code>srgba</code>, <code>linear_rgba</code>, <code>hsla</code> and basic colors.</p>
+<p><code>color</code>: text color, supports only <code>srgba</code>, <code>linear_rgba</code>, <code>hsla</code> and basic colors.</p>
 <p>Examples,</p>
 <ul>
-<li><code>"color": "srgba 0.961, 0, 0.784, 0.961"</code></li>
+<li><code>"color": "srgba 0.961, 0.0, 0.784, 0.9"</code></li>
 <li><code>"color": "yellow"</code></li>
 </ul>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.TextColor.html">https://docs.rs/bevy/latest/bevy/prelude/struct.TextColor.html</a></p>
@@ -186,14 +172,11 @@
 <p>Example, <code>"font_size": "14"</code></p>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.TextFont.html#structfield.font_size">https://docs.rs/bevy/latest/bevy/prelude/struct.TextFont.html#structfield.font_size</a></p>
 </li>
-</ul>
-<h3 id="for-node-widgets"><a class="header" href="#for-node-widgets">For node widgets</a></h3>
-<ul>
 <li>
 <p><code>background_color</code>: supports only <code>srgba</code>, <code>linear_rgba</code>, <code>hsla</code> and basic colors.</p>
 <p>Examples,</p>
 <ul>
-<li><code>"background_color": "srgba 0.961, 0, 0.784, 0.961"</code></li>
+<li><code>"background_color": "srgba 0.961, 0.0, 0.784, 0.95"</code></li>
 <li><code>"background_color": "green"</code></li>
 </ul>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.BackgroundColor.html">https://docs.rs/bevy/latest/bevy/prelude/struct.BackgroundColor.html</a></p>
@@ -202,7 +185,7 @@
 <p><code>border_color</code>: supports only <code>srgba</code>, <code>linear_rgba</code>, <code>hsla</code> and basic colors.</p>
 <p>Examples,</p>
 <ul>
-<li><code>"border_color": "linear_rgba 0.961, 0, 0.784, 0.961"</code></li>
+<li><code>"border_color": "linear_rgba 0.961, 0.0, 0.784, 0.9"</code></li>
 <li><code>"border_color": "pink"</code></li>
 </ul>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.BorderColor.html">https://docs.rs/bevy/latest/bevy/prelude/struct.BorderColor.html</a></p>
@@ -213,23 +196,11 @@
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.BorderRadius.html">https://docs.rs/bevy/latest/bevy/prelude/struct.BorderRadius.html</a></p>
 </li>
 <li>
-<p><code>border_radius_top_left</code>: this will override top_left value defined in <code>border_radius</code>.</p>
-</li>
-<li>
-<p><code>border_radius_top_right</code>: this will override top_right value defined in <code>border_radius</code>.</p>
-</li>
-<li>
-<p><code>border_radius_bottom_left</code>: this will override bottom_left value defined in <code>border_radius</code>.</p>
-</li>
-<li>
-<p><code>border_radius_bottom_right</code>: this will override bottom_right value defined in <code>border_radius</code>.</p>
-</li>
-<li>
 <p><code>visibility</code>: supports only <code>visible</code>, <code>hidden</code> and <code>inherited</code>.</p>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/enum.Visibility.html">https://docs.rs/bevy/latest/bevy/prelude/enum.Visibility.html</a></p>
 </li>
 <li>
-<p><code>z_index</code>: indicates that this Node entity’s front-to-back ordering is not controlled solely by its location in the UI hierarchy. A node with a higher z-index will appear on top of sibling nodes with a lower z-index.</p>
+<p><code>z_index</code>: indicates that a widget’s front-to-back ordering is not controlled solely by its location in the UI hierarchy. A widget with a higher z-index will appear on top of sibling widgets with a lower z-index.</p>
 <p>Example, <code>"z_index": "2"</code></p>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.ZIndex.html">https://docs.rs/bevy/latest/bevy/prelude/struct.ZIndex.html</a></p>
 </li>
@@ -250,43 +221,43 @@
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Overflow.html">https://docs.rs/bevy/latest/bevy/prelude/struct.Overflow.html</a></p>
 </li>
 <li>
-<p><code>left</code>: the horizontal position of the left edge of the node.</p>
+<p><code>left</code>: the horizontal position of the left edge of the widget.</p>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.left">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.left</a></p>
 </li>
 <li>
-<p><code>right</code>: the horizontal position of the right edge of the node.</p>
+<p><code>right</code>: the horizontal position of the right edge of the widget.</p>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.right">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.right</a></p>
 </li>
 <li>
-<p><code>top</code>: the vertical position of the top edge of the node.</p>
+<p><code>top</code>: the vertical position of the top edge of the widget.</p>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.top">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.top</a></p>
 </li>
 <li>
-<p><code>bottom</code>: the vertical position of the bottom edge of the node.</p>
+<p><code>bottom</code>: the vertical position of the bottom edge of the widget.</p>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.bottom">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.bottom</a></p>
 </li>
 <li>
-<p><code>width</code>: the ideal width of the node. width is used when it is within the bounds defined by <code>min_width</code> and <code>max_width</code>.</p>
+<p><code>width</code>: the ideal width of the widget. width is used when it is within the bounds defined by <code>min_width</code> and <code>max_width</code>.</p>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.width">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.width</a></p>
 </li>
 <li>
-<p><code>height</code>: the ideal height of the node. height is used when it is within the bounds defined by <code>min_height</code> and <code>max_height</code>.</p>
+<p><code>height</code>: the ideal height of the widget. height is used when it is within the bounds defined by <code>min_height</code> and <code>max_height</code>.</p>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.height">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.height</a></p>
 </li>
 <li>
-<p><code>min_width</code>: the minimum <code>width</code> of the node. <code>min_width</code> is used if it is greater than <code>width</code> and/or <code>max_width</code>.</p>
+<p><code>min_width</code>: the minimum <code>width</code> of the widget. <code>min_width</code> is used if it is greater than <code>width</code> and/or <code>max_width</code>.</p>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.min_width">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.min_width</a></p>
 </li>
 <li>
-<p><code>min_height</code>: the minimum <code>height</code> of the node. <code>min_height</code> is used if it is greater than <code>height</code> and/or <code>max_height</code>.</p>
+<p><code>min_height</code>: the minimum <code>height</code> of the widget. <code>min_height</code> is used if it is greater than <code>height</code> and/or <code>max_height</code>.</p>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.min_height">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.min_height</a></p>
 </li>
 <li>
-<p><code>max_width</code>: the maximum <code>width</code> of the node. <code>max_width</code> is used if it is within the bounds defined by <code>min_width</code> and <code>width</code>.</p>
+<p><code>max_width</code>: the maximum <code>width</code> of the widget. <code>max_width</code> is used if it is within the bounds defined by <code>min_width</code> and <code>width</code>.</p>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.max_width">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.max_width</a></p>
 </li>
 <li>
-<p><code>max_height</code>: the maximum <code>height</code> of the node. <code>max_height</code> is used if it is within the bounds defined by <code>min_height</code> and <code>height</code>.</p>
+<p><code>max_height</code>: the maximum <code>height</code> of the widget. <code>max_height</code> is used if it is within the bounds defined by <code>min_height</code> and <code>height</code>.</p>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.max_height">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.max_height</a></p>
 </li>
 <li>

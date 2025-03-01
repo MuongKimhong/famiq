@@ -155,45 +155,48 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="getting-start"><a class="header" href="#getting-start">Getting Start</a></h1>
+                        <h4 id="-important"><a class="header" href="#-important">⚠️ IMPORTANT</a></h4>
+<p>Famiq is built on top <a href="https://bevyengine.org/">Bevy</a> and relies entirely on its <strong>ECS architecture</strong>. When you use <strong>Famiq</strong>,
+you're actually using the <strong>Bevy engine</strong>, with <strong>Famiq</strong> providing an abstraction for its UI system
+to help you build GUI applications, rather than Game UI.</p>
+<p>A solid understanding of <strong>Bevy's ECS</strong> is required. If you're new to <strong>Bevy</strong>,
+I recommend checking out <a href="https://bevyengine.org/learn/quick-start/introduction/">Bevy's quick start guide</a>.</p>
+<h1 id="getting-start"><a class="header" href="#getting-start">Getting Start</a></h1>
 <pre><code class="language-rust">use bevy::prelude::*;
 use famiq::prelude::*;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugins(FamiqPlugin) // add plugin
-        .add_systems(Startup, setup)
+        .add_plugins(FamiqPlugin) // required by Famiq
+        .add_systems(Startup, setup_ui)
         .run();
 }
 
-fn setup(
+fn setup_ui(
     mut commands: Commands,
-    mut famiq_res: ResMut&lt;FamiqWidgetResource&gt;, // required
-    asset_server: ResMut&lt;AssetServer&gt;, // required
+    mut famiq_res: ResMut&lt;FamiqResource&gt;,
+    asset_server: Res&lt;AssetServer&gt;
 ) {
     commands.spawn(Camera2d::default());
 
-    // create a widget builder
-    let mut builder = FamiqWidgetBuilder::new(
-        &amp;mut commands,
-        &amp;mut famiq_res,
-        &amp;asset_server,
-    );
+    // create a builder
+    let mut builder = FamiqBuilder::new(&amp;mut commands, &amp;mut famiq_res, &amp;asset_server);
 
-    // create simple texts using the builder
-    let hello_boss = fa_text(&amp;mut builder, "Hello Boss").build();
-    let hello_mom = fa_text(&amp;mut builder, "Hello Mom").build();
+    // simple text &amp; button widgets
+    let text = fa_text(&amp;mut builder, "Hello world").build();
+    let button = fa_button(&amp;mut builder, "Press me").build();
 
-    // add texts to container
-    fa_container(&amp;mut builder)
-        .children([hello_boss, hello_mom])
-        .build();
+    // add widgets to a container
+    fa_container(&amp;mut builder).children([text, button]).build();
 }</code></pre>
-<p><img src="images/helloboss_img.png" alt="Hello Boss Screenshot" /></p>
-<h3 id="what-is-famiqwidgetbuilder"><a class="header" href="#what-is-famiqwidgetbuilder">What is FamiqWidgetBuilder?</a></h3>
-<p>In simple terms, <code>FamiqWidgetBuilder</code> is the root UI node that acts as a starting point for building and managing widgets. All widgets are created and structured on top of this root.</p>
-<p><code>FamiqWidgetBuilder</code> provides some useful methods:</p>
+<p>run your project <code>cargo run</code>, you will see a text and a button.</p>
+<h3 id="what-is-famiqplugin"><a class="header" href="#what-is-famiqplugin">What is <strong><code>FamiqPlugin</code></strong>?</a></h3>
+<p><code>FamiqPlugin</code> brings in all the required <code>Resources</code> &amp; <code>Internal systems</code> in order to run the app.
+It must be registered after <code>DefaultPlugins</code> provided by Bevy.</p>
+<h3 id="what-is-famiqbuilder"><a class="header" href="#what-is-famiqbuilder">What is <strong><code>FamiqBuilder</code></strong>?</a></h3>
+<p>In simple terms, <code>FamiqBuilder</code> is the root UI node that acts as a starting point for building and managing widgets. All widgets are created and structured on top of this root.</p>
+<p>There are methods provided by <code>FamiqBuilder</code> including:</p>
 <ul>
 <li><a href="#-use_font_path">use_font_path()</a></li>
 <li><a href="#-register_tooltip">register_tooltip()</a></li>
@@ -213,8 +216,8 @@ simply call <code>use_font_path()</code> method.</p>
 │   │   ├── Some-font.ttf
 ├── src/
 </code></pre>
-<pre><code class="language-text">builder.use_font_path("fonts/Some-font.ttf");
-</code></pre>
+<pre><code class="language-rust">let mut builder = FamiqBuilder::new(&amp;mut commands, &amp;mut famiq_res, &amp;asset_server)
+    .use_font_path("fonts/Some-font.ttf");</code></pre>
 </li>
 <li>
 <p><strong>For Multi-Crate/Workspace project structure</strong>:
@@ -229,9 +232,8 @@ In a multi-crate workspace, the custom font path is read from the subcrate/membe
 │   ├── assets/
 │   ├── src/
 </code></pre>
-<pre><code class="language-text">// Inside subcrate 1
-builder.use_font_path("fonts/Some-font.ttf");z
-</code></pre>
+<pre><code class="language-rust">let mut builder = FamiqBuilder::new(&amp;mut commands, &amp;mut famiq_res, &amp;asset_server)
+    .use_font_path("fonts/Some-font.ttf");</code></pre>
 </li>
 </ul>
 <p>⚠️ some fonts might cause rendering issue including positioning and styling.</p>
@@ -240,26 +242,48 @@ builder.use_font_path("fonts/Some-font.ttf");z
 <h4 id="note"><a class="header" href="#note">Note</a></h4>
 <p>If <code>use_font_path</code> is called, <code>register_tooltip</code> must be called <strong>after</strong> <code>use_font_path</code>
 to ensure that the custom font is applied to the tooltip.</p>
-<pre><code class="language-rust">builder.register_tooltip();</code></pre>
+<pre><code class="language-rust">let mut builder = FamiqBuilder::new(&amp;mut commands, &amp;mut famiq_res, &amp;asset_server)
+    .use_font_path("fonts/Some-font.ttf") // if use_font_path is called
+    .register_tooltip();</code></pre>
 <h3 id="-use_style_path"><a class="header" href="#-use_style_path">🔵 <code>use_style_path()</code></a></h3>
-<p>By default, Famiq will look for json file for styling at <code>assets/styles.json</code>, relative to root directory. If you want to use another path or name, you can simply call <code>use_style_path()</code> method.</p>
+<p>By default, Famiq will look for json file for styling at <code>assets/styles.json</code>, relative to root directory.
+If you want to use another path or name, you can simply call <code>use_style_path()</code> method.</p>
 <h4 id="note-1"><a class="header" href="#note-1">Note</a></h4>
 <ul>
 <li><strong>For Multi-Crate/Workspace project structure</strong>: if you have json file inside sub-crate <code>assets</code> directory, you need to specify
 full path relative to root directory, not sub-crate.</li>
 </ul>
-<pre><code class="language-rust">builder.use_style_path("path/to/sub-crate/assets/subcrate-style.json");</code></pre>
+<pre><code class="language-rust">// normal project
+let mut builder = FamiqBuilder::new(&amp;mut commands, &amp;mut famiq_res, &amp;asset_server)
+    .use_style_path("assets/my-styles.json");
+
+// multi crate/workspace
+let mut builder = FamiqBuilder::new(&amp;mut commands, &amp;mut famiq_res, &amp;asset_server)
+    .use_style_path("path/to/sub-crate/assets/subcrate-style.json");</code></pre>
 <h3 id="-hot_reload"><a class="header" href="#-hot_reload">🔵 <code>hot_reload()</code></a></h3>
 <p>This method will enable hot-reload. When it's enabled, every changes in json
-file will reflect the running app immediately without needing to re-compile the app.</p>
-<pre><code class="language-rust">builder.hot_reload();</code></pre>
-<p>⚠️ hot-reload is expensive and it should be enabled only during development.</p>
+file will reflect the running app immediately without needing to re-compile the app.
+This should only be used during development.</p>
+<pre><code class="language-rust">let mut builder = FamiqBuilder::new(&amp;mut commands, &amp;mut famiq_res, &amp;asset_server)
+    .hot_reload();</code></pre>
+<h3 id="types-of-widgets"><a class="header" href="#types-of-widgets">Types of widgets</a></h3>
+<p>There are 2 types of widgets provided by <strong>Famiq</strong> which are <strong>Containable</strong> widget and <strong>Non-containable</strong> widgets.</p>
+<ul>
+<li>
+<p><strong>Containable</strong> widgets can have child widgets and can also be nested inside other containable widgets, including <code>fa_container</code>, <code>fa_listview</code> and <code>fa_modal</code>.</p>
+</li>
+<li>
+<p><strong>Non-containable</strong> widgets cannot have children and must be placed inside a containable widget. including <code>fa_text</code>,
+<code>fa_button</code>, <code>fa_text_input</code>, <code>fa_selection</code>, <code>fa_image</code>, <code>fa_circular</code> and <code>fa_progress_bar</code>.</p>
+</li>
+</ul>
+<p>As you can see in the code above, <code>fa_text</code> &amp; <code>fa_button</code> were placed inside <code>fa_container</code>.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="installation.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="introduction.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
@@ -273,7 +297,7 @@ file will reflect the running app immediately without needing to re-compile the 
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="installation.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="introduction.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 

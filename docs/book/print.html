@@ -156,90 +156,69 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="what-is-famiq"><a class="header" href="#what-is-famiq">What is Famiq?</a></h1>
-<p><strong>Famiq</strong> is a UI library built on top of Bevy UI by providing default
-widgets and a simple way to manage styles.</p>
-<p>Instead of writing Rust code for styling,
-developers can define styles in a well known JSON file. These styles are then parsed
-into Bevy's native UI styles, significantly reducing boilerplate code.</p>
-<p>Built on top of Bevy UI, based on Bevy ECS.</p>
-<ul>
-<li><strong>Simple</strong>: Follows Bevy's philosophy—widgets are just Rust functions.</li>
-<li><strong>Clean</strong>: Styles can be defined in a JSON file, reducing boilerplate code.</li>
-<li><strong>Widgets</strong>: Includes useful default components like button, modal, listview and more.</li>
-<li><strong>Flexible</strong>: Just like in <code>HTML/CSS</code>, styles can be applied using <code>id</code> or <code>classes</code>.</li>
-</ul>
-<h3 id="simple-button"><a class="header" href="#simple-button">Simple button</a></h3>
-<pre><code class="language-rust">let my_btn = fa_button(&amp;mut builder, "Press me").build();</code></pre>
-<p>. <code>&amp;mut builder</code> is a mutable reference of <code>FamiqWidgetBuilder</code>.</p>
-<p>If you want to make changes to the widget, you can simply give it an <code>id</code> or <code>class</code>.</p>
-<pre><code class="language-rust">let my_btn = fa_button(&amp;mut builder, "Press me").id("#my-btn").build();</code></pre>
-<pre><code class="language-json">{
-  "#my-btn": {
-    "background_color": "yellow"
-  }
-}
-</code></pre>
-<h3 id="hot-reload"><a class="header" href="#hot-reload">Hot reload</a></h3>
-<p>Hot-reload can be enabled during development. When it's enabled, every changes in json
-file will reflect the running app immediately without needing to re-compile the app.</p>
-<pre><code class="language-rust">let mut builder = FamiqWidgetBuilder::new(
-    &amp;mut commands,
-    &amp;mut builder_res,
-    &amp;asset_server
-);
-
-builder.hot_reload();</code></pre>
-<h3 id="bevy-versions-support"><a class="header" href="#bevy-versions-support">Bevy versions support</a></h3>
-<p>Famiq is new and still in early stage of development. Currently, it supports only 0.15.x onward.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="installation"><a class="header" href="#installation">Installation</a></h1>
-<p>Famiq can be installed by adding this line into <code>Cargo.toml</code> file.</p>
+                        <p align="center">
+  <img width="200" src="logo.png">
+</p>
+<h4 align="center">
+  Build desktop GUI application with rust, based on ECS pattern, powered by Bevy game engine.
+</h4>
+<h4 id="simple"><a class="header" href="#simple">Simple</a></h4>
+<p>Designed with Bevy’s philosophy — widgets are just <strong>Rust functions</strong>.</p>
+<h4 id="built-in-widgets"><a class="header" href="#built-in-widgets">Built-in Widgets</a></h4>
+<p>Includes useful widgets like <strong>buttons, modals, list views</strong> and more.</p>
+<h4 id="for-high-performance-apps"><a class="header" href="#for-high-performance-apps">For High-Performance Apps</a></h4>
+<p>Leverages Bevy’s <strong>massive parallelism</strong> for smooth and efficient rendering.</p>
+<h2 id="installation"><a class="header" href="#installation">Installation</a></h2>
 <pre><code>cargo add famiq
 </code></pre>
-<p>or</p>
+<p>or adding this to <code>Cargo.toml</code></p>
 <pre><code class="language-toml">[dependencies]
-famiq = "0.2.5"
+famiq = "0.2.6"
 </code></pre>
-<p>using the latest version is recommended.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="getting-start"><a class="header" href="#getting-start">Getting Start</a></h1>
+<p>Famiq supports only bevy<code> 0.15.x</code> onward. Currently, the latest version of bevy is <code>0.15.3</code>.</p>
+<p>see <a href="https://crates.io/crates/famiq">crateio</a> &amp; <a href="https://docs.rs/famiq/latest/famiq/">rustdoc</a>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h4 id="-important"><a class="header" href="#-important">⚠️ IMPORTANT</a></h4>
+<p>Famiq is built on top <a href="https://bevyengine.org/">Bevy</a> and relies entirely on its <strong>ECS architecture</strong>. When you use <strong>Famiq</strong>,
+you're actually using the <strong>Bevy engine</strong>, with <strong>Famiq</strong> providing an abstraction for its UI system
+to help you build GUI applications, rather than Game UI.</p>
+<p>A solid understanding of <strong>Bevy's ECS</strong> is required. If you're new to <strong>Bevy</strong>,
+I recommend checking out <a href="https://bevyengine.org/learn/quick-start/introduction/">Bevy's quick start guide</a>.</p>
+<h1 id="getting-start"><a class="header" href="#getting-start">Getting Start</a></h1>
 <pre><code class="language-rust">use bevy::prelude::*;
 use famiq::prelude::*;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugins(FamiqPlugin) // add plugin
-        .add_systems(Startup, setup)
+        .add_plugins(FamiqPlugin) // required by Famiq
+        .add_systems(Startup, setup_ui)
         .run();
 }
 
-fn setup(
+fn setup_ui(
     mut commands: Commands,
-    mut famiq_res: ResMut&lt;FamiqWidgetResource&gt;, // required
-    asset_server: ResMut&lt;AssetServer&gt;, // required
+    mut famiq_res: ResMut&lt;FamiqResource&gt;,
+    asset_server: Res&lt;AssetServer&gt;
 ) {
     commands.spawn(Camera2d::default());
 
-    // create a widget builder
-    let mut builder = FamiqWidgetBuilder::new(
-        &amp;mut commands,
-        &amp;mut famiq_res,
-        &amp;asset_server,
-    );
+    // create a builder
+    let mut builder = FamiqBuilder::new(&amp;mut commands, &amp;mut famiq_res, &amp;asset_server);
 
-    // create simple texts using the builder
-    let hello_boss = fa_text(&amp;mut builder, "Hello Boss").build();
-    let hello_mom = fa_text(&amp;mut builder, "Hello Mom").build();
+    // simple text &amp; button widgets
+    let text = fa_text(&amp;mut builder, "Hello world").build();
+    let button = fa_button(&amp;mut builder, "Press me").build();
 
-    // add texts to container
-    fa_container(&amp;mut builder)
-        .children([hello_boss, hello_mom])
-        .build();
+    // add widgets to a container
+    fa_container(&amp;mut builder).children([text, button]).build();
 }</code></pre>
-<p><img src="images/helloboss_img.png" alt="Hello Boss Screenshot" /></p>
-<h3 id="what-is-famiqwidgetbuilder"><a class="header" href="#what-is-famiqwidgetbuilder">What is FamiqWidgetBuilder?</a></h3>
-<p>In simple terms, <code>FamiqWidgetBuilder</code> is the root UI node that acts as a starting point for building and managing widgets. All widgets are created and structured on top of this root.</p>
-<p><code>FamiqWidgetBuilder</code> provides some useful methods:</p>
+<p>run your project <code>cargo run</code>, you will see a text and a button.</p>
+<h3 id="what-is-famiqplugin"><a class="header" href="#what-is-famiqplugin">What is <strong><code>FamiqPlugin</code></strong>?</a></h3>
+<p><code>FamiqPlugin</code> brings in all the required <code>Resources</code> &amp; <code>Internal systems</code> in order to run the app.
+It must be registered after <code>DefaultPlugins</code> provided by Bevy.</p>
+<h3 id="what-is-famiqbuilder"><a class="header" href="#what-is-famiqbuilder">What is <strong><code>FamiqBuilder</code></strong>?</a></h3>
+<p>In simple terms, <code>FamiqBuilder</code> is the root UI node that acts as a starting point for building and managing widgets. All widgets are created and structured on top of this root.</p>
+<p>There are methods provided by <code>FamiqBuilder</code> including:</p>
 <ul>
 <li><a href="gettingstart.html#-use_font_path">use_font_path()</a></li>
 <li><a href="gettingstart.html#-register_tooltip">register_tooltip()</a></li>
@@ -259,8 +238,8 @@ simply call <code>use_font_path()</code> method.</p>
 │   │   ├── Some-font.ttf
 ├── src/
 </code></pre>
-<pre><code class="language-text">builder.use_font_path("fonts/Some-font.ttf");
-</code></pre>
+<pre><code class="language-rust">let mut builder = FamiqBuilder::new(&amp;mut commands, &amp;mut famiq_res, &amp;asset_server)
+    .use_font_path("fonts/Some-font.ttf");</code></pre>
 </li>
 <li>
 <p><strong>For Multi-Crate/Workspace project structure</strong>:
@@ -275,9 +254,8 @@ In a multi-crate workspace, the custom font path is read from the subcrate/membe
 │   ├── assets/
 │   ├── src/
 </code></pre>
-<pre><code class="language-text">// Inside subcrate 1
-builder.use_font_path("fonts/Some-font.ttf");z
-</code></pre>
+<pre><code class="language-rust">let mut builder = FamiqBuilder::new(&amp;mut commands, &amp;mut famiq_res, &amp;asset_server)
+    .use_font_path("fonts/Some-font.ttf");</code></pre>
 </li>
 </ul>
 <p>⚠️ some fonts might cause rendering issue including positioning and styling.</p>
@@ -286,145 +264,79 @@ builder.use_font_path("fonts/Some-font.ttf");z
 <h4 id="note"><a class="header" href="#note">Note</a></h4>
 <p>If <code>use_font_path</code> is called, <code>register_tooltip</code> must be called <strong>after</strong> <code>use_font_path</code>
 to ensure that the custom font is applied to the tooltip.</p>
-<pre><code class="language-rust">builder.register_tooltip();</code></pre>
+<pre><code class="language-rust">let mut builder = FamiqBuilder::new(&amp;mut commands, &amp;mut famiq_res, &amp;asset_server)
+    .use_font_path("fonts/Some-font.ttf") // if use_font_path is called
+    .register_tooltip();</code></pre>
 <h3 id="-use_style_path"><a class="header" href="#-use_style_path">🔵 <code>use_style_path()</code></a></h3>
-<p>By default, Famiq will look for json file for styling at <code>assets/styles.json</code>, relative to root directory. If you want to use another path or name, you can simply call <code>use_style_path()</code> method.</p>
+<p>By default, Famiq will look for json file for styling at <code>assets/styles.json</code>, relative to root directory.
+If you want to use another path or name, you can simply call <code>use_style_path()</code> method.</p>
 <h4 id="note-1"><a class="header" href="#note-1">Note</a></h4>
 <ul>
 <li><strong>For Multi-Crate/Workspace project structure</strong>: if you have json file inside sub-crate <code>assets</code> directory, you need to specify
 full path relative to root directory, not sub-crate.</li>
 </ul>
-<pre><code class="language-rust">builder.use_style_path("path/to/sub-crate/assets/subcrate-style.json");</code></pre>
+<pre><code class="language-rust">// normal project
+let mut builder = FamiqBuilder::new(&amp;mut commands, &amp;mut famiq_res, &amp;asset_server)
+    .use_style_path("assets/my-styles.json");
+
+// multi crate/workspace
+let mut builder = FamiqBuilder::new(&amp;mut commands, &amp;mut famiq_res, &amp;asset_server)
+    .use_style_path("path/to/sub-crate/assets/subcrate-style.json");</code></pre>
 <h3 id="-hot_reload"><a class="header" href="#-hot_reload">🔵 <code>hot_reload()</code></a></h3>
 <p>This method will enable hot-reload. When it's enabled, every changes in json
-file will reflect the running app immediately without needing to re-compile the app.</p>
-<pre><code class="language-rust">builder.hot_reload();</code></pre>
-<p>⚠️ hot-reload is expensive and it should be enabled only during development.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="how-styling-works"><a class="header" href="#how-styling-works">How styling works?</a></h1>
-<p>Bevy's default approach to UI development requires writing Rust code for styling, which can quickly become verbose and repetitive. <strong>Famiq</strong> introduces a way to define styles using JSON file, making UI development in Bevy more accessible and efficient.</p>
-<h2 id="key-features"><a class="header" href="#key-features">Key Features</a></h2>
-<ul>
-<li><strong>JSON-based Styling</strong>: Write styles in a familiar, CSS-like JSON format.</li>
-<li><strong>Automatic Parsing</strong>: JSON styles are parsed into Bevy's native style format.</li>
-<li><strong>Reduced Boilerplate</strong>: Eliminate repetitive Rust code for UI styling.</li>
-<li><strong>Hot-Reload</strong>: Any changes made to json file will be reflected to the running app without needing to re-compile the app.</li>
-</ul>
-<h2 id="example-1"><a class="header" href="#example-1">Example</a></h2>
-<p>Normal <strong>Bevy UI</strong> styles.</p>
-<pre><code class="language-rust">commands.spawn((
-    Node {
-        border: UiRect::all(Val::Px(3.0)),
-        padding: UiRect {
-            left: Val::Px(5.0),
-            right: Val::Px(5.0),
-            top: Val::Px(10.0),
-            bottom: Val::Px(10.0)
-        },
-        margin: UiRect::All(Val::Auto),
-        width: Val::Percent(100.0),
-        ..default()
-    },
-    BorderColor(Color::srgba(1.0, 1.0, 1.0, 0.3)),
-    BorderRadius::all(Val::Px(5.0))
-));</code></pre>
-<p>With <strong>Famiq</strong>, you can simply give widget an id or class, then write styles in json file.</p>
-<pre><code class="language-json">{
-  "#my-widget-id": {
-    "padding": "5px 5px 10px 10px",
-    "border": "3px 3px 3px 3px",
-    "border_color": "srgba 1.0, 1.0, 1.0, 0.3",
-    "border_radius": "5px 5px 5px 5px",
-    "width": "100%",
-    "margin": "auto auto auto auto"
-  }
-}
-</code></pre>
-<h2 id="supported--unsupported-styles"><a class="header" href="#supported--unsupported-styles">Supported &amp; Unsupported styles</a></h2>
-<h4 id="unsupported"><a class="header" href="#unsupported">Unsupported</a></h4>
-<pre><code class="language-rust">grid_template_rows: Vec&lt;RepeatedGridTrack&gt;
-grid_template_columns: Vec&lt;RepeatedGridTrack&gt;
-grid_auto_rows: Vec&lt;GridTrack&gt;
-grid_auto_columns: Vec&lt;GridTrack&gt;
-grid_row: GridPlacement
-grid_column: GridPlacement</code></pre>
-<h4 id="supported"><a class="header" href="#supported">Supported</a></h4>
-<pre><code class="language-rust">color: Color
-font_size: f32
-
-background_color: BackgroundColor
-border_color: BorderColor
-border_radius: BorderRadius
-visibility: Visibility
-z_index: ZIndex
-
-display: Display
-position_type: PositionType
-overflow: Overflow
-direction: Direction
-left: Val
-right: Val
-top: Val
-bottom: Val
-width: Val
-height: Val
-min_width: Val
-min_height: Val
-max_width: Val
-max_height: Val
-aspect_ratio: Option&lt;f32&gt;
-align_items: AlignItems
-justify_items: JustifyItems
-align_self: AlignSelf
-justify_self: JustifySelf
-align_content: AlignContent
-justify_content: JustifyContent
-margin: UiRect
-padding: UiRect
-border: UiRect
-flex_direction: FlexDirection
-flex_wrap: FlexWrap
-flex_grow: f32
-flex_shrink: f32
-flex_basis: Val
-row_gap: Val
-column_gap: Val
-grid_auto_flow: GridAutoFlow</code></pre>
-<h4 id="supported-val-enum"><a class="header" href="#supported-val-enum">Supported Val enum</a></h4>
-<pre><code class="language-rust">Val {
-    Auto,
-    Px,
-    Percent,
-    Vw,
-    Vh
-}</code></pre>
-<h4 id="supported-color-enum"><a class="header" href="#supported-color-enum">Supported Color enum</a></h4>
-<pre><code class="language-rust">Color {
-    Srgba(Srgba),
-    LinearRgba(LinearRgba),
-    Hsla(Hsla)
-}</code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="how-to-write-bevy-styles-in-json-file"><a class="header" href="#how-to-write-bevy-styles-in-json-file">How to write bevy styles in JSON file.</a></h1>
-<p><strong>Famiq</strong> supports almost all UI styles provided by Bevy engine.</p>
-<h3 id="id--class"><a class="header" href="#id--class">id &amp; Class</a></h3>
-<pre><code class="language-json">{
-  "#my-widget-id": {
-    ..
-  },
-  ".some-class": {
-    ..
-  }
-}
-</code></pre>
-<ul>
-<li><code>class_name</code> must starts with dot <code>.</code>.</li>
-</ul>
-<h3 id="for-text-widgets"><a class="header" href="#for-text-widgets">For text widgets</a></h3>
+file will reflect the running app immediately without needing to re-compile the app.
+This should only be used during development.</p>
+<pre><code class="language-rust">let mut builder = FamiqBuilder::new(&amp;mut commands, &amp;mut famiq_res, &amp;asset_server)
+    .hot_reload();</code></pre>
+<h3 id="types-of-widgets"><a class="header" href="#types-of-widgets">Types of widgets</a></h3>
+<p>There are 2 types of widgets provided by <strong>Famiq</strong> which are <strong>Containable</strong> widget and <strong>Non-containable</strong> widgets.</p>
 <ul>
 <li>
-<p><code>color</code>: text color. Supports only <code>srgba</code>, <code>linear_rgba</code>, <code>hsla</code> and basic colors.</p>
+<p><strong>Containable</strong> widgets can have child widgets and can also be nested inside other containable widgets, including <code>fa_container</code>, <code>fa_listview</code> and <code>fa_modal</code>.</p>
+</li>
+<li>
+<p><strong>Non-containable</strong> widgets cannot have children and must be placed inside a containable widget. including <code>fa_text</code>,
+<code>fa_button</code>, <code>fa_text_input</code>, <code>fa_selection</code>, <code>fa_image</code>, <code>fa_circular</code> and <code>fa_progress_bar</code>.</p>
+</li>
+</ul>
+<p>As you can see in the code above, <code>fa_text</code> &amp; <code>fa_button</code> were placed inside <code>fa_container</code>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="how-can-i-style-my-widgets"><a class="header" href="#how-can-i-style-my-widgets">How can I style my widgets?</a></h1>
+<p><strong>Famiq</strong> uses a <strong>JSON-based styling system</strong>, similar to how <strong>HTML</strong> uses <strong>CSS</strong>.</p>
+<p>Each widget can have an <strong>id</strong> or <strong>classes</strong>, which are used to apply styles from the JSON file.</p>
+<pre><code class="language-rust">// by id
+let button = fa_button(&amp;mut builder, "Press me").id("#button").build();
+
+// by class or classes
+let text_1 = fa_text(&amp;mut builder, "Hello world").class("text important").build();
+let text_2 = fa_text(&amp;mut builder, "Hello mom").class("text").build();</code></pre>
+<pre><code class="language-json">{
+  "#button": {
+    "background_color": "blue"
+  },
+
+  ".text": {
+    "font_size": "40"
+  },
+
+  ".important": {
+    "color": "red"
+  }
+}
+</code></pre>
+<p><strong>Notes</strong></p>
+<ul>
+<li><strong>IDs (id)</strong> must start with <strong><code>#</code></strong> and must match between the widget and the JSON file.</li>
+<li><strong>Class names (class)</strong> must start with <strong><code>.</code></strong> in the JSON file.</li>
+</ul>
+<p>Currently, <strong>id</strong> or <strong>class</strong> assigned to a widget is <strong>immutable</strong>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="how-to-write-bevy-styles-in-json-file"><a class="header" href="#how-to-write-bevy-styles-in-json-file">How to write bevy styles in JSON file?</a></h1>
+<p><strong>Famiq</strong> supports almost all UI styles provided by Bevy engine.</p>
+<ul>
+<li>
+<p><code>color</code>: text color, supports only <code>srgba</code>, <code>linear_rgba</code>, <code>hsla</code> and basic colors.</p>
 <p>Examples,</p>
 <ul>
-<li><code>"color": "srgba 0.961, 0, 0.784, 0.961"</code></li>
+<li><code>"color": "srgba 0.961, 0.0, 0.784, 0.9"</code></li>
 <li><code>"color": "yellow"</code></li>
 </ul>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.TextColor.html">https://docs.rs/bevy/latest/bevy/prelude/struct.TextColor.html</a></p>
@@ -434,14 +346,11 @@ grid_auto_flow: GridAutoFlow</code></pre>
 <p>Example, <code>"font_size": "14"</code></p>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.TextFont.html#structfield.font_size">https://docs.rs/bevy/latest/bevy/prelude/struct.TextFont.html#structfield.font_size</a></p>
 </li>
-</ul>
-<h3 id="for-node-widgets"><a class="header" href="#for-node-widgets">For node widgets</a></h3>
-<ul>
 <li>
 <p><code>background_color</code>: supports only <code>srgba</code>, <code>linear_rgba</code>, <code>hsla</code> and basic colors.</p>
 <p>Examples,</p>
 <ul>
-<li><code>"background_color": "srgba 0.961, 0, 0.784, 0.961"</code></li>
+<li><code>"background_color": "srgba 0.961, 0.0, 0.784, 0.95"</code></li>
 <li><code>"background_color": "green"</code></li>
 </ul>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.BackgroundColor.html">https://docs.rs/bevy/latest/bevy/prelude/struct.BackgroundColor.html</a></p>
@@ -450,7 +359,7 @@ grid_auto_flow: GridAutoFlow</code></pre>
 <p><code>border_color</code>: supports only <code>srgba</code>, <code>linear_rgba</code>, <code>hsla</code> and basic colors.</p>
 <p>Examples,</p>
 <ul>
-<li><code>"border_color": "linear_rgba 0.961, 0, 0.784, 0.961"</code></li>
+<li><code>"border_color": "linear_rgba 0.961, 0.0, 0.784, 0.9"</code></li>
 <li><code>"border_color": "pink"</code></li>
 </ul>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.BorderColor.html">https://docs.rs/bevy/latest/bevy/prelude/struct.BorderColor.html</a></p>
@@ -461,23 +370,11 @@ grid_auto_flow: GridAutoFlow</code></pre>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.BorderRadius.html">https://docs.rs/bevy/latest/bevy/prelude/struct.BorderRadius.html</a></p>
 </li>
 <li>
-<p><code>border_radius_top_left</code>: this will override top_left value defined in <code>border_radius</code>.</p>
-</li>
-<li>
-<p><code>border_radius_top_right</code>: this will override top_right value defined in <code>border_radius</code>.</p>
-</li>
-<li>
-<p><code>border_radius_bottom_left</code>: this will override bottom_left value defined in <code>border_radius</code>.</p>
-</li>
-<li>
-<p><code>border_radius_bottom_right</code>: this will override bottom_right value defined in <code>border_radius</code>.</p>
-</li>
-<li>
 <p><code>visibility</code>: supports only <code>visible</code>, <code>hidden</code> and <code>inherited</code>.</p>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/enum.Visibility.html">https://docs.rs/bevy/latest/bevy/prelude/enum.Visibility.html</a></p>
 </li>
 <li>
-<p><code>z_index</code>: indicates that this Node entity’s front-to-back ordering is not controlled solely by its location in the UI hierarchy. A node with a higher z-index will appear on top of sibling nodes with a lower z-index.</p>
+<p><code>z_index</code>: indicates that a widget’s front-to-back ordering is not controlled solely by its location in the UI hierarchy. A widget with a higher z-index will appear on top of sibling widgets with a lower z-index.</p>
 <p>Example, <code>"z_index": "2"</code></p>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.ZIndex.html">https://docs.rs/bevy/latest/bevy/prelude/struct.ZIndex.html</a></p>
 </li>
@@ -498,43 +395,43 @@ grid_auto_flow: GridAutoFlow</code></pre>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Overflow.html">https://docs.rs/bevy/latest/bevy/prelude/struct.Overflow.html</a></p>
 </li>
 <li>
-<p><code>left</code>: the horizontal position of the left edge of the node.</p>
+<p><code>left</code>: the horizontal position of the left edge of the widget.</p>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.left">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.left</a></p>
 </li>
 <li>
-<p><code>right</code>: the horizontal position of the right edge of the node.</p>
+<p><code>right</code>: the horizontal position of the right edge of the widget.</p>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.right">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.right</a></p>
 </li>
 <li>
-<p><code>top</code>: the vertical position of the top edge of the node.</p>
+<p><code>top</code>: the vertical position of the top edge of the widget.</p>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.top">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.top</a></p>
 </li>
 <li>
-<p><code>bottom</code>: the vertical position of the bottom edge of the node.</p>
+<p><code>bottom</code>: the vertical position of the bottom edge of the widget.</p>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.bottom">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.bottom</a></p>
 </li>
 <li>
-<p><code>width</code>: the ideal width of the node. width is used when it is within the bounds defined by <code>min_width</code> and <code>max_width</code>.</p>
+<p><code>width</code>: the ideal width of the widget. width is used when it is within the bounds defined by <code>min_width</code> and <code>max_width</code>.</p>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.width">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.width</a></p>
 </li>
 <li>
-<p><code>height</code>: the ideal height of the node. height is used when it is within the bounds defined by <code>min_height</code> and <code>max_height</code>.</p>
+<p><code>height</code>: the ideal height of the widget. height is used when it is within the bounds defined by <code>min_height</code> and <code>max_height</code>.</p>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.height">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.height</a></p>
 </li>
 <li>
-<p><code>min_width</code>: the minimum <code>width</code> of the node. <code>min_width</code> is used if it is greater than <code>width</code> and/or <code>max_width</code>.</p>
+<p><code>min_width</code>: the minimum <code>width</code> of the widget. <code>min_width</code> is used if it is greater than <code>width</code> and/or <code>max_width</code>.</p>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.min_width">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.min_width</a></p>
 </li>
 <li>
-<p><code>min_height</code>: the minimum <code>height</code> of the node. <code>min_height</code> is used if it is greater than <code>height</code> and/or <code>max_height</code>.</p>
+<p><code>min_height</code>: the minimum <code>height</code> of the widget. <code>min_height</code> is used if it is greater than <code>height</code> and/or <code>max_height</code>.</p>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.min_height">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.min_height</a></p>
 </li>
 <li>
-<p><code>max_width</code>: the maximum <code>width</code> of the node. <code>max_width</code> is used if it is within the bounds defined by <code>min_width</code> and <code>width</code>.</p>
+<p><code>max_width</code>: the maximum <code>width</code> of the widget. <code>max_width</code> is used if it is within the bounds defined by <code>min_width</code> and <code>width</code>.</p>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.max_width">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.max_width</a></p>
 </li>
 <li>
-<p><code>max_height</code>: the maximum <code>height</code> of the node. <code>max_height</code> is used if it is within the bounds defined by <code>min_height</code> and <code>height</code>.</p>
+<p><code>max_height</code>: the maximum <code>height</code> of the widget. <code>max_height</code> is used if it is within the bounds defined by <code>min_height</code> and <code>height</code>.</p>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.max_height">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.max_height</a></p>
 </li>
 <li>
@@ -641,8 +538,15 @@ grid_auto_flow: GridAutoFlow</code></pre>
 </li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="interaction"><a class="header" href="#interaction">Interaction</a></h1>
-<p>All widgets provided by <strong>Famiq</strong> have <code>Interaction</code> component attached by default.
-That means all those widgets will emit <code>FaInteractionEvent</code> to bevy's <code>EventReader</code> with either <code>Pressed</code>, <code>Hovered</code> or <code>None</code>.</p>
+<p>There are 3 types of interaction</p>
+<ul>
+<li>Pressed</li>
+<li>Hovered</li>
+<li>None (leaving hovered)</li>
+</ul>
+<p><strong>Famiq</strong> emits an event with type of <code>FaInteractionEvent</code> whenever one of the iteraction is matched.
+The event then can be read from bevy's <code>EventReader</code>.</p>
+<p>Each event has a widget type flag.</p>
 <pre><code class="language-rust">pub struct FaInteractionEvent {
     pub entity: Entity,
     pub widget_id: Option&lt;String&gt;,
@@ -651,480 +555,267 @@ That means all those widgets will emit <code>FaInteractionEvent</code> to bevy's
 }</code></pre>
 <p>Available widget types</p>
 <pre><code class="language-rust">pub enum WidgetType {
-    Root,
     Button,
     Container,
     Text,
     FpsText,
     TextInput,
+    TextInputTogglePasswordIcon,
     ListView,
     ListViewItem,
     Selection,
     SelectionChoice,
     Circular,
-    Modal,
+    ProgressBar,
     Image
 }</code></pre>
 <h2 id="handle-interaction"><a class="header" href="#handle-interaction">Handle interaction</a></h2>
-<p>You can write a bevy system to handle Famiq’s widgets interaction.</p>
+<p>You can write a bevy system that runs in <code>Update</code> schedule to handle Famiq’s widgets interaction.</p>
+<p>Example,</p>
 <pre><code class="language-rust">fn handle_button_press_system(mut events: EventReader&lt;FaInteractionEvent&gt;) {
     for e in events.read() {
-        if e.widget == WidgetType::Image &amp;&amp; e.interaction == Interaction::Hovered {
-            // make sure this works only with widgets that have id provided
-            if let Some(id) = e.widget_id.as_ref() {
-                match id.as_str() {
-                    "#image-one-id" =&gt; {
-                        // do something
-                    },
-                    "#image-two-id" =&gt; {
-                        // do something
-                    }
-                    _ =&gt; ()
+        if !e.is_pressed(WidgetType::Button) {
+            return;
+        }
+
+        // make sure this works only with widgets that have id provided
+        if let Some(id) = e.widget_id.as_ref() {
+            match id.as_str() {
+                "#button-one" =&gt; {
+                    // do something when #button-one is pressed
+                },
+                "#button-two" =&gt; {
+                    // do something when #button-two is pressed
                 }
+                _ =&gt; ()
             }
         }
     }
 }</code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="famiq-widgets"><a class="header" href="#famiq-widgets">Famiq Widgets</a></h1>
-<p>Famiq provides some default widgets that are likely required in any UI development.</p>
-<h3 id="default-widgets"><a class="header" href="#default-widgets">Default widgets</a></h3>
+<p>Beside <code>is_pressed</code>, there are also <code>is_hovered</code> and <code>is_left</code> (from hovered -&gt; none).</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="built-in-classes"><a class="header" href="#built-in-classes">Built-in classes</a></h1>
+<p><strong>Famiq</strong> provides built-in classes for <strong>color</strong>, <strong>size</strong> and <strong>spacing</strong>.</p>
+<h3 id="color"><a class="header" href="#color">Color</a></h3>
+<p><code>is-primary</code> | <code>is-secondary</code> | <code>is-success</code> | <code>is-danger</code> | <code>is-info</code> | <code>is-warning</code> |</p>
+<p><code>is-primary-dark</code> | <code>is-success-dark</code> | <code>is-danger-dark</code> | <code>is-info-dark</code> | <code>is-warning-dark</code> |</p>
+<p><code>is-dark</code>.</p>
+<p><img src="chapter_3/../images/color_class.png" alt="color classes" /></p>
+<h3 id="size"><a class="header" href="#size">Size</a></h3>
+<p><code>is-small</code> | <code>is-large</code></p>
+<h3 id="spacing"><a class="header" href="#spacing">Spacing</a></h3>
+<p>Margin</p>
+<p><strong>x</strong> is a number * 5px</p>
 <ul>
-<li><a href="chapter_3/./container.html">Container</a></li>
-<li><a href="chapter_3/./button.html">Button</a></li>
-<li><a href="chapter_3/./text.html">Text</a></li>
-<li><a href="chapter_3/./fps_text.html">FpsText</a></li>
-<li><a href="chapter_3/./text_input.html">TextInput</a></li>
-<li><a href="chapter_3/./selection.html">Selection</a></li>
-<li><a href="chapter_3/./circular.html">Circular</a></li>
-<li><a href="chapter_3/./modal.html">Modal</a></li>
-<li><a href="chapter_3/./list_view.html">ListView</a></li>
-<li><a href="chapter_3/./image.html">Image</a></li>
-<li><a href="chapter_3/./bg_image.html">Background Image</a></li>
-<li><a href="chapter_3/./progress_bar.html">Progress Bar</a></li>
+<li><code>mt-x</code> | <code>mb-x</code> | <code>ml-x</code> | <code>mr-x</code>: margin top, bottom, left and right at <code>x</code> * <code>5px</code>.</li>
+<li><code>mt-auto</code> | <code>mb-auto</code> | <code>ml-auto</code> | <code>mr-auto</code>: margin auto for top, bottom, left and right.</li>
+<li><code>my-x</code>: margin top and bottom at <code>x</code> * <code>5px</code>.</li>
+<li><code>my-auto</code>: margin auto for top and bottom.</li>
+<li><code>mx-x</code>: margin left and right at <code>x</code> * <code>5px</code>.</li>
+<li><code>mx-auto</code>: margin auto for left and right.</li>
+</ul>
+<p>Padding</p>
+<p><strong>x</strong> is a number * 5px</p>
+<ul>
+<li><code>pt-x</code> | <code>pb-x</code> | <code>pl-x</code> | <code>pr-x</code>: padding top, bottom, left and right at <code>x</code> * <code>5px</code>.</li>
+<li><code>pt-auto</code> | <code>pb-auto</code> | <code>pl-auto</code> | <code>pr-auto</code>: padding auto for top, bottom, left and right.</li>
+<li><code>py-x</code>: padding top and bottom at <code>x</code> * <code>5px</code>.</li>
+<li><code>py-auto</code>: padding auto for top and bottom.</li>
+<li><code>px-x</code>: padding left and right at <code>x</code> * <code>5px</code>.</li>
+<li><code>px-auto</code>: padding auto for left and right.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="widgets"><a class="header" href="#widgets">Widgets</a></h1>
+<p><strong>Famiq</strong> provides some default widgets that are likely required to build GUI application.</p>
+<ul>
+<li><a href="chapter_4/./container.html">Container</a></li>
+<li><a href="chapter_4/./button.html">Button</a></li>
+<li><a href="chapter_4/./text.html">Text</a></li>
+<li><a href="chapter_4/./fps_text.html">FpsText</a></li>
+<li><a href="chapter_4/./text_input.html">TextInput</a></li>
+<li><a href="chapter_4/./selection.html">Selection</a></li>
+<li><a href="chapter_4/./circular.html">Circular</a></li>
+<li><a href="chapter_4/./modal.html">Modal</a></li>
+<li><a href="chapter_4/./list_view.html">ListView</a></li>
+<li><a href="chapter_4/./image.html">Image</a></li>
+<li><a href="chapter_4/./bg_image.html">Background Image</a></li>
+<li><a href="chapter_4/./progress_bar.html">Progress Bar</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="facontainer"><a class="header" href="#facontainer">FaContainer</a></h1>
-<pre><code>🟢 Doesn't need container
-🟢 Accepts child/children
-</code></pre>
-<p>An empty and stylyable widget. Think of it as a div inside HTML.</p>
-<h3 id="widget-api"><a class="header" href="#widget-api">Widget API</a></h3>
-<pre><code class="language-rust">pub fn fa_container&lt;'a&gt;(builder: &amp;'a mut FamiqWidgetBuilder) -&gt; FaContainerBuilder&lt;'a&gt; {
-    // ..
-}</code></pre>
+<p>An empty and stylyable widget. Think of it as a <strong>div</strong> inside HTML.
+It can also be used to create custom widgets.</p>
+<p><strong>Note</strong></p>
+<ul>
+<li>
+<p><code>fa_container</code> has its default height set to <code>auto</code>, meaning its height
+depends on its children.</p>
+</li>
+<li>
+<p>If you use <code>fa_container</code> to create a custom widget without <code>children</code>, you
+must set the height to a specific value.</p>
+</li>
+</ul>
 <h3 id="usage"><a class="header" href="#usage">usage</a></h3>
 <pre><code class="language-rust">let container = fa_container(&amp;mut builder).build();</code></pre>
-<p>Return <code>Entity</code> of the widget which can be used as child for another widget.</p>
-<h3 id="example-2"><a class="header" href="#example-2">Example</a></h3>
-<p>Texts without container</p>
-<pre><code class="language-rust">let boss = fa_text(&amp;mut builder, "Hello Boss").build();
-let mom = fa_text(&amp;mut builder, "Hello Mom").build();</code></pre>
-<p><img src="chapter_3/../images/container_example_1.png" alt="Example 1" /></p>
-<p>Texts inside container</p>
+<p>Return <code>Entity</code> of the widget which can optionally be used as child for another containable widget.</p>
+<h3 id="available-methods"><a class="header" href="#available-methods">Available methods</a></h3>
+<ul>
+<li><code>id(&amp;str)</code></li>
+<li><code>class(&amp;str)</code></li>
+<li><code>display(&amp;str)</code></li>
+<li><code>children([Entity])</code></li>
+</ul>
+<h3 id="example-1"><a class="header" href="#example-1">Example</a></h3>
 <pre><code class="language-rust">let boss = fa_text(&amp;mut builder, "Hello Boss").build();
 let mom = fa_text(&amp;mut builder, "Hello Mom").build();
 
-fa_container(&amp;mut builder).children([boss, mom]).build();</code></pre>
-<p><img src="chapter_3/../images/container_example_2.png" alt="Example 2" /></p>
-<h3 id="styling"><a class="header" href="#styling">Styling</a></h3>
-<p><code>id</code> and <code>classes</code> can be provided to container to be able to style it from json file.</p>
-<pre><code class="language-rust">fa_container(&amp;mut builder)
-    .id("#container")
+fa_container(&amp;mut builder)
+    .id("#my-container")
     .children([boss, mom])
     .build();</code></pre>
-<pre><code class="language-json">{
-  "#container": {
-    "background_color": "yellow",
-    "border_color": "yellow",
-    "border_radius": "10px 10px 10px 10px"
-  }
-}
-</code></pre>
-<p><img src="chapter_3/../images/container_example_3.png" alt="Example 3" /></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="fabutton"><a class="header" href="#fabutton">FaButton</a></h1>
-<pre><code>🟡 Needs container
-🟡 Doesn't accept child/children
-</code></pre>
-<h3 id="colors"><a class="header" href="#colors">Colors</a></h3>
-<pre><code class="language-rust">pub enum BtnColor {
-    Default,
-    Primary,
-    PrimaryDark,
-    Secondary,
-    Success,
-    SuccessDark,
-    Danger,
-    DangerDark,
-    Warning,
-    WarningDark,
-    Info,
-    InfoDark
-}</code></pre>
-<h3 id="shapes"><a class="header" href="#shapes">Shapes</a></h3>
-<pre><code class="language-rust">pub enum BtnShape {
-    Default,
-    Round,
-    Rectangle
-}</code></pre>
-<h3 id="sizes"><a class="header" href="#sizes">Sizes</a></h3>
-<pre><code class="language-rust">pub enum BtnSize {
-    Small,
-    Normal,
-    Large,
-}</code></pre>
-<h3 id="widget-api-1"><a class="header" href="#widget-api-1">Widget API</a></h3>
-<pre><code class="language-rust">pub fn fa_button&lt;'a&gt;(builder: &amp;'a mut FamiqWidgetBuilder, text: &amp;str) -&gt; FaButtonBuilder&lt;'a&gt; {
-    // ..
-}</code></pre>
 <h3 id="usage-1"><a class="header" href="#usage-1">Usage</a></h3>
 <pre><code class="language-rust">let button = fa_button(&amp;mut builder, "Press me").build();</code></pre>
-<p>Return <code>Entity</code> of the widget which must be used inside <code>FaContainer</code> widget.</p>
-<h3 id="built-in-classes"><a class="header" href="#built-in-classes">Built-in classes</a></h3>
+<p>Return <code>Entity</code> of the widget which must be used inside a containable widget.</p>
+<h3 id="available-methods-1"><a class="header" href="#available-methods-1">Available methods</a></h3>
 <ul>
-<li>
-<p>Color: <code>is-primary</code>, <code>is-primary-dark</code>, <code>is-secondary</code>, <code>is-danger</code>, <code>is-danger-dark</code>, <code>is-info</code>, <code>is-info-dark</code>,
-<code>is-success</code>, <code>is-success-dark</code>, <code>is-warning</code>, <code>is-warning-dark</code>.</p>
-</li>
-<li>
-<p>Size: <code>is-small</code>, <code>is-normal</code>, <code>is-large</code>.</p>
-</li>
-<li>
-<p>Shape: <code>is-round</code>, <code>is-rectangle</code>.</p>
-</li>
+<li><code>id(&amp;str)</code></li>
+<li><code>class(&amp;str)</code></li>
+<li><code>display(&amp;str)</code></li>
+<li><code>color(&amp;str)</code>: set custom background color.</li>
 </ul>
-<h3 id="example-3"><a class="header" href="#example-3">Example</a></h3>
-<pre><code class="language-rust">// default
-let my_btn = fa_button(&amp;mut builder, "Press me")
-    .id("#my-btn")
+<h3 id="example-2"><a class="header" href="#example-2">Example</a></h3>
+<pre><code class="language-rust">let default_btn = fa_button(&amp;mut builder, "Default button")
+    .id("#default-btn")
     .build();
 
-// info
-let info_btn = fa_button(&amp;mut builder, "Press me")
+let info_btn = fa_button(&amp;mut builder, "Info button")
     .id("#info-btn")
     .class("is-info")
     .build();
 
-// success &amp; small
-let small_btn = fa_button(&amp;mut builder, "Press me")
-    .class("is-success is-small")
-    .build();
-
-// warning &amp; large
-let large_btn = fa_button(&amp;mut builder, "Press me")
-    .class("is-warning is-large")
-    .build();
-
 fa_container(&amp;mut builder)
-    .children([my_btn, info_btn, small_btn, large_btn])
+    .children([default_btn, info_btn])
     .build();</code></pre>
-<p><img src="chapter_3/../images/btn_example_1.png" alt="Example 1" /></p>
 <h3 id="handle-button-press"><a class="header" href="#handle-button-press">Handle button press</a></h3>
+<p>You can write a system that run in <code>Update</code> schedule to handle button events (hovered, pressed, none).</p>
 <pre><code class="language-rust">fn handle_button_press_system(mut events: EventReader&lt;FaInteractionEvent&gt;) {
     for e in events.read() {
-        if e.is_button_pressed() {
-            // make sure this works only with buttons that have id provided
-            if let Some(id) = e.widget_id.as_ref() {
-                match ud.as_str() {
-                    "#my-btn" =&gt; {
-                        // do something with my button
-                    },
-                    "#info-btn" =&gt; {
-                        // do something with info button
-                    }
-                    _ =&gt; ()
+
+        // it's not a button press event, return early.
+        if !e.is_pressed(WidgetType::Button) {
+            return;
+        }
+
+        // make sure this works only with buttons that have id provided
+        if let Some(id) = e.widget_id.as_ref() {
+            match id.as_str() {
+                "#default-btn" =&gt; {
+                    // do something when default button is pressed
+                },
+                "#info-btn" =&gt; {
+                    // do something when info button is pressed
                 }
+                _ =&gt; ()
             }
         }
     }
 }</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="fatext"><a class="header" href="#fatext">FaText</a></h1>
-<pre><code>🟡 Needs container
-🟡 Doesn't accept child/children
-</code></pre>
-<h3 id="api"><a class="header" href="#api">API</a></h3>
-<pre><code class="language-rust">pub fn fa_text&lt;'a&gt;(builder: &amp;'a mut FamiqWidgetBuilder, value: &amp;str) -&gt; FaTextBuilder&lt;'a&gt; {
-    // ..
-}</code></pre>
 <h3 id="usage-2"><a class="header" href="#usage-2">Usage</a></h3>
 <pre><code class="language-rust">let text = fa_text(&amp;mut builder, "Some text").build();</code></pre>
-<p>Return <code>Entity</code> of the widget which must be used inside <code>FaContainer</code> widget.</p>
-<h3 id="example-4"><a class="header" href="#example-4">Example</a></h3>
-<pre><code class="language-rust">let boss = fa_text(&amp;mut builder, "Hello Boss").id("#boss-txt").build();
+<p>Return <code>Entity</code> of the widget which must be used inside a containable widget.</p>
+<h3 id="available-methods-2"><a class="header" href="#available-methods-2">Available methods</a></h3>
+<ul>
+<li><code>id(&amp;str)</code></li>
+<li><code>class(&amp;str)</code></li>
+<li><code>display(&amp;str)</code></li>
+<li><code>color(&amp;str)</code>: set custom color.</li>
+</ul>
+<h3 id="example-3"><a class="header" href="#example-3">Example</a></h3>
+<pre><code class="language-rust">let boss = fa_text(&amp;mut builder, "Hello Boss").build();
 let mom = fa_text(&amp;mut builder, "Hello Mom").build();
 
 fa_container(&amp;mut builder).children([boss, mom]).build();</code></pre>
-<p><img src="chapter_3/../images/container_example_2.png" alt="Example 2" /></p>
-<h3 id="resource"><a class="header" href="#resource">Resource</a></h3>
-<pre><code class="language-rust">pub struct FaTextResource;</code></pre>
-<ul>
-<li>
-<p><code>FaTextResource</code> can be used to get &amp; update specific text widget's value by either its <code>id</code> or <code>entity</code>.</p>
-<h4 id="available-methods"><a class="header" href="#available-methods">Available methods:</a></h4>
-<ul>
-<li><code>get_value_by_id</code>: get <code>fa_text</code> value by id, return <code>empty string</code> if id doesn't exist.</li>
-<li><code>get_value_by_entity</code>: get <code>fa_text</code> value by entity, return <code>empty string</code> if entity doesn't exist.</li>
-<li><code>update_value_by_id</code>: update <code>fa_text</code> value by id.</li>
-<li><code>update_value_by_entity</code>: update <code>fa_text</code> value by entity.</li>
-</ul>
-<h4 id="example-of-using-fatextresource"><a class="header" href="#example-of-using-fatextresource">Example of using <code>FaTextResource</code></a></h4>
-<pre><code class="language-rust">fn my_system(mut text_res: ResMut&lt;FaTextResource&gt;) {
-    // some logic ..
-
-    // get value
-    let text = text_res.get_value_by_id("#boss-txt");
-
-    // update value
-    text_res.update_value_by_id("#boss-txt", "Good morning Boss");
-}</code></pre>
-</li>
-</ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="fafpstext"><a class="header" href="#fafpstext">FaFpsText</a></h1>
-<pre><code>🟢 Doesn't need container
-🟡 Doesn't accept child/children
-</code></pre>
-<h3 id="widget-api-2"><a class="header" href="#widget-api-2">Widget API</a></h3>
-<pre><code class="language-rust">pub fn fa_fps&lt;'a&gt;(builder: &amp;'a mut FamiqWidgetBuilder) -&gt; FaFpsTextBuilder&lt;'a&gt; {
-    // ..
-}</code></pre>
+<p>Show <strong>FPS</strong> value at top-left corner of the window.</p>
+<p>This widget doesn't need to be inside a containable widget.</p>
 <h3 id="usage-3"><a class="header" href="#usage-3">Usage</a></h3>
 <pre><code class="language-rust">fa_fps(&amp;mut builder).build();</code></pre>
-<p>return <code>Entity</code> which can be used as a child of a <code>FaContainer</code>.</p>
+<p>return <code>Entity</code>.</p>
+<h3 id="available-methods-3"><a class="header" href="#available-methods-3">Available methods</a></h3>
 <ul>
-<li><code>change_color()</code>: change number color based on the value.</li>
-<li><code>right_side()</code>: make fps text appears at the top right corner.</li>
+<li><code>id(&amp;str)</code></li>
+<li><code>class(&amp;str)</code></li>
+<li><code>display(&amp;str)</code></li>
+<li><code>change_color()</code>: change number color based on its value.</li>
+<li><code>right_side()</code>: make <strong>FPS</strong> text appears at the top right corner.</li>
 </ul>
-<h3 id="example-5"><a class="header" href="#example-5">Example</a></h3>
+<h3 id="example-4"><a class="header" href="#example-4">Example</a></h3>
 <pre><code class="language-rust">fa_fps(&amp;mut builder).change_color().right_side().build();</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="fatextinput"><a class="header" href="#fatextinput">FaTextInput</a></h1>
-<pre><code>🟡 Needs container
-🟡 Doesn't accept child/children
-</code></pre>
-<h3 id="variants"><a class="header" href="#variants">Variants</a></h3>
-<pre><code class="language-rust">pub enum TextInputVariant {
-    Default,
-    Outlined,
-    Underlined,
-}</code></pre>
-<h3 id="colors-1"><a class="header" href="#colors-1">Colors</a></h3>
-<pre><code class="language-rust">pub enum TextInputColor {
-    Default,
-    Primary,
-    Secondary,
-    Success,
-    Danger,
-    Warning,
-    Info,
-}</code></pre>
-<h3 id="sizes-1"><a class="header" href="#sizes-1">Sizes</a></h3>
-<pre><code class="language-rust">pub enum TextInputSize {
-    Small,
-    Normal,
-    Large,
-}</code></pre>
-<h3 id="shapes-1"><a class="header" href="#shapes-1">Shapes</a></h3>
-<pre><code class="language-rust">pub enum TextInputShape {
-    Default,
-    Round,
-    Rectangle
-}</code></pre>
-<h3 id="widget-api-3"><a class="header" href="#widget-api-3">Widget API</a></h3>
-<pre><code class="language-rust">pub fn fa_text_input&lt;'a&gt;(
-    builder: &amp;'a mut FamiqWidgetBuilder,
-    placeholder: &amp;str
-) -&gt; FaTextInputBuilder&lt;'a&gt; {
-    // ..
-}</code></pre>
+<p>Widget that allow user to type in texts.</p>
+<p>Currently, this widget is not interactive.</p>
 <h3 id="usage-4"><a class="header" href="#usage-4">Usage</a></h3>
 <pre><code class="language-rust">let input = fa_text_input(&amp;mut builder, "Enter your name").build();</code></pre>
-<p>Return <code>Entity</code> of the widget which must be used as child of <code>FaContainer</code> widget.</p>
-<h3 id="built-in-classes-1"><a class="header" href="#built-in-classes-1">Built-in classes</a></h3>
+<p>Return <code>Entity</code> which must be used inside a containable widget.</p>
+<h3 id="available-methods-4"><a class="header" href="#available-methods-4">Available methods</a></h3>
 <ul>
-<li>
-<p>Color: <code>is-primary</code>, <code>is-secondary</code>, <code>is-warning</code>, <code>is-info</code>, <code>is-success</code>, <code>is-danger</code>.</p>
-</li>
-<li>
-<p>Size: <code>is-small</code>, <code>is-normal</code>, <code>is-large</code>.</p>
-</li>
-<li>
-<p>Shapes: <code>is-round</code>, <code>is-rectangle</code>.</p>
-</li>
-<li>
-<p>Variant: <code>is-underlined</code>, <code>is-outlined</code>.</p>
-</li>
+<li><code>id(&amp;str)</code></li>
+<li><code>class(&amp;str)</code></li>
+<li><code>display(&amp;str)</code></li>
+<li><code>is_password()</code>: mask all the character as <code>*</code>.</li>
+<li><code>color(&amp;str)</code>: set custom background color.</li>
 </ul>
-<h3 id="example-6"><a class="header" href="#example-6">Example</a></h3>
+<h3 id="example-5"><a class="header" href="#example-5">Example</a></h3>
 <pre><code class="language-rust">// default
-let input_default = fa_text_input(&amp;mut builder, "Enter your name")
-    .id("#name-input")
-    .build();
+let input_default = fa_text_input(&amp;mut builder, "Enter your name").build();
 
-// info &amp; large
-let input_info_large = fa_text_input(&amp;mut builder, "Enter your name")
-    .class("is-info is-large")
-    .build();
-
-// warning &amp; round
-let input_warning_round = fa_text_input(&amp;mut builder, "Enter your name")
-    .class("is-warning is-round")
+// password
+let input_password = fa_text_input(&amp;mut builder, "Enter your password")
+    .is_password()
     .build();
 
 fa_container(&amp;mut builder)
-    .children([input_default, input_info_large, input_warning_round])
+    .children([input_default, input_password])
     .build();</code></pre>
-<p><img src="chapter_3/../images/input_example_1.png" alt="Example 1" /></p>
-<h3 id="resource-1"><a class="header" href="#resource-1">Resource</a></h3>
-<pre><code class="language-rust">pub struct FaTextInputResource;</code></pre>
-<ul>
-<li>
-<p><code>FaTextInputResource</code> can be used to retrieve specific <code>fa_text_input</code> value by either <code>id</code> or <code>entity</code>.</p>
-<h4 id="available-methods-1"><a class="header" href="#available-methods-1">Available methods:</a></h4>
-<ul>
-<li><code>get_value_by_id</code>: get input value by id, return <code>empty string</code> it id doesn't exist.</li>
-<li><code>get_value_by_entity</code>: get input value by entity, return <code>empty string</code> it entity doesn't exist.</li>
-</ul>
-<h4 id="example-of-using-fatextinputresource"><a class="header" href="#example-of-using-fatextinputresource">Example of using <code>FaTextInputResource</code></a></h4>
-<pre><code class="language-rust">fn my_system(input_res: Res&lt;FaTextInputResource&gt;) {
-    // some logic ..
-
-    // get value
-    let text = input_res.get_value_by_id("#name-input");
-}</code></pre>
-</li>
-</ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="faselection"><a class="header" href="#faselection">FaSelection</a></h1>
-<pre><code>🟡 Needs container
-🟡 Doesn't accepts child/children
-</code></pre>
-<h3 id="variants-1"><a class="header" href="#variants-1">Variants</a></h3>
-<pre><code class="language-rust">pub enum SelectorVariant {
-    Outlined,
-    Default,
-    Underlined,
-}</code></pre>
-<h3 id="colors-2"><a class="header" href="#colors-2">Colors</a></h3>
-<pre><code class="language-rust">pub enum SelectorColor {
-    Default,
-    Primary,
-    Secondary,
-    Success,
-    Danger,
-    Warning,
-    Info,
-}</code></pre>
-<h3 id="sizes-2"><a class="header" href="#sizes-2">Sizes</a></h3>
-<pre><code class="language-rust">pub enum SelectionSize {
-    Small,
-    Normal,
-    Large,
-}</code></pre>
-<h3 id="shapes-2"><a class="header" href="#shapes-2">Shapes</a></h3>
-<pre><code class="language-rust">pub enum SelectorShape {
-    Default,
-    Round,
-    Rectangle
-}</code></pre>
-<h3 id="widget-api-4"><a class="header" href="#widget-api-4">Widget API</a></h3>
-<pre><code class="language-rust">pub fn fa_selection&lt;'a&gt;(
-    builder: &amp;'a mut FamiqWidgetBuilder,
-    placeholder: &amp;str
-) -&gt; FaSelectionBuilder&lt;'a&gt; {
-    // ..
-}</code></pre>
 <h3 id="usage-5"><a class="header" href="#usage-5">Usage</a></h3>
 <pre><code class="language-rust">let selection = fa_selection(&amp;mut builder, "Select choice")
     .choices(["Choice 1", "Choice 2"])
     .build();</code></pre>
-<p>Return <code>Entity</code> of the widget which must be used as child of <code>FaContainer</code> widget.</p>
-<h3 id="built-in-classes-2"><a class="header" href="#built-in-classes-2">Built-in classes</a></h3>
+<p>Return <code>Entity</code> which must be used inside a containable widget.</p>
+<h3 id="available-methods-5"><a class="header" href="#available-methods-5">Available methods</a></h3>
 <ul>
-<li>
-<p>Color: <code>is-primary</code>, <code>is-secondary</code>, <code>is-warning</code>, <code>is-info</code>, <code>is-success</code>, <code>is-danger</code>.</p>
-</li>
-<li>
-<p>Size: <code>is-small</code>, <code>is-normal</code>, <code>is-large</code>.</p>
-</li>
-<li>
-<p>Shapes: <code>is-round</code>, <code>is-rectangle</code>.</p>
-</li>
-<li>
-<p>Variant: <code>is-underlined</code>, <code>is-outlined</code>.</p>
-</li>
+<li><code>id(&amp;str)</code></li>
+<li><code>class(&amp;str)</code></li>
+<li><code>display(&amp;str)</code></li>
+<li><code>choices([&amp;str])</code></li>
+<li><code>color(&amp;str)</code>: set custom background color.</li>
 </ul>
-<h3 id="example-7"><a class="header" href="#example-7">Example</a></h3>
+<h3 id="example-6"><a class="header" href="#example-6">Example</a></h3>
 <pre><code class="language-rust">let plans = fa_selection(&amp;mut builder, "Select plan")
-    .id("#plan")
-    .class("is-info")
     .choices(["Personal", "Team", "Enterprise"])
     .build();
 );
 
 let subscriptions = fa_selection(&amp;mut builder, "Select subscription payment")
-    .class("is-rectangle")
     .choices(["Weekly", "Monthly", "Annually"])
     .build();
 );
 
 fa_container(&amp;mut builder).children([plans, subscriptions]).build();</code></pre>
-<p><img src="chapter_3/../images/selection_example_1.png" alt="Example 1" /></p>
-<h3 id="resource-2"><a class="header" href="#resource-2">Resource</a></h3>
-<pre><code class="language-rust">pub struct FaSelectionResource;</code></pre>
-<ul>
-<li>
-<p><code>FaSelectionResource</code> can be used to retrieve specific <code>fa_selection</code> value by either <code>id</code> or <code>entity</code>.</p>
-<h4 id="available-methods-2"><a class="header" href="#available-methods-2">Available methods:</a></h4>
-<ul>
-<li><code>get_value_by_id</code>: get input value by id, return <code>empty string</code> it id doesn't exist.</li>
-<li><code>get_value_by_entity</code>: get input value by entity, return <code>empty string</code> it entity doesn't exist.</li>
-</ul>
-<h4 id="example-of-using-faselectionresource"><a class="header" href="#example-of-using-faselectionresource">Example of using <code>FaSelectionResource</code></a></h4>
-<pre><code class="language-rust">fn my_system(input_res: Res&lt;FaSelectionResource&gt;) {
-    // some logic ..
-
-    // get value
-    let text = input_res.get_value_by_id("#plan");
-}</code></pre>
-</li>
-</ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="facircular"><a class="header" href="#facircular">FaCircular</a></h1>
-<pre><code>🟡 Needs container
-🟡 Doesn't accept child/children
-</code></pre>
-<p>Spinning circular.</p>
-<h3 id="variants-2"><a class="header" href="#variants-2">Variants</a></h3>
-<pre><code class="language-rust">pub enum CircularColor {
-    Default,
-    Primary,
-    Secondary,
-    Success,
-    Danger,
-    Warning,
-    Info,
-}</code></pre>
-<h3 id="sizes-3"><a class="header" href="#sizes-3">Sizes</a></h3>
-<pre><code class="language-rust">pub enum CircularSize {
-    Small,
-    Normal,
-    Large
-}</code></pre>
-<h3 id="api-1"><a class="header" href="#api-1">API</a></h3>
-<pre><code class="language-rust">pub fn fa_circular&lt;'a&gt;(builder: &amp;'a mut FamiqWidgetBuilder) -&gt; FaCircularBuilder&lt;'a&gt; {
-    // ..
-}</code></pre>
+<p>A spinning circular.</p>
 <h3 id="usage-6"><a class="header" href="#usage-6">Usage</a></h3>
 <pre><code class="language-rust">let circular = fa_circular(&amp;mut builder).build();</code></pre>
-<p>Return <code>Entity</code> of the widget which must be used inside <code>FaContainer</code> widget.</p>
+<p>Return <code>Entity</code> which must be used inside a containable widget.</p>
+<h3 id="available-methods-6"><a class="header" href="#available-methods-6">Available methods</a></h3>
 <ul>
-<li><code>size()</code>: set custom size of <code>fa_circular</code>.</li>
+<li><code>id(&amp;str)</code></li>
+<li><code>class(&amp;str)</code></li>
+<li><code>size(f32)</code>: set custom size (width &amp; height).</li>
+<li><code>color(&amp;str)</code>: set custom color.</li>
 </ul>
-<h3 id="built-in-classes-3"><a class="header" href="#built-in-classes-3">Built-in classes</a></h3>
-<ul>
-<li>
-<p>Color: <code>is-primary</code>, <code>is-secondary</code>, <code>is-warning</code>, <code>is-info</code>, <code>is-success</code>, <code>is-danger</code>.</p>
-</li>
-<li>
-<p>Size: <code>is-small</code>, <code>is-normal</code>, <code>is-large</code>.</p>
-</li>
-</ul>
-<h3 id="example-8"><a class="header" href="#example-8">Example</a></h3>
+<h3 id="example-7"><a class="header" href="#example-7">Example</a></h3>
 <pre><code class="language-rust">// default
 let cir = fa_circular(&amp;mut builder).build();
 
@@ -1135,159 +826,88 @@ let warning_cir = fa_circular(&amp;mut builder)
 
 // primary &amp; custom size
 let primary_cir = fa_circular(&amp;mut builder)
-    .class("is-primary is-large")
+    .class("is-primary")
+    .size(50.0)
     .build();
 
-fa_container(&amp;mut builder).children([cir, warning_cir, primary_cir]).build();</code></pre>
-<p><img src="chapter_3/../images/circular_example_1.png" alt="Example 1" /></p>
+// custom color
+let custom_color_cir = fa_circular(&amp;mut builder)
+    .color("cyan_500")
+    .build();
+
+fa_container(&amp;mut builder)
+    .children([cir, warning_cir, primary_cir, custom_color_cir])
+    .build();</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="famodal"><a class="header" href="#famodal">FaModal</a></h1>
-<pre><code>🟢 Doesn't need container
-🟢 Accepts child/children
-</code></pre>
-<h3 id="api-2"><a class="header" href="#api-2">API</a></h3>
-<pre><code class="language-rust">pub fn fa_modal&lt;'a&gt;(builder: &amp;'a mut FamiqWidgetBuilder) -&gt; FaModalBuilder&lt;'a&gt; {
-    // ..
-}</code></pre>
 <h3 id="usage-7"><a class="header" href="#usage-7">Usage</a></h3>
-<pre><code class="language-rust">let modal = fa_modal(&amp;mut builder).build();</code></pre>
-<h3 id="resource-3"><a class="header" href="#resource-3">Resource</a></h3>
-<pre><code class="language-rust">pub struct FaModalState;</code></pre>
-<ul>
-<li>
-<p><code>FaModalState</code> can be used to show and hide specific modal by either <code>id</code> or <code>entity</code>.</p>
-<h4 id="available-methods-3"><a class="header" href="#available-methods-3">Available methods:</a></h4>
-<ul>
-<li><code>show_by_id</code>: show modal by id.</li>
-<li><code>show_by_entity</code>: show modal by entity.</li>
-<li><code>hide_by_id</code>: hide modal by id.</li>
-<li><code>hide_by_entity</code>: hide modal by entity.</li>
-</ul>
-<h4 id="example-of-using-famodalstate"><a class="header" href="#example-of-using-famodalstate">Example of using <code>FaModalState</code></a></h4>
-<pre><code class="language-rust">fn my_system(mut modal_state: ResMut&lt;FaModalState&gt;) {
-    // some logic ..
+<pre><code class="language-rust">fa_modal(&amp;mut builder).build();</code></pre>
+<h3 id="example-8"><a class="header" href="#example-8">Example</a></h3>
+<pre><code class="language-rust">let text = fa_text(&amp;mut builder, "Hello from modal").build();
+let close_btn = fa_button(&amp;mut builder, "Close").build();
 
-    // show modal
-    modal_state.show_by_id("#modal-id");
+let container = fa_container(&amp;mut builder)
+    .children([text, close_btn])
+    .build();
 
-    // hide modal
-    modal_state.hide_by_id("#modal-id");
-}</code></pre>
-</li>
-</ul>
+fa_modal(&amp;mut builder).children([container]).build();</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="falistview"><a class="header" href="#falistview">FaListView</a></h1>
-<pre><code>🟢 Doesn't need container
-🟢 Accepts child/children
-</code></pre>
-<h3 id="api-3"><a class="header" href="#api-3">API</a></h3>
-<pre><code class="language-rust">pub fn fa_listview&lt;'a&gt;(builder: &amp;'a mut FamiqWidgetBuilder) -&gt; FaListViewBuilder&lt;'a&gt; {
-    // ..
-}</code></pre>
-<p>return <code>Entity</code> which can be used as child of <code>FaContainer</code>.</p>
+<p>Vertical scrollable container.</p>
+<p><strong>Note</strong></p>
+<p><code>fa_listview</code> has height set to 50% of the <code>window</code> or its <code>parent</code> container height.</p>
 <h3 id="usage-8"><a class="header" href="#usage-8">Usage</a></h3>
 <pre><code class="language-rust">let button = fa_button(&amp;mut builder, "Press me").build();
 let input = fa_text_input(&amp;mut builder, "Enter your name").build();
 
 fa_listview(&amp;mut builder).children([input, button]).build();</code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="faimage"><a class="header" href="#faimage">FaImage</a></h1>
-<pre><code>🟡 Needs container
-🟡 Doesn't accept child/children
-</code></pre>
-<h3 id="api-4"><a class="header" href="#api-4">API</a></h3>
-<pre><code class="language-rust">pub fn fa_image&lt;'a&gt;(builder: &amp;'a mut FamiqWidgetBuilder, path: &amp;str) -&gt; FaImageBuilder&lt;'a&gt; {
-    // ..
-}</code></pre>
+<p>return <code>Entity</code>.</p>
+<h3 id="available-methods-7"><a class="header" href="#available-methods-7">Available methods</a></h3>
 <ul>
-<li><code>path</code>: Path to image relative to <code>assets</code> folder.</li>
-<li>Return entity of the widget which must be used as child of <code>FaContainer</code> widget.</li>
-<li>Support only <code>jpg</code> and <code>png</code> format.</li>
+<li><code>id(&amp;str)</code></li>
+<li><code>class(&amp;str)</code></li>
+<li><code>display(&amp;str)</code></li>
+<li><code>scroll_height(f32)</code></li>
+<li><code>children([Entity])</code></li>
 </ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="faimage"><a class="header" href="#faimage">FaImage</a></h1>
+<p>Image widget.</p>
+<p><strong>Note</strong></p>
+<p>Currently, it supports only <code>jpg</code> and <code>png</code> format.</p>
 <h3 id="usage-9"><a class="header" href="#usage-9">Usage</a></h3>
 <pre><code class="language-rust">let image = fa_image(&amp;mut builder, "path/to/image.jpg").build();</code></pre>
-<h3 id="custom-size"><a class="header" href="#custom-size">Custom size</a></h3>
-<p>By default, <code>fa_image</code> will load image at the original size. To use custom size, simply call <code>size()</code> method.</p>
-<pre><code class="language-rust">let image = fa_image(&amp;mut builder, "path/to/image.jpg")
-    .size(Val::Px(200.0), Val::Px(200.0))
-    .build();</code></pre>
+<p>return <code>Entity</code> which must be used inside a containable widget.</p>
+<h3 id="available-methods-8"><a class="header" href="#available-methods-8">Available methods</a></h3>
+<ul>
+<li><code>id(&amp;str)</code></li>
+<li><code>class(&amp;str)</code></li>
+<li><code>set_size(Val, Val)</code>: set custom size (width, height). If this method is not called, image's original <code>width</code> &amp; <code>height</code> will  be used.</li>
+</ul>
 <h3 id="example-9"><a class="header" href="#example-9">Example</a></h3>
-<pre><code class="language-rust">let famiq_logo = fa_image(&amp;mut builder, "logo.jpeg")
-    .size(Val::Px(100.0), Val::Px(100.0))
+<pre><code class="language-rust">let famiq_logo = fa_image(&amp;mut builder, "logo.png")
+    .set_size(Val::Px(100.0), Val::Px(100.0))
     .build();
 
 fa_container(&amp;mut builder).children([famiq_logo]).build();</code></pre>
-<p><img src="chapter_3/../images/image_example_1.png" alt="Example 1" /></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="fabgimage"><a class="header" href="#fabgimage">FaBgImage</a></h1>
-<p>A widget use to create background image that covers the entire window in UI world.</p>
-<pre><code>🟢 Doesn't need container
-🟡 Doesn't accept child/children
-</code></pre>
-<h3 id="api-5"><a class="header" href="#api-5">API</a></h3>
-<pre><code class="language-rust">pub fn fa_bg_image&lt;'a&gt;(builder: &amp;'a mut FamiqWidgetBuilder, path: &amp;str) -&gt; FaBgImageBuilder&lt;'a&gt; {
-    // ..
-}</code></pre>
-<ul>
-<li><code>path</code>: Path to image relative to <code>assets</code> folder.</li>
-<li>Support only <code>jpg</code> and <code>png</code> format.</li>
-</ul>
+<p>A widget use to create background image that covers the entire window.</p>
+<p>Only one <code>fa_bg_image</code> is allowed. Supports <code>jpg</code> and <code>png</code> only.</p>
 <h3 id="usage-10"><a class="header" href="#usage-10">Usage</a></h3>
 <pre><code class="language-rust">fa_bg_image(&amp;mut builder, "path/to/image.jpg").build();</code></pre>
-<h3 id="example-10"><a class="header" href="#example-10">Example</a></h3>
-<pre><code class="language-rust">fa_bg_image(&amp;mut builder, "logo.jpeg").build();
-
-let btn = fa_button(&amp;mut builder, "Press me").class("is-primary").build();
-
-fa_container(&amp;mut builder).children([btn]).build();</code></pre>
-<p><img src="chapter_3/../images/bg_image_example_1.png" alt="Example 1" /></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="faprogressbar"><a class="header" href="#faprogressbar">FaProgressBar</a></h1>
-<pre><code>🟡 Needs container
-🟡 Doesn't accept child/children
-</code></pre>
-<h3 id="sizes-4"><a class="header" href="#sizes-4">Sizes</a></h3>
-<pre><code class="language-rust">pub enum ProgressBarSize {
-    Normal,
-    Small,
-    Large
-}</code></pre>
-<h3 id="colors-3"><a class="header" href="#colors-3">Colors</a></h3>
-<pre><code class="language-rust">pub enum ProgressBarColor {
-    Default,
-    Primary,
-    PrimaryDark,
-    Secondary,
-    Success,
-    SuccessDark,
-    Danger,
-    DangerDark,
-    Warning,
-    WarningDark,
-    Info,
-    InfoDark
-}</code></pre>
-<h3 id="widget-api-5"><a class="header" href="#widget-api-5">Widget API</a></h3>
-<pre><code class="language-rust">pub fn fa_progress_bar&lt;'a&gt;(
-    builder: &amp;'a mut FamiqWidgetBuilder
-) -&gt; FaProgressBarBuilder&lt;'a&gt; {
-    // ..
-}</code></pre>
+<p>There are 2 types of progress bar, <strong>Normal</strong> &amp; <strong>Indeterminate</strong>. Default is <strong>Indeterminate</strong>.</p>
 <h3 id="usage-11"><a class="header" href="#usage-11">Usage</a></h3>
 <pre><code class="language-rust">let bar = fa_progress_bar(&amp;mut builder).build();</code></pre>
-<p>Return <code>Entity</code> of the widget which must be used as child of <code>FaContainer</code> widget.</p>
+<p>Return <code>Entity</code> which must be used inside a containable widget.</p>
+<h3 id="available-methods-9"><a class="header" href="#available-methods-9">Available methods</a></h3>
 <ul>
-<li><code>percentage()</code>: by default, <code>fa_progress_bar</code> is indeterminate, use <code>percentage()</code> to set percentage.</li>
+<li><code>id(&amp;str)</code></li>
+<li><code>class(&amp;str)</code></li>
+<li><code>display(&amp;str)</code></li>
+<li><code>color(&amp;str)</code>: set custom color.</li>
+<li><code>percentage(f32)</code>: set percentage value of the bar.</li>
 </ul>
-<h3 id="built-in-classes-4"><a class="header" href="#built-in-classes-4">Built-in classes</a></h3>
-<ul>
-<li>
-<p>Color: <code>is-primary</code>, <code>is-secondary</code>, <code>is-warning</code>, <code>is-info</code>, <code>is-success</code>, <code>is-danger</code>.</p>
-</li>
-<li>
-<p>Size: <code>is-small</code>, <code>is-normal</code>, <code>is-large</code>.</p>
-</li>
-</ul>
-<h3 id="example-11"><a class="header" href="#example-11">Example</a></h3>
+<h3 id="example-10"><a class="header" href="#example-10">Example</a></h3>
 <pre><code class="language-rust">// default
-let default_bar = fa_progress_bar(&amp;mut builder)
-    .id("#default-bar")
-    .build();
+let default_bar = fa_progress_bar(&amp;mut builder).build();
 
 // info &amp; large
 let info_large_bar = fa_progress_bar(&amp;mut builder)
@@ -1296,7 +916,6 @@ let info_large_bar = fa_progress_bar(&amp;mut builder)
 
 // warning &amp; 50%
 let warning_bar = fa_progress_bar(&amp;mut builder)
-    .id("#warning-bar")
     .percentage(50.0)
     .class("is-warning")
     .build();
@@ -1304,36 +923,197 @@ let warning_bar = fa_progress_bar(&amp;mut builder)
 fa_container(&amp;mut builder)
     .children([default_bar, info_large_bar, warning_bar])
     .build();</code></pre>
-<h3 id="resource-4"><a class="header" href="#resource-4">Resource</a></h3>
-<pre><code class="language-rust">pub struct FaProgressBarResource;</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="resources"><a class="header" href="#resources">Resources</a></h1>
+<p><strong>Resource</strong> is used to store global data that can be accessed from any systems within the app.</p>
+<p><strong>Famiq</strong> provides <strong>resources</strong> to interact with <strong>widgets</strong> in many ways.</p>
 <ul>
-<li>
-<p><code>FaProgressBarResouce</code> can be used to set get &amp; set percentage of the bars or set to indeterminate.</p>
-<h4 id="available-methods-4"><a class="header" href="#available-methods-4">Available methods:</a></h4>
-<ul>
-<li><code>get_percentage_by_id</code>: get percentage by id, return <code>None</code> if id doesn't exist.</li>
-<li><code>get_percentage_by_entity</code>: get percentage by entity, return <code>None</code> if entity doesn't exist.</li>
-<li><code>set_percentage_by_id</code>: set percentage by id.</li>
-<li><code>set_percentage_by_entity</code>: set percentage by entity.</li>
+<li><a href="chapter_5/./fa_containable_resource.html">FaContainableResource</a></li>
+<li><a href="chapter_5/./fa_text_input_resource.html">FaTextInputResource</a></li>
+<li><a href="chapter_5/./fa_selection_resource.html">FaSelectionResource</a></li>
+<li><a href="chapter_5/./fa_text_resource.html">FaTextResource</a></li>
+<li><a href="chapter_5/./fa_modal_state.html">FaModalState</a></li>
+<li><a href="chapter_5/./fa_style_resource.html">FaStyleResource</a></li>
 </ul>
-<h4 id="example-of-faprogressbarresource"><a class="header" href="#example-of-faprogressbarresource">Example of <code>FaProgressBarResource</code></a></h4>
-<pre><code class="language-rust">fn my_system(bar_res: Res&lt;FaProgressBarResource&gt;) {
-    // some logic ..
+<div style="break-before: page; page-break-before: always;"></div><h1 id="facontainableresources"><a class="header" href="#facontainableresources">FaContainableResources</a></h1>
+<p>Used to <strong>add</strong>, <strong>insert</strong> and <strong>remove</strong> children from a containable widget (<code>fa_container</code>, <code>fa_modal</code>, <code>fa_listview</code>).</p>
+<p>To use this <code>resource</code> on any containable widget, <code>id</code> must be provided.</p>
+<p>see more info about <a href="https://bevy-cheatbook.github.io/programming/res.html">Resources</a>.</p>
+<h3 id="add-children"><a class="header" href="#add-children">Add children</a></h3>
+<p>append children to a containable widget.</p>
+<pre><code class="language-rust">fn my_system(mut containable_res: ResMut&lt;FaContainableResource&gt;) {
+    // some logic
 
-    // return None as #default-bar is indeterminate
-    let default_bar_percent = bar.get_percentage_by_id("#default-bar");
-
-    // return 50.0
-    let warning_bar_percent = bar.get_percentage_by_id("#warning-bar").unwrap();
-
-    // set to None to make bar indeterminate
-    bar.set_percentage_by_id("#warning-bar", None);
-
-    // set #default-bar to 30 percent
-    bar.set_percentage_by_id("#default-bar", Some(30.0));
+    containable_res.add_children("#container-id", &amp;[new_text, new_button]);
 }</code></pre>
-</li>
-</ul>
+<h3 id="insert-children"><a class="header" href="#insert-children">Insert children</a></h3>
+<p>Insert children at given index into containable widget.</p>
+<pre><code class="language-rust">fn my_system(mut containable_res: ResMut&lt;FaContainableResource&gt;) {
+    // some logic
+    //
+    let index: usize = 2;
+    containable_res.add_children("#container-id", index,  &amp;[new_text, new_button]);
+}</code></pre>
+<h3 id="remove-children"><a class="header" href="#remove-children">Remove children</a></h3>
+<p>Remove children from a containable widget.</p>
+<p>You must store <code>Entity</code> of widgets that you want to remove later on in a resource, so that it is
+accessible from systems.</p>
+<pre><code class="language-rust">#[derive(Resource)]
+struct MyResource(Vec&lt;Entity&gt;);
+
+fn setup_ui(
+    // other params
+    mut commands: Commands
+) {
+    // some code ...
+
+    let my_button = fa_button(&amp;mut builder, "Press").build();
+    commands.insert_resource(MyResource(vec![my_button]));
+}
+
+fn my_system(
+    mut containable_res: ResMut&lt;FaContainableResource&gt;,
+    my_resource: Res&lt;MyResource&gt;
+) {
+    // some logic
+
+    containable_res.remove_children("#container-id", &amp;my_resource.0);
+}</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="fatextinputresource"><a class="header" href="#fatextinputresource">FaTextInputResource</a></h1>
+<p>Use this resource to get value from <code>fa_text_input</code>.</p>
+<p>To use this resource on <code>fa_text_input</code>, <code>id</code> must be provided.</p>
+<pre><code class="language-rust">fn my_system(mut input_res: ResMut&lt;FaTextInputResource&gt;) {
+    // some logic
+
+    let name: String = input_res.get_value("#name-input");
+}</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="faselectionresource"><a class="header" href="#faselectionresource">FaSelectionResource</a></h1>
+<p>Use this resource to get value from <code>fa_selection</code>.</p>
+<p>To use this resource on <code>fa_selection</code>, <code>id</code> must be provided.</p>
+<pre><code class="language-rust">fn my_system(mut selection_res: ResMut&lt;FaSelectionResource&gt;) {
+    // some logic
+
+    let choice: String = selection_res.get_value("#selection-id");
+}</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="fatextresource"><a class="header" href="#fatextresource">FaTextResource</a></h1>
+<p>Use this resource to <strong>get</strong> or <strong>update</strong> <code>fa_text</code>'s value.</p>
+<p>To use this resource on <code>fa_text</code>, <code>id</code> must be provided.</p>
+<pre><code class="language-rust">fn my_system(mut text_res: ResMut&lt;FaTextResource&gt;) {
+    // Some logic
+
+    let title = text_res.get_value("#text-id");
+    println!("{:?}", title); // How to play dota 2
+
+    // update title
+    text_res.update_value("#text-id", "How to play dota 2 in 2025");
+}</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="famodalstate"><a class="header" href="#famodalstate">FaModalState</a></h1>
+<p>Use this resource to <strong>show</strong> or <strong>hide</strong> <code>fa_modal</code>.</p>
+<p>Only one <code>fa_modal</code> can be shown at a time.</p>
+<p>To use this resource on <code>fa_modal</code>, <code>id</code> must be provided.</p>
+<pre><code class="language-rust">fn my_system(mut modal_state: ResMut&lt;FaModalState&gt;) {
+    // Some logic
+
+    modal_state.show("#welcome-modal");
+
+    // or
+
+    modal_state.hide("#other-modal");
+}</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="fastyleresource"><a class="header" href="#fastyleresource">FaStyleResource</a></h1>
+<p>Use this resource to update widget style directly within systems.</p>
+<p>To use this resource on any widgets, <code>id</code> must be provided.</p>
+<p>Currently, not all styles can be updated via this resource, but this will be improved in future.</p>
+<h3 id="available-methods-10"><a class="header" href="#available-methods-10">Available methods</a></h3>
+<p>Change widget background color.</p>
+<pre><code class="language-rust">set_background_color(id: &amp;str, color: &amp;str)</code></pre>
+<p>Change widget border color.</p>
+<pre><code class="language-rust">set_border_color(id: &amp;str, color: &amp;str)</code></pre>
+<p>Change widget border radius "left right top bottom".</p>
+<pre><code class="language-rust">set_border_radius(id: &amp;str, radius: &amp;str)</code></pre>
+<p>Change widget width.</p>
+<pre><code class="language-rust">set_width(id: &amp;str, width: &amp;str)</code></pre>
+<p>Change widget height.</p>
+<pre><code class="language-rust">set_height(id: &amp;str, height: &amp;str)</code></pre>
+<p>Change widget visibility.</p>
+<pre><code class="language-rust">set_visibility(id: &amp;str, visibility: &amp;str)</code></pre>
+<p>Change widget margin "left right top bottom".</p>
+<pre><code class="language-rust">set_margin(id: &amp;str, margin: &amp;str)</code></pre>
+<p>Change widget padding "left right top bottom".</p>
+<pre><code class="language-rust">set_padding(id: &amp;str, padding: &amp;str)</code></pre>
+<p>Change widget display.</p>
+<pre><code class="language-rust">set_display(id: &amp;str, display: &amp;str)</code></pre>
+<p>Change text's color.</p>
+<pre><code class="language-rust">set_color(id: &amp;str, color: &amp;str)</code></pre>
+<p>Change text's font size.</p>
+<pre><code class="language-rust">set_font_size(id: &amp;str, size: &amp;str)</code></pre>
+<p>Change widget shadow color.</p>
+<pre><code class="language-rust">set_shadow_color(id: &amp;str, color: &amp;str)</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="customising-your-app-window"><a class="header" href="#customising-your-app-window">Customising your app window</a></h1>
+<p>Currently, the only way to customise your window is via <strong>bevy</strong>'s <code>WindowPlugin</code>.</p>
+<p>see more about <a href="https://docs.rs/bevy/latest/bevy/window/struct.WindowPlugin.html">WindowPlugin</a>.</p>
+<h3 id="example-11"><a class="header" href="#example-11">Example</a></h3>
+<pre><code class="language-rust">use bevy::prelude::*;
+use famiq::prelude::*;
+
+fn custom_window() -&gt; WindowPlugin {
+    WindowPlugin {
+        primary_window: Some(Window {
+            title: "Some title".into(),
+            name: Some("Some app name".into()),
+            resolution: (1000.0, 800.0).into(),
+            resizable: false,
+            ..default()
+        }),
+        ..default()
+    }
+}
+
+fn main() {
+    App::new()
+        .add_plugins(DefaultPlugins.set(custom_window())) // set custom window into DefaultPlugins
+        .add_plugins(FamiqPlugin)
+        .add_systems(StartUp, setup_ui)
+        .run();
+}
+
+fn setup_ui() {
+    // some widgets ..
+}</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="fps"><a class="header" href="#fps">FPS</a></h1>
+<p>High <strong>fps</strong> means <strong>fast &amp; smooth</strong>.</p>
+<p>By default, <code>bevy</code> uses a present mode called <code>Fifo</code>, traditionally called <strong>"Vsync On"</strong>.  This synchronizes your app’s FPS with your monitor’s refresh rate.</p>
+<p>So, no matter how powerful your <strong>GPU</strong> is, if your monitor runs at <strong>60Hz</strong>, your app will be capped at <strong>60 FPS</strong>.</p>
+<p>To fully utilize your GPU and unlock higher frame rates, switch to the <strong>Immediate</strong> present mode in <strong>WindowPlugin</strong>. This removes the FPS cap but may cause <strong>screen tearing</strong>.</p>
+<h3 id="example-12"><a class="header" href="#example-12">Example</a></h3>
+<pre><code class="language-rust">use bevy::prelude::*;
+use bevy::window::PresentMode; // make sure to import this
+use famiq::prelude::*;
+
+fn custom_window() -&gt; WindowPlugin {
+    WindowPlugin {
+        primary_window: Some(Window {
+            title: "Some title".into(),
+            name: Some("Some app name".into()),
+            resolution: (1000.0, 800.0).into(),
+            resizable: false,
+            present_mode: PresentMode::Immediate, // here
+            ..default()
+        }),
+        ..default()
+    }
+}
+
+fn main() {
+    App::new()
+        .add_plugins(DefaultPlugins.set(custom_window())) // set custom window into DefaultPlugins
+        .add_plugins(FamiqPlugin)
+        .add_systems(StartUp, setup_ui)
+        .run();
+}
+
+fn setup_ui() {
+    // some widgets ..
+}</code></pre>
 
                     </main>
 

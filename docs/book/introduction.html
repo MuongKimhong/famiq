@@ -155,49 +155,34 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="what-is-famiq"><a class="header" href="#what-is-famiq">What is Famiq?</a></h1>
-<p><strong>Famiq</strong> is a UI library built on top of Bevy UI by providing default
-widgets and a simple way to manage styles.</p>
-<p>Instead of writing Rust code for styling,
-developers can define styles in a well known JSON file. These styles are then parsed
-into Bevy's native UI styles, significantly reducing boilerplate code.</p>
-<p>Built on top of Bevy UI, based on Bevy ECS.</p>
-<ul>
-<li><strong>Simple</strong>: Follows Bevy's philosophy—widgets are just Rust functions.</li>
-<li><strong>Clean</strong>: Styles can be defined in a JSON file, reducing boilerplate code.</li>
-<li><strong>Widgets</strong>: Includes useful default components like button, modal, listview and more.</li>
-<li><strong>Flexible</strong>: Just like in <code>HTML/CSS</code>, styles can be applied using <code>id</code> or <code>classes</code>.</li>
-</ul>
-<h3 id="simple-button"><a class="header" href="#simple-button">Simple button</a></h3>
-<pre><code class="language-rust">let my_btn = fa_button(&amp;mut builder, "Press me").build();</code></pre>
-<p>. <code>&amp;mut builder</code> is a mutable reference of <code>FamiqWidgetBuilder</code>.</p>
-<p>If you want to make changes to the widget, you can simply give it an <code>id</code> or <code>class</code>.</p>
-<pre><code class="language-rust">let my_btn = fa_button(&amp;mut builder, "Press me").id("#my-btn").build();</code></pre>
-<pre><code class="language-json">{
-  "#my-btn": {
-    "background_color": "yellow"
-  }
-}
+                        <p align="center">
+  <img width="200" src="logo.png">
+</p>
+<h4 align="center">
+  Build desktop GUI application with rust, based on ECS pattern, powered by Bevy game engine.
+</h4>
+<h4 id="simple"><a class="header" href="#simple">Simple</a></h4>
+<p>Designed with Bevy’s philosophy — widgets are just <strong>Rust functions</strong>.</p>
+<h4 id="built-in-widgets"><a class="header" href="#built-in-widgets">Built-in Widgets</a></h4>
+<p>Includes useful widgets like <strong>buttons, modals, list views</strong> and more.</p>
+<h4 id="for-high-performance-apps"><a class="header" href="#for-high-performance-apps">For High-Performance Apps</a></h4>
+<p>Leverages Bevy’s <strong>massive parallelism</strong> for smooth and efficient rendering.</p>
+<h2 id="installation"><a class="header" href="#installation">Installation</a></h2>
+<pre><code>cargo add famiq
 </code></pre>
-<h3 id="hot-reload"><a class="header" href="#hot-reload">Hot reload</a></h3>
-<p>Hot-reload can be enabled during development. When it's enabled, every changes in json
-file will reflect the running app immediately without needing to re-compile the app.</p>
-<pre><code class="language-rust">let mut builder = FamiqWidgetBuilder::new(
-    &amp;mut commands,
-    &amp;mut builder_res,
-    &amp;asset_server
-);
-
-builder.hot_reload();</code></pre>
-<h3 id="bevy-versions-support"><a class="header" href="#bevy-versions-support">Bevy versions support</a></h3>
-<p>Famiq is new and still in early stage of development. Currently, it supports only 0.15.x onward.</p>
+<p>or adding this to <code>Cargo.toml</code></p>
+<pre><code class="language-toml">[dependencies]
+famiq = "0.2.6"
+</code></pre>
+<p>Famiq supports only bevy<code> 0.15.x</code> onward. Currently, the latest version of bevy is <code>0.15.3</code>.</p>
+<p>see <a href="https://crates.io/crates/famiq">crateio</a> &amp; <a href="https://docs.rs/famiq/latest/famiq/">rustdoc</a>.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
 
-                            <a rel="next prefetch" href="installation.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="gettingstart.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -208,7 +193,7 @@ builder.hot_reload();</code></pre>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
 
-                    <a rel="next prefetch" href="installation.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="gettingstart.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

@@ -155,109 +155,35 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="how-styling-works"><a class="header" href="#how-styling-works">How styling works?</a></h1>
-<p>Bevy's default approach to UI development requires writing Rust code for styling, which can quickly become verbose and repetitive. <strong>Famiq</strong> introduces a way to define styles using JSON file, making UI development in Bevy more accessible and efficient.</p>
-<h2 id="key-features"><a class="header" href="#key-features">Key Features</a></h2>
-<ul>
-<li><strong>JSON-based Styling</strong>: Write styles in a familiar, CSS-like JSON format.</li>
-<li><strong>Automatic Parsing</strong>: JSON styles are parsed into Bevy's native style format.</li>
-<li><strong>Reduced Boilerplate</strong>: Eliminate repetitive Rust code for UI styling.</li>
-<li><strong>Hot-Reload</strong>: Any changes made to json file will be reflected to the running app without needing to re-compile the app.</li>
-</ul>
-<h2 id="example"><a class="header" href="#example">Example</a></h2>
-<p>Normal <strong>Bevy UI</strong> styles.</p>
-<pre><code class="language-rust">commands.spawn((
-    Node {
-        border: UiRect::all(Val::Px(3.0)),
-        padding: UiRect {
-            left: Val::Px(5.0),
-            right: Val::Px(5.0),
-            top: Val::Px(10.0),
-            bottom: Val::Px(10.0)
-        },
-        margin: UiRect::All(Val::Auto),
-        width: Val::Percent(100.0),
-        ..default()
-    },
-    BorderColor(Color::srgba(1.0, 1.0, 1.0, 0.3)),
-    BorderRadius::all(Val::Px(5.0))
-));</code></pre>
-<p>With <strong>Famiq</strong>, you can simply give widget an id or class, then write styles in json file.</p>
+                        <h1 id="how-can-i-style-my-widgets"><a class="header" href="#how-can-i-style-my-widgets">How can I style my widgets?</a></h1>
+<p><strong>Famiq</strong> uses a <strong>JSON-based styling system</strong>, similar to how <strong>HTML</strong> uses <strong>CSS</strong>.</p>
+<p>Each widget can have an <strong>id</strong> or <strong>classes</strong>, which are used to apply styles from the JSON file.</p>
+<pre><code class="language-rust">// by id
+let button = fa_button(&amp;mut builder, "Press me").id("#button").build();
+
+// by class or classes
+let text_1 = fa_text(&amp;mut builder, "Hello world").class("text important").build();
+let text_2 = fa_text(&amp;mut builder, "Hello mom").class("text").build();</code></pre>
 <pre><code class="language-json">{
-  "#my-widget-id": {
-    "padding": "5px 5px 10px 10px",
-    "border": "3px 3px 3px 3px",
-    "border_color": "srgba 1.0, 1.0, 1.0, 0.3",
-    "border_radius": "5px 5px 5px 5px",
-    "width": "100%",
-    "margin": "auto auto auto auto"
+  "#button": {
+    "background_color": "blue"
+  },
+
+  ".text": {
+    "font_size": "40"
+  },
+
+  ".important": {
+    "color": "red"
   }
 }
 </code></pre>
-<h2 id="supported--unsupported-styles"><a class="header" href="#supported--unsupported-styles">Supported &amp; Unsupported styles</a></h2>
-<h4 id="unsupported"><a class="header" href="#unsupported">Unsupported</a></h4>
-<pre><code class="language-rust">grid_template_rows: Vec&lt;RepeatedGridTrack&gt;
-grid_template_columns: Vec&lt;RepeatedGridTrack&gt;
-grid_auto_rows: Vec&lt;GridTrack&gt;
-grid_auto_columns: Vec&lt;GridTrack&gt;
-grid_row: GridPlacement
-grid_column: GridPlacement</code></pre>
-<h4 id="supported"><a class="header" href="#supported">Supported</a></h4>
-<pre><code class="language-rust">color: Color
-font_size: f32
-
-background_color: BackgroundColor
-border_color: BorderColor
-border_radius: BorderRadius
-visibility: Visibility
-z_index: ZIndex
-
-display: Display
-position_type: PositionType
-overflow: Overflow
-direction: Direction
-left: Val
-right: Val
-top: Val
-bottom: Val
-width: Val
-height: Val
-min_width: Val
-min_height: Val
-max_width: Val
-max_height: Val
-aspect_ratio: Option&lt;f32&gt;
-align_items: AlignItems
-justify_items: JustifyItems
-align_self: AlignSelf
-justify_self: JustifySelf
-align_content: AlignContent
-justify_content: JustifyContent
-margin: UiRect
-padding: UiRect
-border: UiRect
-flex_direction: FlexDirection
-flex_wrap: FlexWrap
-flex_grow: f32
-flex_shrink: f32
-flex_basis: Val
-row_gap: Val
-column_gap: Val
-grid_auto_flow: GridAutoFlow</code></pre>
-<h4 id="supported-val-enum"><a class="header" href="#supported-val-enum">Supported Val enum</a></h4>
-<pre><code class="language-rust">Val {
-    Auto,
-    Px,
-    Percent,
-    Vw,
-    Vh
-}</code></pre>
-<h4 id="supported-color-enum"><a class="header" href="#supported-color-enum">Supported Color enum</a></h4>
-<pre><code class="language-rust">Color {
-    Srgba(Srgba),
-    LinearRgba(LinearRgba),
-    Hsla(Hsla)
-}</code></pre>
+<p><strong>Notes</strong></p>
+<ul>
+<li><strong>IDs (id)</strong> must start with <strong><code>#</code></strong> and must match between the widget and the JSON file.</li>
+<li><strong>Class names (class)</strong> must start with <strong><code>.</code></strong> in the JSON file.</li>
+</ul>
+<p>Currently, <strong>id</strong> or <strong>class</strong> assigned to a widget is <strong>immutable</strong>.</p>
 
                     </main>
 

@@ -156,8 +156,15 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="interaction"><a class="header" href="#interaction">Interaction</a></h1>
-<p>All widgets provided by <strong>Famiq</strong> have <code>Interaction</code> component attached by default.
-That means all those widgets will emit <code>FaInteractionEvent</code> to bevy's <code>EventReader</code> with either <code>Pressed</code>, <code>Hovered</code> or <code>None</code>.</p>
+<p>There are 3 types of interaction</p>
+<ul>
+<li>Pressed</li>
+<li>Hovered</li>
+<li>None (leaving hovered)</li>
+</ul>
+<p><strong>Famiq</strong> emits an event with type of <code>FaInteractionEvent</code> whenever one of the iteraction is matched.
+The event then can be read from bevy's <code>EventReader</code>.</p>
+<p>Each event has a widget type flag.</p>
 <pre><code class="language-rust">pub struct FaInteractionEvent {
     pub entity: Entity,
     pub widget_id: Option&lt;String&gt;,
@@ -166,40 +173,44 @@ That means all those widgets will emit <code>FaInteractionEvent</code> to bevy's
 }</code></pre>
 <p>Available widget types</p>
 <pre><code class="language-rust">pub enum WidgetType {
-    Root,
     Button,
     Container,
     Text,
     FpsText,
     TextInput,
+    TextInputTogglePasswordIcon,
     ListView,
     ListViewItem,
     Selection,
     SelectionChoice,
     Circular,
-    Modal,
+    ProgressBar,
     Image
 }</code></pre>
 <h2 id="handle-interaction"><a class="header" href="#handle-interaction">Handle interaction</a></h2>
-<p>You can write a bevy system to handle Famiq’s widgets interaction.</p>
+<p>You can write a bevy system that runs in <code>Update</code> schedule to handle Famiq’s widgets interaction.</p>
+<p>Example,</p>
 <pre><code class="language-rust">fn handle_button_press_system(mut events: EventReader&lt;FaInteractionEvent&gt;) {
     for e in events.read() {
-        if e.widget == WidgetType::Image &amp;&amp; e.interaction == Interaction::Hovered {
-            // make sure this works only with widgets that have id provided
-            if let Some(id) = e.widget_id.as_ref() {
-                match id.as_str() {
-                    "#image-one-id" =&gt; {
-                        // do something
-                    },
-                    "#image-two-id" =&gt; {
-                        // do something
-                    }
-                    _ =&gt; ()
+        if !e.is_pressed(WidgetType::Button) {
+            return;
+        }
+
+        // make sure this works only with widgets that have id provided
+        if let Some(id) = e.widget_id.as_ref() {
+            match id.as_str() {
+                "#button-one" =&gt; {
+                    // do something when #button-one is pressed
+                },
+                "#button-two" =&gt; {
+                    // do something when #button-two is pressed
                 }
+                _ =&gt; ()
             }
         }
     }
 }</code></pre>
+<p>Beside <code>is_pressed</code>, there are also <code>is_hovered</code> and <code>is_left</code> (from hovered -&gt; none).</p>
 
                     </main>
 
