@@ -14,7 +14,7 @@ pub fn handle_show_and_hide_choices_panel(
         &SelectorArrowIconEntity
     )>,
     mut panel_q: Query<
-        (&mut Node, &mut Transform), 
+        (&mut Node, &mut Transform),
         With<IsFamiqSelectionChoicesPanel>
     >,
     mut arrow_q: Query<&mut Text, With<ArrowIcon>>,
@@ -30,7 +30,7 @@ pub fn handle_show_and_hide_choices_panel(
         if focused {
             panel_transform.translation = transform.translation();
             panel_node.width = Val::Percent(100.0);
-            panel_node.top = Val::Px(computed_node.size().y);
+            panel_node.top = Val::Px(computed_node.size().y * computed_node.inverse_scale_factor());
             panel_node.display = Display::Flex;
             FaSelection::arrow_up(&mut arrow_q, arrow_entity.0);
         }
