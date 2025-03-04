@@ -1,14 +1,12 @@
-pub mod helper;
+pub mod styling;
 pub mod tests;
 
-use bevy::ui::FocusPolicy;
-use helper::*;
+use styling::*;
 use crate::plugin::{CursorIcons, CursorType};
 use crate::utils::*;
 use crate::resources::*;
 use crate::widgets::color::WHITE_COLOR;
 use crate::widgets::*;
-use crate::event_writer::FaInteractionEvent;
 
 use bevy::input::keyboard::{Key, KeyboardInput};
 use bevy::ecs::system::EntityCommands;
@@ -19,20 +17,39 @@ use smol_str::SmolStr;
 
 use super::color::{BLACK_COLOR, SECONDARY_COLOR};
 
+#[derive(Component, Default)]
+pub struct TextInputValue(pub String);
+
+
+#[derive(Default)]
+pub enum CursorMove {
+    #[default]
+    Right,
+    Left
+}
+
+pub enum EditingType {
+    Adding,
+    Removing,
+    Nothing
+}
+
 /// Represents the text input field containing the user-entered text and placeholder.
 #[derive(Component)]
 pub struct TextInput {
-    pub text: String,
     pub placeholder: String,
-    pub cursor_index: usize
+    pub cursor_index: usize,
+    pub input_type: TextInputType,
+    pub(crate) editing_type: EditingType
 }
 
 impl TextInput {
-    pub fn new(text: &str, placeholder: &str) -> Self {
+    pub fn new(placeholder: &str, input_type: TextInputType) -> Self {
         Self {
-            text: text.to_string(),
             placeholder: placeholder.to_string(),
-            cursor_index: 0
+            cursor_index: 0,
+            input_type,
+            editing_type: EditingType::Adding
         }
     }
 }
@@ -81,7 +98,6 @@ pub struct FamiqTextInputCursorEntity(pub Entity);
 #[derive(Component)]
 pub struct FamiqTextInputToggleIconEntity(pub Entity);
 
-/// Link a text input entity to its corresponding toggle icon entity;
 #[derive(Component)]
 pub struct FamiqTextInputEntity(pub Entity);
 
@@ -92,17 +108,11 @@ pub struct CharacterSize {
     pub height: f32
 }
 
-/// Marker component for identifying a toggle password visibility icon in a text input widget.
-#[derive(Component, Default)]
-pub struct TogglePasswordIcon {
-    pub can_see_text: bool
-}
-
 /// The width of the text input cursor.
 pub const CURSOR_WIDTH: f32 = 2.0;
 
 /// Type options for text input widget.
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub enum TextInputType {
     Text,
     Password
@@ -126,7 +136,6 @@ impl<'a> FaTextInput {
             font_size: get_text_size(&attributes.size),
             ..default()
         };
-        let txt_layout = TextLayout::new_with_justify(JustifyText::Left);
 
         let entity = root_node
             .commands()
@@ -134,42 +143,19 @@ impl<'a> FaTextInput {
                 txt.clone(),
                 txt_font.clone(),
                 TextColor(use_color),
-                txt_layout.clone(),
-                DefaultTextEntity::new(txt, txt_font, TextColor(use_color), txt_layout),
-                IsFamiqTextInputPlaceholder
+                TextLayout::new(JustifyText::Left, LineBreak::NoWrap),
+                DefaultTextEntity::new(txt, txt_font, TextColor(use_color), TextLayout::new(JustifyText::Left, LineBreak::NoWrap)),
+                IsFamiqTextInputPlaceholder,
+                Node {
+                    left: Val::Px(0.0),
+                    ..default()
+                },
+                BackgroundColor(Color::srgba(1.0, 0.2, 0.8, 0.8))
             ))
             .id();
 
         insert_id_and_class(root_node, entity, &attributes.id, &attributes.class);
         entity
-    }
-
-    fn _build_toggle_password_icon(
-        attributes: &WidgetAttributes,
-        root_node: &'a mut EntityCommands,
-        input_entity: Entity,
-    ) -> Entity {
-        let use_color = get_text_color(&attributes.color);
-
-        let txt_font = TextFont {
-            font: attributes.font_handle.clone().unwrap(),
-            font_size: get_text_size(&attributes.size),
-            ..default()
-        };
-
-        root_node
-            .commands()
-            .spawn((
-                Text::new("<?>"),
-                txt_font.clone(),
-                TextColor(use_color),
-                TextLayout::new_with_justify(JustifyText::Right),
-                TogglePasswordIcon::default(),
-                FamiqTextInputEntity(input_entity),
-                FocusPolicy::Block,
-                Interaction::default()
-            ))
-            .id()
     }
 
     fn _build_cursor(root_node: &'a mut EntityCommands, color: &WidgetColor) -> Entity {
@@ -198,14 +184,14 @@ impl<'a> FaTextInput {
         root_node: &'a mut EntityCommands,
         placeholder: &str,
         placeholder_entity: Entity,
-        cursor_entity: Entity
+        cursor_entity: Entity,
+        input_type: TextInputType
     ) -> Entity {
         let input_color = get_color(&attributes.color);
         let mut style_components = BaseStyleComponents::default();
         style_components.node = attributes.node.clone();
         style_components.border_color = BorderColor(input_color);
         style_components.background_color = BackgroundColor(input_color);
-        style_components.visibility = Visibility::Visible;
         style_components.border_radius = BorderRadius::all(Val::Px(6.0));
 
         let entity = root_node
@@ -214,7 +200,8 @@ impl<'a> FaTextInput {
                 style_components.clone(),
                 IsFamiqTextInput,
                 DefaultWidgetEntity::from(style_components),
-                TextInput::new("", placeholder),
+                TextInput::new(placeholder, input_type),
+                TextInputValue::default(),
                 FamiqTextInputPlaceholderEntity(placeholder_entity),
                 FamiqTextInputCursorEntity(cursor_entity),
                 CharacterSize { width: 0.0, height: 0.0 },
@@ -229,7 +216,7 @@ impl<'a> FaTextInput {
         attributes: &WidgetAttributes,
         placeholder: &str,
         root_node: &'a mut EntityCommands,
-        input_type: &TextInputType
+        input_type: TextInputType
     ) -> Entity {
         let cursor_entity = Self::_build_cursor(root_node, &attributes.color);
         let ph_entity = Self::_build_placeholder(attributes, placeholder, root_node);
@@ -238,19 +225,77 @@ impl<'a> FaTextInput {
             root_node,
             placeholder,
             ph_entity,
-            cursor_entity
+            cursor_entity,
+            input_type
         );
-
-        let mut children = vec![ph_entity, cursor_entity];
-
-        if *input_type == TextInputType::Password {
-            let toggle_icon = Self::_build_toggle_password_icon(attributes, root_node, input_entity);
-            root_node.commands().entity(input_entity).insert(FamiqTextInputToggleIconEntity(toggle_icon));
-            children.push(toggle_icon);
-        }
-
-        entity_add_children(root_node, &children, input_entity);
+        entity_add_children(root_node, &vec![ph_entity, cursor_entity], input_entity);
         input_entity
+    }
+
+    pub(crate) fn handle_text_input_value_change(
+        mut input_q: Query<
+            (
+                Ref<ComputedNode>,
+                &mut TextInput,
+                &CharacterSize,
+                &TextInputValue,
+                &FamiqTextInputPlaceholderEntity,
+                &FamiqTextInputCursorEntity
+            ),
+            Changed<TextInput>
+        >,
+        mut placeholder_q: Query<
+            (&mut Text, &mut Node, Ref<ComputedNode>),
+            (With<IsFamiqTextInputPlaceholder>, Without<IsFamiqTextInputCursor>)
+        >,
+        mut cursor_q: Query<
+            &mut Node,
+            (With<IsFamiqTextInputCursor>, Without<IsFamiqTextInputPlaceholder>)
+        >,
+    ) {
+        for (input_computed, mut text_input, char_size, value, placeholder_entity, cursor_entity) in input_q.iter_mut() {
+            if let Ok((mut placeholder_text, mut node, placeholder_computed)) = placeholder_q.get_mut(placeholder_entity.0) {
+
+                if input_computed.is_added() || placeholder_computed.is_added() {
+                    return;
+                }
+
+                FaTextInput::_handle_update_placeholder(&mut placeholder_text, &mut text_input, value);
+
+                let input_size = input_computed.size();
+                let input_padding = input_computed.padding();
+                let input_scale = input_computed.inverse_scale_factor();
+
+                let placeholder_size = placeholder_computed.size();
+                let placeholder_scale = placeholder_computed.inverse_scale_factor();
+
+                let is_overflow = (placeholder_size.x * placeholder_scale) >=
+                                  (((input_size.x - input_padding.left - input_padding.right) * input_scale) - char_size.width);
+
+                match text_input.editing_type {
+                    EditingType::Adding => {
+                        if is_overflow  {
+                            node.left = Val::Px(extract_val(node.left).unwrap() - char_size.width);
+                        }
+                        // else {
+                        //     _update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, true);
+                        // }
+                    }
+                    EditingType::Removing => {
+                        if extract_val(node.left).unwrap() <= (-char_size.width) / 2.0 {
+                            node.left = Val::Px(extract_val(node.left).unwrap() + char_size.width);
+                        }
+                        else {
+                            node.left = Val::Px(0.0);
+                        }
+                        // else {
+                        //     _update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, false);
+                        // }
+                    }
+                    _ => {}
+                }
+            }
+        }
     }
 
     pub fn handle_text_input_on_focused_system(
@@ -273,7 +318,7 @@ impl<'a> FaTextInput {
         mut placeholder_q: Query<(&Text, &TextLayoutInfo), With<IsFamiqTextInputPlaceholder>>,
         builder_res: Res<FamiqResource>
     ) {
-        if !builder_res.is_changed() {
+        if !builder_res.is_changed() || builder_res.is_added() {
             return;
         }
         for (
@@ -309,41 +354,35 @@ impl<'a> FaTextInput {
 
     // hovered, pressed, none
     pub fn handle_text_input_interaction_system(
-        mut events: EventReader<FaInteractionEvent>,
-        mut input_q_for_hover: Query<
-            (&mut BoxShadow, &mut TextInput, &DefaultWidgetEntity)
+        mut input_q: Query<
+            (Entity, &mut BoxShadow, &mut TextInput, &TextInputValue, &Interaction, &DefaultWidgetEntity),
+            Changed<Interaction>
         >,
         mut builder_res: ResMut<FamiqResource>,
-        mut cursor_blink_timer: ResMut<FaTextInputCursorBlinkTimer>,
 
         window: Single<Entity, With<Window>>,
         mut commands: Commands,
         cursor_icons: Res<CursorIcons>,
     ) {
-        for e in events.read() {
-            if e.widget == WidgetType::TextInput {
-                if let Ok((mut box_shadow, mut text_input, default_style)) = input_q_for_hover.get_mut(e.entity) {
-                    match e.interaction {
-                        Interaction::Hovered => {
-                            box_shadow.color = default_style.border_color.0.clone();
-                            _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Text);
-                        },
-                        Interaction::Pressed => {
-                            // global focus
-                            builder_res.update_all_focus_states(false);
-                            builder_res.update_or_insert_focus_state(e.entity, true);
-                            cursor_blink_timer.is_transparent = false;
+        for (entity, mut box_shadow, mut text_input, value, interaction, default_style) in input_q.iter_mut() {
+            match interaction {
+                Interaction::Hovered => {
+                    box_shadow.color = default_style.border_color.0.clone();
+                    _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Text);
+                },
+                Interaction::Pressed => {
+                    // global focus
+                    builder_res.update_all_focus_states(false);
+                    builder_res.update_or_insert_focus_state(entity, true);
 
-                            if text_input.cursor_index > 0 {
-                                text_input.cursor_index = text_input.text.len();
-                            }
-                            _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Text);
-                        },
-                        _ => {
-                            box_shadow.color = Color::NONE;
-                            _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Default);
-                        }
+                    if text_input.cursor_index > 0 {
+                        text_input.cursor_index = value.0.len();
                     }
+                    _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Text);
+                },
+                _ => {
+                    box_shadow.color = Color::NONE;
+                    _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Default);
                 }
             }
         }
@@ -363,49 +402,61 @@ impl<'a> FaTextInput {
         }
     }
 
-    pub fn handle_text_input_on_typing_system(
+    pub(crate) fn _handle_update_placeholder(
+        placeholder_text: &mut Text,
+        text_input: &mut TextInput,
+        value: &TextInputValue
+    ) {
+
+        if value.0.is_empty() {
+            placeholder_text.0 = text_input.placeholder.clone();
+            text_input.editing_type = EditingType::Nothing;
+            return;
+        }
+
+        if text_input.input_type == TextInputType::Password {
+            placeholder_text.0 = mask_string(&value.0);
+        }
+        else {
+            placeholder_text.0 = value.0.clone();
+        }
+    }
+
+    pub(crate) fn handle_text_input_on_typing_system(
         mut evr_kbd: EventReader<KeyboardInput>,
         mut input_res: ResMut<FaTextInputResource>,
         mut input_q: Query<(
             Entity,
             &mut TextInput,
-            &CharacterSize,
-            &FamiqTextInputPlaceholderEntity,
-            &FamiqTextInputCursorEntity,
-            Option<&FamiqTextInputToggleIconEntity>,
+            &mut TextInputValue,
+            // &CharacterSize,
+            // &FamiqTextInputCursorEntity,
             Option<&FamiqWidgetId>
         )>,
-        mut text_q: Query<(&mut Text, &IsFamiqTextInputPlaceholder)>,
-        toggle_icon_q: Query<&TogglePasswordIcon>,
-        mut cursor_q: Query<(&mut Node, &mut Visibility, &IsFamiqTextInputCursor), Without<CharacterSize>>,
         builder_res: Res<FamiqResource>
     ) {
         for e in evr_kbd.read() {
             if e.state == ButtonState::Released {
                 continue;
             }
-
             match &e.logical_key {
                 Key::Character(input) => {
                     for (
                             entity,
                             mut text_input,
-                            char_size,
-                            placeholder_entity,
-                            cursor_entity,
-                            toggle_icon_entity,
+                            mut value,
+                            // char_size,
+                            // cursor_entity,
                             id,
                         ) in input_q.iter_mut()
                     {
                         if let Some(true) = builder_res.get_widget_focus_state(&entity) {
-                            _update_text_input_value(id, &mut input_res, &mut text_input, true, Some(input));
+                            _update_text_input_value(id, &mut input_res, &text_input, &mut value, true, Some(input));
+                            text_input.editing_type = EditingType::Adding;
 
-                            if let Ok((mut placeholder_text, _)) = text_q.get_mut(placeholder_entity.0) {
-                                placeholder_text.0 = text_input.text.clone();
-                                _handle_mask_placeholder(toggle_icon_entity, &toggle_icon_q, &text_input, &mut placeholder_text);
-                                _update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, true);
+                            if text_input.cursor_index < value.0.len() {
+                                text_input.cursor_index += 1;
                             }
-
                             break;
                         }
                     }
@@ -414,20 +465,18 @@ impl<'a> FaTextInput {
                     for (
                             entity,
                             mut text_input,
-                            char_size,
-                            placeholder_entity,
-                            cursor_entity,
-                            toggle_icon_entity,
+                            mut value,
+                            // char_size,
+                            // cursor_entity,
                             id,
                         ) in input_q.iter_mut()
                     {
                         if let Some(true) = builder_res.get_widget_focus_state(&entity) {
-                            _update_text_input_value(id, &mut input_res, &mut text_input, true, Some(&SmolStr::new(" ")));
+                            _update_text_input_value(id, &mut input_res, &text_input, &mut value, true, Some(&SmolStr::new(" ")));
+                            text_input.editing_type = EditingType::Adding;
 
-                            if let Ok((mut placeholder_text, _)) = text_q.get_mut(placeholder_entity.0) {
-                                placeholder_text.0 = text_input.text.clone();
-                                _handle_mask_placeholder(toggle_icon_entity, &toggle_icon_q, &text_input, &mut placeholder_text);
-                                _update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, true);
+                            if text_input.cursor_index < value.0.len() {
+                                text_input.cursor_index += 1;
                             }
 
                             break;
@@ -438,54 +487,43 @@ impl<'a> FaTextInput {
                     for (
                             entity,
                             mut text_input,
-                            char_size,
-                            placeholder_entity,
-                            cursor_entity,
-                            toggle_icon_entity,
+                            mut value,
+                            // char_size,
+                            // cursor_entity,
                             id,
                         ) in input_q.iter_mut()
                     {
                         if let Some(true) = builder_res.get_widget_focus_state(&entity) {
-                            _update_text_input_value(id, &mut input_res, &mut text_input, false, None);
+                            _update_text_input_value(id, &mut input_res, &text_input, &mut value, false, None);
+                            text_input.editing_type = EditingType::Removing;
 
-                            if let Ok((mut placeholder_text, _)) = text_q.get_mut(placeholder_entity.0) {
-                                if placeholder_text.0 != text_input.placeholder {
-                                    _update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, false);
-                                }
-
-                                if text_input.text.is_empty() {
-                                    placeholder_text.0 = text_input.placeholder.clone();
-                                }
-                                else {
-                                    placeholder_text.0 = text_input.text.clone();
-                                    _handle_mask_placeholder(toggle_icon_entity, &toggle_icon_q, &text_input, &mut placeholder_text);
-                                }
+                            if text_input.cursor_index > 0 {
+                                text_input.cursor_index -= 1;
                             }
-
                             break;
                         }
                     }
                 },
-                Key::ArrowLeft => {
-                    for (entity, mut text_input, char_size, _, cursor_entity, _, _,) in input_q.iter_mut() {
-                        if let Some(true) = builder_res.get_widget_focus_state(&entity) {
-                            if text_input.cursor_index > 0 {
-                                text_input.cursor_index -= 1;
-                                _update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, false);
-                            }
-                        }
-                    }
-                }
-                Key::ArrowRight => {
-                    for (entity, mut text_input, char_size, _, cursor_entity, _, _,) in input_q.iter_mut() {
-                        if let Some(true) = builder_res.get_widget_focus_state(&entity) {
-                            if text_input.cursor_index < text_input.text.len() {
-                                text_input.cursor_index += 1;
-                                _update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, true);
-                            }
-                        }
-                    }
-                }
+                // Key::ArrowLeft => {
+                //     for (entity, mut text_input, _, char_size, cursor_entity, _) in input_q.iter_mut() {
+                //         if let Some(true) = builder_res.get_widget_focus_state(&entity) {
+                //             if text_input.cursor_index > 0 {
+                //                 text_input.cursor_index -= 1;
+                //                 _update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, false);
+                //             }
+                //         }
+                //     }
+                // }
+                // Key::ArrowRight => {
+                //     for (entity, mut text_input, value, char_size, cursor_entity, _) in input_q.iter_mut() {
+                //         if let Some(true) = builder_res.get_widget_focus_state(&entity) {
+                //             if text_input.cursor_index < value.0.len(){
+                //                 text_input.cursor_index += 1;
+                //                 _update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, true);
+                //             }
+                //         }
+                //     }
+                // }
                 _ => continue
             }
         }
@@ -522,46 +560,6 @@ impl<'a> FaTextInput {
                     }
                 },
                 _ => {}
-            }
-        }
-    }
-
-    pub fn handle_toggle_password_icon_interaction_system(
-        mut events: EventReader<FaInteractionEvent>,
-        mut icon_q: Query<(&mut TogglePasswordIcon, &FamiqTextInputEntity)>,
-        input_q: Query<(&FamiqTextInputPlaceholderEntity, &TextInput)>,
-        mut placeholder_q: Query<&mut Text, With<IsFamiqTextInputPlaceholder>>
-    ) {
-        for e in events.read() {
-            if !e.is_pressed(WidgetType::TextInputTogglePasswordIcon) {
-                continue;
-            }
-
-            let (mut toggle_icon, input_entity) = match icon_q.get_mut(e.entity) {
-                Ok(data) => data,
-                Err(_) => continue,
-            };
-
-            toggle_icon.can_see_text = !toggle_icon.can_see_text;
-
-            let (placeholder_entity, text_input) = match input_q.get(input_entity.0) {
-                Ok(data) => data,
-                Err(_) => continue,
-            };
-
-            let mut placeholder_text = match placeholder_q.get_mut(placeholder_entity.0) {
-                Ok(data) => data,
-                Err(_) => continue,
-            };
-
-            if text_input.text.trim().is_empty() {
-                continue;
-            }
-
-            if toggle_icon.can_see_text {
-                placeholder_text.0 = text_input.text.clone();
-            } else {
-                placeholder_text.0 = mask_string(text_input.text.as_str());
             }
         }
     }
@@ -606,7 +604,7 @@ impl<'a> FaTextInputBuilder<'a> {
             &self.attributes,
             self.placeholder.as_str(),
             &mut self.root_node,
-            &self.input_type
+            self.input_type.clone()
         )
     }
 }

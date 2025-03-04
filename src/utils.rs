@@ -62,7 +62,7 @@ pub(crate) fn entity_add_children<'a>(
 
 pub(crate) fn adjust_color(percentage: f32, color: &Color, darken: bool) -> Option<Color> {
     let factor = percentage / 100.0;
-    
+
     let adjust = |channel: f32| -> f32 {
         if darken {
             (channel - channel * factor).clamp(0.0, 1.0)  // Darken
@@ -173,7 +173,7 @@ pub(crate) fn process_spacing_built_in_class(node: &mut Node, class: &Option<Str
     }
 }
 
-pub(crate) fn mask_string(input: &str) -> String {
+pub fn mask_string(input: &str) -> String {
     "*".repeat(input.len())
 }
 

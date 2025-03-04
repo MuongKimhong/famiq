@@ -21,7 +21,7 @@ pub struct FaInteractionEvent {
     pub entity: Entity,
     pub widget_id: Option<String>,
     pub interaction: Interaction,
-    pub widget: WidgetType,
+    pub widget: WidgetType
 }
 
 impl FaInteractionEvent {
@@ -72,6 +72,42 @@ impl FaInteractionEvent {
     }
 }
 
+/// `fa_text_input` value change event
+#[derive(Event, Debug)]
+pub struct FaTextInputChangeEvent {
+    pub entity: Entity,
+    pub widget_id: Option<String>,
+    pub new_value: String
+}
+
+impl FaTextInputChangeEvent {
+    pub fn new(entity: Entity, widget_id: Option<String>, new_value: String) -> Self {
+        Self {
+            entity,
+            widget_id,
+            new_value
+        }
+    }
+}
+
+/// `fa_selection` value change event
+#[derive(Event, Debug)]
+pub struct FaSelectionChangeEvent {
+    pub entity: Entity,
+    pub widget_id: Option<String>,
+    pub new_value: String
+}
+
+impl FaSelectionChangeEvent {
+    pub fn new(entity: Entity, widget_id: Option<String>, new_value: String) -> Self {
+        Self {
+            entity,
+            widget_id,
+            new_value
+        }
+    }
+}
+
 pub fn btn_interaction_system(
     mut interaction_q: Query<
         (Entity, &IsFamiqButton, Option<&FamiqWidgetId>, &Interaction),
@@ -102,44 +138,44 @@ pub fn image_interaction_system(
     FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::Image);
 }
 
-pub fn text_input_interaction_system(
+pub fn text_input_interaction_and_change_system(
     mut interaction_q: Query<
         (Entity, &IsFamiqTextInput, Option<&FamiqWidgetId>, &Interaction),
         Changed<Interaction>,
     >,
-    mut writer: EventWriter<FaInteractionEvent>,
+    text_input_q: Query<(Entity, Ref<TextInputValue>, Option<&FamiqWidgetId>)>,
+    mut interaction_writer: EventWriter<FaInteractionEvent>,
+    mut value_change_writer: EventWriter<FaTextInputChangeEvent>
 ) {
-    FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::TextInput);
+    FaInteractionEvent::send_event(&mut interaction_q, &mut interaction_writer, WidgetType::TextInput);
+
+    for (entity, text_input_value, id) in text_input_q.iter() {
+        if text_input_value.is_changed() && !text_input_value.is_added() {
+            value_change_writer.send(
+                FaTextInputChangeEvent::new(entity, id.map(|_id| _id.0.clone()), text_input_value.0.clone())
+            );
+        }
+    }
 }
 
-pub fn text_input_toggle_password_icon_interaction_system(
-    mut interaction_q: Query<
-        (Entity, &TogglePasswordIcon, Option<&FamiqWidgetId>, &Interaction),
-        Changed<Interaction>,
-    >,
-    mut writer: EventWriter<FaInteractionEvent>,
-) {
-    FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::TextInputTogglePasswordIcon);
-}
-
-pub fn selection_interaction_system(
+pub fn selection_interaction_and_change_system(
     mut interaction_q: Query<
         (Entity, &IsFamiqSelectionSelector, Option<&FamiqWidgetId>, &Interaction),
         Changed<Interaction>,
     >,
-    mut writer: EventWriter<FaInteractionEvent>,
+    selection_q: Query<(Entity, Ref<SelectionValue>, Option<&FamiqWidgetId>)>,
+    mut interaction_writer: EventWriter<FaInteractionEvent>,
+    mut value_change_writer: EventWriter<FaSelectionChangeEvent>
 ) {
-    FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::Selection);
-}
+    FaInteractionEvent::send_event(&mut interaction_q, &mut interaction_writer, WidgetType::Selection);
 
-pub fn selection_choice_interaction_system(
-    mut interaction_q: Query<
-        (Entity, &IsFamiqSelectionChoice, Option<&FamiqWidgetId>, &Interaction),
-        Changed<Interaction>,
-    >,
-    mut writer: EventWriter<FaInteractionEvent>,
-) {
-    FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::SelectionChoice);
+    for (entity, selection_value, id) in selection_q.iter() {
+        if selection_value.is_changed() && !selection_value.is_added() {
+            value_change_writer.send(
+                FaSelectionChangeEvent::new(entity, id.map(|_id| _id.0.clone()), selection_value.0.clone())
+            );
+        }
+    }
 }
 
 pub fn text_interaction_system(

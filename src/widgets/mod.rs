@@ -173,7 +173,6 @@ pub enum WidgetType {
     ListView,
     ListViewItem,
     Selection,
-    SelectionChoice, // choicepanel globalzindex 2
     Circular,
     ProgressBar,
     ToolTip, // globalzindex 4

@@ -102,8 +102,7 @@ fn fa_selection_systems(app: &mut App) {
     app.add_systems(
         Update,
         (
-            event_writer::selection_interaction_system,
-            event_writer::selection_choice_interaction_system,
+            event_writer::selection_interaction_and_change_system,
             handle_show_and_hide_choices_panel,
             handle_selection_interaction_system,
             handle_selection_choice_interaction_system,
@@ -117,13 +116,12 @@ fn fa_text_input_systems(app: &mut App) {
     app.add_systems(
         Update,
         (
-            event_writer::text_input_interaction_system,
-            event_writer::text_input_toggle_password_icon_interaction_system,
+            event_writer::text_input_interaction_and_change_system,
+            FaTextInput::handle_text_input_value_change,
             FaTextInput::handle_text_input_on_typing_system,
             FaTextInput::handle_text_input_interaction_system,
             FaTextInput::handle_text_input_on_focused_system,
             FaTextInput::handle_cursor_blink_system,
-            FaTextInput::handle_toggle_password_icon_interaction_system,
             FaTextInput::detect_new_text_input_widget_system
         )
         .run_if(can_run_text_input_systems)
@@ -160,7 +158,6 @@ fn fa_listview_systems(app: &mut App) {
         (
             event_writer::listview_interaction_system,
             FaListView::on_hover_system,
-            // event_writer::listview_item_interaction_system,
             FaListView::on_scroll_system,
         )
         .chain()
@@ -284,6 +281,8 @@ impl Plugin for FamiqPlugin {
         app.insert_resource(CursorIcons::default());
 
         app.add_event::<event_writer::FaInteractionEvent>();
+        app.add_event::<event_writer::FaTextInputChangeEvent>();
+        app.add_event::<event_writer::FaSelectionChangeEvent>();
 
         external_styles_file_systems(app);
         internal_styles_systems(app);

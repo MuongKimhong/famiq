@@ -23,6 +23,7 @@ pub fn default_selector_node() -> Node {
         },
         height: Val::Auto,
         width: Val::Percent(100.0),
+        overflow: Overflow::clip_x(),
         ..default()
     }
 }

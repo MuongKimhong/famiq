@@ -53,13 +53,13 @@ impl<'a> FaSelection {
                 Text::new(placeholder),
                 txt_font.clone(),
                 TextColor(use_color),
-                TextLayout::new_with_justify(JustifyText::Left),
+                TextLayout::new(JustifyText::Left, LineBreak::NoWrap),
                 SelectorPlaceHolder,
                 DefaultTextEntity::new(
                     Text::new(placeholder),
                     txt_font,
                     TextColor(use_color),
-                    TextLayout::new_with_justify(JustifyText::Left)
+                    TextLayout::new(JustifyText::Left, LineBreak::NoWrap)
                 )
             ))
             .id();
@@ -113,6 +113,7 @@ impl<'a> FaSelection {
                 style_components.clone(),
                 IsFamiqSelectionSelector,
                 DefaultWidgetEntity::from(style_components),
+                SelectionValue::default(),
                 Selection::new(placeholder.to_string()),
                 SelectorPlaceHolderEntity(placeholder_entity),
                 SelectorArrowIconEntity(arrow_icon_entity)

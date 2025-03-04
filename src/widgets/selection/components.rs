@@ -28,6 +28,9 @@ pub struct SelectionChoicesPanelEntity(pub Entity);
 #[derive(Component)]
 pub struct SelectorEntity(pub Entity);
 
+#[derive(Component, Default)]
+pub struct SelectionValue(pub String);
+
 #[derive(Component, Debug)]
 pub struct Selection {
     pub placeholder: String,

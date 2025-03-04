@@ -75,5 +75,5 @@ pub mod prelude {
     pub use crate::widgets::text::{IsFamiqText, FaTextResource};
     pub use crate::widgets::list_view::IsFamiqListView;
     pub use crate::widgets::bg_image::{FaBgImageResource, IsFamiqBgImage};
-    pub use crate::event_writer::FaInteractionEvent;
+    pub use crate::event_writer::{FaInteractionEvent, FaTextInputChangeEvent, FaSelectionChangeEvent};
 }
