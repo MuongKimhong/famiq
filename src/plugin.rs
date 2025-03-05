@@ -117,7 +117,6 @@ fn fa_text_input_systems(app: &mut App) {
         Update,
         (
             event_writer::text_input_interaction_and_change_system,
-            FaTextInput::handle_text_input_value_change,
             FaTextInput::handle_text_input_on_typing_system,
             FaTextInput::handle_text_input_interaction_system,
             FaTextInput::handle_text_input_on_focused_system,

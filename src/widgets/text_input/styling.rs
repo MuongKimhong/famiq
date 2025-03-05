@@ -111,13 +111,11 @@ pub fn _update_text_input_value(
 ) {
     if appending {
         value.0.insert_str(text_input.cursor_index, new_char.unwrap());
-        // text_input.cursor_index += 1;
 
     } else {
         if text_input.cursor_index > 0 {
             let byte_index = value.0.char_indices().nth(text_input.cursor_index - 1).map(|(i, _)| i).unwrap();
             value.0.remove(byte_index);
-            // text_input.cursor_index -= 1;
         }
     }
 

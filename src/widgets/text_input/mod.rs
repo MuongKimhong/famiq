@@ -39,8 +39,7 @@ pub enum EditingType {
 pub struct TextInput {
     pub placeholder: String,
     pub cursor_index: usize,
-    pub input_type: TextInputType,
-    pub(crate) editing_type: EditingType
+    pub input_type: TextInputType
 }
 
 impl TextInput {
@@ -48,8 +47,7 @@ impl TextInput {
         Self {
             placeholder: placeholder.to_string(),
             cursor_index: 0,
-            input_type,
-            editing_type: EditingType::Adding
+            input_type
         }
     }
 }
@@ -149,8 +147,7 @@ impl<'a> FaTextInput {
                 Node {
                     left: Val::Px(0.0),
                     ..default()
-                },
-                BackgroundColor(Color::srgba(1.0, 0.2, 0.8, 0.8))
+                }
             ))
             .id();
 
@@ -230,72 +227,6 @@ impl<'a> FaTextInput {
         );
         entity_add_children(root_node, &vec![ph_entity, cursor_entity], input_entity);
         input_entity
-    }
-
-    pub(crate) fn handle_text_input_value_change(
-        mut input_q: Query<
-            (
-                Ref<ComputedNode>,
-                &mut TextInput,
-                &CharacterSize,
-                &TextInputValue,
-                &FamiqTextInputPlaceholderEntity,
-                &FamiqTextInputCursorEntity
-            ),
-            Changed<TextInput>
-        >,
-        mut placeholder_q: Query<
-            (&mut Text, &mut Node, Ref<ComputedNode>),
-            (With<IsFamiqTextInputPlaceholder>, Without<IsFamiqTextInputCursor>)
-        >,
-        mut cursor_q: Query<
-            &mut Node,
-            (With<IsFamiqTextInputCursor>, Without<IsFamiqTextInputPlaceholder>)
-        >,
-    ) {
-        for (input_computed, mut text_input, char_size, value, placeholder_entity, cursor_entity) in input_q.iter_mut() {
-            if let Ok((mut placeholder_text, mut node, placeholder_computed)) = placeholder_q.get_mut(placeholder_entity.0) {
-
-                if input_computed.is_added() || placeholder_computed.is_added() {
-                    return;
-                }
-
-                FaTextInput::_handle_update_placeholder(&mut placeholder_text, &mut text_input, value);
-
-                let input_size = input_computed.size();
-                let input_padding = input_computed.padding();
-                let input_scale = input_computed.inverse_scale_factor();
-
-                let placeholder_size = placeholder_computed.size();
-                let placeholder_scale = placeholder_computed.inverse_scale_factor();
-
-                let is_overflow = (placeholder_size.x * placeholder_scale) >=
-                                  (((input_size.x - input_padding.left - input_padding.right) * input_scale) - char_size.width);
-
-                match text_input.editing_type {
-                    EditingType::Adding => {
-                        if is_overflow  {
-                            node.left = Val::Px(extract_val(node.left).unwrap() - char_size.width);
-                        }
-                        // else {
-                        //     _update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, true);
-                        // }
-                    }
-                    EditingType::Removing => {
-                        if extract_val(node.left).unwrap() <= (-char_size.width) / 2.0 {
-                            node.left = Val::Px(extract_val(node.left).unwrap() + char_size.width);
-                        }
-                        else {
-                            node.left = Val::Px(0.0);
-                        }
-                        // else {
-                        //     _update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, false);
-                        // }
-                    }
-                    _ => {}
-                }
-            }
-        }
     }
 
     pub fn handle_text_input_on_focused_system(
@@ -404,13 +335,12 @@ impl<'a> FaTextInput {
 
     pub(crate) fn _handle_update_placeholder(
         placeholder_text: &mut Text,
-        text_input: &mut TextInput,
+        text_input: &TextInput,
         value: &TextInputValue
     ) {
 
         if value.0.is_empty() {
             placeholder_text.0 = text_input.placeholder.clone();
-            text_input.editing_type = EditingType::Nothing;
             return;
         }
 
@@ -422,6 +352,21 @@ impl<'a> FaTextInput {
         }
     }
 
+    fn _is_text_overflow(
+        char_width: f32,
+        input_computed: &ComputedNode,
+        placeholder_computed: &ComputedNode
+    ) -> bool {
+        let input_size = input_computed.size();
+        let input_padding = input_computed.padding();
+        let input_scale = input_computed.inverse_scale_factor();
+
+        let input_width = (input_size.x - input_padding.left - input_padding.right) * input_scale;
+        let placeholder_width = placeholder_computed.size().x * placeholder_computed.inverse_scale_factor();
+
+        return placeholder_width >= input_width - char_width;
+    }
+
     pub(crate) fn handle_text_input_on_typing_system(
         mut evr_kbd: EventReader<KeyboardInput>,
         mut input_res: ResMut<FaTextInputResource>,
@@ -429,102 +374,87 @@ impl<'a> FaTextInput {
             Entity,
             &mut TextInput,
             &mut TextInputValue,
-            // &CharacterSize,
-            // &FamiqTextInputCursorEntity,
+            &ComputedNode,
+            &CharacterSize,
+            &FamiqTextInputPlaceholderEntity,
+            &FamiqTextInputCursorEntity,
             Option<&FamiqWidgetId>
         )>,
+        mut placeholder_q: Query<
+            (&mut Text, &mut Node, &ComputedNode),
+            (With<IsFamiqTextInputPlaceholder>, Without<IsFamiqTextInputCursor>)
+        >,
+        mut cursor_q: Query<
+            &mut Node,
+            (With<IsFamiqTextInputCursor>, Without<IsFamiqTextInputPlaceholder>)
+        >,
         builder_res: Res<FamiqResource>
     ) {
         for e in evr_kbd.read() {
             if e.state == ButtonState::Released {
                 continue;
             }
-            match &e.logical_key {
-                Key::Character(input) => {
-                    for (
-                            entity,
-                            mut text_input,
-                            mut value,
-                            // char_size,
-                            // cursor_entity,
-                            id,
-                        ) in input_q.iter_mut()
-                    {
-                        if let Some(true) = builder_res.get_widget_focus_state(&entity) {
-                            _update_text_input_value(id, &mut input_res, &text_input, &mut value, true, Some(input));
-                            text_input.editing_type = EditingType::Adding;
 
-                            if text_input.cursor_index < value.0.len() {
-                                text_input.cursor_index += 1;
+            for (input_entity, mut input, mut input_value, input_computed, char_size, ph_entity, cursor_entity, input_id) in input_q.iter_mut() {
+
+                let Some(focused) = builder_res.get_widget_focus_state(&input_entity) else { continue };
+
+                if focused {
+                    if let Ok((mut ph_text, mut ph_node, ph_computed)) = placeholder_q.get_mut(ph_entity.0) {
+
+                        match &e.logical_key {
+                            Key::Character(key_input) => {
+                                _update_text_input_value(input_id, &mut input_res, &mut input, &mut input_value, true, Some(key_input));
+                                FaTextInput::_handle_update_placeholder(&mut ph_text, &input, &input_value);
+
+                                if input.cursor_index < input_value.0.len() {
+                                    input.cursor_index += 1;
+                                }
+                                if FaTextInput::_is_text_overflow(char_size.width, input_computed, ph_computed) {
+                                    ph_node.left = Val::Px(extract_val(ph_node.left).unwrap() - char_size.width);
+                                }
+                                else {
+                                    _update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, true);
+                                }
                             }
-                            break;
+                            Key::Space => {
+                                _update_text_input_value(input_id, &mut input_res, &mut input, &mut input_value, true, Some(&SmolStr::new(" ")));
+                                FaTextInput::_handle_update_placeholder(&mut ph_text, &input, &input_value);
+
+                                if input.cursor_index < input_value.0.len() {
+                                    input.cursor_index += 1;
+                                }
+                                if FaTextInput::_is_text_overflow(char_size.width, input_computed, ph_computed) {
+                                    ph_node.left = Val::Px(extract_val(ph_node.left).unwrap() - char_size.width);
+                                }
+                                else {
+                                    _update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, true);
+                                }
+                            }
+                            Key::Backspace => {
+                                _update_text_input_value(input_id, &mut input_res, &mut input, &mut input_value, false, None);
+                                FaTextInput::_handle_update_placeholder(&mut ph_text, &input, &input_value);
+
+                                if extract_val(ph_node.left).unwrap() <= (-char_size.width) / 2.0 {
+                                    ph_node.left = Val::Px(extract_val(ph_node.left).unwrap() + char_size.width);
+                                }
+                                else {
+                                    if input.cursor_index > 0 {
+                                        _update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, false);
+                                    }
+                                }
+
+                                if input.cursor_index > 0 {
+                                    input.cursor_index -= 1;
+                                }
+                            }
+                            // Key::ArrowLeft => {}
+                            // Key::ArrowRight => {}
+                            _ => continue
                         }
+
                     }
                 }
-                Key::Space => {
-                    for (
-                            entity,
-                            mut text_input,
-                            mut value,
-                            // char_size,
-                            // cursor_entity,
-                            id,
-                        ) in input_q.iter_mut()
-                    {
-                        if let Some(true) = builder_res.get_widget_focus_state(&entity) {
-                            _update_text_input_value(id, &mut input_res, &text_input, &mut value, true, Some(&SmolStr::new(" ")));
-                            text_input.editing_type = EditingType::Adding;
-
-                            if text_input.cursor_index < value.0.len() {
-                                text_input.cursor_index += 1;
-                            }
-
-                            break;
-                        }
-                    }
-                }
-                Key::Backspace => {
-                    for (
-                            entity,
-                            mut text_input,
-                            mut value,
-                            // char_size,
-                            // cursor_entity,
-                            id,
-                        ) in input_q.iter_mut()
-                    {
-                        if let Some(true) = builder_res.get_widget_focus_state(&entity) {
-                            _update_text_input_value(id, &mut input_res, &text_input, &mut value, false, None);
-                            text_input.editing_type = EditingType::Removing;
-
-                            if text_input.cursor_index > 0 {
-                                text_input.cursor_index -= 1;
-                            }
-                            break;
-                        }
-                    }
-                },
-                // Key::ArrowLeft => {
-                //     for (entity, mut text_input, _, char_size, cursor_entity, _) in input_q.iter_mut() {
-                //         if let Some(true) = builder_res.get_widget_focus_state(&entity) {
-                //             if text_input.cursor_index > 0 {
-                //                 text_input.cursor_index -= 1;
-                //                 _update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, false);
-                //             }
-                //         }
-                //     }
-                // }
-                // Key::ArrowRight => {
-                //     for (entity, mut text_input, value, char_size, cursor_entity, _) in input_q.iter_mut() {
-                //         if let Some(true) = builder_res.get_widget_focus_state(&entity) {
-                //             if text_input.cursor_index < value.0.len(){
-                //                 text_input.cursor_index += 1;
-                //                 _update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, true);
-                //             }
-                //         }
-                //     }
-                // }
-                _ => continue
             }
         }
     }
