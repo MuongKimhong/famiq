@@ -10,3 +10,4 @@
  - [FaTextResource](./fa_text_resource.md)
  - [FaModalState](./fa_modal_state.md)
  - [FaStyleResource](./fa_style_resource.md)
+ - [FaBgImageResource](./fa_bg_image_resource.md)

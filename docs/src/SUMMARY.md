@@ -27,5 +27,6 @@
     - [FaTextResource](./chapter_5/fa_text_resource.md)
     - [FaModalState](./chapter_5/fa_modal_state.md)
     - [FaStyleResource](./chapter_5/fa_style_resource.md)
+    - [FaBgImageResource](./chapter_5/fa_bg_image_resource.md)
 - [Customise window](./customise_window.md)
 - [FPS](./fps.md)

@@ -173,7 +173,7 @@
 </code></pre>
 <p>or adding this to <code>Cargo.toml</code></p>
 <pre><code class="language-toml">[dependencies]
-famiq = "0.2.6"
+famiq = "0.2.7"
 </code></pre>
 <p>Famiq supports only bevy<code> 0.15.x</code> onward. Currently, the latest version of bevy is <code>0.15.3</code>.</p>
 <p>see <a href="https://crates.io/crates/famiq">crateio</a> &amp; <a href="https://docs.rs/famiq/latest/famiq/">rustdoc</a>.</p>
@@ -777,6 +777,30 @@ let input_password = fa_text_input(&amp;mut builder, "Enter your password")
 fa_container(&amp;mut builder)
     .children([input_default, input_password])
     .build();</code></pre>
+<h3 id="change-event"><a class="header" href="#change-event">Change event</a></h3>
+<p>Whenever <code>fa_text_input</code>'s value changes, it emits an event called <code>FaTextInputChangeEvent</code> that contains
+updated value.</p>
+<pre><code class="language-rust">pub struct FaTextInputChangeEvent {
+    pub entity: Entity,
+    pub widget_id: Option&lt;String&gt;,
+    pub new_value: String
+}</code></pre>
+<p>Example,</p>
+<pre><code class="language-rust">fn my_system(mut events: EventReader&lt;FaTextInputChangeEvent&gt;) {
+    for e in events.read() {
+        // make sure this works only with text input that have id provided
+        if let Some(id) = e.widget_id.as_ref() {
+            match id.as_str() {
+                "#text-input-one" =&gt; {
+                    println!("{:?}", e.new_value);
+                }
+                "#text-input-two" =&gt; {
+                    // do something with #text-input-two new value
+                }
+            }
+        }
+    }
+}</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="faselection"><a class="header" href="#faselection">FaSelection</a></h1>
 <h3 id="usage-5"><a class="header" href="#usage-5">Usage</a></h3>
 <pre><code class="language-rust">let selection = fa_selection(&amp;mut builder, "Select choice")
@@ -803,6 +827,30 @@ let subscriptions = fa_selection(&amp;mut builder, "Select subscription payment"
 );
 
 fa_container(&amp;mut builder).children([plans, subscriptions]).build();</code></pre>
+<h3 id="change-event-1"><a class="header" href="#change-event-1">Change event</a></h3>
+<p>Whenever <code>fa_selection</code>'s value changes, it emits an event called <code>FaSelectionChangeEvent</code> that contains
+updated value.</p>
+<pre><code class="language-rust">pub struct FaSelectionChangeEvent {
+    pub entity: Entity,
+    pub widget_id: Option&lt;String&gt;,
+    pub new_value: String
+}</code></pre>
+<p>Example,</p>
+<pre><code class="language-rust">fn my_system(mut events: EventReader&lt;FaSelectionChangeEvent&gt;) {
+    for e in events.read() {
+        // make sure this works only with selection that have id provided
+        if let Some(id) = e.widget_id.as_ref() {
+            match id.as_str() {
+                "#selection-one" =&gt; {
+                    println!("{:?}", e.new_value);
+                }
+                "#selection-two" =&gt; {
+                    // do something with #selection-two new value
+                }
+            }
+        }
+    }
+}</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="facircular"><a class="header" href="#facircular">FaCircular</a></h1>
 <p>A spinning circular.</p>
 <h3 id="usage-6"><a class="header" href="#usage-6">Usage</a></h3>
@@ -933,6 +981,7 @@ fa_container(&amp;mut builder)
 <li><a href="chapter_5/./fa_text_resource.html">FaTextResource</a></li>
 <li><a href="chapter_5/./fa_modal_state.html">FaModalState</a></li>
 <li><a href="chapter_5/./fa_style_resource.html">FaStyleResource</a></li>
+<li><a href="chapter_5/./fa_bg_image_resource.html">FaBgImageResource</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="facontainableresources"><a class="header" href="#facontainableresources">FaContainableResources</a></h1>
 <p>Used to <strong>add</strong>, <strong>insert</strong> and <strong>remove</strong> children from a containable widget (<code>fa_container</code>, <code>fa_modal</code>, <code>fa_listview</code>).</p>
@@ -1048,6 +1097,13 @@ fn my_system(
 <pre><code class="language-rust">set_font_size(id: &amp;str, size: &amp;str)</code></pre>
 <p>Change widget shadow color.</p>
 <pre><code class="language-rust">set_shadow_color(id: &amp;str, color: &amp;str)</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="fabgimageresource"><a class="header" href="#fabgimageresource">FaBgImageResource</a></h1>
+<p>Use this resource to change window's background image.</p>
+<pre><code class="language-rust">fn my_system(mut bg_res: ResMut&lt;FaBgImageResource&gt;) {
+    // some logic
+
+    bg_res.change_image("path/to/image-in-assets.png");
+}</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="customising-your-app-window"><a class="header" href="#customising-your-app-window">Customising your app window</a></h1>
 <p>Currently, the only way to customise your window is via <strong>bevy</strong>'s <code>WindowPlugin</code>.</p>
 <p>see more about <a href="https://docs.rs/bevy/latest/bevy/window/struct.WindowPlugin.html">WindowPlugin</a>.</p>

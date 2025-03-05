@@ -181,6 +181,30 @@ let subscriptions = fa_selection(&amp;mut builder, "Select subscription payment"
 );
 
 fa_container(&amp;mut builder).children([plans, subscriptions]).build();</code></pre>
+<h3 id="change-event"><a class="header" href="#change-event">Change event</a></h3>
+<p>Whenever <code>fa_selection</code>'s value changes, it emits an event called <code>FaSelectionChangeEvent</code> that contains
+updated value.</p>
+<pre><code class="language-rust">pub struct FaSelectionChangeEvent {
+    pub entity: Entity,
+    pub widget_id: Option&lt;String&gt;,
+    pub new_value: String
+}</code></pre>
+<p>Example,</p>
+<pre><code class="language-rust">fn my_system(mut events: EventReader&lt;FaSelectionChangeEvent&gt;) {
+    for e in events.read() {
+        // make sure this works only with selection that have id provided
+        if let Some(id) = e.widget_id.as_ref() {
+            match id.as_str() {
+                "#selection-one" =&gt; {
+                    println!("{:?}", e.new_value);
+                }
+                "#selection-two" =&gt; {
+                    // do something with #selection-two new value
+                }
+            }
+        }
+    }
+}</code></pre>
 
                     </main>
 

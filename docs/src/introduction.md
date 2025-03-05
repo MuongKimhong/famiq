@@ -23,7 +23,7 @@ cargo add famiq
 or adding this to `Cargo.toml`
 ```toml
 [dependencies]
-famiq = "0.2.6"
+famiq = "0.2.7"
 ```
 Famiq supports only bevy` 0.15.x` onward. Currently, the latest version of bevy is `0.15.3`.
 
