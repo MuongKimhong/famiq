@@ -1,4 +1,4 @@
-![Static Badge](https://img.shields.io/badge/Version-0.2.6-blue)
+![Static Badge](https://img.shields.io/badge/Version-0.2.7-blue)
 ![Static Badge](https://img.shields.io/badge/OS-Mac%20Linux%20Window-orange)
 
 <p align="center">
@@ -24,7 +24,7 @@ cargo add famiq
 ```
 or in Cargo.toml
 ```toml
-famiq = "0.2.6"
+famiq = "0.2.7"
 ```
 
 ## Documentation
