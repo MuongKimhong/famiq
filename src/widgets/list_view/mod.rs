@@ -4,7 +4,7 @@ pub mod tests;
 use crate::utils;
 use crate::resources::*;
 use crate::widgets::*;
-use crate::event_writer::FaInteractionEvent;
+use crate::event_writer::FaMouseEvent;
 use bevy::ecs::system::EntityCommands;
 use bevy::input::mouse::{MouseScrollUnit, MouseWheel};
 use bevy::prelude::*;
@@ -153,17 +153,13 @@ impl<'a> FaListView {
     }
 
     /// System to track hover interactions on ListView widgets.
-    ///
-    /// # Parameters
-    /// - `interaction_events`: A reader for `FaInteractionEvent` events.
-    /// - `can_be_scrolled_listview`: A mutable resource tracking the currently hovered ListView entity.
     pub fn on_hover_system(
-        mut interaction_events: EventReader<FaInteractionEvent>,
-        mut can_be_scrolled_listview: ResMut<CanBeScrolledListView>,
+        listview_q: Query<(Entity, &Interaction), (With<IsFamiqListView>, Changed<Interaction>)>,
+        mut can_be_scrolled_listview: ResMut<CanBeScrolledListView>
     ) {
-        for e in interaction_events.read() {
-            if e.widget == WidgetType::ListView && e.interaction == Interaction::Hovered {
-                can_be_scrolled_listview.entity = Some(e.entity);
+        for (entity, interaction) in listview_q.iter() {
+            if *interaction == Interaction::Hovered {
+                can_be_scrolled_listview.entity = Some(entity);
                 break;
             }
         }
@@ -173,20 +169,19 @@ impl<'a> FaListView {
     /// Internal system to handle scrolling interactions on ListView widgets.
     pub fn on_scroll_system(
         mut mouse_wheel_events: EventReader<MouseWheel>,
-        mut listview_q: Query<(&mut Node, &ComputedNode, &ListViewMovePanelEntity), Without<ScrollList>>,
+        mut listview_q: Query<
+            (&mut Node, &ComputedNode, &ListViewMovePanelEntity, Option<&FamiqWidgetId>),
+            Without<ScrollList>
+        >,
         mut panel_q: Query<(&mut Node, &ComputedNode, &mut ScrollList, &mut DefaultWidgetEntity)>,
+        mut mouse_event_writer: EventWriter<FaMouseEvent>,
         can_be_scrolled_listview: ResMut<CanBeScrolledListView>,
     ) {
-        // for (mut listview_node, _, _) in listview_q.iter_mut() {
-        //     // always set paddings to 0 as ListView can't have paddings.
-        //     listview_node.padding = UiRect::all(Val::Px(0.0));
-        // }
-
         for e in mouse_wheel_events.read() {
             if let Some(hovered_listview) = can_be_scrolled_listview.entity {
 
                 // get hovered listview
-                if let Ok((_, listview_c_node, panel_entity)) = listview_q.get_mut(hovered_listview) {
+                if let Ok((_, listview_c_node, panel_entity, listview_id)) = listview_q.get_mut(hovered_listview) {
 
                     // get panel
                     if let Ok((mut panel_node, panel_c_node, mut scroll_list, mut default_style)) = panel_q.get_mut(panel_entity.0) {
@@ -202,10 +197,9 @@ impl<'a> FaListView {
                         panel_node.top = Val::Px(scroll_list.position);
                         default_style.node.top = Val::Px(scroll_list.position);
 
+                        FaMouseEvent::send_scroll_event(&mut mouse_event_writer, WidgetType::ListView, hovered_listview, listview_id);
                     }
-
                 }
-
             }
         }
     }

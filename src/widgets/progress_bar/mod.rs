@@ -8,6 +8,7 @@ use bevy::reflect::TypePath;
 use bevy::render::render_resource::*;
 use crate::utils::*;
 use crate::widgets::*;
+use crate::event_writer::FaMouseEvent;
 
 pub use components::*;
 use helper::*;
@@ -127,6 +128,10 @@ impl<'a> FaProgressBar {
                 DefaultWidgetEntity::from(style_components),
                 IsFamiqProgressBar
             ))
+            .observe(FaProgressBar::handle_on_mouse_over)
+            .observe(FaProgressBar::handle_on_mouse_out)
+            .observe(FaProgressBar::handle_on_mouse_down)
+            .observe(FaProgressBar::handle_on_mouse_up)
             .id();
 
         insert_id_and_class(root_node, entity, &attributes.id, &attributes.class);
@@ -172,6 +177,54 @@ impl<'a> FaProgressBar {
         root_node.commands().entity(bar).insert(FamiqProgressValueEntity(value));
         entity_add_child(root_node, value, bar);
         bar
+    }
+
+    fn handle_on_mouse_over(
+        mut trigger: Trigger<Pointer<Over>>,
+        mut writer: EventWriter<FaMouseEvent>,
+        bar_q: Query<Option<&FamiqWidgetId>, With<IsFamiqProgressBar>>
+    ) {
+        if let Ok(id) = bar_q.get(trigger.entity()) {
+            FaMouseEvent::send_over_event(&mut writer, WidgetType::ProgressBar, trigger.entity(), id);
+        }
+        trigger.propagate(false);
+    }
+
+    fn handle_on_mouse_out(
+        mut trigger: Trigger<Pointer<Out>>,
+        mut writer: EventWriter<FaMouseEvent>,
+        bar_q: Query<Option<&FamiqWidgetId>, With<IsFamiqProgressBar>>
+    ) {
+        if let Ok(id) = bar_q.get(trigger.entity()) {
+            FaMouseEvent::send_out_event(&mut writer, WidgetType::ProgressBar, trigger.entity(), id);
+        }
+        trigger.propagate(false);
+    }
+
+    fn handle_on_mouse_down(
+        mut trigger: Trigger<Pointer<Down>>,
+        mut writer: EventWriter<FaMouseEvent>,
+        bar_q: Query<Option<&FamiqWidgetId>, With<IsFamiqProgressBar>>
+    ) {
+        if let Ok(id) = bar_q.get(trigger.entity()) {
+            if trigger.event().button == PointerButton::Secondary {
+                FaMouseEvent::send_down_event(&mut writer, WidgetType::ProgressBar, trigger.entity(), id, true);
+            } else {
+                FaMouseEvent::send_down_event(&mut writer, WidgetType::ProgressBar, trigger.entity(), id, false);
+            }
+        }
+        trigger.propagate(false);
+    }
+
+    fn handle_on_mouse_up(
+        mut trigger: Trigger<Pointer<Up>>,
+        mut writer: EventWriter<FaMouseEvent>,
+        bar_q: Query<Option<&FamiqWidgetId>, With<IsFamiqProgressBar>>
+    ) {
+        if let Ok(id) = bar_q.get(trigger.entity()) {
+            FaMouseEvent::send_up_event(&mut writer, WidgetType::ProgressBar, trigger.entity(), id);
+        }
+        trigger.propagate(false);
     }
 
     fn _set_to_percentage(

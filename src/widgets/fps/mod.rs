@@ -3,6 +3,7 @@ pub mod tests;
 
 use crate::utils::{entity_add_child, insert_id_and_class, process_spacing_built_in_class};
 use crate::widgets::*;
+use crate::event_writer::FaMouseEvent;
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
@@ -65,6 +66,10 @@ impl<'a> FaFpsText {
                 GlobalZIndex(6),
                 DefaultWidgetEntity::from(style_components)
             ))
+            .observe(FaFpsText::handle_on_mouse_over)
+            .observe(FaFpsText::handle_on_mouse_out)
+            .observe(FaFpsText::handle_on_mouse_down)
+            .observe(FaFpsText::handle_on_mouse_up)
             .id();
 
         let count_txt_entity = root_node
@@ -72,13 +77,13 @@ impl<'a> FaFpsText {
             .spawn((
                 TextSpan::default(),
                 count_txt_font.clone(),
-                TextColor(GREEN_COLOR),
+                TextColor(WHITE_COLOR),
                 IsFamiqFPSTextCount,
                 CanChangeColor(change_color),
                 DefaultTextSpanEntity::new(
                     TextSpan::default(),
                     count_txt_font,
-                    TextColor(GREEN_COLOR),
+                    TextColor(WHITE_COLOR),
                 )
             ))
             .id();
@@ -97,6 +102,54 @@ impl<'a> FaFpsText {
         Self::_build_fps(attributes, change_color, root_node)
     }
 
+    fn handle_on_mouse_over(
+        mut trigger: Trigger<Pointer<Over>>,
+        mut writer: EventWriter<FaMouseEvent>,
+        fps_q: Query<Option<&FamiqWidgetId>, With<IsFamiqFPSTextLabel>>
+    ) {
+        if let Ok(id) = fps_q.get(trigger.entity()) {
+            FaMouseEvent::send_over_event(&mut writer, WidgetType::FpsText, trigger.entity(), id);
+        }
+        trigger.propagate(false);
+    }
+
+    fn handle_on_mouse_out(
+        mut trigger: Trigger<Pointer<Out>>,
+        mut writer: EventWriter<FaMouseEvent>,
+        fps_q: Query<Option<&FamiqWidgetId>, With<IsFamiqFPSTextLabel>>
+    ) {
+        if let Ok(id) = fps_q.get(trigger.entity()) {
+            FaMouseEvent::send_out_event(&mut writer, WidgetType::FpsText, trigger.entity(), id);
+        }
+        trigger.propagate(false);
+    }
+
+    fn handle_on_mouse_down(
+        mut trigger: Trigger<Pointer<Down>>,
+        mut writer: EventWriter<FaMouseEvent>,
+        fps_q: Query<Option<&FamiqWidgetId>, With<IsFamiqFPSTextLabel>>
+    ) {
+        if let Ok(id) = fps_q.get(trigger.entity()) {
+            if trigger.event().button == PointerButton::Secondary {
+                FaMouseEvent::send_down_event(&mut writer, WidgetType::FpsText, trigger.entity(), id, true);
+            } else {
+                FaMouseEvent::send_down_event(&mut writer, WidgetType::FpsText, trigger.entity(), id, false);
+            }
+        }
+        trigger.propagate(false);
+    }
+
+    fn handle_on_mouse_up(
+        mut trigger: Trigger<Pointer<Up>>,
+        mut writer: EventWriter<FaMouseEvent>,
+        fps_q: Query<Option<&FamiqWidgetId>, With<IsFamiqFPSTextLabel>>
+    ) {
+        if let Ok(id) = fps_q.get(trigger.entity()) {
+            FaMouseEvent::send_up_event(&mut writer, WidgetType::FpsText, trigger.entity(), id);
+        }
+        trigger.propagate(false);
+    }
+
     /// Internal system to update the FPS count and optionally change its color based on the value.
     pub fn update_fps_count_system(
         diagnostics: Res<DiagnosticsStore>,
@@ -105,7 +158,7 @@ impl<'a> FaFpsText {
         for (mut text, mut color, change_color, _) in text_q.iter_mut() {
             if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
                 if let Some(value) = fps.smoothed() {
-                    text.0 = format!("{value:.2}");
+                    text.0 = format!("{value:.0}");
 
                     if change_color.0 {
                         if value > 100.0 {
@@ -118,9 +171,9 @@ impl<'a> FaFpsText {
                             color.0 = DANGER_COLOR;
                         }
                     }
-                    else {
-                        color.0 = WHITE_COLOR;
-                    }
+                    // else {
+                    //     color.0 = WHITE_COLOR;
+                    // }
                 }
             }
         }

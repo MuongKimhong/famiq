@@ -59,15 +59,14 @@ pub(crate) fn entity_add_children<'a>(
     root_node.commands().entity(parent).add_children(children);
 }
 
-
-pub(crate) fn adjust_color(percentage: f32, color: &Color, darken: bool) -> Option<Color> {
+pub fn adjust_color(percentage: f32, color: &Color, darken: bool) -> Option<Color> {
     let factor = percentage / 100.0;
 
     let adjust = |channel: f32| -> f32 {
         if darken {
-            (channel - channel * factor).clamp(0.0, 1.0)  // Darken
+            (channel - factor).max(0.0)
         } else {
-            (channel + channel * factor).clamp(0.0, 1.0)  // Lighten
+            (channel + factor).min(1.0)
         }
     };
 
@@ -95,11 +94,12 @@ pub(crate) fn adjust_color(percentage: f32, color: &Color, darken: bool) -> Opti
     }
 }
 
-pub(crate) fn darken_color(percentage: f32, color: &Color) -> Option<Color> {
+
+pub fn darken_color(percentage: f32, color: &Color) -> Option<Color> {
     adjust_color(percentage, color, true)
 }
 
-pub(crate) fn lighten_color(percentage: f32, color: &Color) -> Option<Color> {
+pub fn lighten_color(percentage: f32, color: &Color) -> Option<Color> {
     adjust_color(percentage, color, false)
 }
 

@@ -5,4 +5,5 @@ edition = "2021"
 
 [dependencies]
 bevy = "0.15.3"
+# famiq = "0.2.7"
 famiq = { path = "../../../famiq" }

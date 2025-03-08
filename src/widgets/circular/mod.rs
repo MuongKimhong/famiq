@@ -6,7 +6,7 @@ use bevy::prelude::*;
 use crate::widgets::*;
 use bevy::reflect::TypePath;
 use bevy::render::render_resource::*;
-use crate::event_writer::FaInteractionEvent;
+use crate::event_writer::FaMouseEvent;
 use crate::utils::*;
 
 pub use components::*;
@@ -44,6 +44,10 @@ impl<'a> FaCircular {
                 IsFamiqCircular,
                 SpinnerColor(color)
             ))
+            .observe(FaCircular::handle_on_mouse_up)
+            .observe(FaCircular::handle_on_mouse_down)
+            .observe(FaCircular::handle_on_mouse_over)
+            .observe(FaCircular::handle_on_mouse_out)
             .id();
 
         insert_id_and_class(root_node, outer_entity, &attributes.id, &attributes.class);
@@ -70,32 +74,56 @@ impl<'a> FaCircular {
         circular
     }
 
-    /// Internal system to handle circular interaction events.
-    pub(crate) fn handle_circular_interaction_system(
-        mut events: EventReader<FaInteractionEvent>,
-        mut circular_q: Query<
-            (&GlobalTransform, Option<&FamiqTooltipEntity>),
-            With<IsFamiqCircular>
-        >,
+    fn handle_on_mouse_over(
+        mut over: Trigger<Pointer<Over>>,
+        mut circular_q: Query<(&GlobalTransform, Option<&FamiqTooltipEntity>, Option<&FamiqWidgetId>), With<IsFamiqCircular>>,
         mut tooltip_q: Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
+        mut writer: EventWriter<FaMouseEvent>
     ) {
-        for e in events.read() {
-            if let Ok((circular_transform, tooltip_entity)) = circular_q.get_mut(e.entity) {
-                match e.interaction {
-                    Interaction::Hovered => {
-                        show_tooltip(
-                            tooltip_entity,
-                            &mut tooltip_q,
-                            circular_transform.translation()
-                        );
-                    },
-                    Interaction::None => {
-                        hide_tooltip(tooltip_entity, &mut tooltip_q);
-                    },
-                    _ => {}
-                }
+        if let Ok((transform, tooltip_entity, id)) = circular_q.get_mut(over.entity()) {
+            show_tooltip(tooltip_entity, &mut tooltip_q, transform.translation());
+            FaMouseEvent::send_over_event(&mut writer, WidgetType::Circular, over.entity(), id);
+        }
+        over.propagate(false);
+    }
+
+    fn handle_on_mouse_out(
+        mut out: Trigger<Pointer<Out>>,
+        mut circular_q: Query<(Option<&FamiqTooltipEntity>, Option<&FamiqWidgetId>), With<IsFamiqCircular>>,
+        mut tooltip_q: Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
+        mut writer: EventWriter<FaMouseEvent>
+    ) {
+        if let Ok((tooltip_entity, id)) = circular_q.get_mut(out.entity()) {
+            hide_tooltip(tooltip_entity, &mut tooltip_q);
+            FaMouseEvent::send_out_event(&mut writer, WidgetType::Circular, out.entity(), id);
+        }
+        out.propagate(false);
+    }
+
+    fn handle_on_mouse_down(
+        mut down: Trigger<Pointer<Down>>,
+        mut circular_q: Query<Option<&FamiqWidgetId>, With<IsFamiqCircular>>,
+        mut writer: EventWriter<FaMouseEvent>
+    ) {
+        if let Ok(id) = circular_q.get_mut(down.entity()) {
+            if down.event().button == PointerButton::Secondary {
+                FaMouseEvent::send_down_event(&mut writer, WidgetType::Circular, down.entity(), id, true);
+            } else {
+                FaMouseEvent::send_down_event(&mut writer, WidgetType::Circular, down.entity(), id, false);
             }
         }
+        down.propagate(false);
+    }
+
+    fn handle_on_mouse_up(
+        mut up: Trigger<Pointer<Up>>,
+        mut circular_q: Query<Option<&FamiqWidgetId>, With<IsFamiqCircular>>,
+        mut writer: EventWriter<FaMouseEvent>
+    ) {
+        if let Ok(id) = circular_q.get_mut(up.entity()) {
+            FaMouseEvent::send_up_event(&mut writer, WidgetType::Circular, up.entity(), id);
+        }
+        up.propagate(false);
     }
 
     /// Internal system to detect new circular bing created.

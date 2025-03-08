@@ -15,4 +15,4 @@ pub struct IsFamiqButtonText;
 pub struct ButtonTextEntity(pub Entity);
 
 #[derive(Component)]
-pub(crate) struct ButtonColorWasDarkened(pub bool);
+pub(crate) struct ButtonColorBeforePressed(pub Option<Color>);

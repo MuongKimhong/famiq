@@ -7,12 +7,10 @@ use crate::widgets::{
     selection::*,
     text_input::*,
     fps::*,
-    button::*,
     circular::*,
     modal::*,
     text::*,
     progress_bar::*,
-    image::*,
     bg_image::*,
     container::*,
     *
@@ -102,9 +100,8 @@ fn fa_selection_systems(app: &mut App) {
     app.add_systems(
         Update,
         (
-            event_writer::selection_interaction_and_change_system,
+            event_writer::selection_value_change_system,
             handle_show_and_hide_choices_panel,
-            handle_selection_interaction_system,
             handle_selection_choice_interaction_system,
             detect_new_selection_widget_system
         )
@@ -116,9 +113,8 @@ fn fa_text_input_systems(app: &mut App) {
     app.add_systems(
         Update,
         (
-            event_writer::text_input_interaction_and_change_system,
+            event_writer::text_input_value_change_system,
             FaTextInput::handle_text_input_on_typing_system,
-            FaTextInput::handle_text_input_interaction_system,
             FaTextInput::handle_text_input_on_focused_system,
             FaTextInput::handle_cursor_blink_system,
             FaTextInput::detect_new_text_input_widget_system
@@ -127,25 +123,12 @@ fn fa_text_input_systems(app: &mut App) {
     );
 }
 
-fn fa_button_systems(app: &mut App) {
-    app.add_systems(
-        Update,
-        (
-            event_writer::btn_interaction_system,
-            FaButton::handle_button_on_interaction_system
-        )
-        .run_if(can_run_button_systems)
-    );
-}
-
 fn fa_text_systems(app: &mut App) {
     app.add_systems(
         Update,
         (
-            event_writer::text_interaction_system,
             FaText::update_text_value_system,
-            FaText::detect_new_text_widget_system,
-            FaText::handle_text_interaction_system
+            FaText::detect_new_text_widget_system
         )
         .run_if(can_run_text_systems)
     );
@@ -172,13 +155,9 @@ fn fa_listview_systems(app: &mut App) {
 fn fa_fps_text_systems(app: &mut App) {
     app.add_systems(
         Update,
-        (
-            event_writer::fps_interaction_system,
-
-            // update fps every 450 millisecond, default Update schedule is too fast
-            FaFpsText::update_fps_count_system.run_if(
-                on_timer(Duration::from_millis(450)).and(can_run_fps_systems)
-            )
+        // update fps every 450 millisecond, default Update schedule is too fast
+        FaFpsText::update_fps_count_system.run_if(
+            on_timer(Duration::from_millis(450)).and(can_run_fps_systems)
         )
     );
 }
@@ -187,8 +166,6 @@ fn fa_circular_systems(app: &mut App) {
     app.add_systems(
         Update,
         (
-            event_writer::circular_interaction_system,
-            FaCircular::handle_circular_interaction_system,
             FaCircular::detect_new_circular_widget_system,
             FaCircular::_update_circular_material_u_time
         )
@@ -207,18 +184,10 @@ fn fa_modal_systems(app: &mut App) {
     );
 }
 
-fn fa_image_systems(app: &mut App) {
-    app.add_systems(
-        Update,
-        event_writer::image_interaction_system.run_if(can_run_image_systems)
-    );
-}
-
 fn fa_progress_bar_systems(app: &mut App) {
     app.add_systems(
         Update,
         (
-            event_writer::progress_bar_interaction_system,
             FaProgressBar::handle_progress_value_change,
             FaProgressBar::detect_new_progress_bar_widget_system,
             FaProgressBar::_update_progress_bar_material_u_time
@@ -242,7 +211,6 @@ fn fa_container_systems(app: &mut App) {
     app.add_systems(
         Update,
         (
-            event_writer::container_interaction_system,
             FaContainer::detect_new_container_system
         )
         .run_if(can_run_container_systems)
@@ -282,10 +250,10 @@ impl Plugin for FamiqPlugin {
         app.add_event::<event_writer::FaInteractionEvent>();
         app.add_event::<event_writer::FaTextInputChangeEvent>();
         app.add_event::<event_writer::FaSelectionChangeEvent>();
+        app.add_event::<event_writer::FaMouseEvent>();
 
         external_styles_file_systems(app);
         internal_styles_systems(app);
-        fa_button_systems(app);
         fa_text_systems(app);
         fa_selection_systems(app);
         fa_listview_systems(app);
@@ -293,7 +261,6 @@ impl Plugin for FamiqPlugin {
         fa_fps_text_systems(app);
         fa_circular_systems(app);
         fa_modal_systems(app);
-        fa_image_systems(app);
         fa_progress_bar_systems(app);
         fa_bg_image_systems(app);
         fa_container_systems(app);

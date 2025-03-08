@@ -1,6 +1,7 @@
 pub mod tests;
 
 use bevy::prelude::*;
+use crate::event_writer::FaMouseEvent;
 use crate::utils::{process_spacing_built_in_class, insert_id_and_class};
 use crate::widgets::*;
 
@@ -26,10 +27,62 @@ impl<'a> FaImage {
                 IsFamiqImage,
                 DefaultWidgetEntity::from(style_components)
             ))
+            .observe(FaImage::handle_on_mouse_over)
+            .observe(FaImage::handle_on_mouse_out)
+            .observe(FaImage::handle_on_mouse_down)
+            .observe(FaImage::handle_on_mouse_up)
             .id();
 
         insert_id_and_class(root_node, image_entity, &attributes.id, &attributes.class);
         image_entity
+    }
+
+    fn handle_on_mouse_over(
+        mut trigger: Trigger<Pointer<Over>>,
+        mut writer: EventWriter<FaMouseEvent>,
+        image_q: Query<Option<&FamiqWidgetId>, With<IsFamiqImage>>
+    ) {
+        if let Ok(id) = image_q.get(trigger.entity()) {
+            FaMouseEvent::send_over_event(&mut writer, WidgetType::Image, trigger.entity(), id);
+        }
+        trigger.propagate(false);
+    }
+
+    fn handle_on_mouse_out(
+        mut trigger: Trigger<Pointer<Out>>,
+        mut writer: EventWriter<FaMouseEvent>,
+        image_q: Query<Option<&FamiqWidgetId>, With<IsFamiqImage>>
+    ) {
+        if let Ok(id) = image_q.get(trigger.entity()) {
+            FaMouseEvent::send_out_event(&mut writer, WidgetType::Image, trigger.entity(), id);
+        }
+        trigger.propagate(false);
+    }
+
+    fn handle_on_mouse_down(
+        mut trigger: Trigger<Pointer<Down>>,
+        mut writer: EventWriter<FaMouseEvent>,
+        image_q: Query<Option<&FamiqWidgetId>, With<IsFamiqImage>>
+    ) {
+        if let Ok(id) = image_q.get(trigger.entity()) {
+            if trigger.event().button == PointerButton::Secondary {
+                FaMouseEvent::send_down_event(&mut writer, WidgetType::Image, trigger.entity(), id, true);
+            } else {
+                FaMouseEvent::send_down_event(&mut writer, WidgetType::Image, trigger.entity(), id, false);
+            }
+        }
+        trigger.propagate(false);
+    }
+
+    fn handle_on_mouse_up(
+        mut trigger: Trigger<Pointer<Up>>,
+        mut writer: EventWriter<FaMouseEvent>,
+        image_q: Query<Option<&FamiqWidgetId>, With<IsFamiqImage>>
+    ) {
+        if let Ok(id) = image_q.get(trigger.entity()) {
+            FaMouseEvent::send_up_event(&mut writer, WidgetType::Image, trigger.entity(), id);
+        }
+        trigger.propagate(false);
     }
 }
 

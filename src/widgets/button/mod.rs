@@ -8,7 +8,7 @@ use styling::*;
 use crate::plugin::{CursorIcons, CursorType};
 use crate::utils::*;
 use crate::widgets::*;
-use crate::event_writer::FaInteractionEvent;
+use crate::event_writer::FaMouseEvent;
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 
@@ -67,8 +67,12 @@ impl<'a> FaButton {
                 IsFamiqButton,
                 DefaultWidgetEntity::from(style_components),
                 ButtonTextEntity(txt_entity),
-                ButtonColorWasDarkened(false)
+                ButtonColorBeforePressed(None)
             ))
+            .observe(FaButton::handle_on_mouse_over)
+            .observe(FaButton::handle_on_mouse_down)
+            .observe(FaButton::handle_on_mouse_out)
+            .observe(FaButton::handle_on_mouse_up)
             .id();
 
         if has_tooltip {
@@ -77,80 +81,102 @@ impl<'a> FaButton {
                 attributes.font_handle.clone().unwrap(),
                 root_node
             );
-            root_node.commands().entity(btn_entity).insert(FamiqTooltipEntity(tooltip));
-            root_node.commands().entity(btn_entity).add_child(tooltip);
+            root_node.commands().entity(btn_entity)
+                .insert(FamiqTooltipEntity(tooltip))
+                .add_child(tooltip);
         }
         insert_id_and_class(root_node, btn_entity, &attributes.id, &attributes.class);
         entity_add_child(root_node, txt_entity, btn_entity);
         btn_entity
     }
 
-    /// Internal system to handle `fa_button` interaction events.
-    pub(crate) fn handle_button_on_interaction_system(
-        mut events: EventReader<FaInteractionEvent>,
-        mut builder_res: ResMut<FamiqResource>,
-        mut button_q: Query<
-            (
-                &GlobalTransform,
-                &mut BackgroundColor,
-                &mut ButtonColorWasDarkened,
-                Option<&FamiqTooltipEntity>
-            ),
+    fn handle_on_mouse_over(
+        mut over: Trigger<Pointer<Over>>,
+        mut tooltip_q: Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
+        mut commands: Commands,
+        mut mouse_event_writer: EventWriter<FaMouseEvent>,
+        button_q: Query<
+            (&GlobalTransform, Option<&FamiqTooltipEntity>, Option<&FamiqWidgetId>),
             With<IsFamiqButton>
         >,
-        mut tooltip_q: Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
-
         window: Single<Entity, With<Window>>,
-        mut commands: Commands,
         cursor_icons: Res<CursorIcons>,
     ) {
-        for e in events.read() {
-            if let Ok((
-                btn_transform,
-                mut background_color,
-                mut was_darkened,
-                tooltip_entity
-            )) = button_q.get_mut(e.entity) {
-                match e.interaction {
-                    Interaction::Hovered => {
-                        _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Pointer);
-  
-                        if was_darkened.0 {
-                            if let Some(lightened_color) = lighten_color(20.0, &background_color.0) {
-                                background_color.0 = lightened_color;
-                                was_darkened.0 = false;
-                            }
-                        }
-                        show_tooltip(
-                            tooltip_entity,
-                            &mut tooltip_q,
-                            btn_transform.translation()
-                        ); 
-                    },
-                    Interaction::Pressed => {
-                        _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Pointer);
-                        builder_res.update_all_focus_states(false);
-                        builder_res.update_or_insert_focus_state(e.entity, true);
+        _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Pointer);
 
-                        if let Some(darkened_color) = darken_color(20.0, &background_color.0) {
-                            background_color.0 = darkened_color;
-                            was_darkened.0 = true;
-                        }
-                    },
-                    Interaction::None => {
-                        _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Default);
+        if let Ok((transform, tooltip_entity, id)) = button_q.get(over.entity()) {
+            show_tooltip(
+                tooltip_entity,
+                &mut tooltip_q,
+                transform.translation()
+            );
+            FaMouseEvent::send_over_event(&mut mouse_event_writer, WidgetType::Button, over.entity(), id);
+        }
+        over.propagate(false);
+    }
 
-                        if was_darkened.0 {
-                            if let Some(lightened_color) = lighten_color(20.0, &background_color.0) {
-                                background_color.0 = lightened_color;
-                                was_darkened.0 = false;
-                            }
-                        }
-                        hide_tooltip(tooltip_entity, &mut tooltip_q);
-                    },
-                }
+    fn handle_on_mouse_down(
+        mut down: Trigger<Pointer<Down>>,
+        mut famiq_res: ResMut<FamiqResource>,
+        mut button_q: Query<
+            (&mut BackgroundColor, &mut ButtonColorBeforePressed, Option<&FamiqWidgetId>),
+            With<IsFamiqButton>
+        >,
+        mut mouse_event_writer: EventWriter<FaMouseEvent>
+    ) {
+        if let Ok((mut bg_color, mut before_pressed_color, id)) = button_q.get_mut(down.entity()) {
+            before_pressed_color.0 = Some(bg_color.0);
+            famiq_res.update_all_focus_states(false);
+            famiq_res.update_or_insert_focus_state(down.entity(), true);
+
+            if let Some(darkened_color) = darken_color(20.0, &bg_color.0) {
+                bg_color.0 = darkened_color;
+            }
+            if down.event().button == PointerButton::Secondary {
+                FaMouseEvent::send_down_event(&mut mouse_event_writer, WidgetType::Button, down.entity(), id, true);
+            } else {
+                FaMouseEvent::send_down_event(&mut mouse_event_writer, WidgetType::Button, down.entity(), id, false);
             }
         }
+        down.propagate(false);
+    }
+
+    fn handle_on_mouse_up(
+        mut up: Trigger<Pointer<Up>>,
+        mut button_q: Query<(&mut BackgroundColor, &ButtonColorBeforePressed, Option<&FamiqWidgetId>), With<IsFamiqButton>>,
+        mut mouse_event_writer: EventWriter<FaMouseEvent>
+    ) {
+        if let Ok((mut bg_color, before_pressed_color, id)) = button_q.get_mut(up.entity()) {
+            if let Some(color) = before_pressed_color.0 {
+                bg_color.0 = color;
+            }
+            FaMouseEvent::send_up_event(&mut mouse_event_writer, WidgetType::Button, up.entity(), id);
+        }
+        up.propagate(false);
+    }
+
+    fn handle_on_mouse_out(
+        mut out: Trigger<Pointer<Out>>,
+        mut tooltip_q: Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
+        mut button_q: Query<
+            (Option<&FamiqTooltipEntity>, Option<&FamiqWidgetId>, &mut BackgroundColor, &ButtonColorBeforePressed),
+            With<IsFamiqButton>
+        >,
+        mut commands: Commands,
+        mut mouse_event_writer: EventWriter<FaMouseEvent>,
+        window: Single<Entity, With<Window>>,
+        cursor_icons: Res<CursorIcons>,
+    ) {
+        _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Default);
+
+        if let Ok((tooltip_entity, id, mut bg_color, before_pressed_color)) = button_q.get_mut(out.entity()) {
+            if let Some(color) = before_pressed_color.0 {
+                bg_color.0 = color;
+            }
+            hide_tooltip(tooltip_entity, &mut tooltip_q);
+            FaMouseEvent::send_out_event(&mut mouse_event_writer, WidgetType::Button, out.entity(), id);
+        }
+        out.propagate(false);
     }
 }
 

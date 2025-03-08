@@ -1,4 +1,4 @@
-use crate::event_writer::FaInteractionEvent;
+use crate::event_writer::FaMouseEvent;
 use crate::plugin::{CursorType, CursorIcons};
 use crate::widgets::*;
 use crate::utils::{_change_cursor_icon, get_color, insert_id_and_class, process_spacing_built_in_class};
@@ -109,6 +109,10 @@ impl<'a> FaText {
                 style_components.clone(),
                 DefaultWidgetEntity::from(style_components)
             ))
+            .observe(FaText::handle_on_mouse_over)
+            .observe(FaText::handle_on_mouse_out)
+            .observe(FaText::handle_on_mouse_down)
+            .observe(FaText::handle_on_mouse_up)
             .id();
 
         insert_id_and_class(root_node, entity, &attributes.id, &attributes.class);
@@ -159,24 +163,62 @@ impl<'a> FaText {
         }
     }
 
-    pub fn handle_text_interaction_system(
-        mut events: EventReader<FaInteractionEvent>,
-        window: Single<Entity, With<Window>>,
+    fn handle_on_mouse_over(
+        mut trigger: Trigger<Pointer<Over>>,
         mut commands: Commands,
+        mut writer: EventWriter<FaMouseEvent>,
+        text_q: Query<Option<&FamiqWidgetId>,  With<IsFamiqText>>,
+        window: Single<Entity, With<Window>>,
         cursor_icons: Res<CursorIcons>,
     ) {
-        for e in events.read() {
-            if e.widget == WidgetType::Text {
-                match e.interaction {
-                    Interaction::None => {
-                        _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Default);
-                    },
-                    _ => {
-                        _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Text);
-                    }
-                }
+        if let Ok(id) = text_q.get(trigger.entity()) {
+            _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Text);
+            FaMouseEvent::send_over_event(&mut writer, WidgetType::Text, trigger.entity(), id);
+        }
+        trigger.propagate(false);
+    }
+
+    fn handle_on_mouse_out(
+        mut trigger: Trigger<Pointer<Out>>,
+        mut commands: Commands,
+        mut writer: EventWriter<FaMouseEvent>,
+        text_q: Query<Option<&FamiqWidgetId>,  With<IsFamiqText>>,
+        window: Single<Entity, With<Window>>,
+        cursor_icons: Res<CursorIcons>,
+    ) {
+        if let Ok(id) = text_q.get(trigger.entity()) {
+            _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Default);
+            FaMouseEvent::send_out_event(&mut writer, WidgetType::Text, trigger.entity(), id);
+        }
+        trigger.propagate(false);
+    }
+
+    fn handle_on_mouse_down(
+        mut trigger: Trigger<Pointer<Down>>,
+        mut writer: EventWriter<FaMouseEvent>,
+        text_q: Query<Option<&FamiqWidgetId>,  With<IsFamiqText>>,
+    ) {
+        if let Ok(id) = text_q.get(trigger.entity()) {
+            if trigger.event().button == PointerButton::Secondary {
+                FaMouseEvent::send_down_event(&mut writer, WidgetType::Text, trigger.entity(), id, true);
+            } else {
+                FaMouseEvent::send_down_event(&mut writer, WidgetType::Text, trigger.entity(), id, false);
             }
         }
+        trigger.propagate(false);
+    }
+
+    fn handle_on_mouse_up(
+        mut trigger: Trigger<Pointer<Up>>,
+        mut writer: EventWriter<FaMouseEvent>,
+        text_q: Query<Option<&FamiqWidgetId>,  With<IsFamiqText>>,
+    ) {
+        if let Ok(id) = text_q.get(trigger.entity()) {
+            if trigger.event().button == PointerButton::Secondary {
+                FaMouseEvent::send_up_event(&mut writer, WidgetType::Text, trigger.entity(), id);
+            }
+        }
+        trigger.propagate(false);
     }
 }
 

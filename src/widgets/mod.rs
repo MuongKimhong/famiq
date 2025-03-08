@@ -165,13 +165,11 @@ pub trait SetWidgetAttributes: Sized {
 pub enum WidgetType {
     Root, // globalzindex 1
     Button,
-    Container,
+    // Container,
     Text,
     FpsText, // globalzindex 6
     TextInput,
-    TextInputTogglePasswordIcon,
     ListView,
-    ListViewItem,
     Selection,
     Circular,
     ProgressBar,

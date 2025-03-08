@@ -1,21 +1,145 @@
-use crate::prelude::IsFamiqContainer;
 use crate::widgets::{
-    button::*,
     list_view::*,
     selection::*,
-    text::*,
     text_input::*,
-    image::*,
-    circular::*,
-    progress_bar::*,
-    fps::*,
     *,
 };
 
 use bevy::ecs::event::EventWriter;
 use bevy::prelude::*;
 
-/// Interaction Event: Hover, Press, Leave (None)
+#[derive(PartialEq, Debug)]
+pub enum MouseEventType {
+    Over,
+    DownLeft, // Left click
+    DownRight, // Right click
+    Up,
+    Out,
+    Scroll
+}
+
+/// Mouse events on widget. Over, Down, Up, Out (Leave)
+#[derive(Event, Debug)]
+pub struct FaMouseEvent {
+    pub event_type: MouseEventType,
+    pub widget_type: WidgetType,
+    pub entity: Entity,
+    pub id: Option<String>,
+}
+
+impl FaMouseEvent {
+    pub fn new(entity: Entity, id: Option<String>, event_type: MouseEventType, widget_type: WidgetType) -> Self {
+        Self {
+            entity,
+            id,
+            event_type,
+            widget_type
+        }
+    }
+
+    pub fn is_mouse_left_down(&self, widget_type: WidgetType) -> bool {
+        self.widget_type == widget_type && self.event_type == MouseEventType::DownLeft
+    }
+
+    pub fn is_mouse_right_down(&self, widget_type: WidgetType) -> bool {
+        self.widget_type == widget_type && self.event_type == MouseEventType::DownRight
+    }
+
+    pub fn is_mouse_up(&self, widget_type: WidgetType) -> bool {
+        self.widget_type == widget_type && self.event_type == MouseEventType::Up
+    }
+
+    pub fn is_mouse_over(&self, widget_type: WidgetType) -> bool {
+        self.widget_type == widget_type && self.event_type == MouseEventType::Over
+    }
+
+    pub fn is_mouse_out(&self, widget_type: WidgetType) -> bool {
+        self.widget_type == widget_type && self.event_type == MouseEventType::Out
+    }
+
+    pub fn is_mouse_scroll(&self, widget_type: WidgetType) -> bool {
+        self.widget_type == widget_type && self.event_type == MouseEventType::Scroll
+    }
+
+    pub(crate) fn send_down_event(
+        writer: &mut EventWriter<FaMouseEvent>,
+        widget_type: WidgetType,
+        entity: Entity,
+        id: Option<&FamiqWidgetId>,
+        right: bool
+    ) {
+        let mut event_type = MouseEventType::DownLeft;
+
+        if right {
+            event_type = MouseEventType::DownRight;
+        }
+
+        writer.send(FaMouseEvent {
+            event_type,
+            widget_type,
+            entity,
+            id: id.map(|_id| _id.0.clone())
+        });
+    }
+
+    pub(crate) fn send_up_event(
+        writer: &mut EventWriter<FaMouseEvent>,
+        widget_type: WidgetType,
+        entity: Entity,
+        id: Option<&FamiqWidgetId>
+    ) {
+        writer.send(FaMouseEvent {
+            event_type: MouseEventType::Up,
+            widget_type,
+            entity,
+            id: id.map(|_id| _id.0.clone())
+        });
+    }
+
+    pub(crate) fn send_over_event(
+        writer: &mut EventWriter<FaMouseEvent>,
+        widget_type: WidgetType,
+        entity: Entity,
+        id: Option<&FamiqWidgetId>
+    ) {
+        writer.send(FaMouseEvent {
+            event_type: MouseEventType::Over,
+            widget_type,
+            entity,
+            id: id.map(|_id| _id.0.clone())
+        });
+    }
+
+    pub(crate) fn send_out_event(
+        writer: &mut EventWriter<FaMouseEvent>,
+        widget_type: WidgetType,
+        entity: Entity,
+        id: Option<&FamiqWidgetId>
+    ) {
+        writer.send(FaMouseEvent {
+            event_type: MouseEventType::Out,
+            widget_type,
+            entity,
+            id: id.map(|_id| _id.0.clone())
+        });
+    }
+
+    pub(crate) fn send_scroll_event(
+        writer: &mut EventWriter<FaMouseEvent>,
+        widget_type: WidgetType,
+        entity: Entity,
+        id: Option<&FamiqWidgetId>
+    ) {
+        writer.send(FaMouseEvent {
+            event_type: MouseEventType::Scroll,
+            widget_type,
+            entity,
+            id: id.map(|_id| _id.0.clone())
+        });
+    }
+}
+
+/// Interaction Event: Hover, Press, Out (None)
 #[derive(Event, Debug)]
 pub struct FaInteractionEvent {
     pub entity: Entity,
@@ -108,47 +232,10 @@ impl FaSelectionChangeEvent {
     }
 }
 
-pub fn btn_interaction_system(
-    mut interaction_q: Query<
-        (Entity, &IsFamiqButton, Option<&FamiqWidgetId>, &Interaction),
-        Changed<Interaction>,
-    >,
-    mut writer: EventWriter<FaInteractionEvent>,
-) {
-    FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::Button);
-}
-
-pub fn fps_interaction_system(
-    mut interaction_q: Query<
-        (Entity, &IsFamiqFPSTextLabel, Option<&FamiqWidgetId>, &Interaction),
-        Changed<Interaction>,
-    >,
-    mut writer: EventWriter<FaInteractionEvent>,
-) {
-    FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::FpsText);
-}
-
-pub fn image_interaction_system(
-    mut interaction_q: Query<
-        (Entity, &IsFamiqImage, Option<&FamiqWidgetId>, &Interaction),
-        Changed<Interaction>,
-    >,
-    mut writer: EventWriter<FaInteractionEvent>,
-) {
-    FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::Image);
-}
-
-pub fn text_input_interaction_and_change_system(
-    mut interaction_q: Query<
-        (Entity, &IsFamiqTextInput, Option<&FamiqWidgetId>, &Interaction),
-        Changed<Interaction>,
-    >,
+pub fn text_input_value_change_system(
     text_input_q: Query<(Entity, Ref<TextInputValue>, Option<&FamiqWidgetId>)>,
-    mut interaction_writer: EventWriter<FaInteractionEvent>,
     mut value_change_writer: EventWriter<FaTextInputChangeEvent>
 ) {
-    FaInteractionEvent::send_event(&mut interaction_q, &mut interaction_writer, WidgetType::TextInput);
-
     for (entity, text_input_value, id) in text_input_q.iter() {
         if text_input_value.is_changed() && !text_input_value.is_added() {
             value_change_writer.send(
@@ -158,17 +245,10 @@ pub fn text_input_interaction_and_change_system(
     }
 }
 
-pub fn selection_interaction_and_change_system(
-    mut interaction_q: Query<
-        (Entity, &IsFamiqSelectionSelector, Option<&FamiqWidgetId>, &Interaction),
-        Changed<Interaction>,
-    >,
+pub fn selection_value_change_system(
     selection_q: Query<(Entity, Ref<SelectionValue>, Option<&FamiqWidgetId>)>,
-    mut interaction_writer: EventWriter<FaInteractionEvent>,
     mut value_change_writer: EventWriter<FaSelectionChangeEvent>
 ) {
-    FaInteractionEvent::send_event(&mut interaction_q, &mut interaction_writer, WidgetType::Selection);
-
     for (entity, selection_value, id) in selection_q.iter() {
         if selection_value.is_changed() && !selection_value.is_added() {
             value_change_writer.send(
@@ -176,36 +256,6 @@ pub fn selection_interaction_and_change_system(
             );
         }
     }
-}
-
-pub fn text_interaction_system(
-    mut interaction_q: Query<
-        (Entity, &IsFamiqText, Option<&FamiqWidgetId>, &Interaction),
-        Changed<Interaction>,
-    >,
-    mut writer: EventWriter<FaInteractionEvent>,
-) {
-    FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::Text);
-}
-
-pub fn circular_interaction_system(
-    mut interaction_q: Query<
-        (Entity, &IsFamiqCircular, Option<&FamiqWidgetId>, &Interaction),
-        Changed<Interaction>,
-    >,
-    mut writer: EventWriter<FaInteractionEvent>,
-) {
-    FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::Circular);
-}
-
-pub fn progress_bar_interaction_system(
-    mut interaction_q: Query<
-        (Entity, &IsFamiqProgressBar, Option<&FamiqWidgetId>, &Interaction),
-        Changed<Interaction>,
-    >,
-    mut writer: EventWriter<FaInteractionEvent>,
-) {
-    FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::ProgressBar);
 }
 
 pub fn listview_interaction_system(
@@ -218,22 +268,12 @@ pub fn listview_interaction_system(
     FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::ListView);
 }
 
-pub fn container_interaction_system(
-    mut interaction_q: Query<
-        (Entity, &IsFamiqContainer, Option<&FamiqWidgetId>, &Interaction),
-        Changed<Interaction>,
-    >,
-    mut writer: EventWriter<FaInteractionEvent>,
-) {
-    FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::Container);
-}
-
-pub fn listview_item_interaction_system(
-    mut interaction_q: Query<
-        (Entity, &IsFamiqListViewItem, Option<&FamiqWidgetId>, &Interaction),
-        Changed<Interaction>,
-    >,
-    mut writer: EventWriter<FaInteractionEvent>,
-) {
-    FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::ListViewItem);
-}
+// pub fn container_interaction_system(
+//     mut interaction_q: Query<
+//         (Entity, &IsFamiqContainer, Option<&FamiqWidgetId>, &Interaction),
+//         Changed<Interaction>,
+//     >,
+//     mut writer: EventWriter<FaInteractionEvent>,
+// ) {
+//     FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::Container);
+// }

@@ -1,6 +1,6 @@
 [package]
 name = "famiq"
-version = "0.2.7"
+version = "0.2.8"
 edition = "2021"
 authors = ["Kim Muong <muongkimhong086@gmail.com>"]
 description = "Create desktop GUI with Bevy engine"

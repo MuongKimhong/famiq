@@ -1,7 +1,5 @@
 use crate::widgets::selection::*;
-use crate::widgets::{WidgetType, FamiqResource};
-use crate::plugin::{CursorType, CursorIcons};
-use crate::event_writer::FaInteractionEvent;
+use crate::widgets::FamiqResource;
 use super::FaSelection;
 use bevy::prelude::*;
 
@@ -37,47 +35,6 @@ pub fn handle_show_and_hide_choices_panel(
         else {
             panel_node.display = Display::None;
             FaSelection::arrow_down(&mut arrow_q, arrow_entity.0);
-        }
-    }
-}
-
-pub fn handle_selection_interaction_system(
-    mut events: EventReader<FaInteractionEvent>,
-    mut selector_q: Query<(&mut BoxShadow, &DefaultWidgetEntity)>,
-    mut builder_res: ResMut<FamiqResource>,
-
-    window: Single<Entity, With<Window>>,
-    mut commands: Commands,
-    cursor_icons: Res<CursorIcons>,
-) {
-    for e in events.read() {
-        if e.widget == WidgetType::Selection {
-            if let Ok((mut box_shadow, default_style)) = selector_q.get_mut(e.entity) {
-                match e.interaction {
-                    Interaction::Hovered => {
-                        box_shadow.color = default_style.border_color.0.clone();
-                        _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Pointer);
-                    },
-                    Interaction::Pressed => {
-                        // currently true, set back to false
-                        if let Some(state) = builder_res.get_widget_focus_state(&e.entity) {
-                            if state {
-                                builder_res.update_or_insert_focus_state(e.entity, false);
-                                break;
-                            }
-                        }
-
-                        // currently false, set back to true
-                        builder_res.update_all_focus_states(false);
-                        builder_res.update_or_insert_focus_state(e.entity, true);
-                        _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Pointer);
-                    },
-                    _ => {
-                        box_shadow.color = Color::NONE;
-                        _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Default);
-                    }
-                }
-            }
         }
     }
 }

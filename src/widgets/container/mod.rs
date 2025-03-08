@@ -1,4 +1,3 @@
-pub mod helper;
 pub mod tests;
 
 use bevy::ecs::system::EntityCommands;
@@ -8,7 +7,6 @@ use crate::utils;
 use crate::widgets::*;
 use crate::resources::*;
 use super::BaseStyleComponents;
-use helper::*;
 
 /// Marker component for identifying a Famiq container.
 #[derive(Component)]
@@ -16,6 +14,18 @@ pub struct IsFamiqContainer;
 
 #[derive(Component)]
 pub struct FaContainerChildren(pub Vec<Entity>);
+
+pub fn default_container_node() -> Node {
+    Node {
+        width: Val::Percent(100.0),
+        flex_direction: FlexDirection::Column,
+        align_items: AlignItems::FlexStart,
+        justify_content: JustifyContent::FlexStart, // Align children at the top
+        height: Val::Auto,
+        border: UiRect::all(Val::Px(10.)),
+        ..default()
+    }
+}
 
 /// Represents a Famiq container widget.
 /// Think of it as a Div element in HTML.

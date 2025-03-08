@@ -1,7 +1,10 @@
 pub mod styling;
+pub mod components;
 pub mod tests;
 
 use styling::*;
+pub use components::*;
+use crate::event_writer::FaMouseEvent;
 use crate::plugin::{CursorIcons, CursorType};
 use crate::utils::*;
 use crate::resources::*;
@@ -17,40 +20,6 @@ use smol_str::SmolStr;
 
 use super::color::{BLACK_COLOR, SECONDARY_COLOR};
 
-#[derive(Component, Default)]
-pub struct TextInputValue(pub String);
-
-
-#[derive(Default)]
-pub enum CursorMove {
-    #[default]
-    Right,
-    Left
-}
-
-pub enum EditingType {
-    Adding,
-    Removing,
-    Nothing
-}
-
-/// Represents the text input field containing the user-entered text and placeholder.
-#[derive(Component)]
-pub struct TextInput {
-    pub placeholder: String,
-    pub cursor_index: usize,
-    pub input_type: TextInputType
-}
-
-impl TextInput {
-    pub fn new(placeholder: &str, input_type: TextInputType) -> Self {
-        Self {
-            placeholder: placeholder.to_string(),
-            cursor_index: 0,
-            input_type
-        }
-    }
-}
 
 #[derive(Default)]
 pub struct IsFamiqTextInputResource;
@@ -72,49 +41,8 @@ impl Default for FaTextInputCursorBlinkTimer {
     }
 }
 
-/// Marker component for identifying a text input widget.
-#[derive(Component)]
-pub struct IsFamiqTextInput;
-
-/// Marker component for identifying a placeholder text in a text input widget.
-#[derive(Component)]
-pub struct IsFamiqTextInputPlaceholder;
-
-/// Marker component for identifying the cursor in a text input widget.
-#[derive(Component)]
-pub struct IsFamiqTextInputCursor;
-
-/// Links a placeholder entity to its corresponding text input entity.
-#[derive(Component)]
-pub struct FamiqTextInputPlaceholderEntity(pub Entity);
-
-/// Links a cursor entity to its corresponding text input entity.
-#[derive(Component)]
-pub struct FamiqTextInputCursorEntity(pub Entity);
-
-/// Link a toggle icon entity to its corresponding text input entity;
-#[derive(Component)]
-pub struct FamiqTextInputToggleIconEntity(pub Entity);
-
-#[derive(Component)]
-pub struct FamiqTextInputEntity(pub Entity);
-
-/// Represents the size of a single character in the text input field.
-#[derive(Component)]
-pub struct CharacterSize {
-    pub width: f32,
-    pub height: f32
-}
-
 /// The width of the text input cursor.
 pub const CURSOR_WIDTH: f32 = 2.0;
-
-/// Type options for text input widget.
-#[derive(PartialEq, Clone)]
-pub enum TextInputType {
-    Text,
-    Password
-}
 
 /// Represents the Famiq text input widget, which includes placeholder text, a blinking cursor, and customizable styles.
 /// Support UTF-8 encoded only.
@@ -203,6 +131,10 @@ impl<'a> FaTextInput {
                 FamiqTextInputCursorEntity(cursor_entity),
                 CharacterSize { width: 0.0, height: 0.0 },
             ))
+            .observe(FaTextInput::handle_on_mouse_over)
+            .observe(FaTextInput::handle_on_mouse_out)
+            .observe(FaTextInput::handle_on_mouse_down)
+            .observe(FaTextInput::handle_on_mouse_up)
             .id();
 
         insert_id_and_class(root_node, entity, &attributes.id, &attributes.class);
@@ -283,40 +215,79 @@ impl<'a> FaTextInput {
         }
     }
 
-    // hovered, pressed, none
-    pub fn handle_text_input_interaction_system(
+    fn handle_on_mouse_over(
+        mut trigger: Trigger<Pointer<Over>>,
         mut input_q: Query<
-            (Entity, &mut BoxShadow, &mut TextInput, &TextInputValue, &Interaction, &DefaultWidgetEntity),
-            Changed<Interaction>
+            (&mut BoxShadow, &BorderColor, Option<&FamiqWidgetId>),
+            With<IsFamiqTextInput>
         >,
-        mut builder_res: ResMut<FamiqResource>,
-
-        window: Single<Entity, With<Window>>,
         mut commands: Commands,
+        mut writer: EventWriter<FaMouseEvent>,
+        window: Single<Entity, With<Window>>,
         cursor_icons: Res<CursorIcons>,
     ) {
-        for (entity, mut box_shadow, mut text_input, value, interaction, default_style) in input_q.iter_mut() {
-            match interaction {
-                Interaction::Hovered => {
-                    box_shadow.color = default_style.border_color.0.clone();
-                    _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Text);
-                },
-                Interaction::Pressed => {
-                    // global focus
-                    builder_res.update_all_focus_states(false);
-                    builder_res.update_or_insert_focus_state(entity, true);
+        if let Ok((mut box_shadow, border_color, id)) = input_q.get_mut(trigger.entity()) {
+            box_shadow.color = border_color.0.clone();
+            _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Text);
+            FaMouseEvent::send_over_event(&mut writer, WidgetType::TextInput, trigger.entity(), id);
+        }
+        trigger.propagate(false);
+    }
 
-                    if text_input.cursor_index > 0 {
-                        text_input.cursor_index = value.0.len();
-                    }
-                    _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Text);
-                },
-                _ => {
-                    box_shadow.color = Color::NONE;
-                    _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Default);
-                }
+    fn handle_on_mouse_out(
+        mut trigger: Trigger<Pointer<Out>>,
+        mut input_q: Query<
+            (&mut BoxShadow, Option<&FamiqWidgetId>),
+            With<IsFamiqTextInput>
+        >,
+        mut commands: Commands,
+        mut writer: EventWriter<FaMouseEvent>,
+        window: Single<Entity, With<Window>>,
+        cursor_icons: Res<CursorIcons>,
+    ) {
+        if let Ok((mut box_shadow, id)) = input_q.get_mut(trigger.entity()) {
+            box_shadow.color = Color::NONE;
+            _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Default);
+            FaMouseEvent::send_out_event(&mut writer, WidgetType::TextInput, trigger.entity(), id);
+        }
+        trigger.propagate(false);
+    }
+
+    fn handle_on_mouse_down(
+        mut trigger: Trigger<Pointer<Down>>,
+        mut input_q: Query<
+            (Option<&FamiqWidgetId>, &mut TextInput, &TextInputValue),
+            With<IsFamiqTextInput>
+        >,
+        mut famiq_res: ResMut<FamiqResource>,
+        mut writer: EventWriter<FaMouseEvent>,
+    ) {
+        if let Ok((id, mut text_input, value)) = input_q.get_mut(trigger.entity()) {
+            famiq_res.update_all_focus_states(false);
+            famiq_res.update_or_insert_focus_state(trigger.entity(), true);
+
+            if text_input.cursor_index > 0 {
+                text_input.cursor_index = value.0.len();
+            }
+
+            if trigger.event().button == PointerButton::Secondary {
+                FaMouseEvent::send_down_event(&mut writer, WidgetType::TextInput, trigger.entity(), id, true);
+            } else {
+                FaMouseEvent::send_down_event(&mut writer, WidgetType::TextInput, trigger.entity(), id, false);
             }
         }
+        trigger.propagate(false);
+    }
+
+    fn handle_on_mouse_up(
+        mut trigger: Trigger<Pointer<Up>>,
+        mut input_q: Query<Option<&FamiqWidgetId>, With<IsFamiqTextInput>>,
+        mut writer: EventWriter<FaMouseEvent>,
+    ) {
+        if let Ok(id) = input_q.get_mut(trigger.entity()) {
+            FaMouseEvent::send_up_event(&mut writer, WidgetType::TextInput, trigger.entity(), id);
+        }
+        trigger.propagate(false);
     }
 
     /// Internal system to detect new text_input being created.

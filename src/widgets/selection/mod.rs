@@ -6,6 +6,8 @@ pub mod tests;
 use crate::resources::*;
 use crate::utils::*;
 use crate::widgets::*;
+use crate::event_writer::FaMouseEvent;
+use crate::plugin::{CursorType, CursorIcons};
 use bevy::ecs::system::EntityCommands;
 use bevy::ui::FocusPolicy;
 use bevy::prelude::*;
@@ -118,6 +120,10 @@ impl<'a> FaSelection {
                 SelectorPlaceHolderEntity(placeholder_entity),
                 SelectorArrowIconEntity(arrow_icon_entity)
             ))
+            .observe(FaSelection::handle_on_mouse_over)
+            .observe(FaSelection::handle_on_mouse_out)
+            .observe(FaSelection::handle_on_mouse_down)
+            .observe(FaSelection::handle_on_mouse_up)
             .id();
 
         insert_id_and_class(root_node, selector_entity, &attributes.id, &attributes.class);
@@ -248,6 +254,82 @@ impl<'a> FaSelection {
         if let Ok(mut text) = text_q.get_mut(arrow_entity) {
             text.0 = "▼".to_string()
         }
+    }
+
+    fn handle_on_mouse_over(
+        mut trigger: Trigger<Pointer<Over>>,
+        mut selector_q: Query<
+            (&mut BoxShadow, &BorderColor, Option<&FamiqWidgetId>),
+            With<IsFamiqSelectionSelector>
+        >,
+        mut commands: Commands,
+        mut writer: EventWriter<FaMouseEvent>,
+        window: Single<Entity, With<Window>>,
+        cursor_icons: Res<CursorIcons>,
+    ) {
+        if let Ok((mut box_shadow, border_color, id)) = selector_q.get_mut(trigger.entity()) {
+            box_shadow.color = border_color.0.clone();
+            _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Pointer);
+            FaMouseEvent::send_over_event(&mut writer, WidgetType::Selection, trigger.entity(), id);
+        }
+        trigger.propagate(false);
+    }
+
+    fn handle_on_mouse_out(
+        mut trigger: Trigger<Pointer<Out>>,
+        mut selector_q: Query<
+            (&mut BoxShadow, Option<&FamiqWidgetId>),
+            With<IsFamiqSelectionSelector>
+        >,
+        mut commands: Commands,
+        mut writer: EventWriter<FaMouseEvent>,
+        window: Single<Entity, With<Window>>,
+        cursor_icons: Res<CursorIcons>,
+    ) {
+        if let Ok((mut box_shadow, id)) = selector_q.get_mut(trigger.entity()) {
+            box_shadow.color = Color::NONE;
+            _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Default);
+            FaMouseEvent::send_out_event(&mut writer, WidgetType::Selection, trigger.entity(), id);
+        }
+        trigger.propagate(false);
+    }
+
+    fn handle_on_mouse_down(
+        mut trigger: Trigger<Pointer<Down>>,
+        mut selector_q: Query<Option<&FamiqWidgetId>, With<IsFamiqSelectionSelector>>,
+        mut writer: EventWriter<FaMouseEvent>,
+        mut famiq_res: ResMut<FamiqResource>
+    ) {
+        if let Ok(id) = selector_q.get_mut(trigger.entity()) {
+            // currently true, set back to false
+            if let Some(state) = famiq_res.get_widget_focus_state(&trigger.entity()) {
+                if state {
+                    famiq_res.update_or_insert_focus_state(trigger.entity(), false);
+                    return;
+                }
+            }
+            // currently false, set back to true
+            famiq_res.update_all_focus_states(false);
+            famiq_res.update_or_insert_focus_state(trigger.entity(), true);
+
+            if trigger.event().button == PointerButton::Secondary {
+                FaMouseEvent::send_down_event(&mut writer, WidgetType::Selection, trigger.entity(), id, true);
+            } else {
+                FaMouseEvent::send_down_event(&mut writer, WidgetType::Selection, trigger.entity(), id, false);
+            }
+        }
+        trigger.propagate(false);
+    }
+
+    fn handle_on_mouse_up(
+        mut trigger: Trigger<Pointer<Up>>,
+        mut selector_q: Query<Option<&FamiqWidgetId>, With<IsFamiqSelectionSelector>>,
+        mut writer: EventWriter<FaMouseEvent>,
+    ) {
+        if let Ok(id) = selector_q.get_mut(trigger.entity()) {
+            FaMouseEvent::send_up_event(&mut writer, WidgetType::Selection, trigger.entity(), id);
+        }
+        trigger.propagate(false);
     }
 }
 
