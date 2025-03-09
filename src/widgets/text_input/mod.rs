@@ -157,6 +157,10 @@ impl<'a> FaTextInput {
             cursor_entity,
             input_type
         );
+
+        if attributes.has_tooltip {
+            build_tooltip_node(attributes, root_node, input_entity);
+        }
         entity_add_children(root_node, &vec![ph_entity, cursor_entity], input_entity);
         input_entity
     }
@@ -218,16 +222,18 @@ impl<'a> FaTextInput {
     fn handle_on_mouse_over(
         mut trigger: Trigger<Pointer<Over>>,
         mut input_q: Query<
-            (&mut BoxShadow, &BorderColor, Option<&FamiqWidgetId>),
+            (&mut BoxShadow, &BorderColor, Option<&FamiqWidgetId>, &GlobalTransform, Option<&FamiqTooltipEntity>),
             With<IsFamiqTextInput>
         >,
         mut commands: Commands,
         mut writer: EventWriter<FaMouseEvent>,
+        mut tooltip_q: Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
         window: Single<Entity, With<Window>>,
         cursor_icons: Res<CursorIcons>,
     ) {
-        if let Ok((mut box_shadow, border_color, id)) = input_q.get_mut(trigger.entity()) {
+        if let Ok((mut box_shadow, border_color, id, transform, tooltip_entity)) = input_q.get_mut(trigger.entity()) {
             box_shadow.color = border_color.0.clone();
+            show_tooltip(tooltip_entity, &mut tooltip_q, transform.translation());
             _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Text);
             FaMouseEvent::send_over_event(&mut writer, WidgetType::TextInput, trigger.entity(), id);
         }
@@ -237,16 +243,18 @@ impl<'a> FaTextInput {
     fn handle_on_mouse_out(
         mut trigger: Trigger<Pointer<Out>>,
         mut input_q: Query<
-            (&mut BoxShadow, Option<&FamiqWidgetId>),
+            (&mut BoxShadow, Option<&FamiqWidgetId>, Option<&FamiqTooltipEntity>),
             With<IsFamiqTextInput>
         >,
         mut commands: Commands,
         mut writer: EventWriter<FaMouseEvent>,
+        mut tooltip_q: Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
         window: Single<Entity, With<Window>>,
         cursor_icons: Res<CursorIcons>,
     ) {
-        if let Ok((mut box_shadow, id)) = input_q.get_mut(trigger.entity()) {
+        if let Ok((mut box_shadow, id, tooltip_entity)) = input_q.get_mut(trigger.entity()) {
             box_shadow.color = Color::NONE;
+            hide_tooltip(tooltip_entity, &mut tooltip_q);
             _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Default);
             FaMouseEvent::send_out_event(&mut writer, WidgetType::TextInput, trigger.entity(), id);
         }

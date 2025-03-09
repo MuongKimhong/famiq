@@ -2,7 +2,7 @@ pub mod tests;
 
 use bevy::prelude::*;
 use crate::event_writer::FaMouseEvent;
-use crate::utils::{process_spacing_built_in_class, insert_id_and_class};
+use crate::utils::*;
 use crate::widgets::*;
 
 /// Marker component identifyijng Famiq Image widget.
@@ -33,6 +33,9 @@ impl<'a> FaImage {
             .observe(FaImage::handle_on_mouse_up)
             .id();
 
+        if attributes.has_tooltip {
+            build_tooltip_node(attributes, root_node, image_entity);
+        }
         insert_id_and_class(root_node, image_entity, &attributes.id, &attributes.class);
         image_entity
     }
@@ -40,9 +43,11 @@ impl<'a> FaImage {
     fn handle_on_mouse_over(
         mut trigger: Trigger<Pointer<Over>>,
         mut writer: EventWriter<FaMouseEvent>,
-        image_q: Query<Option<&FamiqWidgetId>, With<IsFamiqImage>>
+        mut tooltip_q: Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
+        image_q: Query<(Option<&FamiqWidgetId>, &GlobalTransform, Option<&FamiqTooltipEntity>), With<IsFamiqImage>>
     ) {
-        if let Ok(id) = image_q.get(trigger.entity()) {
+        if let Ok((id, transform, tooltip_entity)) = image_q.get(trigger.entity()) {
+            show_tooltip(tooltip_entity, &mut tooltip_q, transform.translation());
             FaMouseEvent::send_over_event(&mut writer, WidgetType::Image, trigger.entity(), id);
         }
         trigger.propagate(false);
@@ -51,9 +56,11 @@ impl<'a> FaImage {
     fn handle_on_mouse_out(
         mut trigger: Trigger<Pointer<Out>>,
         mut writer: EventWriter<FaMouseEvent>,
-        image_q: Query<Option<&FamiqWidgetId>, With<IsFamiqImage>>
+        mut tooltip_q: Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
+        image_q: Query<(Option<&FamiqWidgetId>, Option<&FamiqTooltipEntity>), With<IsFamiqImage>>
     ) {
-        if let Ok(id) = image_q.get(trigger.entity()) {
+        if let Ok((id, tooltip_entity)) = image_q.get(trigger.entity()) {
+            hide_tooltip(tooltip_entity, &mut tooltip_q);
             FaMouseEvent::send_out_event(&mut writer, WidgetType::Image, trigger.entity(), id);
         }
         trigger.propagate(false);
@@ -93,9 +100,10 @@ pub struct FaImageBuilder<'a> {
 }
 
 impl<'a> FaImageBuilder<'a> {
-    pub fn new(image_handle: Handle<Image>, root_node: EntityCommands<'a>) -> Self {
+    pub fn new(image_handle: Handle<Image>, font_handle: Handle<Font>, root_node: EntityCommands<'a>) -> Self {
         let mut attributes = WidgetAttributes::default();
         attributes.image_handle = Some(image_handle);
+        attributes.font_handle = Some(font_handle);
         Self {
             attributes,
             root_node
@@ -132,8 +140,10 @@ impl<'a> SetWidgetAttributes for FaImageBuilder<'a> {
 /// API to create `FaImageBuilder`
 pub fn fa_image<'a>(builder: &'a mut FamiqBuilder, path: &str) -> FaImageBuilder<'a> {
     let image_handle = builder.asset_server.load(path);
+    let font_handle = builder.asset_server.load(&builder.resource.font_path);
     FaImageBuilder::new(
         image_handle,
+        font_handle,
         builder.ui_root_node.reborrow()
     )
 }

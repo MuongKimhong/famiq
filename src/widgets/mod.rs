@@ -318,6 +318,11 @@ pub(crate) fn build_tooltip_node<'a>(
                     right: Val::Px(8.0),
                     ..default()
                 },
+                margin: UiRect{
+                    left: Val::Auto,
+                    right: Val::Auto,
+                    ..default()
+                },
                 ..default()
             },
             GlobalZIndex(4),
