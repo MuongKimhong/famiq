@@ -31,6 +31,7 @@ pub use text_input::fa_text_input;
 pub use selection::fa_selection;
 pub use bg_image::fa_bg_image;
 pub use progress_bar::fa_progress_bar;
+pub use checkbox::fa_checkbox;
 pub use base_components::*;
 pub use style::*;
 use crate::resources::*;

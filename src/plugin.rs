@@ -100,7 +100,6 @@ fn fa_selection_systems(app: &mut App) {
     app.add_systems(
         Update,
         (
-            event_writer::selection_value_change_system,
             handle_show_and_hide_choices_panel,
             handle_selection_choice_interaction_system,
             detect_new_selection_widget_system

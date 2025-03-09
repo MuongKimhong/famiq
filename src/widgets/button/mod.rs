@@ -85,7 +85,7 @@ impl<'a> FaButton {
         mut over: Trigger<Pointer<Over>>,
         mut tooltip_q: Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
         mut commands: Commands,
-        mut mouse_event_writer: EventWriter<FaMouseEvent>,
+        mut writer: EventWriter<FaMouseEvent>,
         button_q: Query<
             (&GlobalTransform, Option<&FamiqTooltipEntity>, Option<&FamiqWidgetId>),
             With<IsFamiqButton>
@@ -101,7 +101,7 @@ impl<'a> FaButton {
                 &mut tooltip_q,
                 transform.translation()
             );
-            FaMouseEvent::send_over_event(&mut mouse_event_writer, WidgetType::Button, over.entity(), id);
+            FaMouseEvent::send_over_event(&mut writer, WidgetType::Button, over.entity(), id);
         }
         over.propagate(false);
     }
@@ -113,7 +113,7 @@ impl<'a> FaButton {
             (&mut BackgroundColor, &mut ButtonColorBeforePressed, Option<&FamiqWidgetId>),
             With<IsFamiqButton>
         >,
-        mut mouse_event_writer: EventWriter<FaMouseEvent>
+        mut writer: EventWriter<FaMouseEvent>
     ) {
         if let Ok((mut bg_color, mut before_pressed_color, id)) = button_q.get_mut(down.entity()) {
             before_pressed_color.0 = Some(bg_color.0);
@@ -124,9 +124,9 @@ impl<'a> FaButton {
                 bg_color.0 = darkened_color;
             }
             if down.event().button == PointerButton::Secondary {
-                FaMouseEvent::send_down_event(&mut mouse_event_writer, WidgetType::Button, down.entity(), id, true);
+                FaMouseEvent::send_down_event(&mut writer, WidgetType::Button, down.entity(), id, true);
             } else {
-                FaMouseEvent::send_down_event(&mut mouse_event_writer, WidgetType::Button, down.entity(), id, false);
+                FaMouseEvent::send_down_event(&mut writer, WidgetType::Button, down.entity(), id, false);
             }
         }
         down.propagate(false);
@@ -135,13 +135,13 @@ impl<'a> FaButton {
     fn handle_on_mouse_up(
         mut up: Trigger<Pointer<Up>>,
         mut button_q: Query<(&mut BackgroundColor, &ButtonColorBeforePressed, Option<&FamiqWidgetId>), With<IsFamiqButton>>,
-        mut mouse_event_writer: EventWriter<FaMouseEvent>
+        mut writer: EventWriter<FaMouseEvent>
     ) {
         if let Ok((mut bg_color, before_pressed_color, id)) = button_q.get_mut(up.entity()) {
             if let Some(color) = before_pressed_color.0 {
                 bg_color.0 = color;
             }
-            FaMouseEvent::send_up_event(&mut mouse_event_writer, WidgetType::Button, up.entity(), id);
+            FaMouseEvent::send_up_event(&mut writer, WidgetType::Button, up.entity(), id);
         }
         up.propagate(false);
     }
@@ -154,7 +154,7 @@ impl<'a> FaButton {
             With<IsFamiqButton>
         >,
         mut commands: Commands,
-        mut mouse_event_writer: EventWriter<FaMouseEvent>,
+        mut writer: EventWriter<FaMouseEvent>,
         window: Single<Entity, With<Window>>,
         cursor_icons: Res<CursorIcons>,
     ) {
@@ -165,7 +165,7 @@ impl<'a> FaButton {
                 bg_color.0 = color;
             }
             hide_tooltip(tooltip_entity, &mut tooltip_q);
-            FaMouseEvent::send_out_event(&mut mouse_event_writer, WidgetType::Button, out.entity(), id);
+            FaMouseEvent::send_out_event(&mut writer, WidgetType::Button, out.entity(), id);
         }
         out.propagate(false);
     }

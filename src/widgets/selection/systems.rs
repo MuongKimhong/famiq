@@ -1,5 +1,6 @@
 use crate::widgets::selection::*;
 use crate::widgets::FamiqResource;
+use crate::event_writer::FaValueChangeEvent;
 use super::FaSelection;
 use bevy::prelude::*;
 
@@ -72,7 +73,8 @@ pub fn handle_selection_choice_interaction_system(
     )>,
     mut selection_res: ResMut<FaSelectionResource>,
     mut text_q: Query<&mut Text>,
-    mut builder_res: ResMut<FamiqResource>
+    mut builder_res: ResMut<FamiqResource>,
+    mut change_writer: EventWriter<FaValueChangeEvent>
 ) {
     for (mut choice_bg_color, interaction, choice_txt_entity, selector_entity) in selection_choice_q.iter_mut() {
         match interaction {
@@ -110,6 +112,13 @@ pub fn handle_selection_choice_interaction_system(
                             text.0 = selection.placeholder.clone();
                             selection_value.0 = String::new();
                         }
+
+                        change_writer.send(FaValueChangeEvent::new(
+                            selection_entity,
+                            selection_id.map(|_id| _id.0.clone()),
+                            selection_value.0.clone(),
+                            Vec::new()
+                        ));
                     }
 
                     // set selection to unfocus after choice is selected

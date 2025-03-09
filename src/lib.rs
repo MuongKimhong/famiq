@@ -60,7 +60,8 @@ pub mod prelude {
         fa_text_input,
         fa_selection,
         fa_bg_image,
-        fa_progress_bar
+        fa_progress_bar,
+        fa_checkbox
     };
     pub use crate::widgets::modal::{
         IsFamiqModalContainer,

@@ -1,5 +1,4 @@
 use crate::widgets::{
-    selection::*,
     text_input::*,
     *,
 };
@@ -174,19 +173,6 @@ pub fn text_input_value_change_system(
         if text_input_value.is_changed() && !text_input_value.is_added() {
             change_writer.send(
                 FaValueChangeEvent::new(entity, id.map(|_id| _id.0.clone()), text_input_value.0.clone(), Vec::new())
-            );
-        }
-    }
-}
-
-pub fn selection_value_change_system(
-    selection_q: Query<(Entity, Ref<SelectionValue>, Option<&FamiqWidgetId>)>,
-    mut change_writer: EventWriter<FaValueChangeEvent>
-) {
-    for (entity, selection_value, id) in selection_q.iter() {
-        if selection_value.is_changed() && !selection_value.is_added() {
-            change_writer.send(
-                FaValueChangeEvent::new(entity, id.map(|_id| _id.0.clone()), selection_value.0.clone(), Vec::new())
             );
         }
     }
