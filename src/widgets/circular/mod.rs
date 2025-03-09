@@ -56,31 +56,23 @@ impl<'a> FaCircular {
 
     pub fn new(
         attributes: &WidgetAttributes,
-        root_node: &'a mut EntityCommands,
-        has_tooltip: bool,
-        tooltip_text: Option<String>
+        root_node: &'a mut EntityCommands
     ) -> Entity {
         let circular = Self::_build_circular(attributes, root_node);
 
-        if has_tooltip {
-            let tooltip = build_tooltip_node(
-                &tooltip_text.unwrap(),
-                attributes.font_handle.clone().unwrap(),
-                root_node
-            );
-            root_node.commands().entity(circular).insert(FamiqTooltipEntity(tooltip));
-            root_node.commands().entity(circular).add_child(tooltip);
+        if attributes.has_tooltip {
+            build_tooltip_node(attributes, root_node, circular);
         }
         circular
     }
 
     fn handle_on_mouse_over(
         mut over: Trigger<Pointer<Over>>,
-        mut circular_q: Query<(&GlobalTransform, Option<&FamiqTooltipEntity>, Option<&FamiqWidgetId>), With<IsFamiqCircular>>,
+        circular_q: Query<(&GlobalTransform, Option<&FamiqTooltipEntity>, Option<&FamiqWidgetId>), With<IsFamiqCircular>>,
         mut tooltip_q: Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
         mut writer: EventWriter<FaMouseEvent>
     ) {
-        if let Ok((transform, tooltip_entity, id)) = circular_q.get_mut(over.entity()) {
+        if let Ok((transform, tooltip_entity, id)) = circular_q.get(over.entity()) {
             show_tooltip(tooltip_entity, &mut tooltip_q, transform.translation());
             FaMouseEvent::send_over_event(&mut writer, WidgetType::Circular, over.entity(), id);
         }
@@ -162,9 +154,7 @@ impl<'a> FaCircular {
 /// Builder for creating Famiq circular widget.
 pub struct FaCircularBuilder<'a> {
     pub attributes: WidgetAttributes,
-    pub root_node: EntityCommands<'a>,
-    pub has_tooltip: bool,
-    pub tooltip_text: String,
+    pub root_node: EntityCommands<'a>
 }
 
 impl<'a> FaCircularBuilder<'a> {
@@ -173,17 +163,8 @@ impl<'a> FaCircularBuilder<'a> {
         attributes.font_handle = Some(font_handle);
         Self {
             attributes,
-            root_node,
-            has_tooltip: false,
-            tooltip_text: String::new()
+            root_node
         }
-    }
-
-    /// Method to add tooltip to circular.
-    pub fn tooltip(mut self, text: &str) -> Self {
-        self.has_tooltip = true;
-        self.tooltip_text = text.to_string();
-        self
     }
 
     /// Spawn circular to UI world
@@ -193,9 +174,7 @@ impl<'a> FaCircularBuilder<'a> {
         self._node();
         FaCircular::new(
             &self.attributes,
-            &mut self.root_node,
-            self.has_tooltip,
-            Some(self.tooltip_text.clone())
+            &mut self.root_node
         )
     }
 }

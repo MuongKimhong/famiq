@@ -74,6 +74,8 @@ pub struct WidgetAttributes {
     pub size: WidgetSize,
     pub font_handle: Option<Handle<Font>>,
     pub image_handle: Option<Handle<Image>>,
+    pub has_tooltip: bool,
+    pub tooltip_text: String,
     default_display_changed: bool,
     default_display: Display
 }
@@ -98,6 +100,12 @@ pub trait SetWidgetAttributes: Sized {
 
     fn size(mut self, size: f32) -> Self {
         self.attributes().size = WidgetSize::Custom(size);
+        self
+    }
+
+    fn tooltip(mut self, text: &str) -> Self {
+        self.attributes().has_tooltip = true;
+        self.attributes().tooltip_text = text.to_string();
         self
     }
 
@@ -286,16 +294,16 @@ pub fn hot_reload_is_disabled(famiq_res: Res<FamiqResource>) -> bool {
 }
 
 pub(crate) fn build_tooltip_node<'a>(
-    text: &str,
-    font_handle: Handle<Font>,
+    attributes: &WidgetAttributes,
     root_node: &'a mut EntityCommands,
+    widget_entity: Entity
 ) -> Entity {
     let txt_font = TextFont {
-        font: font_handle,
+        font: attributes.font_handle.clone().unwrap(),
         font_size: 18.0,
         ..default()
     };
-    root_node
+    let tooltip_entity = root_node
         .commands()
         .spawn((
             Node {
@@ -316,11 +324,19 @@ pub(crate) fn build_tooltip_node<'a>(
             BackgroundColor(Color::srgba(1.0, 1.0, 1.0, 0.6)),
             BorderRadius::all(Val::Px(5.0)),
             Transform::default(),
-            Text::new(text),
+            Text::new(&attributes.tooltip_text),
             txt_font,
             TextColor(color::BLACK_COLOR),
             TextLayout::new_with_justify(JustifyText::Center),
             IsFamiqTooltip
         ))
-        .id()
+        .id();
+
+    root_node
+        .commands()
+        .entity(widget_entity)
+        .add_child(tooltip_entity)
+        .insert(FamiqTooltipEntity(tooltip_entity));
+
+    tooltip_entity
 }

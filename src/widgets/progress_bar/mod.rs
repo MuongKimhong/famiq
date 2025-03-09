@@ -174,6 +174,9 @@ impl<'a> FaProgressBar {
         let bar = Self::_build_progress_bar(attributes, root_node);
         let value = Self::_build_progress_value(root_node, percentage, &attributes.color, bar);
 
+        if attributes.has_tooltip {
+            build_tooltip_node(attributes, root_node, bar);
+        }
         root_node.commands().entity(bar).insert(FamiqProgressValueEntity(value));
         entity_add_child(root_node, value, bar);
         bar
@@ -182,9 +185,11 @@ impl<'a> FaProgressBar {
     fn handle_on_mouse_over(
         mut trigger: Trigger<Pointer<Over>>,
         mut writer: EventWriter<FaMouseEvent>,
-        bar_q: Query<Option<&FamiqWidgetId>, With<IsFamiqProgressBar>>
+        mut tooltip_q: Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
+        bar_q: Query<(&GlobalTransform, Option<&FamiqWidgetId>, Option<&FamiqTooltipEntity>), With<IsFamiqProgressBar>>
     ) {
-        if let Ok(id) = bar_q.get(trigger.entity()) {
+        if let Ok((transform, id, tooltip_entity)) = bar_q.get(trigger.entity()) {
+            show_tooltip(tooltip_entity, &mut tooltip_q, transform.translation());
             FaMouseEvent::send_over_event(&mut writer, WidgetType::ProgressBar, trigger.entity(), id);
         }
         trigger.propagate(false);
@@ -193,9 +198,11 @@ impl<'a> FaProgressBar {
     fn handle_on_mouse_out(
         mut trigger: Trigger<Pointer<Out>>,
         mut writer: EventWriter<FaMouseEvent>,
-        bar_q: Query<Option<&FamiqWidgetId>, With<IsFamiqProgressBar>>
+        mut tooltip_q: Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
+        bar_q: Query<(Option<&FamiqWidgetId>, Option<&FamiqTooltipEntity>), With<IsFamiqProgressBar>>
     ) {
-        if let Ok(id) = bar_q.get(trigger.entity()) {
+        if let Ok((id, tooltip_entity)) = bar_q.get(trigger.entity()) {
+            hide_tooltip(tooltip_entity, &mut tooltip_q);
             FaMouseEvent::send_out_event(&mut writer, WidgetType::ProgressBar, trigger.entity(), id);
         }
         trigger.propagate(false);
@@ -374,9 +381,11 @@ pub struct FaProgressBarBuilder<'a> {
 }
 
 impl<'a> FaProgressBarBuilder<'a> {
-    pub fn new(root_node: EntityCommands<'a>) -> Self {
+    pub fn new(root_node: EntityCommands<'a>, font_handle: Handle<Font>) -> Self {
+        let mut attributes = WidgetAttributes::default();
+        attributes.font_handle = Some(font_handle);
         Self {
-            attributes: WidgetAttributes::default(),
+            attributes,
             root_node,
             percentage: None,
         }
@@ -417,8 +426,10 @@ impl<'a> SetWidgetAttributes for FaProgressBarBuilder<'a> {
 
 /// API to create `FaProgressBar`.
 pub fn fa_progress_bar<'a>(builder: &'a mut FamiqBuilder) -> FaProgressBarBuilder<'a> {
+    let font_handle = builder.asset_server.load(&builder.resource.font_path);
     FaProgressBarBuilder::new(
-        builder.ui_root_node.reborrow()
+        builder.ui_root_node.reborrow(),
+        font_handle
     )
 }
 

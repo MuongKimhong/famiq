@@ -48,14 +48,12 @@ impl<'a> FaButton {
     pub fn new(
         attributes: WidgetAttributes,
         text: &str,
-        root_node: &'a mut EntityCommands,
-        has_tooltip: bool,
-        tooltip_text: Option<String>
+        root_node: &'a mut EntityCommands
     ) -> Entity {
         let txt_entity = Self::_build_text(&attributes, text, root_node);
 
         let mut style_components = BaseStyleComponents::default();
-        style_components.node = attributes.node;
+        style_components.node = attributes.node.clone();
         style_components.border_color = get_color(&attributes.color).into();
         style_components.background_color = get_color(&attributes.color).into();
         style_components.border_radius = BorderRadius::all(Val::Px(6.0));
@@ -75,15 +73,8 @@ impl<'a> FaButton {
             .observe(FaButton::handle_on_mouse_up)
             .id();
 
-        if has_tooltip {
-            let tooltip = build_tooltip_node(
-                &tooltip_text.unwrap(),
-                attributes.font_handle.clone().unwrap(),
-                root_node
-            );
-            root_node.commands().entity(btn_entity)
-                .insert(FamiqTooltipEntity(tooltip))
-                .add_child(tooltip);
+        if attributes.has_tooltip {
+            build_tooltip_node(&attributes, root_node, btn_entity);
         }
         insert_id_and_class(root_node, btn_entity, &attributes.id, &attributes.class);
         entity_add_child(root_node, txt_entity, btn_entity);
@@ -184,9 +175,7 @@ impl<'a> FaButton {
 pub struct FaButtonBuilder<'a> {
     pub attributes: WidgetAttributes,
     pub text: String,
-    pub root_node: EntityCommands<'a>,
-    pub has_tooltip: bool,
-    pub tooltip_text: String
+    pub root_node: EntityCommands<'a>
 }
 
 impl<'a> FaButtonBuilder<'a> {
@@ -200,17 +189,8 @@ impl<'a> FaButtonBuilder<'a> {
         Self {
             attributes,
             text,
-            root_node,
-            has_tooltip: false,
-            tooltip_text: String::new()
+            root_node
         }
-    }
-
-    /// Method to add tooltip to button.
-    pub fn tooltip(mut self, text: &str) -> Self {
-        self.has_tooltip = true;
-        self.tooltip_text = text.to_string();
-        self
     }
 
     /// Spawn the button to UI world.
@@ -221,9 +201,7 @@ impl<'a> FaButtonBuilder<'a> {
         FaButton::new(
             self.attributes.clone(),
             self.text.as_str(),
-            &mut self.root_node,
-            self.has_tooltip,
-            Some(self.tooltip_text.clone())
+            &mut self.root_node
         )
     }
 }
