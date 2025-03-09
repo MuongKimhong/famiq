@@ -138,7 +138,6 @@ fn fa_listview_systems(app: &mut App) {
     app.add_systems(
         Update,
         (
-            event_writer::listview_interaction_system,
             FaListView::on_hover_system,
             FaListView::on_scroll_system,
         )
@@ -247,9 +246,7 @@ impl Plugin for FamiqPlugin {
         app.insert_resource(FaTextResource::default());
         app.insert_resource(CursorIcons::default());
 
-        app.add_event::<event_writer::FaInteractionEvent>();
-        app.add_event::<event_writer::FaTextInputChangeEvent>();
-        app.add_event::<event_writer::FaSelectionChangeEvent>();
+        app.add_event::<event_writer::FaValueChangeEvent>();
         app.add_event::<event_writer::FaMouseEvent>();
 
         external_styles_file_systems(app);

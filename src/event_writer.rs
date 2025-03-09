@@ -1,5 +1,4 @@
 use crate::widgets::{
-    list_view::*,
     selection::*,
     text_input::*,
     *,
@@ -139,107 +138,42 @@ impl FaMouseEvent {
     }
 }
 
-/// Interaction Event: Hover, Press, Out (None)
+/// Value change event for `fa_text_input`, `fa_selection`
+/// `fa_checkbox`.
 #[derive(Event, Debug)]
-pub struct FaInteractionEvent {
+pub struct FaValueChangeEvent {
+    /// widget entity.
     pub entity: Entity,
+
+    /// widget id.
     pub widget_id: Option<String>,
-    pub interaction: Interaction,
-    pub widget: WidgetType
+
+    /// widget new value, for `fa_text_input`, `fa_selection`.
+    pub new_value: String,
+
+    /// widget new values, for `fa_checkbox` only.
+    pub new_values: Vec<String>
 }
 
-impl FaInteractionEvent {
-    fn new(
-        entity: Entity,
-        widget_id: Option<String>,
-        interaction: Interaction,
-        widget: WidgetType,
-    ) -> Self {
+impl FaValueChangeEvent {
+    pub fn new(entity: Entity, widget_id: Option<String>, new_value: String, new_values: Vec<String>) -> Self {
         Self {
             entity,
             widget_id,
-            interaction,
-            widget,
-        }
-    }
-
-    pub fn send_event<T>(
-        interaction_q: &mut Query<(Entity, &T, Option<&FamiqWidgetId>, &Interaction), Changed<Interaction>>,
-        writer: &mut EventWriter<FaInteractionEvent>,
-        widget: WidgetType,
-    ) where
-        T: Component,
-    {
-        for (entity, _, widget_id, interaction) in interaction_q {
-            writer.send(FaInteractionEvent::new(
-                entity,
-                widget_id.map(|id| id.0.clone()), // return Option<String> or None
-                *interaction,
-                widget,
-            ));
-        }
-    }
-
-    /// true provided widget type is pressed
-    pub fn is_pressed(&self, _type: WidgetType) -> bool {
-        self.widget == _type && self.interaction == Interaction::Pressed
-    }
-
-    /// true provided widget type is hovered
-    pub fn is_hovered(&self, _type: WidgetType) -> bool {
-        self.widget == _type && self.interaction == Interaction::Hovered
-    }
-
-    /// true if nothing has happened
-    pub fn is_left(&self, _type: WidgetType) -> bool {
-        self.widget == _type && self.interaction == Interaction::None
-    }
-}
-
-/// `fa_text_input` value change event
-#[derive(Event, Debug)]
-pub struct FaTextInputChangeEvent {
-    pub entity: Entity,
-    pub widget_id: Option<String>,
-    pub new_value: String
-}
-
-impl FaTextInputChangeEvent {
-    pub fn new(entity: Entity, widget_id: Option<String>, new_value: String) -> Self {
-        Self {
-            entity,
-            widget_id,
-            new_value
-        }
-    }
-}
-
-/// `fa_selection` value change event
-#[derive(Event, Debug)]
-pub struct FaSelectionChangeEvent {
-    pub entity: Entity,
-    pub widget_id: Option<String>,
-    pub new_value: String
-}
-
-impl FaSelectionChangeEvent {
-    pub fn new(entity: Entity, widget_id: Option<String>, new_value: String) -> Self {
-        Self {
-            entity,
-            widget_id,
-            new_value
+            new_value,
+            new_values
         }
     }
 }
 
 pub fn text_input_value_change_system(
     text_input_q: Query<(Entity, Ref<TextInputValue>, Option<&FamiqWidgetId>)>,
-    mut value_change_writer: EventWriter<FaTextInputChangeEvent>
+    mut change_writer: EventWriter<FaValueChangeEvent>
 ) {
     for (entity, text_input_value, id) in text_input_q.iter() {
         if text_input_value.is_changed() && !text_input_value.is_added() {
-            value_change_writer.send(
-                FaTextInputChangeEvent::new(entity, id.map(|_id| _id.0.clone()), text_input_value.0.clone())
+            change_writer.send(
+                FaValueChangeEvent::new(entity, id.map(|_id| _id.0.clone()), text_input_value.0.clone(), Vec::new())
             );
         }
     }
@@ -247,33 +181,13 @@ pub fn text_input_value_change_system(
 
 pub fn selection_value_change_system(
     selection_q: Query<(Entity, Ref<SelectionValue>, Option<&FamiqWidgetId>)>,
-    mut value_change_writer: EventWriter<FaSelectionChangeEvent>
+    mut change_writer: EventWriter<FaValueChangeEvent>
 ) {
     for (entity, selection_value, id) in selection_q.iter() {
         if selection_value.is_changed() && !selection_value.is_added() {
-            value_change_writer.send(
-                FaSelectionChangeEvent::new(entity, id.map(|_id| _id.0.clone()), selection_value.0.clone())
+            change_writer.send(
+                FaValueChangeEvent::new(entity, id.map(|_id| _id.0.clone()), selection_value.0.clone(), Vec::new())
             );
         }
     }
 }
-
-pub fn listview_interaction_system(
-    mut interaction_q: Query<
-        (Entity, &IsFamiqListView, Option<&FamiqWidgetId>, &Interaction),
-        Changed<Interaction>,
-    >,
-    mut writer: EventWriter<FaInteractionEvent>,
-) {
-    FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::ListView);
-}
-
-// pub fn container_interaction_system(
-//     mut interaction_q: Query<
-//         (Entity, &IsFamiqContainer, Option<&FamiqWidgetId>, &Interaction),
-//         Changed<Interaction>,
-//     >,
-//     mut writer: EventWriter<FaInteractionEvent>,
-// ) {
-//     FaInteractionEvent::send_event(&mut interaction_q, &mut writer, WidgetType::Container);
-// }

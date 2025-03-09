@@ -15,6 +15,7 @@ pub mod modal;
 pub mod image;
 pub mod bg_image;
 pub mod progress_bar;
+pub mod checkbox;
 pub mod tests;
 pub mod base_components;
 
