@@ -6,21 +6,19 @@ use crate::utils::{get_embedded_asset_path, create_test_app};
 use super::*;
 
 fn setup_test_default_image(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut builder_res: ResMut<FamiqResource>,
+    mut famiq_res: ResMut<FamiqResource>,
+    mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     let path = get_embedded_asset_path("embedded_assets/logo.jpeg").to_string();
     fa_image(&mut builder, path.as_str()).id("#test-image").build();
 }
 
 fn setup_test_image_with_class(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut builder_res: ResMut<FamiqResource>,
+    mut famiq_res: ResMut<FamiqResource>,
+    mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     let path = get_embedded_asset_path("embedded_assets/logo.jpeg").to_string();
     fa_image(&mut builder, path.as_str())
         .class("test-class-one")
@@ -28,11 +26,10 @@ fn setup_test_image_with_class(
 }
 
 fn setup_test_image_with_custom_size(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut builder_res: ResMut<FamiqResource>,
+    mut famiq_res: ResMut<FamiqResource>,
+    mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     let path = get_embedded_asset_path("embedded_assets/logo.jpeg").to_string();
     fa_image(&mut builder, path.as_str())
         .set_size(Val::Px(200.0), Val::Px(200.0))

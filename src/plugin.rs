@@ -84,18 +84,6 @@ fn external_styles_file_systems(app: &mut App) {
     );
 }
 
-fn internal_styles_systems(app: &mut App) {
-    app.add_systems(Update, FaStyleResource::detect_new_widget_with_id);
-    app.add_systems(
-        PostUpdate,
-        (
-            FaStyleResource::detect_internal_widget_style_change,
-            FaStyleResource::detect_internal_text_style_change
-        )
-        .chain()
-    );
-}
-
 fn fa_selection_systems(app: &mut App) {
     app.add_systems(
         Update,
@@ -229,14 +217,15 @@ impl Plugin for FamiqPlugin {
         embedded_asset!(app, "embedded_assets/logo.jpeg"); // for testing
 
         app.add_systems(PreStartup, _spawn_root_node);
+        app.add_systems(Update, detect_new_widget_with_id);
         app.add_systems(Update, handle_window_resized_system);
+        app.add_systems(PostUpdate, detect_fa_containable_resource_change);
 
         app.add_plugins(UiMaterialPlugin::<ProgressBarMaterial>::default());
         app.add_plugins(UiMaterialPlugin::<CircularMaterial>::default());
         app.add_plugins(FrameTimeDiagnosticsPlugin::default());
         app.insert_resource(StylesKeyValueResource::default());
         app.insert_resource(FamiqResource::new());
-        app.insert_resource(FaStyleResource::default());
         app.insert_resource(FaBgImageResource::default());
         app.insert_resource(FaContainableResource::default());
         app.insert_resource(CanBeScrolledListView { entity: None });
@@ -252,7 +241,6 @@ impl Plugin for FamiqPlugin {
         app.add_event::<event_writer::FaMouseEvent>();
 
         external_styles_file_systems(app);
-        internal_styles_systems(app);
         fa_text_systems(app);
         fa_selection_systems(app);
         fa_listview_systems(app);
@@ -263,15 +251,26 @@ impl Plugin for FamiqPlugin {
         fa_progress_bar_systems(app);
         fa_bg_image_systems(app);
         fa_container_systems(app);
+    }
+}
 
-        app.add_systems(
-            PostUpdate,
-            detect_fa_containable_resource_change
-        );
+/// Detect when a widget with id is created
+fn detect_new_widget_with_id(widget_q: Query<&FamiqWidgetId, Added<IsFamiqMainWidget>>) {
+    let mut ids: Vec<&str> = Vec::new();
+
+    for id in widget_q.iter() {
+        if !ids.contains(&id.0.as_str()) {
+            ids.push(&id.0);
+        }
+        else {
+            panic!("\n[FamiqError]: ID {:?} is duplicated\n", id.0);
+        }
     }
 }
 
 fn _spawn_root_node(mut commands: Commands, mut res: ResMut<FamiqResource>) {
+    commands.spawn(Camera2d::default());
+
     let entity = commands.spawn((
         Node {
             width: Val::Percent(100.0),

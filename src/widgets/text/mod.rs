@@ -312,11 +312,10 @@ mod tests {
     use super::*;
 
     fn setup_test_default_text(
-        mut commands: Commands,
-        asset_server: Res<AssetServer>,
-        mut builder_res: ResMut<FamiqResource>,
+        mut famiq_res: ResMut<FamiqResource>,
+        mut fa_query: FaQuery
     ) {
-        let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
+        let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
         fa_text(&mut builder, "Test Text").id("#test-text").build();
     }
 

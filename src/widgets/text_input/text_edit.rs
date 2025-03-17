@@ -75,9 +75,11 @@ impl FaTextEdit {
 
             if end_index < start_index {
                 self.value.drain(end_index..start_index);
+                self.cursor_index = end_index;
             }
             else if end_index > start_index {
                 self.value.drain(start_index..end_index);
+                self.cursor_index = start_index;
             }
 
             self.clear_selection();

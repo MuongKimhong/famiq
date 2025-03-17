@@ -20,13 +20,10 @@
 //! }
 //!
 //! fn setup_ui(
-//!     mut commands: Commands, // required
+//!     mut fa_query: FaQuery, // required
 //!     mut famiq_res: ResMut<FamiqResource>, // required
-//!     asset_server: Res<AssetServer> // required
 //! ) {
-//!     commands.spawn(Camera2d::default());
-//!
-//!     let mut builder = FamiqBuilder::new(&mut commands, &mut famiq_res, &asset_server);
+//!     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
 //!
 //!     let txt = fa_text(&mut builder, "Hello world").build();
 //!     let btn = fa_button(&mut builder, "Press me").build();
@@ -48,7 +45,7 @@ pub mod prelude {
     pub use crate::widgets::{
         FamiqBuilder, WidgetType, FamiqWidgetId,
         DefaultTextEntity, DefaultWidgetEntity,
-        SetWidgetAttributes,
+        SetWidgetAttributes, FaQuery, WidgetSelector,
         fa_button,
         fa_circular,
         fa_container,

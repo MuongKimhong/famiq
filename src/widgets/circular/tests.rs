@@ -6,20 +6,18 @@ use crate::utils::create_test_app;
 use super::*;
 
 fn setup_test_default_circular(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut builder_res: ResMut<FamiqResource>,
+    mut famiq_res: ResMut<FamiqResource>,
+    mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     fa_circular(&mut builder).id("#test-circular").build();
 }
 
 fn setup_test_circular_with_built_in_class(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut builder_res: ResMut<FamiqResource>,
+    mut famiq_res: ResMut<FamiqResource>,
+    mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     fa_circular(&mut builder)
         .id("#test-circular")
         .class("is-primary is-large")
@@ -27,11 +25,10 @@ fn setup_test_circular_with_built_in_class(
 }
 
 fn set_up_circular_with_custom_size(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut builder_res: ResMut<FamiqResource>,
+    mut famiq_res: ResMut<FamiqResource>,
+    mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     fa_circular(&mut builder)
         .size(90.0)
         .build();

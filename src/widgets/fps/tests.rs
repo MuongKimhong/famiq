@@ -6,11 +6,10 @@ use crate::widgets::{FamiqResource, FamiqWidgetId, FamiqWidgetClasses};
 use super::*;
 
 fn setup_test_default_fps(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut builder_res: ResMut<FamiqResource>,
+    mut famiq_res: ResMut<FamiqResource>,
+    mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     fa_fps(&mut builder)
         .id("#test-fps")
         .class("test-class")
@@ -18,22 +17,20 @@ fn setup_test_default_fps(
 }
 
 fn setup_test_fps_with_change_color(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut builder_res: ResMut<FamiqResource>,
+    mut famiq_res: ResMut<FamiqResource>,
+    mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     fa_fps(&mut builder)
         .change_color()
         .build();
 }
 
 fn setup_test_fps_with_right_side(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut builder_res: ResMut<FamiqResource>,
+    mut famiq_res: ResMut<FamiqResource>,
+    mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     fa_fps(&mut builder)
         .right_side()
         .build();

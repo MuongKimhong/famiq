@@ -1,24 +1,22 @@
 #![cfg(test)]
 
 use crate::plugin::FamiqPlugin;
-use crate::widgets::{FamiqWidgetId, FamiqWidgetClasses};
+use crate::widgets::{FamiqWidgetId, FamiqWidgetClasses, FaQuery};
 use super::*;
 
 fn setup_test_default_button(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut builder_res: ResMut<FamiqResource>,
+    mut famiq_res: ResMut<FamiqResource>,
+    mut famiq_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut famiq_query, &mut famiq_res);
     fa_button(&mut builder, "Press me").id("#test-btn").build();
 }
 
 fn setup_test_button_with_built_in_class(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut builder_res: ResMut<FamiqResource>,
+    mut famiq_res: ResMut<FamiqResource>,
+    mut famiq_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut famiq_query, &mut famiq_res);
     fa_button(&mut builder, "Press me")
         .id("#test-btn")
         .class("is-primary is-large is-round")

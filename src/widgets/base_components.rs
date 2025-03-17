@@ -6,10 +6,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Component)]
 pub struct FamiqToolTipText(pub String);
 
-#[derive(Component, Deref)]
+#[derive(Component, Deref, Debug)]
 pub struct FamiqWidgetId(pub String);
 
-#[derive(Component, Deref)]
+#[derive(Component, Deref, Debug)]
 pub struct FamiqWidgetClasses(pub String);
 
 #[derive(Component)]
@@ -31,7 +31,7 @@ pub struct BaseStyleComponents {
     pub z_index: ZIndex,
     pub visibility: Visibility,
     pub interaction: Interaction,
-    pub box_shadow: BoxShadow
+    pub box_shadow: BoxShadow,
 }
 
 impl Default for BaseStyleComponents {

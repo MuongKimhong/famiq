@@ -6,20 +6,18 @@ use crate::widgets::text::fa_text;
 use super::*;
 
 fn setup_test_default_modal(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut builder_res: ResMut<FamiqResource>,
+    mut famiq_res: ResMut<FamiqResource>,
+    mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     fa_modal(&mut builder).id("#test-modal").build();
 }
 
 fn setup_test_modal_with_children(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut builder_res: ResMut<FamiqResource>,
+    mut famiq_res: ResMut<FamiqResource>,
+    mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     let txt_one = fa_text(&mut builder, "Text one").build();
     let txt_two = fa_text(&mut builder, "Text two").build();
 

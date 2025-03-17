@@ -7,20 +7,18 @@ use bevy::input::InputPlugin;
 use super::*;
 
 fn setup_test_default_listview(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut builder_res: ResMut<FamiqResource>,
+    mut famiq_res: ResMut<FamiqResource>,
+    mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     fa_listview(&mut builder).id("#test-listview").build();
 }
 
 fn setup_test_listview_with_children(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut builder_res: ResMut<FamiqResource>,
+    mut famiq_res: ResMut<FamiqResource>,
+    mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     let button_one = fa_button(&mut builder, "Button 1").build();
     let button_two = fa_button(&mut builder, "Button 2").build();
 

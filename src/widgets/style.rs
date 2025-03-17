@@ -68,7 +68,6 @@ pub(crate) fn read_styles_from_file_system(
 
 pub(crate) fn detect_widget_external_styles_change(
     styles: Res<StylesKeyValueResource>,
-    mut style_res: ResMut<FaStyleResource>,
     mut widget_query: WidgetStyleQuery
 ) {
     if styles.is_changed() {
@@ -132,9 +131,6 @@ pub(crate) fn detect_widget_external_styles_change(
             }
 
             if changed {
-                if let Some(internal_style) = style_res.values.get_mut(&_id) {
-                    internal_style.update_from(&empty_style);
-                }
                 apply_styles_from_external_json(
                     &mut bg_color,
                     &mut bd_color,
@@ -153,7 +149,6 @@ pub(crate) fn detect_widget_external_styles_change(
 
 pub(crate) fn detect_text_external_styles_change(
     mut styles: ResMut<StylesKeyValueResource>,
-    mut style_res: ResMut<FaStyleResource>,
     mut text_query: Query<(
         &mut TextFont,
         &mut TextColor,
@@ -220,9 +215,6 @@ pub(crate) fn detect_text_external_styles_change(
             }
 
             if changed {
-                if let Some(internal_style) = style_res.values.get_mut(&_id) {
-                    internal_style.update_from(&empty_style);
-                }
                 apply_text_styles_from_external_json(
                     &empty_style,
                     default_text_entity,

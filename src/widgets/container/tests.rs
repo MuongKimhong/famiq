@@ -6,20 +6,18 @@ use crate::widgets::{FamiqResource, FamiqWidgetId, FamiqWidgetClasses};
 use super::*;
 
 fn setup_test_default_container(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut builder_res: ResMut<FamiqResource>,
+    mut famiq_res: ResMut<FamiqResource>,
+    mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     fa_container(&mut builder).id("#test-container").build();
 }
 
 fn setup_test_container_with_class(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut builder_res: ResMut<FamiqResource>,
+    mut famiq_res: ResMut<FamiqResource>,
+    mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     fa_container(&mut builder)
         .id("#test-container")
         .class("test-class-one test-class-two")
@@ -27,11 +25,10 @@ fn setup_test_container_with_class(
 }
 
 fn setup_test_container_with_children(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut builder_res: ResMut<FamiqResource>,
+    mut famiq_res: ResMut<FamiqResource>,
+    mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut commands, &mut builder_res, &asset_server);
+    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
 
     let test_btn_1 = fa_button(&mut builder, "Button 1").build();
     let test_btn_2 = fa_button(&mut builder, "Button 2").build();
