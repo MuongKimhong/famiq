@@ -25,6 +25,7 @@ impl<'a> FaImage {
                 ImageNode::new(attributes.image_handle.clone().unwrap()),
                 style_components.clone(),
                 IsFamiqImage,
+                IsFamiqMainWidget,
                 DefaultWidgetEntity::from(style_components)
             ))
             .observe(FaImage::handle_on_mouse_over)

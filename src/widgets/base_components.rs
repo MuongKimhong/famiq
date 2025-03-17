@@ -18,6 +18,9 @@ pub(crate) struct IsFamiqTooltip;
 #[derive(Component)]
 pub(crate) struct FamiqTooltipEntity(pub Entity);
 
+#[derive(Component)]
+pub struct IsFamiqMainWidget;
+
 /// Base styles components required by all widgets
 #[derive(Bundle, Clone)]
 pub struct BaseStyleComponents {

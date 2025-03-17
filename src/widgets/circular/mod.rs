@@ -42,6 +42,7 @@ impl<'a> FaCircular {
                 style_components.clone(),
                 DefaultWidgetEntity::from(style_components),
                 IsFamiqCircular,
+                IsFamiqMainWidget,
                 SpinnerColor(color)
             ))
             .observe(FaCircular::handle_on_mouse_up)

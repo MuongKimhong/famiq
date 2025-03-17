@@ -65,7 +65,8 @@ impl<'a> FaButton {
                 IsFamiqButton,
                 DefaultWidgetEntity::from(style_components),
                 ButtonTextEntity(txt_entity),
-                ButtonColorBeforePressed(None)
+                ButtonColorBeforePressed(None),
+                IsFamiqMainWidget
             ))
             .observe(FaButton::handle_on_mouse_over)
             .observe(FaButton::handle_on_mouse_down)

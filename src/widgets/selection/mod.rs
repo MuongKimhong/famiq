@@ -100,6 +100,7 @@ impl<'a> FaSelection {
             .spawn((
                 style_components.clone(),
                 IsFamiqSelectionSelector,
+                IsFamiqMainWidget,
                 DefaultWidgetEntity::from(style_components),
                 SelectionValue::default(),
                 Selection::new(placeholder.to_string()),

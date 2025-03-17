@@ -2,6 +2,7 @@
 
 use bevy::utils::hashbrown::HashMap;
 use bevy::prelude::*;
+use bevy::utils::info;
 use std::marker::PhantomData;
 
 use crate::widgets::list_view::ListViewMovePanelEntity;
@@ -303,11 +304,14 @@ impl FaStyleResource {
     /// Detect when a widget with id is created
     pub(crate) fn detect_new_widget_with_id(
         mut style_res: ResMut<FaStyleResource>,
-        widget_q: Query<&FamiqWidgetId, Added<FamiqWidgetId>>
+        widget_q: Query<&FamiqWidgetId, Added<IsFamiqMainWidget>>
     ) {
         for id in widget_q.iter() {
             if style_res.values.get(&id.0).is_none() {
                 style_res.values.insert(id.0.clone(), WidgetStyle::default());
+            }
+            else {
+                panic!("\n[FamiqError]: ID {:?} is duplicated\n", id.0);
             }
         }
     }

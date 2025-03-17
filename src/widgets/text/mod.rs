@@ -107,6 +107,7 @@ impl<'a> FaText {
                 txt_layout.clone(),
                 DefaultTextEntity::new(txt, txt_font, txt_color, txt_layout),
                 IsFamiqText,
+                IsFamiqMainWidget,
                 style_components.clone(),
                 DefaultWidgetEntity::from(style_components)
             ))

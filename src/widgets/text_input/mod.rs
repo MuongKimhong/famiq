@@ -151,6 +151,7 @@ impl<'a> FaTextInput {
             .spawn((
                 style_components.clone(),
                 IsFamiqTextInput,
+                IsFamiqMainWidget,
                 DefaultWidgetEntity::from(style_components),
                 FaTextInputInfo::new(placeholder, input_type),
                 FaTextEdit::default()

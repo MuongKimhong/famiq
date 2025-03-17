@@ -61,6 +61,7 @@ impl<'a> FaFpsText {
                     TextColor(WHITE_COLOR),
                     TextLayout::new_with_justify(JustifyText::Center),
                 ),
+                IsFamiqMainWidget,
                 IsFamiqFPSTextLabel,
                 style_components.clone(),
                 GlobalZIndex(6),

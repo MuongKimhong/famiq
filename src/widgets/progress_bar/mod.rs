@@ -126,7 +126,8 @@ impl<'a> FaProgressBar {
             .spawn((
                 style_components.clone(),
                 DefaultWidgetEntity::from(style_components),
-                IsFamiqProgressBar
+                IsFamiqProgressBar,
+                IsFamiqMainWidget
             ))
             .observe(FaProgressBar::handle_on_mouse_over)
             .observe(FaProgressBar::handle_on_mouse_out)

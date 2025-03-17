@@ -48,6 +48,7 @@ impl<'a> FaCheckbox {
                 style_components.clone(),
                 DefaultWidgetEntity::from(style_components),
                 CheckBoxValues::default(),
+                IsFamiqMainWidget,
                 IsFamiqCheckbox
             ))
             .id();
