@@ -411,6 +411,9 @@ pub struct FamiqResource {
     /// read external style (json) file and apply styles to widget every single frame
     pub hot_reload_styles: bool,
 
+    /// copied text from text input
+    pub copied_text: String,
+
     pub(crate) widget_focus_state: HashMap<Entity, bool>,
     pub(crate) external_style_applied: bool,
     pub(crate) root_node_entity: Option<Entity>,
@@ -440,12 +443,13 @@ impl FamiqResource {
 
     pub fn new() -> Self {
         Self {
-            font_path: get_embedded_asset_path("embedded_assets/fonts/fira-mono-regular.ttf").to_string(),
+            font_path: get_embedded_asset_path("embedded_assets/fonts/fira-mono-medium.ttf").to_string(),
             style_path: "assets/styles.json".to_string(),
             hot_reload_styles: false,
             widget_focus_state: HashMap::new(),
             external_style_applied: false,
-            root_node_entity: None
+            root_node_entity: None,
+            copied_text: String::new()
         }
     }
 }

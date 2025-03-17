@@ -1,17 +1,22 @@
+/// Suport single line only. Bugs are waiting for you somewhere.
+
 pub mod styling;
 pub mod components;
 pub mod tests;
+pub mod text_edit;
 
 use styling::*;
 pub use components::*;
-use crate::event_writer::FaMouseEvent;
+pub use text_edit::*;
+use crate::event_writer::{FaMouseEvent, FaValueChangeEvent};
 use crate::plugin::{CursorIcons, CursorType};
 use crate::utils::*;
 use crate::resources::*;
 use crate::widgets::color::WHITE_COLOR;
 use crate::widgets::*;
 
-use bevy::input::keyboard::{Key, KeyboardInput};
+use bevy::input::keyboard::{Key, KeyboardInput, KeyCode};
+use bevy::input::ButtonInput;
 use bevy::ecs::system::EntityCommands;
 use bevy::text::TextLayoutInfo;
 use bevy::input::ButtonState;
@@ -42,7 +47,7 @@ impl Default for FaTextInputCursorBlinkTimer {
 }
 
 /// The width of the text input cursor.
-pub const CURSOR_WIDTH: f32 = 2.0;
+pub const CURSOR_WIDTH: f32 = 1.0;
 
 /// Represents the Famiq text input widget, which includes placeholder text, a blinking cursor, and customizable styles.
 /// Support UTF-8 encoded only.
@@ -77,6 +82,9 @@ impl<'a> FaTextInput {
                     ..default()
                 }
             ))
+            .observe(FaTextInput::handle_placeholder_on_mouse_down)
+            .observe(FaTextInput::handle_placeholder_start_selection)
+            .observe(FaTextInput::handle_placeholder_selecting)
             .id();
 
         insert_id_and_class(root_node, entity, &attributes.id, &attributes.class);
@@ -104,12 +112,31 @@ impl<'a> FaTextInput {
             .id()
     }
 
+    fn _build_highlighter(root_node: &'a mut EntityCommands) -> Entity {
+        let use_color = Color::srgba(0.537, 0.686, 0.969, 0.5);
+        root_node
+            .commands()
+            .spawn((
+                Node {
+                    position_type: PositionType::Absolute,
+                    left: Val::Px(0.0),
+                    top: Val::Px(0.0),
+                    ..default()
+                },
+                BackgroundColor(use_color),
+                BorderRadius::all(Val::Px(0.0)),
+                BorderColor(use_color),
+                ZIndex(11),
+                Visibility::Hidden,
+                IsFamiqTextInputHighlighter
+            ))
+            .id()
+    }
+
     fn _build_input(
         attributes: &WidgetAttributes,
         root_node: &'a mut EntityCommands,
         placeholder: &str,
-        placeholder_entity: Entity,
-        cursor_entity: Entity,
         input_type: TextInputType
     ) -> Entity {
         let input_color = get_color(&attributes.color);
@@ -125,11 +152,8 @@ impl<'a> FaTextInput {
                 style_components.clone(),
                 IsFamiqTextInput,
                 DefaultWidgetEntity::from(style_components),
-                TextInput::new(placeholder, input_type),
-                TextInputValue::default(),
-                FamiqTextInputPlaceholderEntity(placeholder_entity),
-                FamiqTextInputCursorEntity(cursor_entity),
-                CharacterSize { width: 0.0, height: 0.0 },
+                FaTextInputInfo::new(placeholder, input_type),
+                FaTextEdit::default()
             ))
             .observe(FaTextInput::handle_on_mouse_over)
             .observe(FaTextInput::handle_on_mouse_out)
@@ -148,72 +172,209 @@ impl<'a> FaTextInput {
         input_type: TextInputType
     ) -> Entity {
         let cursor_entity = Self::_build_cursor(root_node, &attributes.color);
+        let highlighter_entity = Self::_build_highlighter(root_node);
         let ph_entity = Self::_build_placeholder(attributes, placeholder, root_node);
-        let input_entity = Self::_build_input(
-            attributes,
-            root_node,
-            placeholder,
-            ph_entity,
-            cursor_entity,
-            input_type
-        );
+        let input_entity = Self::_build_input(attributes, root_node, placeholder, input_type);
 
         if attributes.has_tooltip {
             build_tooltip_node(attributes, root_node, input_entity);
         }
-        entity_add_children(root_node, &vec![ph_entity, cursor_entity], input_entity);
+        root_node.commands().entity(input_entity).insert((
+            FaTextInputPlaceholderEntity(ph_entity),
+            FaTextInputCursorEntity(cursor_entity),
+            FaTextInputHighlighterEntity(highlighter_entity)
+        ));
+        root_node.commands().entity(ph_entity).insert(FaTextInputEntity(input_entity));
+
+        entity_add_children(root_node, &vec![ph_entity, cursor_entity, highlighter_entity], input_entity);
         input_entity
     }
 
-    pub fn handle_text_input_on_focused_system(
+    pub(crate) fn handle_placeholder_on_mouse_down(
+        mut trigger: Trigger<Pointer<Down>>,
+        mut input_q: Query<(&GlobalTransform, &ComputedNode, &mut FaTextEdit), With<IsFamiqTextInput>>,
+        ph_q: Query<(&Node, &FaTextInputEntity), With<IsFamiqTextInputPlaceholder>>,
+        mut famiq_res: ResMut<FamiqResource>,
+    ) {
+        let (ph_node, input_entity) = ph_q.get(trigger.entity()).unwrap();
+        let (input_transform, input_computed, mut text_edit) = input_q.get_mut(input_entity.0).unwrap();
+
+        if !text_edit.value.is_empty() {
+            let local_pointer_pos = mouse_pos_to_local_node_pos(
+                &trigger.pointer_location.position,
+                input_computed,
+                input_transform
+            );
+            let mut closest_glyph_index = None;
+            let mut closest_distance = f32::MAX;
+
+            for i in 0..=text_edit.value.len() {
+                let cursor_pos = text_edit.calculate_cursor_pos(&ph_node, i as f32);
+                let distance = (local_pointer_pos.x - cursor_pos).abs();
+
+                if distance < closest_distance {
+                    closest_distance = distance;
+                    closest_glyph_index = Some(i);
+                }
+            }
+
+            if let Some(glyph_index) = closest_glyph_index {
+                text_edit.cursor_index = glyph_index;
+            }
+
+            famiq_res.update_all_focus_states(false);
+            famiq_res.update_or_insert_focus_state(input_entity.0, true);
+            trigger.propagate(false);
+        }
+        else {
+            trigger.propagate(true);
+        }
+    }
+
+    pub(crate) fn handle_placeholder_start_selection(
+        mut trigger: Trigger<Pointer<DragStart>>,
+        mut input_q: Query<(&GlobalTransform, &ComputedNode, &mut FaTextEdit, &FaTextInputHighlighterEntity), With<IsFamiqTextInput>>,
+        mut highlighter_q: Query<(&mut Node, &mut Visibility), (With<IsFamiqTextInputHighlighter>, Without<IsFamiqTextInputPlaceholder>)>,
+        ph_q: Query<(&Node, &FaTextInputEntity), With<IsFamiqTextInputPlaceholder>>
+    ) {
+        let (ph_node, input_entity) = ph_q.get(trigger.entity()).unwrap();
+        let (input_transform, input_computed, mut text_edit, highlighter_entity) = input_q.get_mut(input_entity.0).unwrap();
+        let (mut highlighter_node, mut highlighter_visibility) = highlighter_q.get_mut(highlighter_entity.0).unwrap();
+
+        if !text_edit.value.is_empty() {
+            let local_pointer_pos = mouse_pos_to_local_node_pos(
+                &trigger.pointer_location.position,
+                input_computed,
+                input_transform
+            );
+            let mut closest_glyph_index = None;
+            let mut closest_distance = f32::MAX;
+
+            for i in 0..=text_edit.value.len() {
+                let cursor_pos = text_edit.calculate_cursor_pos(&ph_node, i as f32);
+                let distance = (local_pointer_pos.x - cursor_pos).abs();
+
+                if distance < closest_distance {
+                    closest_distance = distance;
+                    closest_glyph_index = Some(i);
+                }
+            }
+
+
+            if let Some(glyph_index) = closest_glyph_index {
+                text_edit.cursor_index = glyph_index;
+                text_edit.clear_selection();
+                text_edit.selection_start_index = Some(glyph_index);
+
+                *highlighter_visibility = Visibility::Visible;
+                highlighter_node.top = Val::Px(input_computed.padding().top * input_computed.inverse_scale_factor());
+            }
+            trigger.propagate(false);
+        }
+        else {
+            trigger.propagate(true);
+        }
+    }
+
+    pub(crate) fn handle_placeholder_selecting(
+        mut trigger: Trigger<Pointer<Drag>>,
+        mut input_q: Query<(&GlobalTransform, &ComputedNode, &mut FaTextEdit, &FaTextInputHighlighterEntity), With<IsFamiqTextInput>>,
+        mut highlighter_q: Query<&mut Node, (With<IsFamiqTextInputHighlighter>, Without<IsFamiqTextInputPlaceholder>)>,
+        ph_q: Query<(&Node, &FaTextInputEntity), With<IsFamiqTextInputPlaceholder>>
+    ) {
+        let (ph_node, input_entity) = ph_q.get(trigger.entity()).unwrap();
+        let (input_transform, input_computed, mut text_edit, highlighter_entity) = input_q.get_mut(input_entity.0).unwrap();
+        let mut highlighter_node = highlighter_q.get_mut(highlighter_entity.0).unwrap();
+
+        if !text_edit.value.is_empty() {
+            let local_pointer_pos = mouse_pos_to_local_node_pos(
+                &trigger.pointer_location.position,
+                input_computed,
+                input_transform
+            );
+            let mut closest_glyph_index = None;
+            let mut closest_distance = f32::MAX;
+
+            for i in 0..=text_edit.value.len() {
+                let cursor_pos = text_edit.calculate_cursor_pos(&ph_node, i as f32);
+                let distance = (local_pointer_pos.x - cursor_pos).abs();
+
+                if distance < closest_distance {
+                    closest_distance = distance;
+                    closest_glyph_index = Some(i);
+                }
+            }
+
+            if let Some(glyph_index) = closest_glyph_index {
+                text_edit.cursor_index = glyph_index;
+                text_edit.selection_end_index = Some(glyph_index);
+
+                if let Some(start_index) = text_edit.selection_start_index {
+                    let glyph_index_pos = text_edit.calculate_cursor_pos(ph_node, glyph_index as f32);
+                    let start_index_pos = text_edit.calculate_cursor_pos(ph_node, start_index as f32);
+
+                    if glyph_index < start_index {
+                        highlighter_node.left = Val::Px(glyph_index_pos);
+                        highlighter_node.width = Val::Px(start_index_pos - glyph_index_pos);
+                        text_edit.selected_text = text_edit.value[glyph_index..start_index].to_string();
+
+                    }
+                    else if glyph_index > start_index {
+                        highlighter_node.left = Val::Px(start_index_pos);
+                        highlighter_node.width = Val::Px(glyph_index_pos - start_index_pos);
+                        text_edit.selected_text = text_edit.value[start_index..glyph_index].to_string();
+                    }
+                }
+            }
+            trigger.propagate(false);
+        }
+        else {
+            trigger.propagate(true);
+        }
+    }
+
+    pub(crate) fn handle_text_input_on_focused(
         mut input_q: Query<(
             Entity,
-            &Node,
-            &TextInput,
-            &FamiqTextInputCursorEntity,
-            &FamiqTextInputPlaceholderEntity,
-            &mut CharacterSize
+            &FaTextInputCursorEntity,
+            &FaTextInputPlaceholderEntity,
+            &FaTextInputHighlighterEntity,
+            &mut FaTextEdit
         )>,
-        mut cursor_q: Query<
-            (
-                &mut Node,
-                &mut Visibility,
-                &IsFamiqTextInputCursor
-            ),
-            Without<CharacterSize>
-        >,
+        mut cursor_q: Query<(&mut Node, &mut Visibility), (With<IsFamiqTextInputCursor>, Without<IsFamiqTextInputHighlighter>)>,
+        mut highlighter_q: Query<(&mut Node, &mut Visibility), (With<IsFamiqTextInputHighlighter>, Without<IsFamiqTextInputCursor>)>,
         mut placeholder_q: Query<(&Text, &TextLayoutInfo), With<IsFamiqTextInputPlaceholder>>,
-        builder_res: Res<FamiqResource>
+        famiq_res: Res<FamiqResource>
     ) {
-        if !builder_res.is_changed() || builder_res.is_added() {
+        if !famiq_res.is_changed() || famiq_res.is_added() {
             return;
         }
+
         for (
             input_entity,
-            text_input_node,
-            text_input,
             cursor_entity,
             placeholder_entity,
-            mut char_size
+            highlighter_entity,
+            mut text_edit
         ) in input_q.iter_mut() {
 
-            let Some(focused) = builder_res.get_widget_focus_state(&input_entity) else { continue };
+            let Some(focused) = famiq_res.get_widget_focus_state(&input_entity) else { continue };
 
-            let Ok((mut cursor_node, mut visibility, _)) = cursor_q.get_mut(cursor_entity.0) else {continue};
+            let (mut cursor_node, mut cursor_visibility) = cursor_q.get_mut(cursor_entity.0).unwrap();
+            let (mut highlighter_node, mut highlighter_visbility) = highlighter_q.get_mut(highlighter_entity.0).unwrap();
 
-            if let Ok((placeholder_text, placeholder_text_info)) = placeholder_q.get_mut(placeholder_entity.0) {
+            if let Ok((ph_text, ph_layout)) = placeholder_q.get_mut(placeholder_entity.0) {
                 if focused {
-                    *visibility = Visibility::Visible;
-                    _handle_cursor_on_focused(
-                        &mut cursor_node,
-                        text_input_node,
-                        &placeholder_text_info,
-                        &placeholder_text.0,
-                        &mut char_size,
-                        &text_input
-                    );
-                } else {
-                    *visibility = Visibility::Hidden;
+                    *cursor_visibility = Visibility::Visible;
+                    text_edit.char_width = ph_layout.size.x / ph_text.0.len() as f32;
+                    text_edit.char_height = ph_layout.size.y;
+                    cursor_node.width = Val::Px(CURSOR_WIDTH);
+                    cursor_node.height = Val::Px(text_edit.char_height);
+                    highlighter_node.height = Val::Px(text_edit.char_height);
+                }
+                else {
+                    *cursor_visibility = Visibility::Hidden;
+                    *highlighter_visbility = Visibility::Hidden;
                 }
             }
         }
@@ -263,19 +424,21 @@ impl<'a> FaTextInput {
 
     fn handle_on_mouse_down(
         mut trigger: Trigger<Pointer<Down>>,
-        mut input_q: Query<
-            (Option<&FamiqWidgetId>, &mut TextInput, &TextInputValue),
-            With<IsFamiqTextInput>
-        >,
+        mut input_q: Query<(Option<&FamiqWidgetId>, &mut FaTextEdit, &FaTextInputHighlighterEntity), With<IsFamiqTextInput>>,
+        mut highlighter_q: Query<&mut Visibility, With<IsFamiqTextInputHighlighter>>,
         mut famiq_res: ResMut<FamiqResource>,
         mut writer: EventWriter<FaMouseEvent>,
     ) {
-        if let Ok((id, mut text_input, value)) = input_q.get_mut(trigger.entity()) {
+        if let Ok((id, mut text_edit, highlighter_entity)) = input_q.get_mut(trigger.entity()) {
             famiq_res.update_all_focus_states(false);
             famiq_res.update_or_insert_focus_state(trigger.entity(), true);
 
-            if text_input.cursor_index > 0 {
-                text_input.cursor_index = value.0.len();
+            let mut highlighter_visibility = highlighter_q.get_mut(highlighter_entity.0).unwrap();
+            *highlighter_visibility = Visibility::Hidden;
+            text_edit.clear_selection();
+
+            if text_edit.cursor_index > 0 {
+                text_edit.cursor_index = text_edit.value.len();
             }
 
             if trigger.event().button == PointerButton::Secondary {
@@ -312,126 +475,200 @@ impl<'a> FaTextInput {
         }
     }
 
-    pub(crate) fn _handle_update_placeholder(
+    pub(crate) fn update_placeholder(
         placeholder_text: &mut Text,
-        text_input: &TextInput,
-        value: &TextInputValue
+        text_input: &FaTextInputInfo,
+        text_edit: &FaTextEdit
     ) {
-
-        if value.0.is_empty() {
+        if text_edit.value.is_empty() {
             placeholder_text.0 = text_input.placeholder.clone();
             return;
         }
 
         if text_input.input_type == TextInputType::Password {
-            placeholder_text.0 = mask_string(&value.0);
+            placeholder_text.0 = mask_string(&text_edit.value);
         }
         else {
-            placeholder_text.0 = value.0.clone();
+            placeholder_text.0 = text_edit.value.clone();
         }
     }
 
-    fn _is_text_overflow(
-        char_width: f32,
-        input_computed: &ComputedNode,
-        placeholder_computed: &ComputedNode
-    ) -> bool {
-        let input_size = input_computed.size();
-        let input_padding = input_computed.padding();
-        let input_scale = input_computed.inverse_scale_factor();
+    fn scroll_right(ph_node: &mut Node, text_edit: &FaTextEdit) {
+        let left_val = extract_val(ph_node.left).unwrap();
 
-        let input_width = (input_size.x - input_padding.left - input_padding.right) * input_scale;
-        let placeholder_width = placeholder_computed.size().x * placeholder_computed.inverse_scale_factor();
-
-        return placeholder_width >= input_width - char_width;
+        if left_val > -text_edit.max_scroll_right() {
+            ph_node.left = Val::Px(left_val - text_edit.char_width);
+        }
     }
 
-    pub(crate) fn handle_text_input_on_typing_system(
+    fn scroll_left(ph_node: &mut Node, text_edit: &FaTextEdit) {
+        let left_val = extract_val(ph_node.left).unwrap();
+
+        if left_val < text_edit.max_scroll_left() - text_edit.char_width {
+            ph_node.left = Val::Px(left_val + text_edit.char_width);
+        } else {
+            ph_node.left = Val::Px(0.0);
+        }
+    }
+
+    fn scroll_left_end(ph_node: &mut Node) {
+        ph_node.left = Val::Px(0.0);
+    }
+
+    pub(crate) fn detect_cursor_index_change(
+        mut cursor_q: Query<&mut Node, (With<IsFamiqTextInputCursor>, Without<IsFamiqTextInputPlaceholder>)>,
+        input_q: Query<(Ref<FaTextEdit>, &ComputedNode, &FaTextInputPlaceholderEntity, &FaTextInputCursorEntity)>,
+        placeholder_q: Query<&Node, (With<IsFamiqTextInputPlaceholder>, Without<IsFamiqTextInputCursor>)>
+    ) {
+        for (text_edit, input_computed, ph_entity, cursor_entity) in input_q.iter() {
+            if text_edit.is_changed() && !text_edit.is_added() {
+                let padding_left = input_computed.padding().left * input_computed.inverse_scale_factor();
+                let padding_top = input_computed.padding().top * input_computed.inverse_scale_factor();
+
+                let mut cursor_node = cursor_q.get_mut(cursor_entity.0).unwrap();
+
+                let ph_node = placeholder_q.get(ph_entity.0).unwrap();
+                let ph_left = extract_val(ph_node.left).unwrap();
+
+                let cursor_pos = (ph_left + padding_left) + (text_edit.cursor_index as f32 * text_edit.char_width);
+                cursor_node.left = Val::Px(cursor_pos);
+                cursor_node.top = Val::Px(padding_top);
+                break;
+            }
+        }
+    }
+
+    pub(crate) fn handle_text_input_on_typing(
         mut evr_kbd: EventReader<KeyboardInput>,
         mut input_res: ResMut<FaTextInputResource>,
-        mut input_q: Query<(
-            Entity,
-            &mut TextInput,
-            &mut TextInputValue,
-            &ComputedNode,
-            &CharacterSize,
-            &FamiqTextInputPlaceholderEntity,
-            &FamiqTextInputCursorEntity,
-            Option<&FamiqWidgetId>
-        )>,
-        mut placeholder_q: Query<
-            (&mut Text, &mut Node, &ComputedNode),
-            (With<IsFamiqTextInputPlaceholder>, Without<IsFamiqTextInputCursor>)
+        mut input_q: Query<
+            (
+                Entity,
+                &mut FaTextEdit,
+                &FaTextInputInfo,
+                &ComputedNode,
+                &FaTextInputPlaceholderEntity,
+                &FaTextInputHighlighterEntity,
+                Option<&FamiqWidgetId>
+            ),
+            Without<IsFamiqTextInputCursor>
         >,
-        mut cursor_q: Query<
-            &mut Node,
-            (With<IsFamiqTextInputCursor>, Without<IsFamiqTextInputPlaceholder>)
-        >,
-        builder_res: Res<FamiqResource>
+        mut placeholder_q: Query<(&mut Text, &mut Node), (With<IsFamiqTextInputPlaceholder>, Without<IsFamiqTextInputHighlighter>)>,
+        mut highlighter_q: Query<(&mut Node, &mut Visibility), (With<IsFamiqTextInputHighlighter>, Without<IsFamiqTextInputPlaceholder>)>,
+        mut change_writer: EventWriter<FaValueChangeEvent>,
+        keys: Res<ButtonInput<KeyCode>>,
+        mut famiq_res: ResMut<FamiqResource>
     ) {
         for e in evr_kbd.read() {
             if e.state == ButtonState::Released {
                 continue;
             }
 
-            for (input_entity, mut input, mut input_value, input_computed, char_size, ph_entity, cursor_entity, input_id) in input_q.iter_mut() {
-
-                let Some(focused) = builder_res.get_widget_focus_state(&input_entity) else { continue };
+            for (input_entity, mut text_edit, input, input_computed, ph_entity, hl_entity, input_id) in input_q.iter_mut() {
+                let Some(focused) = famiq_res.get_widget_focus_state(&input_entity) else { continue };
 
                 if focused {
-                    if let Ok((mut ph_text, mut ph_node, ph_computed)) = placeholder_q.get_mut(ph_entity.0) {
+                    text_edit.widget_computed = input_computed.clone();
+                    text_edit.set_min_max_cursor_pos();
 
-                        match &e.logical_key {
-                            Key::Character(key_input) => {
-                                _update_text_input_value(input_id, &mut input_res, &mut input, &mut input_value, true, Some(key_input));
-                                FaTextInput::_handle_update_placeholder(&mut ph_text, &input, &input_value);
+                    if let Ok((mut ph_text, mut ph_node)) = placeholder_q.get_mut(ph_entity.0) {
+                        let mut value_changed = false;
+                        let mut skip_typing = false;
+                        let (mut hl_node, mut hl_visibility) = highlighter_q.get_mut(hl_entity.0).unwrap();
 
-                                if input.cursor_index < input_value.0.len() {
-                                    input.cursor_index += 1;
-                                }
-                                if FaTextInput::_is_text_overflow(char_size.width, input_computed, ph_computed) {
-                                    ph_node.left = Val::Px(extract_val(ph_node.left).unwrap() - char_size.width);
-                                }
-                                else {
-                                    _update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, true);
-                                }
-                            }
-                            Key::Space => {
-                                _update_text_input_value(input_id, &mut input_res, &mut input, &mut input_value, true, Some(&SmolStr::new(" ")));
-                                FaTextInput::_handle_update_placeholder(&mut ph_text, &input, &input_value);
-
-                                if input.cursor_index < input_value.0.len() {
-                                    input.cursor_index += 1;
-                                }
-                                if FaTextInput::_is_text_overflow(char_size.width, input_computed, ph_computed) {
-                                    ph_node.left = Val::Px(extract_val(ph_node.left).unwrap() - char_size.width);
-                                }
-                                else {
-                                    _update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, true);
-                                }
-                            }
-                            Key::Backspace => {
-                                _update_text_input_value(input_id, &mut input_res, &mut input, &mut input_value, false, None);
-                                FaTextInput::_handle_update_placeholder(&mut ph_text, &input, &input_value);
-
-                                if extract_val(ph_node.left).unwrap() <= (-char_size.width) / 2.0 {
-                                    ph_node.left = Val::Px(extract_val(ph_node.left).unwrap() + char_size.width);
-                                }
-                                else {
-                                    if input.cursor_index > 0 {
-                                        _update_cursor_position(&mut cursor_q, cursor_entity.0, char_size.width, false);
-                                    }
-                                }
-
-                                if input.cursor_index > 0 {
-                                    input.cursor_index -= 1;
-                                }
-                            }
-                            // Key::ArrowLeft => {}
-                            // Key::ArrowRight => {}
-                            _ => continue
+                        // check ctrl + a
+                        if text_edit.is_ctrl_a_pressed(&keys, e.key_code) && !text_edit.value.is_empty() {
+                            text_edit.select_all(&ph_node, &mut hl_node, &mut hl_visibility);
+                            FaTextInput::scroll_left_end(&mut ph_node);
+                            break;
                         }
 
+                        // check ctrl + c (copy)
+                        if text_edit.is_ctrl_c_pressed(&keys, e.key_code) {
+                            famiq_res.copied_text = text_edit.selected_text.clone();
+                            break;
+                        }
+
+                        if text_edit.is_ctrl_v_pressed(&keys, e.key_code) {
+                            if !famiq_res.copied_text.is_empty() {
+                                text_edit.insert(&SmolStr::new(&famiq_res.copied_text));
+                                text_edit.cursor_index += famiq_res.copied_text.len() - 1;
+                                text_edit.move_cursor_pos_right(&ph_node);
+                                value_changed = true;
+                                skip_typing = true;
+                            }
+                        }
+
+                        if !skip_typing {
+                            match &e.logical_key {
+                                Key::Character(key_input) => {
+                                    if !text_edit.selected_text.is_empty() {
+                                        text_edit.remove_selected_text(&mut hl_visibility);
+                                    }
+                                    text_edit.insert(key_input);
+                                    text_edit.move_cursor_pos_right(&ph_node);
+                                    value_changed = true;
+                                }
+                                Key::Space => {
+                                    if !text_edit.selected_text.is_empty() {
+                                        text_edit.remove_selected_text(&mut hl_visibility);
+                                    }
+                                    text_edit.insert(&SmolStr::new(" "));
+                                    text_edit.move_cursor_pos_right(&ph_node);
+                                    value_changed = true;
+                                }
+                                Key::Backspace => {
+                                    if !text_edit.selected_text.is_empty() {
+                                        text_edit.remove_selected_text(&mut hl_visibility);
+                                    } else {
+                                        text_edit.remove();
+                                    }
+
+                                    text_edit.move_cursor_pos_left_as_delete(&ph_node);
+                                    value_changed = true;
+                                }
+                                Key::Escape => {
+                                    *hl_visibility = Visibility::Hidden;
+                                    text_edit.clear_selection();
+                                }
+                                Key::ArrowLeft => {
+                                    let before = text_edit.cursor_index;
+                                    text_edit.move_cursor_left();
+
+                                    if text_edit.cursor_index < before {
+                                        text_edit.move_cursor_pos_left(&ph_node);
+                                    }
+                                }
+                                Key::ArrowRight => {
+                                    let before = text_edit.cursor_index;
+                                    text_edit.move_cursor_right();
+
+                                    if text_edit.cursor_index > before {
+                                        text_edit.move_cursor_pos_right(&ph_node);
+                                    }
+                                }
+                                _ => continue
+                            }
+                        }
+
+                        if value_changed {
+                            FaTextInput::update_placeholder(&mut ph_text, &input, &text_edit);
+                            change_writer.send(FaValueChangeEvent::new(
+                                input_entity,
+                                input_id.map(|_id| _id.0.clone()),
+                                text_edit.value.clone(),
+                                Vec::new()
+                            ));
+                            if let Some(id) = input_id {
+                                input_res._insert(id.0.clone(), text_edit.value.clone());
+                            }
+                        }
+                        match text_edit.need_scroll {
+                            NeedToScroll::Right =>  FaTextInput::scroll_right(&mut ph_node, &text_edit),
+                            NeedToScroll::Left =>  FaTextInput::scroll_left(&mut ph_node, &text_edit),
+                            _ => {}
+                        }
+                        break;
                     }
                 }
             }
@@ -440,8 +677,8 @@ impl<'a> FaTextInput {
 
     pub fn handle_cursor_blink_system(
         time: Res<Time>,
-        input_q: Query<(Entity, &FamiqTextInputCursorEntity, &BackgroundColor)>,
-        mut cursor_q: Query<(&mut BackgroundColor, &IsFamiqTextInputCursor), Without<FamiqTextInputCursorEntity>>,
+        input_q: Query<(Entity, &FaTextInputCursorEntity, &BackgroundColor)>,
+        mut cursor_q: Query<(&mut BackgroundColor, &IsFamiqTextInputCursor), Without<FaTextInputCursorEntity>>,
         mut cursor_blink_timer: ResMut<FaTextInputCursorBlinkTimer>,
         builder_res: Res<FamiqResource>
     ) {

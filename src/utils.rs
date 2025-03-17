@@ -9,7 +9,7 @@ use std::io::Read;
 
 use crate::plugin::{CursorIcons, CursorType};
 use crate::widgets::style_parse::*;
-use crate::widgets::{WidgetStyle, DefaultWidgetEntity, WidgetColor};
+use crate::widgets::{WidgetStyle, DefaultWidgetEntity, WidgetColor, WidgetSize};
 use crate::widgets::color::*;
 use crate::errors::StylesFileError;
 use crate::widgets::{FamiqWidgetId, FamiqWidgetClasses, FamiqTooltipEntity, IsFamiqTooltip};
@@ -427,6 +427,18 @@ pub(crate) fn get_text_color(variant: &WidgetColor) -> Color {
     }
 }
 
+pub(crate) fn get_text_size(size: &WidgetSize) -> f32 {
+    let size_small = 12.0;
+    let size_normal = 14.0;
+    let size_large = 18.0;
+
+    match size {
+        WidgetSize::Small => size_small,
+        WidgetSize::Large => size_large,
+        _ => size_normal
+    }
+}
+
 pub(crate) fn show_tooltip(
     entity: Option<&FamiqTooltipEntity>,
     tooltip_q: &mut Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
@@ -449,6 +461,23 @@ pub(crate) fn hide_tooltip(
             node.display = Display::None;
         }
     }
+}
+
+/// Convert mouse position from world to UI node local position
+pub fn mouse_pos_to_local_node_pos(mouse_pos: &Vec2, computed_node: &ComputedNode, node_transform: &GlobalTransform) -> Vec2 {
+    let scale_factor = computed_node.inverse_scale_factor();
+    let size = computed_node.size();
+    let paddings = computed_node.padding();
+
+    let node_top = node_transform.translation().y - ((size.y * scale_factor) / 2.0);
+    let padding_top = paddings.top * scale_factor;
+    let node_left = node_transform.translation().x - ((size.x * scale_factor) / 2.0);
+    let padding_left = paddings.left * scale_factor;
+
+    let pos_x = mouse_pos.x - (node_left + padding_left);
+    let pos_y = mouse_pos.y - (node_top + padding_top);
+
+    Vec2::new(pos_x, pos_y)
 }
 
 #[cfg(test)]

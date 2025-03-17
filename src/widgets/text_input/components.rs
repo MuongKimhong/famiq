@@ -12,30 +12,30 @@ pub struct IsFamiqTextInputPlaceholder;
 #[derive(Component)]
 pub struct IsFamiqTextInputCursor;
 
+/// Marker component for identifying the highlighter in a text input widget.
+#[derive(Component)]
+pub struct IsFamiqTextInputHighlighter;
+
 /// Links a placeholder entity to its corresponding text input entity.
 #[derive(Component)]
-pub struct FamiqTextInputPlaceholderEntity(pub Entity);
+pub struct FaTextInputPlaceholderEntity(pub Entity);
 
 /// Links a cursor entity to its corresponding text input entity.
 #[derive(Component)]
-pub struct FamiqTextInputCursorEntity(pub Entity);
+pub struct FaTextInputCursorEntity(pub Entity);
+
+#[derive(Component)]
+pub struct FaTextInputHighlighterEntity(pub Entity);
 
 /// Link a toggle icon entity to its corresponding text input entity;
 #[derive(Component)]
-pub struct FamiqTextInputToggleIconEntity(pub Entity);
+pub struct FaTextInputToggleIconEntity(pub Entity);
 
 #[derive(Component)]
-pub struct FamiqTextInputEntity(pub Entity);
+pub struct FaTextInputEntity(pub Entity);
 
-/// Represents the size of a single character in the text input field.
-#[derive(Component)]
-pub struct CharacterSize {
-    pub width: f32,
-    pub height: f32
-}
-
-#[derive(Component, Default)]
-pub struct TextInputValue(pub String);
+// #[derive(Component, Default)]
+// pub struct TextInputValue(pub String);
 
 
 /// Type options for text input widget.
@@ -45,21 +45,20 @@ pub enum TextInputType {
     Password
 }
 
-
 /// Represents the text input field containing the user-entered text and placeholder.
 #[derive(Component)]
-pub struct TextInput {
+pub struct FaTextInputInfo {
     pub placeholder: String,
-    pub cursor_index: usize,
-    pub input_type: TextInputType
+    pub input_type: TextInputType,
+    pub placeholder_pressed: bool
 }
 
-impl TextInput {
+impl FaTextInputInfo {
     pub fn new(placeholder: &str, input_type: TextInputType) -> Self {
         Self {
             placeholder: placeholder.to_string(),
-            cursor_index: 0,
-            input_type
+            input_type,
+            placeholder_pressed: false
         }
     }
 }

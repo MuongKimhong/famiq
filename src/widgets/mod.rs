@@ -35,6 +35,7 @@ pub use checkbox::fa_checkbox;
 pub use base_components::*;
 pub use style::*;
 use crate::resources::*;
+use crate::utils::get_text_size;
 use crate::widgets::style_parse::*;
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
@@ -302,7 +303,7 @@ pub(crate) fn build_tooltip_node<'a>(
 ) -> Entity {
     let txt_font = TextFont {
         font: attributes.font_handle.clone().unwrap(),
-        font_size: 18.0,
+        font_size: get_text_size(&attributes.size),
         ..default()
     };
     let tooltip_entity = root_node

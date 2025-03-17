@@ -145,8 +145,8 @@ impl<'a> FaListView {
         listview_node: &ComputedNode,
         // listview_style: &Node,
     ) -> f32 {
-        let panel_height = panel_node.size().y;
-        let container_height = listview_node.size().y;
+        let panel_height = panel_node.size().y * panel_node.inverse_scale_factor();
+        let container_height = listview_node.size().y * listview_node.inverse_scale_factor();
 
         let max_scroll = panel_height - container_height;
         max_scroll.max(0.0)

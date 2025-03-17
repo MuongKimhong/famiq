@@ -20,20 +20,6 @@ pub use systems::*;
 pub struct IsFamiqSelectionResource;
 pub type FaSelectionResource = InputResource<IsFamiqSelectionResource>;
 
-pub fn get_text_size(size: &WidgetSize) -> f32 {
-    let size_small = 14.0;
-    let size_normal = 18.0;
-    let size_large = 22.0;
-
-    let text_size = match size {
-        WidgetSize::Small => size_small,
-        WidgetSize::Large => size_large,
-        _ => size_normal
-    };
-    text_size
-}
-
-
 pub struct FaSelection;
 
 impl<'a> FaSelection {
@@ -200,6 +186,7 @@ impl<'a> FaSelection {
     ) -> Entity {
         let txt_font = TextFont {
             font: attributes.font_handle.clone().unwrap(),
+            font_size: get_text_size(&attributes.size),
             ..default()
         };
         let use_color = get_text_color(&attributes.color);

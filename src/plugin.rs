@@ -112,9 +112,12 @@ fn fa_text_input_systems(app: &mut App) {
     app.add_systems(
         Update,
         (
-            event_writer::text_input_value_change_system,
-            FaTextInput::handle_text_input_on_typing_system,
-            FaTextInput::handle_text_input_on_focused_system,
+            // event_writer::text_input_value_change_system,
+            FaTextInput::handle_text_input_on_typing,
+            FaTextInput::detect_cursor_index_change,
+            // FaTextInput::handle_move_cursor_node_on_typing.after(FaTextInput::handle_text_input_on_typing_system),
+            // FaTextInput::detect_placeholder_computed_change.after(FaTextInput::handle_text_input_on_typing_system),
+            FaTextInput::handle_text_input_on_focused,
             FaTextInput::handle_cursor_blink_system,
             FaTextInput::detect_new_text_input_widget_system
         )
@@ -220,7 +223,7 @@ pub struct FamiqPlugin;
 impl Plugin for FamiqPlugin {
     fn build(&self, app: &mut App) {
         // embedded assets
-        embedded_asset!(app, "embedded_assets/fonts/fira-mono-regular.ttf");
+        embedded_asset!(app, "embedded_assets/fonts/fira-mono-medium.ttf");
         embedded_asset!(app, "embedded_assets/shaders/progress_bar.wgsl");
         embedded_asset!(app, "embedded_assets/shaders/circular.wgsl");
         embedded_asset!(app, "embedded_assets/logo.jpeg"); // for testing

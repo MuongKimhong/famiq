@@ -1,7 +1,4 @@
-use crate::widgets::{
-    text_input::*,
-    *,
-};
+use crate::widgets::*;
 
 use bevy::ecs::event::EventWriter;
 use bevy::prelude::*;
@@ -57,6 +54,10 @@ impl FaMouseEvent {
 
     pub fn is_mouse_scroll(&self, widget_type: WidgetType) -> bool {
         self.widget_type == widget_type && self.event_type == MouseEventType::Scroll
+    }
+
+    pub fn is_button_pressed(&self) -> bool {
+        self.widget_type == WidgetType::Button && self.event_type == MouseEventType::DownLeft
     }
 
     pub(crate) fn send_down_event(
@@ -165,15 +166,15 @@ impl FaValueChangeEvent {
     }
 }
 
-pub fn text_input_value_change_system(
-    text_input_q: Query<(Entity, Ref<TextInputValue>, Option<&FamiqWidgetId>)>,
-    mut change_writer: EventWriter<FaValueChangeEvent>
-) {
-    for (entity, text_input_value, id) in text_input_q.iter() {
-        if text_input_value.is_changed() && !text_input_value.is_added() {
-            change_writer.send(
-                FaValueChangeEvent::new(entity, id.map(|_id| _id.0.clone()), text_input_value.0.clone(), Vec::new())
-            );
-        }
-    }
-}
+// pub fn text_input_value_change_system(
+//     text_input_q: Query<(Entity, Ref<FaTextEdit>, Option<&FamiqWidgetId>), With<IsFamiqTextInput>>,
+//     mut change_writer: EventWriter<FaValueChangeEvent>
+// ) {
+//     for (entity, text_edit, id) in text_input_q.iter() {
+//         if text_edit.is_changed() && !text_edit.is_added() {
+//             change_writer.send(
+//                 FaValueChangeEvent::new(entity, id.map(|_id| _id.0.clone()), text_input_value.0.clone(), Vec::new())
+//             );
+//         }
+//     }
+// }

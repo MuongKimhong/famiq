@@ -79,6 +79,7 @@ impl<'a> FaText {
         let txt = Text::new(text);
         let mut txt_font = TextFont {
             font: attributes.font_handle.clone().unwrap(),
+            font_size: 16.0,
             ..default()
         };
         match size {

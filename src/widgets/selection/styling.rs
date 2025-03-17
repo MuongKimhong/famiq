@@ -12,8 +12,8 @@ pub fn default_selector_node() -> Node {
         padding: UiRect {
             left: Val::Px(5.0),
             right: Val::Px(5.0),
-            top: Val::Px(3.0),
-            bottom: Val::Px(3.0),
+            top: Val::Px(4.0),
+            bottom: Val::Px(4.0),
         },
         margin: UiRect {
             top: Val::Px(2.0),
