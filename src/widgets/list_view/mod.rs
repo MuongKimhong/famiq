@@ -106,6 +106,7 @@ impl<'a> FaListView {
                 style_components.clone(),
                 IsFamiqListView,
                 IsFamiqMainWidget,
+                IsFamiqContainableWidget,
                 DefaultWidgetEntity::from(style_components),
                 ListViewMovePanelEntity(panel_entity),
                 FaListViewChildren(items.clone())

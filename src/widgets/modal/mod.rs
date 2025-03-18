@@ -115,6 +115,7 @@ impl<'a> FaModal {
                 style_components,
                 IsFamiqModalBackground,
                 IsFamiqMainWidget,
+                IsFamiqContainableWidget,
                 FocusPolicy::Block,
                 FaModalContainerEntity(container_entity),
                 FaModalChildren(items.clone()),

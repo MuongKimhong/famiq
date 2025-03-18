@@ -48,6 +48,7 @@ impl<'a> FaContainer {
                 style_components.clone(),
                 IsFamiqContainer,
                 IsFamiqMainWidget,
+                IsFamiqContainableWidget,
                 DefaultWidgetEntity::from(style_components),
                 FaContainerChildren(children.to_owned())
             ))
