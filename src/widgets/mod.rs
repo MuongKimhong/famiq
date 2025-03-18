@@ -25,7 +25,7 @@ pub use container::*;
 pub use fps::fa_fps;
 pub use image::fa_image;
 pub use list_view::{fa_listview, ListViewMovePanelEntity};
-pub use modal::{fa_modal, FaModalContainerEntity};
+pub use modal::{fa_modal, FaModalState, FaModalContainerEntity, IsFamiqModalBackground};
 pub use text::fa_text;
 pub use text_input::fa_text_input;
 pub use selection::fa_selection;
@@ -383,12 +383,20 @@ pub struct ContainableQuery {
     id: Option<&'static FamiqWidgetId>
 }
 
+#[derive(QueryData)]
+pub struct ModalQuery {
+    entity: Entity,
+    id: Option<&'static FamiqWidgetId>
+}
+
 /// Famiq query
 #[derive(SystemParam)]
 pub struct FaQuery<'w, 's> {
     pub style_query: Query<'w, 's, StyleQuery>,
     pub text_style_query: Query<'w, 's, TextStyleQuery>,
     pub containable_query: Query<'w, 's, ContainableQuery, With<IsFamiqContainableWidget>>,
+    pub modal_query: Query<'w, 's, ModalQuery, With<IsFamiqModalBackground>>,
+    pub modal_state: ResMut<'w, FaModalState>,
     pub commands: Commands<'w, 's>,
     pub asset_server: Res<'w, AssetServer>
 }
@@ -426,7 +434,7 @@ impl<'w, 's> FaQuery<'w, 's> {
         }
     }
 
-    /// Finds a `ContainableQueryItem` based on `WidgetSelector`
+    /// Finds a `ContainableQueryReadOnlyItem` based on `WidgetSelector`
     pub fn get_containable_item(&self, selector: WidgetSelector) -> Option<ContainableQueryReadOnlyItem<'_>> {
         match selector {
             WidgetSelector::ID(id) => self
@@ -439,6 +447,22 @@ impl<'w, 's> FaQuery<'w, 's> {
                 }),
 
             WidgetSelector::ENTITY(entity) => self.containable_query.get(entity).ok(),
+        }
+    }
+
+    /// Finds a `ModalQueryItem` based on `WidgetSelector`
+    pub fn get_modal_item(&self, selector: WidgetSelector) -> Option<ModalQueryItem<'_>> {
+        match selector {
+            WidgetSelector::ID(id) => self
+                .modal_query
+                .iter()
+                .find_map(|result| {
+                    result.id
+                        .filter(|w_id| w_id.0 == id)
+                        .map(|_| result)
+                }),
+
+            WidgetSelector::ENTITY(entity) => self.modal_query.get(entity).ok(),
         }
     }
 
@@ -767,6 +791,28 @@ impl<'w, 's> FaQuery<'w, 's> {
     pub fn remove_children(&mut self, children: &[Entity]) {
         for child in children {
             self.commands.entity(*child).despawn();
+        }
+    }
+
+    /// Show modal
+    pub fn show_modal(&mut self, selector: WidgetSelector) {
+        let mut entity: Option<Entity> = None;
+        if let Some(item) = self.get_modal_item(selector) {
+            entity = Some(item.entity);
+        }
+        if let Some(entity) = entity {
+            self.modal_state.show_by_entity(entity);
+        }
+    }
+
+    /// Hide modal
+    pub fn hide_modal(&mut self, selector: WidgetSelector) {
+        let mut entity: Option<Entity> = None;
+        if let Some(item) = self.get_modal_item(selector) {
+            entity = Some(item.entity);
+        }
+        if let Some(entity) = entity {
+            self.modal_state.hide_by_entity(entity);
         }
     }
 }

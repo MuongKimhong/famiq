@@ -99,11 +99,8 @@ fn fa_text_input_systems(app: &mut App) {
     app.add_systems(
         Update,
         (
-            // event_writer::text_input_value_change_system,
             FaTextInput::handle_text_input_on_typing,
             FaTextInput::detect_cursor_index_change,
-            // FaTextInput::handle_move_cursor_node_on_typing.after(FaTextInput::handle_text_input_on_typing_system),
-            // FaTextInput::detect_placeholder_computed_change.after(FaTextInput::handle_text_input_on_typing_system),
             FaTextInput::handle_text_input_on_focused,
             FaTextInput::handle_cursor_blink_system,
             FaTextInput::detect_new_text_input_widget_system
@@ -161,16 +158,6 @@ fn fa_circular_systems(app: &mut App) {
     );
 }
 
-fn fa_modal_systems(app: &mut App) {
-    app.add_systems(
-        Update,
-        (
-            FaModal::hide_or_display_modal_system,
-        )
-        .run_if(can_run_modal_systems)
-    );
-}
-
 fn fa_progress_bar_systems(app: &mut App) {
     app.add_systems(
         Update,
@@ -207,6 +194,7 @@ impl Plugin for FamiqPlugin {
         app.add_systems(PreStartup, _spawn_root_node);
         app.add_systems(Update, detect_new_widget_with_id);
         app.add_systems(Update, handle_window_resized_system);
+        app.add_systems(Update, FaModal::hide_or_display_modal_system.run_if(can_run_modal_systems));
 
         app.add_plugins(UiMaterialPlugin::<ProgressBarMaterial>::default());
         app.add_plugins(UiMaterialPlugin::<CircularMaterial>::default());
@@ -233,7 +221,6 @@ impl Plugin for FamiqPlugin {
         fa_text_input_systems(app);
         fa_fps_text_systems(app);
         fa_circular_systems(app);
-        fa_modal_systems(app);
         fa_progress_bar_systems(app);
         fa_bg_image_systems(app);
     }

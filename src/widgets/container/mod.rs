@@ -11,9 +11,6 @@ use super::BaseStyleComponents;
 #[derive(Component)]
 pub struct IsFamiqContainer;
 
-#[derive(Component)]
-pub struct FaContainerChildren(pub Vec<Entity>);
-
 pub fn default_container_node() -> Node {
     Node {
         width: Val::Percent(100.0),
@@ -48,8 +45,7 @@ impl<'a> FaContainer {
                 IsFamiqContainer,
                 IsFamiqMainWidget,
                 IsFamiqContainableWidget,
-                DefaultWidgetEntity::from(style_components),
-                FaContainerChildren(children.to_owned())
+                DefaultWidgetEntity::from(style_components)
             ))
             .id();
 

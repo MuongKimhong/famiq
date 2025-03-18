@@ -23,9 +23,6 @@ pub struct IsFamiqListViewItem;
 pub struct IsFamiqListViewMovePanel;
 
 #[derive(Component)]
-pub struct FaListViewChildren(pub Vec<Entity>);
-
-#[derive(Component)]
 pub struct ListViewMovePanelEntity(pub Entity);
 
 #[derive(Component)]
@@ -92,8 +89,7 @@ impl<'a> FaListView {
     fn _build_listview(
         attributes: &WidgetAttributes,
         root_node: &'a mut EntityCommands,
-        panel_entity: Entity,
-        items: &Vec<Entity>
+        panel_entity: Entity
     ) -> Entity {
         let mut style_components = BaseStyleComponents::default();
         style_components.node = attributes.node.clone();
@@ -107,8 +103,7 @@ impl<'a> FaListView {
                 IsFamiqMainWidget,
                 IsFamiqContainableWidget,
                 DefaultWidgetEntity::from(style_components),
-                ListViewMovePanelEntity(panel_entity),
-                FaListViewChildren(items.clone())
+                ListViewMovePanelEntity(panel_entity)
             ))
             .id();
 
@@ -123,7 +118,7 @@ impl<'a> FaListView {
         scroll_height: f32
     ) -> Entity {
         let move_panel = Self::_build_move_panel(items, root_node, scroll_height);
-        let listview = Self::_build_listview(attributes, root_node, move_panel, items);
+        let listview = Self::_build_listview(attributes, root_node, move_panel);
 
         utils::entity_add_child(root_node, move_panel, listview);
         root_node.add_child(listview);

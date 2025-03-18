@@ -60,11 +60,7 @@ pub mod prelude {
         fa_progress_bar,
         fa_checkbox
     };
-    pub use crate::widgets::modal::{
-        IsFamiqModalContainer,
-        IsFamiqModalBackground,
-        FaModalState,
-    };
+    pub use crate::widgets::modal::{IsFamiqModalContainer, IsFamiqModalBackground};
     pub use crate::widgets::text_input::{IsFamiqTextInput, FaTextInputResource};
     pub use crate::widgets::selection::{IsFamiqSelectionSelector, FaSelectionResource};
     pub use crate::widgets::progress_bar::{IsFamiqProgressBar, IsFamiqProgressValue, FaProgressBarResource};

@@ -20,9 +20,6 @@ pub struct IsFamiqModalContainer;
 #[derive(Component)]
 pub struct FaModalContainerEntity(pub Entity);
 
-#[derive(Component)]
-pub struct FaModalChildren(pub Vec<Entity>);
-
 /// Component that keep tracking of modal show/hide animation.
 #[derive(Component)]
 pub struct AnimationProgress(pub f32);
@@ -31,43 +28,64 @@ pub struct AnimationProgress(pub f32);
 /// by id or entity.
 #[derive(Resource, Default, Debug)]
 pub struct FaModalState {
-    pub id_states: HashMap<String, bool>,
+    // pub id_states: HashMap<String, bool>,
+    pub entity_states: HashMap<Entity, bool>,
     pub state_changed: bool
 }
 
 impl FaModalState {
-    /// Private: Updates or inserts an ID state
-    fn _update_or_insert_id(&mut self, id: &str, new_state: bool) {
-        self.id_states.entry(id.to_string()).or_insert(false);
-        self.id_states.insert(id.to_string(), new_state);
+    // fn _update_or_insert_id(&mut self, id: &str, new_state: bool) {
+    //     self.id_states.entry(id.to_string()).or_insert(false);
+    //     self.id_states.insert(id.to_string(), new_state);
+    // }
+
+    fn _update_or_insert_entity(&mut self, entity: Entity, new_state: bool) {
+        self.entity_states.entry(entity).or_insert(false);
+        self.entity_states.insert(entity, new_state);
     }
 
-    /// Private: Set all modal states to false
     fn _hide_all(&mut self) {
-        self.id_states.values_mut().for_each(|v| *v = false);
+        // self.id_states.values_mut().for_each(|v| *v = false);
+        self.entity_states.values_mut().for_each(|v| *v = false);
     }
 
-    /// Show modal by ID (Only one can be `true`)
-    pub fn show(&mut self, id: &str) {
+    // /// Show modal by ID (Only one can be `true`)
+    // pub(crate) fn show_by_id(&mut self, id: &str) {
+    //     self._hide_all();
+    //     self._update_or_insert_id(id, true);
+    //     self.state_changed = true;
+    // }
+
+    // /// Hide modal by ID
+    // pub(crate) fn hide_by_id(&mut self, id: &str) {
+    //     self._update_or_insert_id(id, false);
+    //     self.state_changed = true;
+    // }
+
+    // pub fn get_state_by_id(&self, id: &str) -> Option<&bool> {
+    //     self.id_states.get(id)
+    // }
+
+    /// Show modal by entity (Only one can be `true`)
+    pub(crate) fn show_by_entity(&mut self, entity: Entity) {
         self._hide_all();
-        self._update_or_insert_id(id, true);
+        self._update_or_insert_entity(entity, true);
         self.state_changed = true;
     }
 
-    /// Hide modal by ID
-    pub fn hide(&mut self, id: &str) {
-        self._update_or_insert_id(id, false);
+    /// Hide modal by entity
+    pub(crate) fn hide_by_entity(&mut self, entity: Entity) {
+        self._update_or_insert_entity(entity, false);
         self.state_changed = true;
     }
 
-    pub fn get_state(&self, id: &str) -> Option<&bool> {
-        self.id_states.get(id)
+    pub fn get_state_by_entity(&self, entity: Entity) -> Option<&bool> {
+        self.entity_states.get(&entity)
     }
 }
 
 pub struct FaModal;
 
-// Doesn't need container
 impl<'a> FaModal {
     fn _build_modal_container(
         root_node: &'a mut EntityCommands,
@@ -96,16 +114,15 @@ impl<'a> FaModal {
         attributes: &WidgetAttributes,
         clear_bg: bool,
         root_node: &'a mut EntityCommands,
-        container_entity: Entity,
-        items: &Vec<Entity>
+        container_entity: Entity
     ) -> Entity {
         let mut style_components = BaseStyleComponents::default();
         style_components.node = attributes.node.clone();
-        style_components.visibility = Visibility::Hidden;
-        style_components.border_color = BorderColor(Color::srgba(0.0, 0.0, 0.0, 0.6));
+        style_components.visibility = Visibility::Visible;
+        style_components.border_color = BorderColor(Color::srgba(0.0, 0.0, 0.0, 0.8));
 
         if !clear_bg {
-            style_components.background_color = BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.6));
+            style_components.background_color = BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.8));
         }
 
         let entity = root_node
@@ -117,7 +134,6 @@ impl<'a> FaModal {
                 IsFamiqContainableWidget,
                 FocusPolicy::Block,
                 FaModalContainerEntity(container_entity),
-                FaModalChildren(items.clone()),
                 GlobalZIndex(5)
             ))
             .id();
@@ -134,43 +150,45 @@ impl<'a> FaModal {
         root_node: &'a mut EntityCommands
     ) -> Entity {
         let container = Self::_build_modal_container(root_node, items);
-        let background = Self::_build_modal_background(attributes, clear_bg, root_node, container, items);
+        let background = Self::_build_modal_background(attributes, clear_bg, root_node, container);
 
         utils::entity_add_child(root_node, container, background);
         background
     }
 
-    /// Internal system to hide or display via `FaModalState` resource.
-    pub fn hide_or_display_modal_system(
-        mut modal_bg_q: Query<(&mut Visibility, &FamiqWidgetId, &FaModalContainerEntity)>,
+    // Internal system to hide or display via `FaModalState` resource.
+    pub(crate) fn hide_or_display_modal_system(
+        mut modal_bg_q: Query<(&mut Node, Entity, &FaModalContainerEntity)>,
         mut modal_container_q: Query<(&mut AnimationProgress, &mut Transform), With<IsFamiqModalContainer>>,
         time: Res<Time>,
         mut modal_res: ResMut<FaModalState>,
     ) {
         if modal_res.state_changed {
-            let delta = time.delta_secs() * 6.0;
+            let delta = time.delta_secs() * 8.0;
 
-            for (mut visibility, modal_id, container_entity) in modal_bg_q.iter_mut() {
+            for (mut node, entity, container_entity) in modal_bg_q.iter_mut() {
                 let is_visible = modal_res
-                    .get_state(&modal_id.0)
+                    .get_state_by_entity(entity)
                     .copied()
                     .unwrap_or(false);
 
-                // Try to get the corresponding modal container
                 if let Ok((mut progress, mut transform)) = modal_container_q.get_mut(container_entity.0) {
                     let old_progress = progress.0;
 
                     if is_visible {
-                        *visibility = Visibility::Visible;
+                        node.display = Display::default();
                         progress.0 = (progress.0 + delta).min(1.0);
                     } else {
-                        *visibility = Visibility::Hidden;
                         progress.0 = (progress.0 - delta).max(0.0);
                     }
                     transform.scale = Vec3::splat(progress.0); // Uniform scaling
 
                     if old_progress != progress.0 && (progress.0 == 1.0 || progress.0 == 0.0) {
                         modal_res.state_changed = false;
+
+                        if progress.0 == 0.0 {
+                            node.display = Display::None;
+                        }
                     }
                 }
             }
