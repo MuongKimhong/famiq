@@ -10,15 +10,8 @@ fn main() {
         .run();
 }
 
-fn setup(
-    asset_server: Res<AssetServer>, // required
-    mut commands: Commands,
-    mut famiq_res: ResMut<FamiqResource>, // required
-) {
-    commands.spawn(Camera2d::default());
-
-    // create a widget builder
-    let mut builder = FamiqBuilder::new(&mut commands, &mut famiq_res, &asset_server);
+fn setup(mut fa_query: FaQuery, mut famiq_res: ResMut<FamiqResource>) {
+    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
 
     let text = fa_text(&mut builder, "Press button to see a message!!")
         .class("h2")
@@ -49,24 +42,24 @@ fn setup(
 }
 
 fn handle_btn_press(
-    mut events: EventReader<FaInteractionEvent>,
-    mut modal_state: ResMut<FaModalState>,
+    mut fa_query: FaQuery,
+    mut events: EventReader<FaMouseEvent>,
     mut text_res: ResMut<FaTextResource>,
     input_res: Res<FaTextInputResource>,
 ) {
     for e in events.read() {
-        if e.is_pressed(WidgetType::Button) {
-            if let Some(id) = e.widget_id.as_ref() {
+        if e.is_button_pressed() {
+            if let Some(id) = e.id.as_ref() {
                 match id.as_str() {
                     "#btn" => {
-                        let name = input_res.get_value_by_id("#name");
+                        let name = input_res.get_value("#name");
                         let new_txt = format!("Welcome {name}, this example is built with Famiq.");
 
-                        text_res.update_value_by_id("#welcome-txt", new_txt.as_str());
-                        modal_state.show_by_id("#modal");
+                        text_res.update_value("#welcome-txt", new_txt.as_str());
+                        fa_query.show_modal(WidgetSelector::ID("#modal"));
                     },
                     "#close-btn" => {
-                        modal_state.hide_by_id("#modal");
+                        fa_query.hide_modal(WidgetSelector::ID("#modal"));
                     }
                     _ => ()
                 }

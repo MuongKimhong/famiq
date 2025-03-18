@@ -14,17 +14,20 @@ fn custom_window() -> WindowPlugin {
         primary_window: Some(Window {
             title: "Famiq demo".into(),
             resolution: (850.0, 650.0).into(),
-            present_mode: PresentMode::Immediate,
             ..default()
         }),
         ..default()
     }
 }
 
+#[derive(Resource)]
+struct TestResource(Option<Entity>);
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(custom_window()))
         .add_plugins(FamiqPlugin)
+        .insert_resource(TestResource(None))
         .add_systems(Startup, setup_ui)
         .add_systems(Update, test_mouse_event)
         .add_systems(Update, handle_value_change)
@@ -42,12 +45,16 @@ fn test_mouse_event(
 fn create_buttons(builder: &mut FamiqBuilder) -> Entity {
     let mut buttons: Vec<Entity> = Vec::new();
 
-    for class_name in COLORS.iter() {
-        let btn_class = format!("{class_name} mx-2 my-2");
-        let button = fa_button(builder, class_name).tooltip("hello").class(btn_class.as_str()).build();
-        buttons.push(button);
-    }
-    fa_container(builder).class("block my-4").children(buttons).build()
+    let add_btn = fa_button(builder, "Add").id("#add").build();
+    let remove_btn = fa_button(builder, "Remove").id("#remove").build();
+    let insert_btn = fa_button(builder, "Insert").id("#insert").build();
+
+    // for class_name in COLORS.iter() {
+    //     let btn_class = format!("{class_name} mx-2 my-2");
+    //     let button = fa_button(builder, class_name).tooltip("hello").class(btn_class.as_str()).build();
+    //     buttons.push(button);
+    // }
+    fa_container(builder).class("block my-4").children([add_btn, remove_btn, insert_btn]).build()
 }
 
 fn create_circulars(builder: &mut FamiqBuilder) -> Entity {
@@ -132,16 +139,12 @@ fn create_progress_bar(builder: &mut FamiqBuilder) -> Entity {
 }
 
 fn setup_ui(
-    mut commands: Commands,
+    mut fa_query: FaQuery,
     mut famiq_res: ResMut<FamiqResource>,
-    asset_server: Res<AssetServer>,
     adapter: Res<RenderAdapterInfo>
 ) {
-    commands.spawn(Camera2d::default());
-
     let adapter_info = adapter.0.clone().into_inner();
-    let mut builder = FamiqBuilder::new(&mut commands, &mut famiq_res, &asset_server)
-        .hot_reload();
+    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res).hot_reload();
 
     fa_fps(&mut builder).right_side().build();
     fa_bg_image(&mut builder, "wallpaper.jpg").build();
@@ -179,34 +182,33 @@ fn setup_ui(
 }
 
 fn handle_value_change(
-    mut text_input_change: EventReader<FaTextInputChangeEvent>,
-    mut selection_change: EventReader<FaSelectionChangeEvent>,
-    mut text_res: ResMut<FaTextResource>
+    mut mouse_events: EventReader<FaMouseEvent>,
+    mut famiq_res: ResMut<FamiqResource>,
+    mut fa_query: FaQuery,
+    mut test_res: ResMut<TestResource>
 ) {
-    for input_change in text_input_change.read() {
-        if let Some(changed_id) = input_change.widget_id.as_ref() {
-            match changed_id.as_str() {
-                "#input-one" => {
-                    text_res.update_value("#input-text-one", &input_change.new_value);
-                },
-                "#input-two" => {
-                    text_res.update_value("#input-text-two", &input_change.new_value);
-                },
-                _ => {}
-            }
-        }
-    }
+    for e in mouse_events.read() {
+        if e.is_button_pressed() {
+            let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
 
-    for select_change in selection_change.read() {
-        if let Some(changed_id) = select_change.widget_id.as_ref() {
-            match changed_id.as_str() {
-                "#selection-one" => {
-                    text_res.update_value("#selection-text-one", &select_change.new_value);
-                },
-                "#selection-two" => {
-                    text_res.update_value("#selection-text-two", &select_change.new_value);
-                },
-                _ => {}
+            if let Some(_id) = e.id.as_ref() {
+                match _id.as_str() {
+                    "#add" => {
+                        let new_text = fa_text(&mut builder, "new add text").build();
+                        fa_query.add_children(WidgetSelector::ID("#main-container"), &[new_text]);
+                        test_res.0 = Some(new_text);
+                    }
+                    "#insert" => {
+                        let new_text = fa_text(&mut builder, "new insert text").build();
+                        fa_query.insert_children(WidgetSelector::ID("#main-container"), 0, &[new_text]);
+                    }
+                    "#remove" => {
+                        if let Some(en) = test_res.0 {
+                            fa_query.remove_children(&[en]);
+                        }
+                    }
+                    _ => {}
+                }
             }
         }
     }

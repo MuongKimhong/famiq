@@ -34,10 +34,6 @@ pub struct FaTextInputToggleIconEntity(pub Entity);
 #[derive(Component)]
 pub struct FaTextInputEntity(pub Entity);
 
-// #[derive(Component, Default)]
-// pub struct TextInputValue(pub String);
-
-
 /// Type options for text input widget.
 #[derive(PartialEq, Clone)]
 pub enum TextInputType {
@@ -49,16 +45,14 @@ pub enum TextInputType {
 #[derive(Component)]
 pub struct FaTextInputInfo {
     pub placeholder: String,
-    pub input_type: TextInputType,
-    pub placeholder_pressed: bool
+    pub input_type: TextInputType
 }
 
 impl FaTextInputInfo {
     pub fn new(placeholder: &str, input_type: TextInputType) -> Self {
         Self {
             placeholder: placeholder.to_string(),
-            input_type,
-            placeholder_pressed: false
+            input_type
         }
     }
 }

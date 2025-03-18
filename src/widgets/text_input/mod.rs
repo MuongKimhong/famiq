@@ -22,6 +22,10 @@ use bevy::text::TextLayoutInfo;
 use bevy::input::ButtonState;
 use bevy::prelude::*;
 use smol_str::SmolStr;
+use arboard::Clipboard;
+
+#[cfg(target_os = "linux")]
+use arboard::{SetExtLinux, LinuxClipboardKind};
 
 use super::color::{BLACK_COLOR, SECONDARY_COLOR};
 
@@ -193,14 +197,17 @@ impl<'a> FaTextInput {
 
     pub(crate) fn handle_placeholder_on_mouse_down(
         mut trigger: Trigger<Pointer<Down>>,
-        mut input_q: Query<(&GlobalTransform, &ComputedNode, &mut FaTextEdit), With<IsFamiqTextInput>>,
-        ph_q: Query<(&Node, &FaTextInputEntity), With<IsFamiqTextInputPlaceholder>>,
+        mut input_q: Query<(&GlobalTransform, &ComputedNode, &mut FaTextEdit, &FaTextInputHighlighterEntity), With<IsFamiqTextInput>>,
+        mut highlighter_q: Query<&mut Visibility, (With<IsFamiqTextInputHighlighter>, Without<IsFamiqTextInputPlaceholder>)>,
         mut famiq_res: ResMut<FamiqResource>,
+        ph_q: Query<(&Node, &FaTextInputEntity), With<IsFamiqTextInputPlaceholder>>,
     ) {
         let (ph_node, input_entity) = ph_q.get(trigger.entity()).unwrap();
-        let (input_transform, input_computed, mut text_edit) = input_q.get_mut(input_entity.0).unwrap();
+        let (input_transform, input_computed, mut text_edit, hl_entity) = input_q.get_mut(input_entity.0).unwrap();
 
         if !text_edit.value.is_empty() {
+            let mut hl_visibility = highlighter_q.get_mut(hl_entity.0).unwrap();
+
             let local_pointer_pos = mouse_pos_to_local_node_pos(
                 &trigger.pointer_location.position,
                 input_computed,
@@ -225,6 +232,7 @@ impl<'a> FaTextInput {
 
             famiq_res.update_all_focus_states(false);
             famiq_res.update_or_insert_focus_state(input_entity.0, true);
+            *hl_visibility = Visibility::Hidden;
             trigger.propagate(false);
         }
         else {
@@ -577,24 +585,47 @@ impl<'a> FaTextInput {
                         let mut skip_typing = false;
                         let (mut hl_node, mut hl_visibility) = highlighter_q.get_mut(hl_entity.0).unwrap();
 
-                        // check ctrl + a
                         if text_edit.is_ctrl_a_pressed(&keys, e.key_code) && !text_edit.value.is_empty() {
                             text_edit.select_all(&ph_node, &mut hl_node, &mut hl_visibility);
                             FaTextInput::scroll_left_end(&mut ph_node);
                             break;
                         }
+                        else if text_edit.is_ctrl_c_pressed(&keys, e.key_code) {
+                            if text_edit.selected_text.trim().is_empty() {
+                                break;
+                            }
 
-                        // check ctrl + c (copy)
-                        if text_edit.is_ctrl_c_pressed(&keys, e.key_code) {
-                            famiq_res.copied_text = text_edit.selected_text.clone();
+                            let mut ctx = Clipboard::new().unwrap();
+
+                            #[cfg(target_os = "linux")]
+                            ctx.set().clipboard(LinuxClipboardKind::Clipboard).text(text_edit.selected_text.clone()).unwrap();
+
+                            #[cfg(not(target_os = "linux"))]
+                            ctx.set_text(text_edit.selected_text.clone()).unwrap();
+
+                            if let Ok(copied_text) = ctx.get_text() {
+                                famiq_res.copied_text = copied_text;
+                            }
                             break;
                         }
+                        else if text_edit.is_ctrl_v_pressed(&keys, e.key_code) {
+                            let mut ctx = Clipboard::new().unwrap();
+                            let mut copied_text = ctx.get_text().ok();
 
-                        if text_edit.is_ctrl_v_pressed(&keys, e.key_code) {
-                            if !famiq_res.copied_text.is_empty() {
-                                text_edit.insert(&SmolStr::new(&famiq_res.copied_text));
-                                text_edit.cursor_index += famiq_res.copied_text.len() - 1;
-                                text_edit.move_cursor_pos_right(&ph_node);
+                            if copied_text.as_ref().map_or(true, |s| s.is_empty()) {
+                                if !famiq_res.copied_text.is_empty() {
+                                    copied_text = Some(famiq_res.copied_text.clone());
+                                }
+                            }
+                            if let Some(text) = copied_text {
+                                let text_len = text.len();
+                                text_edit.insert(&SmolStr::new(&text));
+                                text_edit.cursor_index += text_len.saturating_sub(1);
+
+                                for _ in 0..text_len {
+                                    text_edit.move_cursor_pos_right(&ph_node);
+                                    FaTextInput::scroll_right(&mut ph_node, &text_edit);
+                                }
                                 value_changed = true;
                                 skip_typing = true;
                             }
@@ -664,10 +695,12 @@ impl<'a> FaTextInput {
                                 input_res._insert(id.0.clone(), text_edit.value.clone());
                             }
                         }
-                        match text_edit.need_scroll {
-                            NeedToScroll::Right =>  FaTextInput::scroll_right(&mut ph_node, &text_edit),
-                            NeedToScroll::Left =>  FaTextInput::scroll_left(&mut ph_node, &text_edit),
-                            _ => {}
+                        if !skip_typing {
+                            match text_edit.need_scroll {
+                                NeedToScroll::Right =>  FaTextInput::scroll_right(&mut ph_node, &text_edit),
+                                NeedToScroll::Left =>  FaTextInput::scroll_left(&mut ph_node, &text_edit),
+                                _ => {}
+                            }
                         }
                         break;
                     }

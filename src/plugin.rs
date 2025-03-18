@@ -100,7 +100,7 @@ fn fa_text_input_systems(app: &mut App) {
         Update,
         (
             FaTextInput::handle_text_input_on_typing,
-            FaTextInput::detect_cursor_index_change,
+            FaTextInput::detect_cursor_index_change.after(FaTextInput::handle_text_input_on_typing),
             FaTextInput::handle_text_input_on_focused,
             FaTextInput::handle_cursor_blink_system,
             FaTextInput::detect_new_text_input_widget_system
