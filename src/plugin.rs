@@ -192,6 +192,7 @@ impl Plugin for FamiqPlugin {
         embedded_asset!(app, "embedded_assets/logo.jpeg"); // for testing
 
         app.add_systems(PreStartup, _spawn_root_node);
+        app.add_systems(PostStartup, adjust_position_system);
         app.add_systems(Update, detect_new_widget_with_id);
         app.add_systems(Update, handle_window_resized_system);
         app.add_systems(Update, FaModal::hide_or_display_modal_system.run_if(can_run_modal_systems));
@@ -257,4 +258,14 @@ fn _spawn_root_node(mut commands: Commands, mut res: ResMut<FamiqResource>) {
     )).id();
 
     res.root_node_entity = Some(entity);
+}
+
+// to fix positioning and scaling issue on different platforms
+fn adjust_position_system(mut query: Query<&mut Transform>, windows: Single<&Window>) {
+    let scale_factor = windows.scale_factor();
+
+    for mut transform in query.iter_mut() {
+        transform.translation.x *= scale_factor;
+        transform.translation.y *= scale_factor; 
+    }
 }

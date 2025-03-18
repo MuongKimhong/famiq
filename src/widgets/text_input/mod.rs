@@ -82,7 +82,7 @@ impl<'a> FaTextInput {
                 DefaultTextEntity::new(txt, txt_font, TextColor(use_color), TextLayout::new(JustifyText::Left, LineBreak::NoWrap)),
                 IsFamiqTextInputPlaceholder,
                 Node {
-                    left: Val::Px(0.0),
+                    left: Val::Px(1.0),
                     ..default()
                 }
             ))
@@ -102,7 +102,7 @@ impl<'a> FaTextInput {
             .spawn((
                 Node {
                     position_type: PositionType::Absolute,
-                    left: Val::Px(0.0),
+                    left: Val::Px(1.0),
                     top: Val::Px(0.0),
                     ..default()
                 },
@@ -516,12 +516,12 @@ impl<'a> FaTextInput {
         if left_val < text_edit.max_scroll_left() - text_edit.char_width {
             ph_node.left = Val::Px(left_val + text_edit.char_width);
         } else {
-            ph_node.left = Val::Px(0.0);
+            ph_node.left = Val::Px(1.0);
         }
     }
 
     fn scroll_left_end(ph_node: &mut Node) {
-        ph_node.left = Val::Px(0.0);
+        ph_node.left = Val::Px(1.0);
     }
 
     pub(crate) fn detect_cursor_index_change(

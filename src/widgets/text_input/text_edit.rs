@@ -145,7 +145,7 @@ impl FaTextEdit {
     }
 
     pub fn set_min_max_cursor_pos(&mut self) {
-        self.min_cursor_pos = self.widget_padding_left();
+        self.min_cursor_pos = self.widget_padding_left() + 1.0; // min placeholder left is 1.0, not 0.0
         self.max_cursor_pos = self.widget_width_no_padding();
     }
 

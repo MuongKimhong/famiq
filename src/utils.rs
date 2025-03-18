@@ -464,18 +464,22 @@ pub(crate) fn hide_tooltip(
 }
 
 /// Convert mouse position from world to UI node local position
-pub fn mouse_pos_to_local_node_pos(mouse_pos: &Vec2, computed_node: &ComputedNode, node_transform: &GlobalTransform) -> Vec2 {
+pub fn mouse_pos_to_local_node_pos(
+    mouse_pos: &Vec2, 
+    computed_node: &ComputedNode, 
+    node_transform: &GlobalTransform
+) -> Vec2 {
     let scale_factor = computed_node.inverse_scale_factor();
     let size = computed_node.size();
     let paddings = computed_node.padding();
 
-    let node_top = node_transform.translation().y - ((size.y * scale_factor) / 2.0);
+    let node_top = (node_transform.translation().y * scale_factor) - ((size.y * scale_factor) / 2.0);
     let padding_top = paddings.top * scale_factor;
-    let node_left = node_transform.translation().x - ((size.x * scale_factor) / 2.0);
+    let node_left = (node_transform.translation().x * scale_factor) - ((size.x * scale_factor) / 2.0);
     let padding_left = paddings.left * scale_factor;
 
-    let pos_x = mouse_pos.x - (node_left + padding_left);
-    let pos_y = mouse_pos.y - (node_top + padding_top);
+    let pos_x = (mouse_pos.x) - (node_left + padding_left);
+    let pos_y = (mouse_pos.y) - (node_top + padding_top);
 
     Vec2::new(pos_x, pos_y)
 }
