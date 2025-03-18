@@ -21,11 +21,11 @@ pub mod base_components;
 
 pub use button::fa_button;
 pub use circular::fa_circular;
-pub use container::fa_container;
+pub use container::*;
 pub use fps::fa_fps;
 pub use image::fa_image;
-pub use list_view::fa_listview;
-pub use modal::fa_modal;
+pub use list_view::{fa_listview, ListViewMovePanelEntity};
+pub use modal::{fa_modal, FaModalContainerEntity};
 pub use text::fa_text;
 pub use text_input::fa_text_input;
 pub use selection::fa_selection;
@@ -374,11 +374,21 @@ pub struct TextStyleQuery {
     id: Option<&'static FamiqWidgetId>,
 }
 
+#[derive(QueryData)]
+#[query_data(mutable)]
+pub struct ContainableQuery {
+    entity: Entity,
+    listview_panel: Option<&'static ListViewMovePanelEntity>,
+    modal_container: Option<&'static FaModalContainerEntity>,
+    id: Option<&'static FamiqWidgetId>
+}
+
 /// Famiq query
 #[derive(SystemParam)]
 pub struct FaQuery<'w, 's> {
     pub style_query: Query<'w, 's, StyleQuery>,
     pub text_style_query: Query<'w, 's, TextStyleQuery>,
+    pub containable_query: Query<'w, 's, ContainableQuery, With<IsFamiqContainableWidget>>,
     pub commands: Commands<'w, 's>,
     pub asset_server: Res<'w, AssetServer>
 }
@@ -413,6 +423,22 @@ impl<'w, 's> FaQuery<'w, 's> {
                 }),
 
             WidgetSelector::ENTITY(entity) => self.text_style_query.get_mut(entity).ok(),
+        }
+    }
+
+    /// Finds a `ContainableQueryItem` based on `WidgetSelector`
+    pub fn get_containable_item(&self, selector: WidgetSelector) -> Option<ContainableQueryReadOnlyItem<'_>> {
+        match selector {
+            WidgetSelector::ID(id) => self
+                .containable_query
+                .iter()
+                .find_map(|result| {
+                    result.id
+                        .filter(|w_id| w_id.0 == id)
+                        .map(|_| result)
+                }),
+
+            WidgetSelector::ENTITY(entity) => self.containable_query.get(entity).ok(),
         }
     }
 
@@ -692,6 +718,55 @@ impl<'w, 's> FaQuery<'w, 's> {
     pub fn set_bottom(&mut self, selector: WidgetSelector, val: Val) {
         if let Some(mut item) = self.get_style_item(selector) {
             item.node.bottom = val;
+        }
+    }
+
+    /// Add child/children to containable widget
+    pub fn add_children(&mut self, selector: WidgetSelector, children: &[Entity]) {
+        if let Some(item) = self.get_containable_item(selector) {
+            if let Some(listview_panel_entity) = item.listview_panel {
+                self.commands
+                    .entity(listview_panel_entity.0)
+                    .add_children(children);
+                return;
+            }
+
+            if let Some(modal_container_entity) = item.modal_container {
+                self.commands
+                    .entity(modal_container_entity.0)
+                    .add_children(children);
+                return;
+            }
+
+            self.commands.entity(item.entity).add_children(children);
+        }
+    }
+
+    /// Insert child/children to containable widget at given index
+    pub fn insert_children(&mut self, selector: WidgetSelector, index: usize, children: &[Entity]) {
+        if let Some(item) = self.get_containable_item(selector) {
+            if let Some(listview_panel_entity) = item.listview_panel {
+                self.commands
+                    .entity(listview_panel_entity.0)
+                    .insert_children(index, children);
+                return;
+            }
+
+            if let Some(modal_container_entity) = item.modal_container {
+                self.commands
+                    .entity(modal_container_entity.0)
+                    .insert_children(index, children);
+                return;
+            }
+
+            self.commands.entity(item.entity).insert_children(index, children);
+        }
+    }
+
+    /// Remove (despawn) children
+    pub fn remove_children(&mut self, children: &[Entity]) {
+        for child in children {
+            self.commands.entity(*child).despawn();
         }
     }
 }

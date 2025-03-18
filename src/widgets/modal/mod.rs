@@ -1,7 +1,6 @@
 pub mod helper;
 pub mod tests;
 
-use crate::resources::*;
 use crate::widgets::*;
 use crate::utils;
 use bevy::prelude::*;
@@ -173,24 +172,6 @@ impl<'a> FaModal {
                     if old_progress != progress.0 && (progress.0 == 1.0 || progress.0 == 0.0) {
                         modal_res.state_changed = false;
                     }
-                }
-            }
-        }
-    }
-
-    pub fn detect_new_modal_system(
-        mut commands: Commands,
-        mut containable_res: ResMut<FaContainableResource>,
-        modal_q: Query<(Entity, Option<&FamiqWidgetId>, &FaModalChildren), Added<IsFamiqModalBackground>>
-    ) {
-        for (entity, id, children) in modal_q.iter() {
-            if let Some(_id) = id {
-                if containable_res.containers.get(&_id.0).is_none() {
-                    containable_res.containers.insert(_id.0.clone(), ContainableData {
-                        entity: Some(entity),
-                        children: children.0.clone()
-                    });
-                    commands.entity(entity).remove::<FaModalChildren>();
                 }
             }
         }

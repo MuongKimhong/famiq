@@ -3,7 +3,10 @@
 use bevy::prelude::*;
 use bevy::color::palettes::basic::*;
 use crate::plugin::FamiqPlugin;
+use bevy::input::InputPlugin;
+use crate::prelude::IsFamiqModalContainer;
 use crate::utils::*;
+use crate::widgets::list_view::IsFamiqListViewMovePanel;
 use super::button::*;
 use super::text::*;
 use super::*;
@@ -31,6 +34,105 @@ fn setup_test_fa_query_for_text(
     commands.insert_resource(TestResource(text));
 }
 
+fn setup_test_containable_for_container(
+    mut famiq_res: ResMut<FamiqResource>,
+    mut fa_query: FaQuery
+) {
+    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
+    let container = fa_container(&mut builder).id("#test-container").build();
+    fa_query.commands.insert_resource(TestResource(container));
+}
+
+fn run_add_children_for_container(
+    mut fa_query: FaQuery,
+    mut famiq_res: ResMut<FamiqResource>,
+    test_res: Res<TestResource>
+) {
+    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
+    let text_one = fa_text(&mut builder, "Hello").build();
+    let text_two = fa_text(&mut builder, "Hello").build();
+    fa_query.add_children(WidgetSelector::ID("#test-container"), &[text_one]);
+    fa_query.add_children(WidgetSelector::ENTITY(test_res.0), &[text_two]);
+}
+
+fn run_insert_children_for_container(
+    mut fa_query: FaQuery,
+    mut famiq_res: ResMut<FamiqResource>,
+    test_res: Res<TestResource>
+) {
+    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
+    let text_one = fa_text(&mut builder, "Hello").build();
+    let text_two = fa_text(&mut builder, "Hello").build();
+    fa_query.insert_children(WidgetSelector::ID("#test-container"), 0, &[text_one]);
+    fa_query.insert_children(WidgetSelector::ENTITY(test_res.0), 0, &[text_two]);
+}
+
+fn setup_test_containable_for_modal(
+    mut famiq_res: ResMut<FamiqResource>,
+    mut fa_query: FaQuery
+) {
+    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
+    let modal = fa_modal(&mut builder).id("#test-modal").build();
+    fa_query.commands.insert_resource(TestResource(modal));
+}
+
+fn run_add_children_for_modal(
+    mut fa_query: FaQuery,
+    mut famiq_res: ResMut<FamiqResource>,
+    test_res: Res<TestResource>
+) {
+    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
+    let text_one = fa_text(&mut builder, "Hello").build();
+    let text_two = fa_text(&mut builder, "Hello").build();
+    fa_query.add_children(WidgetSelector::ID("#test-modal"), &[text_one]);
+    fa_query.add_children(WidgetSelector::ENTITY(test_res.0), &[text_two]);
+}
+
+fn run_insert_children_for_modal(
+    mut fa_query: FaQuery,
+    mut famiq_res: ResMut<FamiqResource>,
+    test_res: Res<TestResource>
+) {
+    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
+    let text_one = fa_text(&mut builder, "Hello").build();
+    let text_two = fa_text(&mut builder, "Hello").build();
+    fa_query.insert_children(WidgetSelector::ID("#test-modal"), 0, &[text_one]);
+    fa_query.insert_children(WidgetSelector::ENTITY(test_res.0), 0, &[text_two]);
+}
+
+fn setup_test_containable_for_listview(
+    mut famiq_res: ResMut<FamiqResource>,
+    mut fa_query: FaQuery
+) {
+    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
+    let listview = fa_listview(&mut builder).id("#test-listview").build();
+    fa_query.commands.insert_resource(TestResource(listview));
+}
+
+fn run_add_children_for_listview(
+    mut fa_query: FaQuery,
+    mut famiq_res: ResMut<FamiqResource>,
+    test_res: Res<TestResource>
+) {
+    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
+    let text_one = fa_text(&mut builder, "Hello").build();
+    let text_two = fa_text(&mut builder, "Hello").build();
+    fa_query.add_children(WidgetSelector::ID("#test-listview"), &[text_one]);
+    fa_query.add_children(WidgetSelector::ENTITY(test_res.0), &[text_two]);
+}
+
+fn run_insert_children_for_listview(
+    mut fa_query: FaQuery,
+    mut famiq_res: ResMut<FamiqResource>,
+    test_res: Res<TestResource>
+) {
+    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
+    let text_one = fa_text(&mut builder, "Hello").build();
+    let text_two = fa_text(&mut builder, "Hello").build();
+    fa_query.insert_children(WidgetSelector::ID("#test-listview"), 0, &[text_one]);
+    fa_query.insert_children(WidgetSelector::ENTITY(test_res.0), 0, &[text_two]);
+}
+
 fn run_set_background_color_id(mut fa_query: FaQuery) {
     fa_query.set_background_color(WidgetSelector::ID("#test-btn"), Color::from(BLUE));
 }
@@ -55,24 +157,88 @@ fn run_set_size_entity(mut fa_query: FaQuery, test_res: Res<TestResource>) {
     fa_query.set_size(WidgetSelector::ENTITY(test_res.0), (Val::Px(200.0), Val::Px(20.0)));
 }
 
-fn run_set_text_color_id(mut fa_query: FaQuery) {
-    fa_query.set_color(WidgetSelector::ID("#test-text"), Color::from(BLUE));
-}
-
 fn run_set_text_color_entity(mut fa_query: FaQuery, test_res: Res<TestResource>) {
     fa_query.set_color(WidgetSelector::ENTITY(test_res.0), Color::from(GREEN));
 }
 
 #[test]
-fn test_set_text_color_id() {
+fn test_add_children_for_container() {
     let mut app = create_test_app();
     app.add_plugins(FamiqPlugin);
-    app.add_systems(Startup, setup_test_fa_query_for_text);
+    app.add_systems(Startup, setup_test_containable_for_container);
     app.update();
-    app.add_systems(Update, run_set_text_color_id);
+    app.add_systems(Update, run_add_children_for_container);
     app.update();
-    let text_q = app.world_mut().query::<(&TextColor, &IsFamiqText)>().get_single(app.world());
-    assert_eq!(Color::from(BLUE), text_q.unwrap().0.0);
+
+    let query = app.world_mut().query::<(&Children, &IsFamiqContainer)>().get_single(app.world());
+    assert_eq!(query.unwrap().0.iter().count(), 2);
+}
+
+#[test]
+fn test_insert_children_for_container() {
+    let mut app = create_test_app();
+    app.add_plugins(FamiqPlugin);
+    app.add_systems(Startup, setup_test_containable_for_container);
+    app.update();
+    app.add_systems(Update, run_insert_children_for_container);
+    app.update();
+
+    let query = app.world_mut().query::<(&Children, &IsFamiqContainer)>().get_single(app.world());
+    assert_eq!(query.unwrap().0.iter().count(), 2);
+}
+
+#[test]
+fn test_add_children_for_modal() {
+    let mut app = create_test_app();
+    app.add_plugins(FamiqPlugin);
+    app.add_systems(Startup, setup_test_containable_for_modal);
+    app.update();
+    app.add_systems(Update, run_add_children_for_modal);
+    app.update();
+
+    let query = app.world_mut().query::<(&Children, &IsFamiqModalContainer)>().get_single(app.world());
+    assert_eq!(query.unwrap().0.iter().count(), 2);
+}
+
+#[test]
+fn test_insert_children_for_modal() {
+    let mut app = create_test_app();
+    app.add_plugins(FamiqPlugin);
+    app.add_systems(Startup, setup_test_containable_for_modal);
+    app.update();
+    app.add_systems(Update, run_insert_children_for_modal);
+    app.update();
+
+    let query = app.world_mut().query::<(&Children, &IsFamiqModalContainer)>().get_single(app.world());
+    assert_eq!(query.unwrap().0.iter().count(), 2);
+}
+
+#[test]
+fn test_add_children_for_listview() {
+    let mut app = create_test_app();
+    app.add_plugins(FamiqPlugin);
+    app.add_plugins(InputPlugin::default());
+    app.add_systems(Startup, setup_test_containable_for_listview);
+    app.update();
+    app.add_systems(Update, run_add_children_for_listview);
+    app.update();
+
+    let query = app.world_mut().query::<(&Children, &IsFamiqListViewMovePanel)>().get_single(app.world());
+    assert_eq!(query.unwrap().0.iter().count(), 2);
+}
+
+#[test]
+fn test_insert_children_for_listview() {
+    let mut app = create_test_app();
+    app.add_plugins(FamiqPlugin);
+    app.add_plugins(InputPlugin::default());
+    app.add_systems(Startup, setup_test_containable_for_listview);
+    app.update();
+    app.add_systems(Update, run_insert_children_for_listview);
+    app.update();
+
+    let query = app.world_mut().query::<(&Children, &IsFamiqListViewMovePanel)>().get_single(app.world());
+    assert_eq!(query.unwrap().0.iter().count(), 2);
 }
 
 #[test]

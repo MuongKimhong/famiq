@@ -2,7 +2,6 @@ pub mod helper;
 pub mod tests;
 
 use crate::utils;
-use crate::resources::*;
 use crate::widgets::*;
 use crate::event_writer::FaMouseEvent;
 use bevy::ecs::system::EntityCommands;
@@ -207,24 +206,10 @@ impl<'a> FaListView {
     }
 
     pub fn detect_new_listview_system(
-        mut commands: Commands,
-        mut containable_res: ResMut<FaContainableResource>,
-        listview_q: Query<
-            (Entity, Option<&FamiqWidgetId>, &FaListViewChildren, &ListViewMovePanelEntity),
-            Added<IsFamiqListView>
-        >,
+        listview_q: Query<&ListViewMovePanelEntity, Added<IsFamiqListView>>,
         mut panel_q: Query<&mut Node, With<IsFamiqListViewMovePanel>>
     ) {
-        for (entity, id, children, panel_entity) in listview_q.iter() {
-            if let Some(_id) = id {
-                if containable_res.containers.get(&_id.0).is_none() {
-                    containable_res.containers.insert(_id.0.clone(), ContainableData {
-                        entity: Some(entity),
-                        children: children.0.clone()
-                    });
-                    commands.entity(entity).remove::<FaListViewChildren>();
-                }
-            }
+        for panel_entity in listview_q.iter() {
             if let Ok(mut panel_node) = panel_q.get_mut(panel_entity.0) {
                 panel_node.padding = UiRect::all(Val::Px(0.0));
             }

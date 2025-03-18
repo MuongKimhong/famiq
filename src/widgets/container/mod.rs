@@ -5,7 +5,6 @@ use bevy::prelude::*;
 
 use crate::utils;
 use crate::widgets::*;
-use crate::resources::*;
 use super::BaseStyleComponents;
 
 /// Marker component for identifying a Famiq container.
@@ -58,24 +57,6 @@ impl<'a> FaContainer {
         utils::insert_id_and_class(root_node, container_entity, &attributes.id, &attributes.class);
         utils::entity_add_children(root_node, children, container_entity);
         container_entity
-    }
-
-    pub fn detect_new_container_system(
-        mut commands: Commands,
-        mut containable_res: ResMut<FaContainableResource>,
-        container_q: Query<(Entity, Option<&FamiqWidgetId>, &FaContainerChildren), Added<IsFamiqContainer>>
-    ) {
-        for (entity, id, children) in container_q.iter() {
-            if let Some(_id) = id {
-                if containable_res.containers.get(&_id.0).is_none() {
-                    containable_res.containers.insert(_id.0.clone(), ContainableData {
-                        entity: Some(entity),
-                        children: children.0.clone()
-                    });
-                    commands.entity(entity).remove::<FaContainerChildren>();
-                }
-            }
-        }
     }
 }
 
