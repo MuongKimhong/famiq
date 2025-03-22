@@ -22,6 +22,7 @@ use bevy::prelude::*;
 use bevy::asset::embedded_asset;
 use bevy::winit::cursor::CursorIcon;
 use bevy::window::{SystemCursorIcon, WindowResized};
+use cosmic_text::{FontSystem, SwashCache};
 
 pub enum CursorType {
     Pointer,
@@ -100,13 +101,16 @@ fn fa_text_input_systems(app: &mut App) {
         Update,
         (
             FaTextInput::handle_text_input_on_typing,
-            FaTextInput::detect_cursor_index_change.after(FaTextInput::handle_text_input_on_typing),
+            // FaTextInput::detect_cursor_index_change.after(FaTextInput::handle_text_input_on_typing),
+            FaTextInput::detect_placeholder_style_change,
             FaTextInput::handle_text_input_on_focused,
+            FaTextInput::detect_placeholder_computed_change,
             FaTextInput::handle_cursor_blink_system,
             FaTextInput::detect_new_text_input_widget_system
         )
         .run_if(can_run_text_input_systems)
     );
+    app.add_systems(PostUpdate, FaTextInput::detect_redraw);
 }
 
 fn fa_text_systems(app: &mut App) {
@@ -202,6 +206,8 @@ impl Plugin for FamiqPlugin {
         app.add_plugins(FrameTimeDiagnosticsPlugin::default());
         app.insert_resource(StylesKeyValueResource::default());
         app.insert_resource(FamiqResource::new());
+        app.insert_resource(CosmicFontSystem(FontSystem::new()));
+        app.insert_resource(CosmicSwashCache(SwashCache::new()));
         app.insert_resource(FaBgImageResource::default());
         app.insert_resource(CanBeScrolledListView { entity: None });
         app.insert_resource(FaSelectionResource::default());
@@ -214,6 +220,7 @@ impl Plugin for FamiqPlugin {
 
         app.add_event::<event_writer::FaValueChangeEvent>();
         app.add_event::<event_writer::FaMouseEvent>();
+        app.add_event::<event_writer::RequestBufferRedraw>();
 
         external_styles_file_systems(app);
         fa_text_systems(app);
@@ -266,6 +273,6 @@ fn adjust_position_system(mut query: Query<&mut Transform>, windows: Single<&Win
 
     for mut transform in query.iter_mut() {
         transform.translation.x *= scale_factor;
-        transform.translation.y *= scale_factor; 
+        transform.translation.y *= scale_factor;
     }
 }

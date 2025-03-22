@@ -2,6 +2,7 @@
 
 use bevy::utils::hashbrown::HashMap;
 use bevy::prelude::*;
+use cosmic_text::{FontSystem, SwashCache};
 use std::marker::PhantomData;
 
 use crate::widgets::*;
@@ -79,6 +80,12 @@ pub struct FamiqResource {
     pub(crate) external_style_applied: bool,
     pub(crate) root_node_entity: Option<Entity>,
 }
+
+#[derive(Resource)]
+pub struct CosmicFontSystem(pub FontSystem);
+
+#[derive(Resource)]
+pub struct CosmicSwashCache(pub SwashCache);
 
 impl FamiqResource {
     pub fn update_or_insert_focus_state(&mut self, entity: Entity, state: bool) {

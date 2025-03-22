@@ -8,13 +8,9 @@ pub struct IsFamiqTextInput;
 #[derive(Component)]
 pub struct IsFamiqTextInputPlaceholder;
 
-/// Marker component for identifying the cursor in a text input widget.
+/// Marker component for identifying buffer texture.
 #[derive(Component)]
-pub struct IsFamiqTextInputCursor;
-
-/// Marker component for identifying the highlighter in a text input widget.
-#[derive(Component)]
-pub struct IsFamiqTextInputHighlighter;
+pub struct IsFamiqTextInputBufferTexture;
 
 /// Links a placeholder entity to its corresponding text input entity.
 #[derive(Component)]
@@ -22,10 +18,7 @@ pub struct FaTextInputPlaceholderEntity(pub Entity);
 
 /// Links a cursor entity to its corresponding text input entity.
 #[derive(Component)]
-pub struct FaTextInputCursorEntity(pub Entity);
-
-#[derive(Component)]
-pub struct FaTextInputHighlighterEntity(pub Entity);
+pub struct FaTextInputBufferTextureEntity(pub Entity);
 
 /// Link a toggle icon entity to its corresponding text input entity;
 #[derive(Component)]
@@ -52,7 +45,7 @@ impl FaTextInputInfo {
     pub fn new(placeholder: &str, input_type: TextInputType) -> Self {
         Self {
             placeholder: placeholder.to_string(),
-            input_type
+            input_type,
         }
     }
 }

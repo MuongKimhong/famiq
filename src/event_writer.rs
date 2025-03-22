@@ -166,15 +166,33 @@ impl FaValueChangeEvent {
     }
 }
 
-// pub fn text_input_value_change_system(
-//     text_input_q: Query<(Entity, Ref<FaTextEdit>, Option<&FamiqWidgetId>), With<IsFamiqTextInput>>,
-//     mut change_writer: EventWriter<FaValueChangeEvent>
-// ) {
-//     for (entity, text_edit, id) in text_input_q.iter() {
-//         if text_edit.is_changed() && !text_edit.is_added() {
-//             change_writer.send(
-//                 FaValueChangeEvent::new(entity, id.map(|_id| _id.0.clone()), text_input_value.0.clone(), Vec::new())
-//             );
-//         }
-//     }
-// }
+#[derive(Default, Debug)]
+pub(crate) struct BufferRedrawData {
+    pub(crate) text: String,
+    pub(crate) cursor_index: usize
+}
+
+#[derive(Event, Debug)]
+pub(crate) struct RequestBufferRedraw {
+    /// which entity that buffer belongs to
+    pub(crate) entity: Entity,
+
+    /// text to draw
+    pub(crate) data: Option<BufferRedrawData>
+}
+
+impl RequestBufferRedraw {
+    pub fn new(entity: Entity) -> Self {
+        Self {
+            entity,
+            data: None
+        }
+    }
+
+    pub fn new_with_data(entity: Entity, data: BufferRedrawData) -> Self {
+        Self {
+            entity,
+            data: Some(data)
+        }
+    }
+}

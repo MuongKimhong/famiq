@@ -1,51 +1,147 @@
 use bevy::prelude::*;
+use cosmic_text::{
+    Color as CosmicColor, Editor, Edit, Cursor, Selection, Attrs, Metrics, LayoutGlyph
+};
 use smol_str::SmolStr;
+use arboard::Clipboard;
 
-use crate::utils::extract_val;
+#[cfg(target_os = "linux")]
+use arboard::{SetExtLinux, LinuxClipboardKind};
+
+use crate::utils::*;
+
+pub const DEFAULT_CURSOR_COLOR: CosmicColor = CosmicColor::rgb(0, 0, 0); // black
+pub const CURSOR_INVISIBLE: CosmicColor = CosmicColor::rgba(0, 0, 0, 0);
+pub const DEFAULT_TEXT_COLOR: CosmicColor = CosmicColor::rgb(0, 0, 0);
+pub const DEFAULT_SELECTION_COLOR: CosmicColor = CosmicColor::rgba(156, 156, 156, (0.6 * 255.0) as u8);
+pub const DEFAULT_SELECTED_TEXT_COLOR: CosmicColor = CosmicColor::rgb(0, 0, 0);
 
 #[derive(Default, Debug)]
-pub enum NeedToScroll {
+pub enum NeedScroll {
     #[default]
     None,
     Left,
     Right
 }
 
-/// Component used for text editing functionality
-#[derive(Component, Debug, Default)]
-pub struct FaTextEdit {
-    pub value: String,
-    pub cursor_index: usize,
-    pub min_cursor_pos: f32,
-    pub max_cursor_pos: f32,
-    pub need_scroll: NeedToScroll,
-    pub selected_text: String,
-    pub selection_start_index: Option<usize>,
-    pub selection_end_index: Option<usize>,
-    pub char_width: f32,
-    pub char_height: f32,
-    pub widget_computed: ComputedNode
+#[derive(Component, Debug)]
+pub struct CosmicData {
+    pub editor: Option<Editor<'static>>,
+    pub attrs: Option<Attrs<'static>>,
+    pub metrics: Option<Metrics>,
+    pub text_color: CosmicColor,
+    pub cursor_color: CosmicColor,
+    pub selection_color: CosmicColor,
+    pub selected_text_color: CosmicColor,
+    pub font_size: f32,
+    pub buffer_dim: Vec2
+}
+
+#[derive(Debug, Default, PartialEq)]
+pub enum MoveDirection {
+    #[default]
+    Right,
+    Left
+}
+
+impl Default for CosmicData {
+    fn default() -> Self {
+        Self {
+            editor: None,
+            attrs: None,
+            metrics: None,
+            cursor_color: DEFAULT_CURSOR_COLOR,
+            selection_color: DEFAULT_SELECTION_COLOR,
+            text_color: DEFAULT_TEXT_COLOR,
+            selected_text_color: DEFAULT_SELECTED_TEXT_COLOR,
+            font_size: f32::default(),
+            buffer_dim: Vec2::default()
+        }
+    }
+}
+
+impl CosmicData {
+    pub fn new(text_color: Color) -> Self {
+        let mut cosmic_data = CosmicData::default();
+
+        if let Some(converted_color) = bevy_color_to_cosmic_rgba(text_color) {
+            cosmic_data.text_color = converted_color;
+            cosmic_data.cursor_color = converted_color;
+            cosmic_data.selected_text_color = converted_color;
+        }
+        cosmic_data
+    }
 }
 
 
-impl FaTextEdit {
-    pub fn move_cursor_start(&mut self) {
-        self.cursor_index = 0;
-    }
+/// Component used for text editing functionality
+#[derive(Component, Debug)]
+pub struct FaTextEdit {
+    pub value: String, // actual value when user editing
+    pub placeholder_value: String, // whenever actual value is empty and text input is focused, draw placeholder_value into buffer.
+    pub scroll_width: f32,
+    pub text_width: f32,
+    pub glyph_width: f32,
+    pub cursor_index: usize,
+    pub min_cursor_pos: f32,
+    pub max_cursor_pos: f32,
+    pub move_direction: MoveDirection,
+    pub need_scroll: NeedScroll,
+    pub selected_text: String,
+    pub selection_start_index: Option<usize>,
+    pub selection_end_index: Option<usize>,
+    pub widget_computed: ComputedNode,
+    pub buffer_empty: bool
+}
 
-    pub fn move_cursor_end(&mut self) {
-        self.cursor_index = self.value.len();
+impl Default for FaTextEdit {
+    fn default() -> Self {
+        Self {
+            value: String::new(),
+            placeholder_value: String::new(),
+            scroll_width: 0.0,
+            text_width: 0.0,
+            glyph_width: 0.0,
+            cursor_index: 0,
+            move_direction: MoveDirection::default(),
+            min_cursor_pos: 0.0,
+            max_cursor_pos: 0.0,
+            need_scroll: NeedScroll::default(),
+            selected_text: String::new(),
+            selection_start_index: None,
+            selection_end_index: None,
+            widget_computed: ComputedNode::default(),
+            buffer_empty: false
+        }
     }
+}
+
+impl FaTextEdit {
+    pub fn new(placeholder: &str) -> Self {
+        Self {
+            placeholder_value: placeholder.to_string(),
+            ..default()
+        }
+    }
+    // pub fn move_cursor_start(&mut self) {
+    //     self.cursor_index = 0;
+    // }
+
+    // pub fn move_cursor_end(&mut self) {
+    //     self.cursor_index = self.value.len();
+    // }
 
     pub fn move_cursor_left(&mut self) {
         if self.cursor_index > 0 {
             self.cursor_index -= 1;
+            self.move_direction = MoveDirection::Left;
         }
     }
 
     pub fn move_cursor_right(&mut self) {
         if self.cursor_index < self.value.len() {
             self.cursor_index += 1;
+            self.move_direction = MoveDirection::Right;
         }
     }
 
@@ -68,7 +164,7 @@ impl FaTextEdit {
         self.move_cursor_left();
     }
 
-    pub fn remove_selected_text(&mut self, hl_visibility: &mut Visibility) {
+    pub fn remove_selected_text(&mut self) {
         if self.selection_start_index.is_some() && self.selection_end_index.is_some() {
             let start_index = self.selection_start_index.unwrap();
             let end_index = self.selection_end_index.unwrap();
@@ -81,19 +177,8 @@ impl FaTextEdit {
                 self.value.drain(start_index..end_index);
                 self.cursor_index = start_index;
             }
-
             self.clear_selection();
-            *hl_visibility = Visibility::Hidden;
         }
-    }
-
-    pub fn new_line(&mut self) {
-        self.insert(&SmolStr::new("\n"));
-        self.move_cursor_right();
-    }
-
-    pub fn text_width(&self) -> f32 {
-        self.value.len() as f32 * self.char_width
     }
 
     pub fn widget_scale(&self) -> f32 {
@@ -112,23 +197,16 @@ impl FaTextEdit {
         self.widget_computed.padding().left * self.widget_scale()
     }
 
-    // without padding
-    pub fn widget_width_no_padding(&self) -> f32 {
-        let widget_width = self.widget_computed.size().x * self.widget_scale();
-        widget_width - self.widget_padding_left() - self.widget_padding_right()
+    pub fn widget_padding_bottom(&self) -> f32 {
+        self.widget_computed.padding().bottom * self.widget_scale()
     }
 
-    pub fn widget_width_padding(&self) -> f32 {
+    pub fn widget_width(&self) -> f32 {
         self.widget_computed.size().x * self.widget_scale()
     }
 
-    // text width is longer than widget width without padding
     pub fn is_text_overflow(&self) -> bool {
-        self.text_width() > self.widget_width_no_padding()
-    }
-
-    pub fn overflow_offset(&self) -> f32 {
-        self.text_width() - self.widget_width_no_padding()
+        self.text_width > self.widget_width()
     }
 
     pub fn max_scroll_left(&self) -> f32 {
@@ -136,8 +214,8 @@ impl FaTextEdit {
     }
 
     pub fn max_scroll_right(&self) -> f32 {
-        if self.text_width() > self.widget_width_no_padding() {
-            self.text_width() - self.widget_width_no_padding()
+        if self.text_width > self.widget_width() {
+            self.text_width - self.widget_width()
         }
         else {
             0.0
@@ -145,48 +223,44 @@ impl FaTextEdit {
     }
 
     pub fn set_min_max_cursor_pos(&mut self) {
-        self.min_cursor_pos = self.widget_padding_left() + 1.0; // min placeholder left is 1.0, not 0.0
-        self.max_cursor_pos = self.widget_width_no_padding();
+        self.min_cursor_pos = 0.0;
+        self.max_cursor_pos = self.widget_width();
     }
 
-    pub fn calculate_cursor_pos(&self, placeholder_node: &Node, index: f32) -> f32 {
-        let left_val = extract_val(placeholder_node.left).unwrap();
+    /// calculate cursor position for given cursor index
+    pub fn calculate_cursor_pos(
+        &self,
+        glyphs: &Vec<LayoutGlyph>,
+        texture_node: &Node,
+        index: usize
+    ) -> f32 {
+        let left_val = extract_val(texture_node.left).unwrap();
+        let max_index = glyphs.len().min(index);
+        let mut pos = 0.0;
 
-        (left_val + self.widget_padding_left()) + (index * self.char_width)
-    }
-
-    pub fn move_cursor_pos_right(&mut self, placeholder_node: &Node) {
-        let cursor_pos = self.calculate_cursor_pos(placeholder_node, self.cursor_index as f32);
-
-        if cursor_pos < self.max_cursor_pos {
-            self.need_scroll = NeedToScroll::None;
-        } else {
-            self.need_scroll = NeedToScroll::Right;
+        for i in 0..max_index {
+            pos += glyphs[i].w;
         }
+        left_val + pos
     }
 
-    pub fn move_cursor_pos_left(&mut self, placeholder_node: &Node) {
-        let cursor_pos = self.calculate_cursor_pos(placeholder_node, self.cursor_index as f32);
-
-        if cursor_pos > self.min_cursor_pos {
-            self.need_scroll = NeedToScroll::None;
-        } else {
-            self.need_scroll = NeedToScroll::Left;
+    pub fn check_need_scroll(
+        &mut self,
+        glyphs: &Vec<LayoutGlyph>,
+        texture_node: &Node,
+    ) {
+        let cursor_pos = self.calculate_cursor_pos(glyphs, texture_node, self.cursor_index);
+        if cursor_pos >= self.max_cursor_pos - self.glyph_width {
+            self.need_scroll = NeedScroll::Right;
         }
-    }
-
-    pub fn move_cursor_pos_left_as_delete(&mut self, placeholder_node: &Node) {
-        let cursor_pos = self.calculate_cursor_pos(placeholder_node, self.cursor_index as f32);
-
-        if cursor_pos > self.min_cursor_pos {
-            if self.text_width() + self.char_width > self.widget_width_no_padding() {
-                self.need_scroll = NeedToScroll::Left;
-            } else {
-                self.need_scroll = NeedToScroll::None;
-            }
+        else if cursor_pos <= self.min_cursor_pos {
+            self.need_scroll = NeedScroll::Left;
+        }
+        else if !self.is_text_overflow() && self.move_direction == MoveDirection::Left {
+            self.need_scroll = NeedScroll::Left;
         }
         else {
-            self.need_scroll = NeedToScroll::Left;
+            self.need_scroll = NeedScroll::None;
         }
     }
 
@@ -196,18 +270,35 @@ impl FaTextEdit {
         self.selection_end_index = None;
     }
 
-    pub fn select_all(&mut self, placeholder_node: &Node, highlighter_node: &mut Node, highlighter_visibility: &mut Visibility) {
-        self.selection_start_index = Some(0);
-        self.selection_end_index = Some(self.value.len());
-        self.selected_text = self.value.clone();
-        self.cursor_index = 0;
+    /// Select all, return true if text is not empty.
+    pub fn select_all(&mut self, editor: &mut Editor) -> bool {
+        if !self.value.is_empty() {
+            self.cursor_index = 0;
+            self.selected_text = self.value.clone();
+            self.selection_start_index = Some(0);
+            self.selection_end_index = Some(self.value.len());
+            editor.set_cursor(Cursor::new(0, 0));
+            editor.set_selection(Selection::Line(editor.cursor()));
+            return true;
+        }
+        false
+    }
 
-        let start_pos = self.calculate_cursor_pos(placeholder_node, 0 as f32);
-        let end_pos = self.calculate_cursor_pos(placeholder_node, self.value.len() as f32);
-        highlighter_node.left = Val::Px(start_pos);
-        highlighter_node.top = Val::Px(self.widget_padding_top());
-        highlighter_node.width = Val::Px(end_pos - start_pos);
-        *highlighter_visibility = Visibility::Visible;
+    /// Copy text in `fa_text_input`.
+    /// - return None if text is empty.
+    pub fn copy_text(&mut self) -> Option<String> {
+        if !self.selected_text.trim().is_empty() {
+            let mut ctx = Clipboard::new().unwrap();
+            #[cfg(target_os = "linux")]
+            ctx.set().clipboard(LinuxClipboardKind::Clipboard).text(self.selected_text.clone()).unwrap();
+            #[cfg(not(target_os = "linux"))]
+            ctx.set_text(self.selected_text.clone()).unwrap();
+
+            if let Ok(copied_text) = ctx.get_text() {
+                return Some(copied_text);
+            }
+        }
+        None
     }
 
     pub fn is_ctrl_a_pressed(&self, keys: &Res<ButtonInput<KeyCode>>, keycode: KeyCode) -> bool {

@@ -3,12 +3,14 @@ use bevy::utils::HashMap;
 use bevy::window::WindowResized;
 use bevy::asset::{io::AssetSourceId, AssetPath, AssetPlugin};
 use bevy::prelude::*;
+use cosmic_text::{Color as CosmicColor, FontSystem, SwashCache, Editor, Edit};
 use std::path::Path;
 use std::fs::File;
 use std::io::Read;
 
 use crate::plugin::{CursorIcons, CursorType};
 use crate::widgets::style_parse::*;
+use crate::widgets::text_input::FaTextEdit;
 use crate::widgets::{WidgetStyle, DefaultWidgetEntity, WidgetColor, WidgetSize};
 use crate::widgets::color::*;
 use crate::errors::StylesFileError;
@@ -465,8 +467,8 @@ pub(crate) fn hide_tooltip(
 
 /// Convert mouse position from world to UI node local position
 pub fn mouse_pos_to_local_node_pos(
-    mouse_pos: &Vec2, 
-    computed_node: &ComputedNode, 
+    mouse_pos: &Vec2,
+    computed_node: &ComputedNode,
     node_transform: &GlobalTransform
 ) -> Vec2 {
     let scale_factor = computed_node.inverse_scale_factor();
@@ -482,6 +484,89 @@ pub fn mouse_pos_to_local_node_pos(
     let pos_y = (mouse_pos.y) - (node_top + padding_top);
 
     Vec2::new(pos_x, pos_y)
+}
+
+/// Convert cosmic-text Color rgba (u8) to bevy srgba (f32)
+pub fn cosmic_rgba_to_bevy_srgba(cosmic_color: CosmicColor) -> Color {
+    let (r, g, b, a) = cosmic_color.as_rgba_tuple();
+    Color::from(Srgba::rgba_u8(r, g, b, a))
+}
+
+/// Convert bevy color to cosmic rgba, support only srgba and linear-rgba
+pub fn bevy_color_to_cosmic_rgba(bevy_color: Color) -> Option<CosmicColor> {
+    match bevy_color {
+        Color::Srgba(value) => {
+            return Some(CosmicColor::rgba(
+                (value.red * 255.0) as u8,
+                (value.green * 255.0) as u8,
+                (value.blue * 255.0) as u8,
+                (value.alpha * 255.0) as u8,
+            ));
+        }
+        Color::LinearRgba(value) => {
+            return Some(CosmicColor::rgba(
+                (value.red * 255.0) as u8,
+                (value.green * 255.0) as u8,
+                (value.blue * 255.0) as u8,
+                (value.alpha * 255.0) as u8,
+            ));
+        }
+        _ => {}
+    }
+    None
+}
+
+pub fn draw_editor_buffer(
+    target_width: f32,
+    buffer_height: f32,
+    font_system: &mut FontSystem,
+    swash_cache: &mut SwashCache,
+    editor: &mut Editor,
+    text_color: CosmicColor,
+    cursor_color: CosmicColor,
+    selection_color: CosmicColor,
+    selected_text_color: CosmicColor
+) -> Vec<u8> {
+    // for some reason divided by 8, can align glyphs center vertically, i don't know -_-
+    let y_offset = buffer_height / 8.0;
+    let mut pixels: Vec<u8> = vec![0; (target_width * buffer_height) as usize * 4];
+
+    let draw_closure = |x: i32, y: i32, w: u32, h: u32, color: CosmicColor| {
+        for row in 0..h as i32 {
+            for col in 0..w as i32 {
+                // let y_row = (y + row).max(0);
+                let y_row = ((y + row) as f32 + y_offset).max(0.0) as i32;
+                let x_col = (x + col).max(0);
+
+                if y_row >= buffer_height as i32 || x_col > target_width as i32 {
+                    continue; // Prevent overflow
+                }
+
+                if color.a() == 0 {
+                    continue; // make sure glyphs have transparent background
+                }
+
+                let idx = (y_row * target_width as i32 + x_col) as usize * 4;
+                if idx + 3 < pixels.len() {
+                    pixels[idx] = color.r();
+                    pixels[idx + 1] = color.g();
+                    pixels[idx + 2] = color.b();
+                    pixels[idx + 3] = color.a();
+                }
+            }
+        }
+    };
+
+    editor.draw(
+        font_system,
+        swash_cache,
+        text_color,
+        cursor_color,
+        selection_color,
+        selected_text_color,
+        draw_closure
+    );
+    pixels
 }
 
 #[cfg(test)]
