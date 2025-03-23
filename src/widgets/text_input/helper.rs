@@ -18,12 +18,16 @@ pub(crate) fn scroll_left(buf_texture_node: &mut Node, text_edit: &FaTextEdit) {
     }
 }
 
+pub(crate) fn scroll_left_end(buf_texture_node: &mut Node) {
+    buf_texture_node.left = Val::Px(0.0);
+}
+
 /// find closest cursor index at pointer location
 pub(crate) fn find_glyph_index_on_mouse_down(
     buffer: &mut Buffer,
     font_system: &mut FontSystem,
     texture_node: &Node,
-    text_edit: &FaTextEdit,
+    text_edit: &mut FaTextEdit,
     pointer_x: f32
 ) -> Option<usize> {
     let line_layout = buffer.line_layout(font_system, 0);

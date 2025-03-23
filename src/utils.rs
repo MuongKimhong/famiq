@@ -3,14 +3,13 @@ use bevy::utils::HashMap;
 use bevy::window::WindowResized;
 use bevy::asset::{io::AssetSourceId, AssetPath, AssetPlugin};
 use bevy::prelude::*;
-use cosmic_text::{Color as CosmicColor, FontSystem, SwashCache, Editor, Edit};
+use cosmic_text::{Color as CosmicColor, FontSystem, SwashCache, Editor};
 use std::path::Path;
 use std::fs::File;
 use std::io::Read;
 
 use crate::plugin::{CursorIcons, CursorType};
 use crate::widgets::style_parse::*;
-use crate::widgets::text_input::FaTextEdit;
 use crate::widgets::{WidgetStyle, DefaultWidgetEntity, WidgetColor, WidgetSize};
 use crate::widgets::color::*;
 use crate::errors::StylesFileError;

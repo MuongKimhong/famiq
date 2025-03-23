@@ -6,13 +6,10 @@ pub mod tests;
 pub mod text_edit;
 pub mod helper;
 
-use std::num::NonZeroI8;
-
-use helper::find_glyph_index_on_mouse_down;
 use styling::*;
 pub use components::*;
 pub use text_edit::*;
-use crate::event_writer::{FaMouseEvent, FaValueChangeEvent, RequestBufferRedraw, BufferRedrawData};
+use crate::event_writer::{FaMouseEvent, FaValueChangeEvent};
 use crate::plugin::{CursorIcons, CursorType};
 use crate::utils::*;
 use crate::resources::*;
@@ -27,8 +24,7 @@ use bevy::text::TextLayoutInfo;
 use bevy::input::ButtonState;
 use bevy::prelude::*;
 use cosmic_text::{
-    Attrs, Metrics, Buffer, Editor, Family, Edit, Shaping, Weight, Cursor, Selection, Action,
-    Color as CosmicColor
+    Attrs, Metrics, Buffer, Editor, Family, Edit, Shaping, Weight, Cursor, Selection, Action
 };
 use smol_str::SmolStr;
 use arboard::Clipboard;
@@ -40,7 +36,7 @@ pub type FaTextInputResource = InputResource<IsFamiqTextInputResource>;
 /// Handles the blinking behavior of the text input cursor.
 #[derive(Resource, Debug)]
 pub struct FaTextInputCursorBlinkTimer {
-    pub timer: Timer, // change bg color every 0.5 second
+    pub timer: Timer,
     pub can_blink: bool,
     pub is_transparent: bool
 }
@@ -54,9 +50,6 @@ impl Default for FaTextInputCursorBlinkTimer {
         }
     }
 }
-
-/// The width of the text input cursor.
-pub const CURSOR_WIDTH: f32 = 1.0;
 
 /// Represents the Famiq text input widget, which includes placeholder text, a blinking cursor, and customizable styles.
 /// Support UTF-8 encoded only.
@@ -86,7 +79,7 @@ impl<'a> FaTextInput {
                 TextLayout::new(JustifyText::Left, LineBreak::NoWrap),
                 DefaultTextEntity::new(txt, txt_font, TextColor(use_color), TextLayout::new(JustifyText::Left, LineBreak::NoWrap)),
                 IsFamiqTextInputPlaceholder,
-                Node::default()
+                Node::default(),
             ))
             .id();
 
@@ -179,7 +172,7 @@ impl<'a> FaTextInput {
                     buffer,
                     &mut font_system.0,
                     texture_node,
-                    &text_edit,
+                    &mut text_edit,
                     local_pointer_pos.x
                 );
                 buffer.shape_until_scroll(&mut font_system.0, true);
@@ -227,7 +220,7 @@ impl<'a> FaTextInput {
                     buffer,
                     &mut font_system.0,
                     texture_node,
-                    &text_edit,
+                    &mut text_edit,
                     local_pointer_pos.x
                 );
                 buffer.shape_until_scroll(&mut font_system.0, true);
@@ -275,11 +268,10 @@ impl<'a> FaTextInput {
                     buffer,
                     &mut font_system.0,
                     texture_node,
-                    &text_edit,
+                    &mut text_edit,
                     local_pointer_pos.x
                 );
-                buffer.shape_until_scroll(&mut font_system.0, true);
-                buffer.shape_until_cursor(&mut font_system.0, current_cursor, true);
+
             });
 
             if let Some(glyph_index) = closest_glyph_index {
@@ -298,73 +290,28 @@ impl<'a> FaTextInput {
                 famiq_res.update_all_focus_states(false);
                 famiq_res.update_or_insert_focus_state(input_entity.0, true);
                 trigger.propagate(false);
+
+                editor.with_buffer_mut(|buffer| {
+                    buffer.shape_until_scroll(&mut font_system.0, true);
+                    buffer.shape_until_cursor(&mut font_system.0, current_cursor, true);
+                    buffer.line_shape(&mut font_system.0, 0);
+                });
             }
         }
     }
 
-    // pub(crate) fn detect_request_buffer_redraw(
-    //     mut requests: EventReader<RequestBufferRedraw>,
-    //     mut input_q: Query<(&FaTextInputBufferTextureEntity, &FaTextEdit, &mut CosmicData)>,
-    //     mut font_system: ResMut<CosmicFontSystem>,
-    //     mut swash_cache: ResMut<CosmicSwashCache>,
-    //     mut image_asset: ResMut<Assets<Image>>,
-    //     texture_q: Query<&ImageNode, With<IsFamiqTextInputBufferTexture>>,
-    // ) {
-    //     if requests.is_empty() {
-    //         return;
-    //     }
-
-    //     for e in requests.read() {
-    //         if let Ok((buf_texture_entity, text_edit, mut cosmic_data)) = input_q.get_mut(e.entity) {
-    //             let texture = texture_q.get(buf_texture_entity.0).unwrap();
-    //             let texture_asset_id = texture.image.id();
-
-    //             let text_color = cosmic_data.text_color;
-    //             let cursor_color = cosmic_data.cursor_color;
-    //             let selection_color = cosmic_data.selection_color;
-    //             let selected_text_color = cosmic_data.selected_text_color;
-    //             let buf_dim = cosmic_data.buffer_dim;
-
-    //             let total_text_width = if text_edit.value.is_empty() {
-    //                 cosmic_data.glyph_width * text_edit.placeholder_value.len() as f32
-    //             } else {
-    //                 cosmic_data.glyph_width * text_edit.value.len() as f32
-    //             };
-
-    //             if let Some(editor) = cosmic_data.editor.as_mut() {
-    //                 let pixels = draw_editor_buffer(
-    //                     total_text_width,
-    //                     buf_dim.y,
-    //                     &mut font_system.0,
-    //                     &mut swash_cache.0,
-    //                     editor,
-    //                     text_color,
-    //                     cursor_color,
-    //                     selection_color,
-    //                     selected_text_color
-    //                 );
-
-    //                 if let Some(image) = image_asset.get_mut(texture_asset_id) {
-    //                     image.data = pixels;
-    //                     image.resize(Extent3d {
-    //                         width: total_text_width as u32,
-    //                         height: buf_dim.y as u32,
-    //                         depth_or_array_layers: 1,
-    //                     });
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
-
-    pub(crate) fn detect_redraw(
-        mut input_q: Query<(&FaTextInputBufferTextureEntity, &FaTextEdit, &mut CosmicData)>,
+    pub(crate) fn redraw_glyph_buffer(
+        mut input_q: Query<(&FaTextInputBufferTextureEntity, &mut CosmicData)>,
         mut font_system: ResMut<CosmicFontSystem>,
         mut swash_cache: ResMut<CosmicSwashCache>,
         mut image_asset: ResMut<Assets<Image>>,
-        texture_q: Query<&ImageNode, With<IsFamiqTextInputBufferTexture>>,
+        texture_q: Query<(&Node, &ImageNode), With<IsFamiqTextInputBufferTexture>>,
     ) {
-        for (buf_texture_entity, text_edit, mut cosmic_data) in input_q.iter_mut() {
+        for (buf_texture_entity, mut cosmic_data) in input_q.iter_mut() {
+            let (node, texture) = texture_q.get(buf_texture_entity.0).unwrap();
+            if node.display == Display::None {
+                continue;
+            }
             let text_color = cosmic_data.text_color;
             let cursor_color = cosmic_data.cursor_color;
             let selection_color = cosmic_data.selection_color;
@@ -372,16 +319,15 @@ impl<'a> FaTextInput {
             let buf_dim = cosmic_data.buffer_dim;
 
             if let Some(editor) = cosmic_data.editor.as_mut() {
-                let texture = texture_q.get(buf_texture_entity.0).unwrap();
                 let texture_asset_id = texture.image.id();
                 let mut total_text_width = buf_dim.x;
 
-                editor.with_buffer(|buffer| {
+                editor.with_buffer_mut(|buffer| {
                     if let Some(width) = buffer.size().0 {
                         total_text_width = width;
                     }
+                    buffer.line_shape(&mut font_system.0, 0);
                 });
-
                 let pixels = draw_editor_buffer(
                     total_text_width,
                     buf_dim.y,
@@ -408,26 +354,39 @@ impl<'a> FaTextInput {
     }
 
     pub(crate) fn detect_placeholder_computed_change(
-        placeholder_q: Query<
-            (&Text, &TextFont, &ComputedNode, &FaTextInputEntity, &IsFamiqTextInputPlaceholder),
+        mut placeholder_q: Query<
+            (&mut Node, &Text, &TextFont, &ComputedNode, &FaTextInputEntity, &IsFamiqTextInputPlaceholder),
             Changed<ComputedNode>
         >,
         font_assets: Res<Assets<Font>>,
         asset_server: Res<AssetServer>,
-        mut input_q: Query<(&mut CosmicData), With<IsFamiqTextInput>>,
+        mut input_q: Query<&mut CosmicData, With<IsFamiqTextInput>>,
         mut font_system: ResMut<CosmicFontSystem>,
-        // mut request_redraw: EventWriter<RequestBufferRedraw>,
+        famiq_res: Res<FamiqResource>,
         mut commands: Commands,
     ) {
-        for (text, text_font, computed, input_entity, _) in placeholder_q.iter() {
-            let (mut cosmic_data) = input_q.get_mut(input_entity.0).unwrap();
+        for (mut node, text, text_font, computed, input_entity, _) in placeholder_q.iter_mut() {
+            let mut cosmic_data = input_q.get_mut(input_entity.0).unwrap();
             let width  = computed.size().x * computed.inverse_scale_factor();
             let height = computed.size().y * computed.inverse_scale_factor();
+
 
             if height > 0.0 && width > 0.0 {
                 cosmic_data.buffer_dim = Vec2::new(width, height);
 
                 if cosmic_data.editor.is_some() {
+                    let editor = cosmic_data.editor.as_mut().unwrap();
+                    let cursor = editor.cursor();
+                    editor.with_buffer_mut(|buffer| {
+                        buffer.set_size(&mut font_system.0, Some(width), Some(height));
+                        buffer.shape_until_scroll(&mut font_system.0, true);
+                        buffer.shape_until_cursor(&mut font_system.0, cursor, true);
+                    });
+                    if let Some(focused) = famiq_res.get_widget_focus_state(&input_entity.0) {
+                        if focused {
+                            node.display = Display::None;
+                        }
+                    }
                     continue;
                 }
                 if let Some(font) = font_assets.get(&text_font.font) {
@@ -440,6 +399,7 @@ impl<'a> FaTextInput {
                 buffer.set_text(&mut font_system.0, &text.0, attrs, Shaping::Advanced);
                 buffer.set_size(&mut font_system.0, Some(width), Some(height));
                 buffer.shape_until_scroll(&mut font_system.0, true);
+                buffer.shape_until_cursor(&mut font_system.0, Cursor::new(0, 0), true);
 
                 let mut editor = Editor::new(buffer.clone());
                 let pixels: Vec<u8> = vec![0; (width * height) as usize * 4];
@@ -504,7 +464,6 @@ impl<'a> FaTextInput {
             (With<IsFamiqTextInputPlaceholder>, Without<IsFamiqTextInputBufferTexture>)
         >,
         mut cursor_blink_timer: ResMut<FaTextInputCursorBlinkTimer>,
-        // mut request_redraw: EventWriter<RequestBufferRedraw>,
         famiq_res: Res<FamiqResource>
     ) {
         if !famiq_res.is_changed() || famiq_res.is_added() {
@@ -528,7 +487,6 @@ impl<'a> FaTextInput {
 
                     let duration =  cursor_blink_timer.timer.duration();
                     cursor_blink_timer.timer.set_elapsed(duration);
-                    // request_redraw.send(RequestBufferRedraw::new(input_entity));
                 }
                 else {
                     if text_edit.value.is_empty() {
@@ -632,14 +590,14 @@ impl<'a> FaTextInput {
 
     /// Internal system to detect placeholder's style (font-size & color) changes
     pub(crate) fn detect_placeholder_style_change(
-        placeholder_q: Query<
-            (&TextFont, &TextColor, &FaTextInputEntity, &IsFamiqTextInputPlaceholder),
+        mut placeholder_q: Query<
+            (&mut Node, &TextFont, &TextColor, &FaTextInputEntity, &IsFamiqTextInputPlaceholder),
             Or<(Changed<TextFont>, Changed<TextColor>)>
         >,
-        mut input_q: Query<(&mut CosmicData), With<IsFamiqTextInput>>,
+        mut input_q: Query<&mut CosmicData, With<IsFamiqTextInput>>,
         mut font_system: ResMut<CosmicFontSystem>
     ) {
-        placeholder_q.iter().for_each(|(font, color, input_entity, _)| {
+        placeholder_q.iter_mut().for_each(|(mut node, font, color, input_entity, _)| {
             let mut cosmic_data = input_q.get_mut(input_entity.0).unwrap();
             if let Some(cosmic_color) = bevy_color_to_cosmic_rgba(color.0) {
                 cosmic_data.text_color = cosmic_color;
@@ -649,16 +607,17 @@ impl<'a> FaTextInput {
 
             if font.font_size > 0.0 {
                 if let Some(editor) = cosmic_data.editor.as_mut() {
+                    let cursor = editor.cursor();
+                    editor.set_redraw(true);
                     editor.with_buffer_mut(|buffer| {
-                        // buffer.set_metrics(&mut font_system.0, Metrics::relative(font.font_size, 1.0));
+                        buffer.set_metrics(&mut font_system.0, Metrics::relative(font.font_size, 1.0));
+                        buffer.shape_until_scroll(&mut font_system.0, true);
+                        buffer.shape_until_cursor(&mut font_system.0, cursor, true);
 
-                        // let mut new_width = 3000.0;
-                        // let new_height = buffer.metrics().line_height;
-
-                        // if let Some(layout) = buffer.line_layout(&mut font_system.0, 0) {
-                        //     new_width = layout[0].w;
-                        // }
-                        // buffer.set_size(&mut font_system.0, Some(new_width), Some(new_height));
+                        // set placeholder node back to default to make its ComputedNode
+                        // change inside detect_placeholder_computed_change system.
+                        // Once buffer size is set, change the display back to None.
+                        node.display = Display::default();
                     });
                 }
             }
@@ -710,6 +669,7 @@ impl<'a> FaTextInput {
 
                     if text_edit.is_ctrl_a_pressed(&keys, e.key_code) {
                         if text_edit.select_all(editor) {
+                            helper::scroll_left_end(&mut texture_node);
                             continue;
                         }
                     }
@@ -816,18 +776,12 @@ impl<'a> FaTextInput {
                             // line index is 0 because fa_text_input is single line.
                             if let Some(layout) = buffer.line_layout(&mut font_system.0, 0) {
                                 text_edit.text_width = layout[0].w;
-
-                                if text_edit.glyph_width == 0.0 {
-                                    text_edit.glyph_width = text_edit.text_width / text_edit.value.len() as f32;
-                                }
                                 let glyphs = &layout[0].glyphs;
                                 text_edit.check_need_scroll(glyphs, &texture_node);
 
-                                // - give buffer extra space to avoid weird rendering and also,
+                                // - give buffer width extra space to avoid weird rendering and also,
                                 //   buffer width is not useful anywhere else.
-                                // - only layout[0].w is useful for scrolling, overflow calculation.
-                                let extra_space = 10.0;
-                                buffer.set_size(&mut font_system.0, Some(text_edit.text_width + extra_space), Some(buf_dim.y));
+                                buffer.set_size(&mut font_system.0, Some(text_edit.text_width + (text_edit.glyph_width * 2.0)), Some(buf_dim.y));
                             }
                         }
                         buffer.shape_until_scroll(&mut font_system.0, true);
@@ -858,7 +812,6 @@ impl<'a> FaTextInput {
     pub(crate) fn handle_cursor_blink_system(
         mut input_q: Query<(Entity, &mut CosmicData), With<IsFamiqTextInput>>,
         mut blink_timer: ResMut<FaTextInputCursorBlinkTimer>,
-        mut request_redraw: EventWriter<RequestBufferRedraw>,
         builder_res: Res<FamiqResource>,
         time: Res<Time>,
     ) {
@@ -869,7 +822,6 @@ impl<'a> FaTextInput {
                         blink_timer.is_transparent = false;
                         blink_timer.timer.reset();
                         cosmic_data.cursor_color = cosmic_data.text_color;
-                        request_redraw.send(RequestBufferRedraw::new(entity));
                         continue;
                     }
 
@@ -882,7 +834,6 @@ impl<'a> FaTextInput {
                         else {
                             cosmic_data.cursor_color = CURSOR_INVISIBLE;
                         }
-                        request_redraw.send(RequestBufferRedraw::new(entity));
                         blink_timer.is_transparent = !blink_timer.is_transparent;
                     }
                 },

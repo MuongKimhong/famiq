@@ -101,7 +101,6 @@ fn fa_text_input_systems(app: &mut App) {
         Update,
         (
             FaTextInput::handle_text_input_on_typing,
-            // FaTextInput::detect_cursor_index_change.after(FaTextInput::handle_text_input_on_typing),
             FaTextInput::detect_placeholder_style_change,
             FaTextInput::handle_text_input_on_focused,
             FaTextInput::detect_placeholder_computed_change,
@@ -110,7 +109,7 @@ fn fa_text_input_systems(app: &mut App) {
         )
         .run_if(can_run_text_input_systems)
     );
-    app.add_systems(PostUpdate, FaTextInput::detect_redraw);
+    app.add_systems(PostUpdate, FaTextInput::redraw_glyph_buffer);
 }
 
 fn fa_text_systems(app: &mut App) {
@@ -220,7 +219,6 @@ impl Plugin for FamiqPlugin {
 
         app.add_event::<event_writer::FaValueChangeEvent>();
         app.add_event::<event_writer::FaMouseEvent>();
-        app.add_event::<event_writer::RequestBufferRedraw>();
 
         external_styles_file_systems(app);
         fa_text_systems(app);

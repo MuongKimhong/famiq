@@ -165,34 +165,3 @@ impl FaValueChangeEvent {
         }
     }
 }
-
-#[derive(Default, Debug)]
-pub(crate) struct BufferRedrawData {
-    pub(crate) text: String,
-    pub(crate) cursor_index: usize
-}
-
-#[derive(Event, Debug)]
-pub(crate) struct RequestBufferRedraw {
-    /// which entity that buffer belongs to
-    pub(crate) entity: Entity,
-
-    /// text to draw
-    pub(crate) data: Option<BufferRedrawData>
-}
-
-impl RequestBufferRedraw {
-    pub fn new(entity: Entity) -> Self {
-        Self {
-            entity,
-            data: None
-        }
-    }
-
-    pub fn new_with_data(entity: Entity, data: BufferRedrawData) -> Self {
-        Self {
-            entity,
-            data: Some(data)
-        }
-    }
-}

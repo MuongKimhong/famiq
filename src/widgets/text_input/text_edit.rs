@@ -229,7 +229,7 @@ impl FaTextEdit {
 
     /// calculate cursor position for given cursor index
     pub fn calculate_cursor_pos(
-        &self,
+        &mut self,
         glyphs: &Vec<LayoutGlyph>,
         texture_node: &Node,
         index: usize
@@ -239,7 +239,8 @@ impl FaTextEdit {
         let mut pos = 0.0;
 
         for i in 0..max_index {
-            pos += glyphs[i].w;
+            self.glyph_width = glyphs[i].w;
+            pos += self.glyph_width;
         }
         left_val + pos
     }
