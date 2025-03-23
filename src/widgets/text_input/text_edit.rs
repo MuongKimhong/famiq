@@ -13,7 +13,7 @@ use crate::utils::*;
 pub const DEFAULT_CURSOR_COLOR: CosmicColor = CosmicColor::rgb(0, 0, 0); // black
 pub const CURSOR_INVISIBLE: CosmicColor = CosmicColor::rgba(0, 0, 0, 0);
 pub const DEFAULT_TEXT_COLOR: CosmicColor = CosmicColor::rgb(0, 0, 0);
-pub const DEFAULT_SELECTION_COLOR: CosmicColor = CosmicColor::rgba(156, 156, 156, (0.6 * 255.0) as u8);
+pub const DEFAULT_SELECTION_COLOR: CosmicColor = CosmicColor::rgba(156, 156, 156, (0.4 * 255.0) as u8);
 pub const DEFAULT_SELECTED_TEXT_COLOR: CosmicColor = CosmicColor::rgb(0, 0, 0);
 
 #[derive(Default, Debug)]

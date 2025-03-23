@@ -6,6 +6,7 @@ pub mod tests;
 pub mod text_edit;
 pub mod helper;
 
+use bevy::image::ImageSampler;
 use styling::*;
 pub use components::*;
 pub use text_edit::*;
@@ -182,6 +183,7 @@ impl<'a> FaTextInput {
                 text_edit.cursor_index = glyph_index;
                 text_edit.clear_selection();
                 editor.set_cursor(Cursor::new(0, text_edit.cursor_index));
+                editor.action(&mut font_system.0, Action::Escape);
                 famiq_res.update_all_focus_states(false);
                 famiq_res.update_or_insert_focus_state(input_entity.0, true);
                 trigger.propagate(false);
@@ -295,6 +297,7 @@ impl<'a> FaTextInput {
                     buffer.shape_until_scroll(&mut font_system.0, true);
                     buffer.shape_until_cursor(&mut font_system.0, current_cursor, true);
                     buffer.line_shape(&mut font_system.0, 0);
+                    buffer.set_redraw(true);
                 });
             }
         }
@@ -364,6 +367,7 @@ impl<'a> FaTextInput {
         mut font_system: ResMut<CosmicFontSystem>,
         famiq_res: Res<FamiqResource>,
         mut commands: Commands,
+        window: Single<&Window>
     ) {
         for (mut node, text, text_font, computed, input_entity, _) in placeholder_q.iter_mut() {
             let mut cosmic_data = input_q.get_mut(input_entity.0).unwrap();
@@ -393,18 +397,19 @@ impl<'a> FaTextInput {
                     font_system.0.db_mut().load_font_data((*font.data).clone());
                 }
                 let attrs = Attrs::new().family(Family::Monospace).weight(Weight::MEDIUM);
-                let metrics = Metrics::relative(text_font.font_size, 1.0);
+                let metrics = Metrics::relative(text_font.font_size, 1.0).scale(window.scale_factor());
 
                 let mut buffer = Buffer::new(&mut font_system.0, metrics);
                 buffer.set_text(&mut font_system.0, &text.0, attrs, Shaping::Advanced);
                 buffer.set_size(&mut font_system.0, Some(width), Some(height));
+                buffer.set_redraw(true);
                 buffer.shape_until_scroll(&mut font_system.0, true);
                 buffer.shape_until_cursor(&mut font_system.0, Cursor::new(0, 0), true);
 
                 let mut editor = Editor::new(buffer.clone());
                 let pixels: Vec<u8> = vec![0; (width * height) as usize * 4];
 
-                let texture = Image::new_fill(
+                let mut texture = Image::new_fill(
                     Extent3d {
                         width: width as u32,
                         height: height as u32,
@@ -415,6 +420,7 @@ impl<'a> FaTextInput {
                     TextureFormat::Rgba8UnormSrgb,
                     RenderAssetUsages::default()
                 );
+                texture.sampler = ImageSampler::linear();
                 let texture_handle = asset_server.add(texture);
                 let texture_image = commands
                     .spawn((
@@ -788,6 +794,7 @@ impl<'a> FaTextInput {
                         buffer.shape_until_cursor(&mut font_system.0, current_cursor, true);
                     });
                     editor.set_cursor(Cursor::new(0, text_edit.cursor_index));
+                    editor.set_redraw(true);
 
                     match text_edit.need_scroll {
                         NeedScroll::Right => helper::scroll_right(&mut texture_node, &text_edit),

@@ -526,32 +526,50 @@ pub fn draw_editor_buffer(
     selection_color: CosmicColor,
     selected_text_color: CosmicColor
 ) -> Vec<u8> {
-    // for some reason divided by 8, can align glyphs center vertically, i don't know -_-
     let y_offset = buffer_height / 8.0;
-    let mut pixels: Vec<u8> = vec![0; (target_width * buffer_height) as usize * 4];
+    let width = target_width as usize;
+    let height = buffer_height as usize;
+    let mut pixels: Vec<u8> = vec![0; width * height * 4];
 
     let draw_closure = |x: i32, y: i32, w: u32, h: u32, color: CosmicColor| {
         for row in 0..h as i32 {
             for col in 0..w as i32 {
-                // let y_row = (y + row).max(0);
                 let y_row = ((y + row) as f32 + y_offset).max(0.0) as i32;
                 let x_col = (x + col).max(0);
 
-                if y_row >= buffer_height as i32 || x_col > target_width as i32 {
-                    continue; // Prevent overflow
+                if y_row >= height as i32 || x_col >= width as i32 {
+                    continue;
                 }
 
-                if color.a() == 0 {
-                    continue; // make sure glyphs have transparent background
+                let idx = (y_row as usize * width + x_col as usize) * 4;
+
+                if idx + 3 >= pixels.len() {
+                    continue;
                 }
 
-                let idx = (y_row * target_width as i32 + x_col) as usize * 4;
-                if idx + 3 < pixels.len() {
-                    pixels[idx] = color.r();
-                    pixels[idx + 1] = color.g();
-                    pixels[idx + 2] = color.b();
-                    pixels[idx + 3] = color.a();
-                }
+                // convert to [0, 1]
+                let src_r = color.r() as f32 / 255.0;
+                let src_g = color.g() as f32 / 255.0;
+                let src_b = color.b() as f32 / 255.0;
+                let src_a = color.a() as f32 / 255.0;
+
+                // Destination color (rendered color) in float [0, 1]
+                let dst_r = pixels[idx] as f32 / 255.0;
+                let dst_g = pixels[idx + 1] as f32 / 255.0;
+                let dst_b = pixels[idx + 2] as f32 / 255.0;
+                let dst_a = pixels[idx + 3] as f32 / 255.0;
+
+                // blend alpha
+                let out_a = src_a + dst_a * (1.0 - src_a);
+                let out_r = (src_r * src_a + dst_r * dst_a * (1.0 - src_a)) / out_a.max(1e-6);
+                let out_g = (src_g * src_a + dst_g * dst_a * (1.0 - src_a)) / out_a.max(1e-6);
+                let out_b = (src_b * src_a + dst_b * dst_a * (1.0 - src_a)) / out_a.max(1e-6);
+
+                // Write blended color back to pixel buffer
+                pixels[idx]     = (out_r * 255.0).clamp(0.0, 255.0) as u8;
+                pixels[idx + 1] = (out_g * 255.0).clamp(0.0, 255.0) as u8;
+                pixels[idx + 2] = (out_b * 255.0).clamp(0.0, 255.0) as u8;
+                pixels[idx + 3] = (out_a * 255.0).clamp(0.0, 255.0) as u8;
             }
         }
     };
@@ -563,10 +581,12 @@ pub fn draw_editor_buffer(
         cursor_color,
         selection_color,
         selected_text_color,
-        draw_closure
+        draw_closure,
     );
+
     pixels
 }
+
 
 #[cfg(test)]
 mod tests {
