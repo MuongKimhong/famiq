@@ -211,7 +211,6 @@ impl Plugin for FamiqPlugin {
         app.insert_resource(CanBeScrolledListView { entity: None });
         app.insert_resource(FaSelectionResource::default());
         app.insert_resource(FaTextInputResource::default());
-        app.insert_resource(FaTextInputCursorBlinkTimer::default());
         app.insert_resource(FaProgressBarResource::default());
         app.insert_resource(FaModalState::default());
         app.insert_resource(FaTextResource::default());

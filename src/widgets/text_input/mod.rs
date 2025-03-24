@@ -35,16 +35,16 @@ pub struct IsFamiqTextInputResource;
 pub type FaTextInputResource = InputResource<IsFamiqTextInputResource>;
 
 /// Handles the blinking behavior of the text input cursor.
-#[derive(Resource, Debug)]
-pub struct FaTextInputCursorBlinkTimer {
+#[derive(Component, Debug)]
+pub struct CursorBlinkTimer {
     pub timer: Timer,
     pub can_blink: bool,
     pub is_transparent: bool
 }
 
-impl Default for FaTextInputCursorBlinkTimer {
+impl Default for CursorBlinkTimer {
     fn default() -> Self {
-        FaTextInputCursorBlinkTimer {
+        CursorBlinkTimer {
             timer: Timer::from_seconds(0.6, TimerMode::Repeating),
             can_blink: true,
             is_transparent: false
@@ -118,6 +118,7 @@ impl<'a> FaTextInput {
                 CosmicDataColor::new(placeholder_color),
                 CosmicData::default(),
                 TextColor(get_text_color(&attributes.color)),
+                CursorBlinkTimer::default(),
                 txt_font
             ))
             .observe(FaTextInput::handle_on_mouse_over)
@@ -317,8 +318,9 @@ impl<'a> FaTextInput {
         mut image_asset: ResMut<Assets<Image>>,
         texture_q: Query<&ImageNode, With<IsFamiqTextInputBufferTexture>>,
     ) {
+        use std::time::Instant;
+        let now = Instant::now();
         for (buf_texture_entity, cosmic_data_color, mut cosmic_data) in input_q.iter_mut() {
-            let texture = texture_q.get(buf_texture_entity.0).unwrap();
 
             let CosmicData {
                 editor,
@@ -327,51 +329,57 @@ impl<'a> FaTextInput {
                 ..
             } = &mut *cosmic_data;
 
+
             if let Some(editor) = editor.as_mut() {
-                draw_editor_buffer(
-                    buffer_dim,
-                    &mut font_system.0,
-                    &mut swash_cache.0,
-                    editor,
-                    pixels,
-                    cosmic_data_color.text_color,
-                    cosmic_data_color.cursor_color,
-                    cosmic_data_color.selection_color,
-                    cosmic_data_color.selected_text_color,
-                );
-            }
-            let texture_asset_id = texture.image.id();
-            if let Some(image) = image_asset.get_mut(texture_asset_id) {
-                image.resize(Extent3d {
-                    width: buffer_dim.x as u32,
-                    height: buffer_dim.y as u32,
-                    depth_or_array_layers: 1,
-                });
-                image.data.clear();
-                image.data.extend_from_slice(&pixels);
+                if editor.redraw() {
+                    draw_editor_buffer(
+                        buffer_dim,
+                        &mut font_system.0,
+                        &mut swash_cache.0,
+                        editor,
+                        pixels,
+                        cosmic_data_color.text_color,
+                        cosmic_data_color.cursor_color,
+                        cosmic_data_color.selection_color,
+                        cosmic_data_color.selected_text_color,
+                    );
+                    editor.set_redraw(false);
+                }
+
+                let texture = texture_q.get(buf_texture_entity.0).unwrap();
+                let texture_asset_id = texture.image.id();
+                if let Some(image) = image_asset.get_mut(texture_asset_id) {
+                    let new_size = Extent3d {
+                        width: buffer_dim.x as u32,
+                        height: buffer_dim.y as u32,
+                        depth_or_array_layers: 1,
+                    };
+                    if image.texture_descriptor.size != new_size {
+                        image.resize(new_size);
+                    }
+                    image.data.copy_from_slice(pixels);
+                }
             }
         }
+        let elapsed = now.elapsed();
+        println!("Elapsed: {:.2?}", elapsed);
     }
 
     pub(crate) fn handle_text_input_on_focused(
-        mut input_q: Query<(Entity, &mut CosmicDataColor)>,
-        mut cursor_blink_timer: ResMut<FaTextInputCursorBlinkTimer>,
+        mut input_q: Query<(Entity, &mut CursorBlinkTimer, &mut CosmicDataColor)>,
         famiq_res: Res<FamiqResource>
     ) {
         if !famiq_res.is_changed() || famiq_res.is_added() {
             return;
         }
 
-        input_q.iter_mut().for_each(|(entity, mut cosmic_data_color)| {
+        input_q.iter_mut().for_each(|(entity, mut cursor_blink, mut cosmic_data_color)| {
             if let Some(focused) = famiq_res.get_widget_focus_state(&entity) {
                 if focused {
                     cosmic_data_color.cursor_color = cosmic_data_color.text_color;
-                    let duration =  cursor_blink_timer.timer.duration();
-                    cursor_blink_timer.timer.set_elapsed(duration);
                 }
-                else {
-                    cosmic_data_color.cursor_color = CURSOR_INVISIBLE;
-                }
+                let duration =  cursor_blink.timer.duration();
+                cursor_blink.timer.set_elapsed(duration);
             }
         });
     }
@@ -487,11 +495,10 @@ impl<'a> FaTextInput {
 
                 // give extra space to buffer width to prevent weired rendering
                 let buffer_dim = Vec2::new(
-                    text_edit.text_width + (text_edit.text_width / 2.0),
+                    text_edit.text_width + 5.0,
                     text_edit.text_height + 5.0
                 );
                 buffer.set_size(Some(buffer_dim.x), Some(buffer_dim.y));
-                buffer.set_redraw(true);
                 buffer.shape_until_scroll(true);
                 buffer.shape_until_cursor(Cursor::new(0, 0), true);
 
@@ -502,7 +509,7 @@ impl<'a> FaTextInput {
                 let buffer_height_u32 = buffer_dim.y as u32;
                 let pixels: Vec<u8> = vec![0; (buffer_width_u32 * buffer_height_u32) as usize * 4];
 
-                let mut texture = Image::new_fill(
+                let texture = Image::new_fill(
                     Extent3d {
                         width: buffer_width_u32,
                         height: buffer_height_u32,
@@ -513,7 +520,6 @@ impl<'a> FaTextInput {
                     TextureFormat::Rgba8UnormSrgb,
                     RenderAssetUsages::default()
                 );
-                texture.sampler = ImageSampler::linear();
                 let texture_handle = asset_server.add(texture);
 
                 let texture_image = commands
@@ -767,40 +773,61 @@ impl<'a> FaTextInput {
     // }
 
     pub(crate) fn handle_cursor_blink_system(
-        mut input_q: Query<(Entity, &mut CosmicDataColor), With<IsFamiqTextInput>>,
-        mut blink_timer: ResMut<FaTextInputCursorBlinkTimer>,
+        mut input_q: Query<(
+            Entity,
+            &mut CursorBlinkTimer,
+            &mut CosmicDataColor,
+            &mut CosmicData
+        ), With<IsFamiqTextInput>>,
         famiq_res: Res<FamiqResource>,
         time: Res<Time>,
     ) {
-        for (entity, mut cosmic_data_color) in input_q.iter_mut() {
-            match famiq_res.get_widget_focus_state(&entity) {
-                Some(true) => {
-                    if !blink_timer.can_blink {
-                        blink_timer.is_transparent = false;
-                        blink_timer.timer.reset();
-                        cosmic_data_color.cursor_color = cosmic_data_color.text_color;
-                        continue;
-                    }
+        for (entity, mut blink_timer, mut cosmic_color, mut cosmic_data) in input_q.iter_mut() {
+            let is_focused = famiq_res.get_widget_focus_state(&entity) == Some(true);
 
-                    blink_timer.timer.tick(time.delta());
+            if is_focused {
+                if !blink_timer.can_blink {
+                    blink_timer.is_transparent = false;
+                    blink_timer.timer.reset();
+                    cosmic_color.cursor_color = cosmic_color.text_color;
+                    continue;
+                }
 
-                    if blink_timer.timer.finished(){
-                        if blink_timer.is_transparent {
-                            cosmic_data_color.cursor_color = cosmic_data_color.text_color;
-                        }
-                        else {
-                            cosmic_data_color.cursor_color = CURSOR_INVISIBLE;
-                        }
-                        blink_timer.is_transparent = !blink_timer.is_transparent;
+                blink_timer.timer.tick(time.delta());
+
+                if blink_timer.timer.finished() {
+                    blink_timer.is_transparent = !blink_timer.is_transparent;
+
+                    cosmic_color.cursor_color = if blink_timer.is_transparent {
+                        CURSOR_INVISIBLE
+                    } else {
+                        cosmic_color.text_color
+                    };
+
+                    if let Some(editor) = cosmic_data.editor.as_mut() {
+                        editor.set_redraw(true);
                     }
-                },
-                _ => {
-                    cosmic_data_color.cursor_color = CURSOR_INVISIBLE;
+                }
+            } else {
+                blink_timer.timer.tick(time.delta());
+
+                if blink_timer.timer.finished() && !blink_timer.is_transparent {
+                    blink_timer.is_transparent = true;
+                    cosmic_color.cursor_color = CURSOR_INVISIBLE;
+
+                    if let Some(editor) = cosmic_data.editor.as_mut() {
+                        editor.set_redraw(true);
+                    }
+                }
+                else if blink_timer.is_transparent {
+                    if let Some(editor) = cosmic_data.editor.as_mut() {
+                        editor.set_redraw(false);
+                    }
                 }
             }
         }
-        blink_timer.can_blink = true;
     }
+
 }
 
 /// Builder for creating and customizing `FaTextInput` widgets.

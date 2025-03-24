@@ -70,7 +70,7 @@ fn create_circulars(builder: &mut FamiqBuilder) -> Entity {
 
 fn create_text_inputs(builder: &mut FamiqBuilder) -> Entity {
     let input_text_one = fa_text(builder, "").id("#input-text-one").class("input").build();
-    let input_one = fa_text_input(builder, "What's on your mind?")
+    let input_one = fa_text_input(builder, "Hello world gg bro")
         .id("#input-one")
         .class("input mx-2")
         .build();
@@ -81,8 +81,34 @@ fn create_text_inputs(builder: &mut FamiqBuilder) -> Entity {
         .class("input is-dark mx-2")
         .build();
 
+    let input_three = fa_text_input(builder, "What's on your mind?")
+        .class("input is-dark mx-2")
+        .build();
+    let input_four = fa_text_input(builder, "What's on your mind?")
+        .class("input is-dark mx-2")
+        .build();
+    let input_five = fa_text_input(builder, "What's on your mind?")
+        .class("input is-dark mx-2")
+        .build();
+    let input_six = fa_text_input(builder, "What's on your mind?")
+        .class("input is-dark mx-2")
+        .build();
+    let input_seven = fa_text_input(builder, "What's on your mind?")
+        .class("input is-dark mx-2")
+        .build();
+    let input_eight = fa_text_input(builder, "What's on your mind?")
+        .class("input is-dark mx-2")
+        .build();
+    let input_nine = fa_text_input(builder, "What's on your mind?")
+        .class("input is-dark mx-2")
+        .build();
+
     fa_container(builder).class("my-2  block")
-        .children([input_text_one, input_text_two, input_one, input_two])
+        .children([
+            input_text_one, input_text_two, input_one, input_two,
+            input_three, input_four, input_five, input_six, input_seven,
+            input_eight, input_nine
+        ])
         .build()
 }
 
@@ -97,7 +123,7 @@ fn create_selections(builder: &mut FamiqBuilder) -> Entity {
         .build();
 
     let text_two = fa_text(builder, "").id("#selection-text-two").class("input").build();
-    let selection_two = fa_selection(builder, "Choose a choice")
+    let selection_two = fa_selection(builder, "Choose a choice pleaseqgg")
         .id("#selection-two")
         .class("input is-dark mx-2")
         .choices(choices)

@@ -11,6 +11,8 @@
     "align_items": "center"
   },
   ".input": {
-    "width": "40%"
+    "width": "40%",
+    "font_size": "30",
+    "color": "green"
   }
 }

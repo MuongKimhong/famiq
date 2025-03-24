@@ -430,7 +430,7 @@ pub(crate) fn get_text_color(variant: &WidgetColor) -> Color {
 
 pub(crate) fn get_text_size(size: &WidgetSize) -> f32 {
     let size_small = 12.0;
-    let size_normal = 20.0;
+    let size_normal = 30.0;
     let size_large = 18.0;
 
     match size {
