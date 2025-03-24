@@ -102,8 +102,8 @@ fn fa_text_input_systems(app: &mut App) {
         (
             // FaTextInput::handle_text_input_on_typing,
             // FaTextInput::detect_placeholder_style_change,
+            FaTextInput::detect_text_input_text_style_change,
             FaTextInput::handle_text_input_on_focused,
-            // FaTextInput::detect_placeholder_computed_change,
             FaTextInput::handle_cursor_blink_system,
             FaTextInput::detect_new_text_input_widget_system
         )

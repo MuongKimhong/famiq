@@ -548,41 +548,40 @@ impl<'a> FaTextInput {
         });
     }
 
-    // /// Internal system to detect placeholder's style (font-size & color) changes
-    // pub(crate) fn detect_placeholder_style_change(
-    //     mut placeholder_q: Query<
-    //         (&mut Node, &TextFont, &TextColor, &FaTextInputEntity, &IsFamiqTextInputPlaceholder),
-    //         Or<(Changed<TextFont>, Changed<TextColor>)>
-    //     >,
-    //     mut input_q: Query<&mut CosmicData, With<IsFamiqTextInput>>,
-    //     mut font_system: ResMut<CosmicFontSystem>
-    // ) {
-    //     placeholder_q.iter_mut().for_each(|(mut node, font, color, input_entity, _)| {
-    //         let mut cosmic_data = input_q.get_mut(input_entity.0).unwrap();
-    //         if let Some(cosmic_color) = bevy_color_to_cosmic_rgba(color.0) {
-    //             cosmic_data.text_color = cosmic_color;
-    //             cosmic_data.cursor_color = cosmic_color;
-    //             cosmic_data.selected_text_color = cosmic_color;
-    //         }
+    /// Internal system to detect text's style (font-size & color) changes
+    pub(crate) fn detect_text_input_text_style_change(
+        mut input_q: Query<
+            (&mut CosmicData, &mut CosmicDataColor, &TextFont, &TextColor, &IsFamiqTextInput), 
+            Or<(Changed<TextColor>, Changed<TextFont>)>
+        >,
+        mut font_system: ResMut<CosmicFontSystem>
+    ) {
+        input_q.iter_mut().for_each(|(mut cosmic_data, mut cosmic_data_color, text_font, text_color, _)| {
+            if let Some(cosmic_color) = bevy_color_to_cosmic_rgba(text_color.0) {
+                println!("called");
+                cosmic_data_color.text_color = cosmic_color;
+                cosmic_data_color.cursor_color = cosmic_color;
+                cosmic_data_color.selected_text_color = cosmic_color;
+            }
 
-    //         if font.font_size > 0.0 {
-    //             if let Some(editor) = cosmic_data.editor.as_mut() {
-    //                 let cursor = editor.cursor();
-    //                 editor.set_redraw(true);
-    //                 editor.with_buffer_mut(|buffer| {
-    //                     buffer.set_metrics(&mut font_system.0, Metrics::relative(font.font_size, 1.0));
-    //                     buffer.shape_until_scroll(&mut font_system.0, true);
-    //                     buffer.shape_until_cursor(&mut font_system.0, cursor, true);
+            // if font.font_size > 0.0 {
+            //     if let Some(editor) = cosmic_data.editor.as_mut() {
+            //         let cursor = editor.cursor();
+            //         editor.set_redraw(true);
+            //         editor.with_buffer_mut(|buffer| {
+            //             buffer.set_metrics(&mut font_system.0, Metrics::relative(font.font_size, 1.0));
+            //             buffer.shape_until_scroll(&mut font_system.0, true);
+            //             buffer.shape_until_cursor(&mut font_system.0, cursor, true);
 
-    //                     // set placeholder node back to default to make its ComputedNode
-    //                     // change inside detect_placeholder_computed_change system.
-    //                     // Once buffer size is set, change the display back to None.
-    //                     node.display = Display::default();
-    //                 });
-    //             }
-    //         }
-    //     });
-    // }
+            //             // set placeholder node back to default to make its ComputedNode
+            //             // change inside detect_placeholder_computed_change system.
+            //             // Once buffer size is set, change the display back to None.
+            //             node.display = Display::default();
+            //         });
+            //     }
+            // }
+        });
+    }
 
     // pub(crate) fn handle_text_input_on_typing(
     //     mut input_q: Query<
