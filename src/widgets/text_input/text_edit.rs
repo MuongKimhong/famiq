@@ -29,12 +29,9 @@ pub struct CosmicData {
     pub editor: Option<Editor<'static>>,
     pub attrs: Option<Attrs<'static>>,
     pub metrics: Option<Metrics>,
-    pub text_color: CosmicColor,
-    pub cursor_color: CosmicColor,
-    pub selection_color: CosmicColor,
-    pub selected_text_color: CosmicColor,
     pub font_size: f32,
-    pub buffer_dim: Vec2
+    pub buffer_dim: Vec2, // CosmicData's buffer dim is always bigger than text_width & and text_height
+    pub pixels: Vec<u8>
 }
 
 #[derive(Debug, Default, PartialEq)]
@@ -50,37 +47,51 @@ impl Default for CosmicData {
             editor: None,
             attrs: None,
             metrics: None,
-            cursor_color: DEFAULT_CURSOR_COLOR,
+            font_size: f32::default(),
+            buffer_dim: Vec2::default(),
+            pixels: Vec::new()
+        }
+    }
+}
+
+#[derive(Component, Debug)]
+pub struct CosmicDataColor {
+    pub text_color: CosmicColor,
+    pub cursor_color: CosmicColor,
+    pub selection_color: CosmicColor,
+    pub selected_text_color: CosmicColor,
+}
+
+impl Default for CosmicDataColor {
+    fn default() -> Self {
+        Self {
+            cursor_color: CURSOR_INVISIBLE,
             selection_color: DEFAULT_SELECTION_COLOR,
             text_color: DEFAULT_TEXT_COLOR,
-            selected_text_color: DEFAULT_SELECTED_TEXT_COLOR,
-            font_size: f32::default(),
-            buffer_dim: Vec2::default()
+            selected_text_color: DEFAULT_SELECTED_TEXT_COLOR
         }
     }
 }
 
-impl CosmicData {
+impl CosmicDataColor {
     pub fn new(text_color: Color) -> Self {
-        let mut cosmic_data = CosmicData::default();
+        let mut cosmic_data_color = CosmicDataColor::default();
 
         if let Some(converted_color) = bevy_color_to_cosmic_rgba(text_color) {
-            cosmic_data.text_color = converted_color;
-            cosmic_data.cursor_color = converted_color;
-            cosmic_data.selected_text_color = converted_color;
+            cosmic_data_color.text_color = converted_color;
+            cosmic_data_color.selected_text_color = converted_color;
         }
-        cosmic_data
+        cosmic_data_color
     }
 }
-
 
 /// Component used for text editing functionality
 #[derive(Component, Debug)]
 pub struct FaTextEdit {
     pub value: String, // actual value when user editing
-    pub placeholder_value: String, // whenever actual value is empty and text input is focused, draw placeholder_value into buffer.
-    pub scroll_width: f32,
-    pub text_width: f32,
+    pub placeholder: String, // whenever actual value is empty and text input is focused, draw placeholder into buffer.
+    pub text_width: f32, // CosmicData's buffer dim is always bigger than text_width & and text_height
+    pub text_height: f32,
     pub glyph_width: f32,
     pub cursor_index: usize,
     pub min_cursor_pos: f32,
@@ -98,9 +109,9 @@ impl Default for FaTextEdit {
     fn default() -> Self {
         Self {
             value: String::new(),
-            placeholder_value: String::new(),
-            scroll_width: 0.0,
+            placeholder: String::new(),
             text_width: 0.0,
+            text_height: 0.0,
             glyph_width: 0.0,
             cursor_index: 0,
             move_direction: MoveDirection::default(),
@@ -119,7 +130,7 @@ impl Default for FaTextEdit {
 impl FaTextEdit {
     pub fn new(placeholder: &str) -> Self {
         Self {
-            placeholder_value: placeholder.to_string(),
+            placeholder: placeholder.to_string(),
             ..default()
         }
     }

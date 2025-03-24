@@ -430,7 +430,7 @@ pub(crate) fn get_text_color(variant: &WidgetColor) -> Color {
 
 pub(crate) fn get_text_size(size: &WidgetSize) -> f32 {
     let size_small = 12.0;
-    let size_normal = 14.0;
+    let size_normal = 20.0;
     let size_large = 18.0;
 
     match size {
@@ -516,24 +516,31 @@ pub fn bevy_color_to_cosmic_rgba(bevy_color: Color) -> Option<CosmicColor> {
 }
 
 pub fn draw_editor_buffer(
-    target_width: f32,
-    buffer_height: f32,
+    buffer_dim: &Vec2,
     font_system: &mut FontSystem,
     swash_cache: &mut SwashCache,
     editor: &mut Editor,
+    pixels: &mut Vec<u8>,
     text_color: CosmicColor,
     cursor_color: CosmicColor,
     selection_color: CosmicColor,
     selected_text_color: CosmicColor
-) -> Vec<u8> {
-    let y_offset = buffer_height / 8.0;
-    let width = target_width as usize;
-    let height = buffer_height as usize;
-    let mut pixels: Vec<u8> = vec![0; width * height * 4];
+) {
+    let y_offset = 2.5;
+    let width = buffer_dim.x as usize;
+    let height = buffer_dim.y as usize;
+    let expected_len = width * height * 4;
+
+    if pixels.len() != expected_len {
+        pixels.resize(expected_len, 0)
+    }  else {
+        pixels.fill(0);
+    }
 
     let draw_closure = |x: i32, y: i32, w: u32, h: u32, color: CosmicColor| {
         for row in 0..h as i32 {
             for col in 0..w as i32 {
+                // let y_row = ((y + row)).max(0);
                 let y_row = ((y + row) as f32 + y_offset).max(0.0) as i32;
                 let x_col = (x + col).max(0);
 
@@ -583,8 +590,6 @@ pub fn draw_editor_buffer(
         selected_text_color,
         draw_closure,
     );
-
-    pixels
 }
 
 

@@ -34,18 +34,18 @@ pub enum TextInputType {
     Password
 }
 
-/// Represents the text input field containing the user-entered text and placeholder.
-#[derive(Component)]
-pub struct FaTextInputInfo {
-    pub placeholder: String,
-    pub input_type: TextInputType
-}
+// /// Represents the text input field containing the user-entered text and placeholder.
+// #[derive(Component)]
+// pub struct FaTextInputInfo {
+//     pub placeholder: String,
+//     pub input_type: TextInputType
+// }
 
-impl FaTextInputInfo {
-    pub fn new(placeholder: &str, input_type: TextInputType) -> Self {
-        Self {
-            placeholder: placeholder.to_string(),
-            input_type,
-        }
-    }
-}
+// impl FaTextInputInfo {
+//     pub fn new(placeholder: &str, input_type: TextInputType) -> Self {
+//         Self {
+//             placeholder: placeholder.to_string(),
+//             input_type,
+//         }
+//     }
+// }
