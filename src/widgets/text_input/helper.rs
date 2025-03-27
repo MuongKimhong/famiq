@@ -89,3 +89,58 @@ pub(crate) fn clear_buffer_before_insert(
         }
     });
 }
+
+/// return True, if need to redraw buffer else False
+pub(crate) fn handle_cursor_blink_on_focused(
+    blink_timer: &mut CursorBlinkTimer,
+    cosmic_color: &mut CosmicDataColor
+) -> bool {
+    if !blink_timer.can_blink {
+        blink_timer.is_transparent = false; // Force cursor visible, no blinking
+        blink_timer.timer.reset();
+        cosmic_color.cursor_color = cosmic_color.text_color;
+    }
+    else if blink_timer.timer.finished() {
+        blink_timer.is_transparent = !blink_timer.is_transparent;
+        cosmic_color.cursor_color = if blink_timer.is_transparent {
+            CURSOR_INVISIBLE
+        } else {
+            cosmic_color.text_color
+        };
+        return true;
+    }
+    return false;
+}
+
+/// return True, if need to redraw buffer else False
+pub(crate) fn handle_cursor_blink_on_unfocused(
+    blink_timer: &mut CursorBlinkTimer,
+    cosmic_color: &mut CosmicDataColor
+) -> bool {
+    if blink_timer.timer.finished() && !blink_timer.is_transparent {
+        blink_timer.is_transparent = true;
+        cosmic_color.cursor_color = CURSOR_INVISIBLE;
+        return true;
+    }
+    else if blink_timer.is_transparent {
+        return false; // cursor already invisible
+    }
+    return false;
+}
+
+pub(crate) fn update_buffer_text_layout(
+    font_system: &mut FontSystem,
+    text_edit: &mut FaTextEdit,
+    buffer_dim: &mut Vec2,
+    buffer: &mut Buffer,
+    texture_node: &Node,
+) {
+    if let Some(layout) = buffer.line_layout(font_system, 0) {
+        text_edit.text_width = layout[0].w;
+        let glyphs = &layout[0].glyphs;
+        text_edit.check_need_scroll(glyphs, texture_node);
+
+        buffer_dim.x = text_edit.text_width + text_edit.glyph_width;
+    }
+    buffer.set_size(font_system, Some(buffer_dim.x), Some(buffer_dim.y));
+}

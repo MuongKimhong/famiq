@@ -31,7 +31,6 @@ pub struct CosmicData {
     pub metrics: Option<Metrics>,
     pub font_size: f32,
     pub buffer_dim: Vec2, // CosmicData's buffer dim is always bigger than text_width & and text_height
-    pub pixels: Vec<u8>,
 }
 
 #[derive(Debug, Default, PartialEq)]
@@ -49,7 +48,6 @@ impl Default for CosmicData {
             metrics: None,
             font_size: f32::default(),
             buffer_dim: Vec2::default(),
-            pixels: Vec::new(),
         }
     }
 }

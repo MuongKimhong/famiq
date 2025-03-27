@@ -1,0 +1,113 @@
+use bevy::prelude::*;
+use bevy::ecs::system::SystemParam;
+
+use crate::resources::*;
+use super::*;
+
+// params that used in systems related to Buffer Texture picking
+#[derive(SystemParam)]
+pub(crate) struct BufTexturePickingParam<'w, 's> {
+    pub input_q: Query<
+        'w, 's,
+        (&'static GlobalTransform, &'static ComputedNode, &'static mut FaTextEdit, &'static mut CosmicData),
+        With<IsFamiqTextInput>
+    >,
+    pub texture_q: Query<'w, 's, (&'static Node, &'static FaTextInputEntity), With<IsFamiqTextInputBufferTexture>>,
+    pub famiq_res: ResMut<'w, FamiqResource>,
+    pub request_redraw: EventWriter<'w, RequestRedrawBuffer>,
+    pub font_system: ResMut<'w, CosmicFontSystem>
+}
+
+// params that used in systems related to fa_text_input picking
+#[derive(SystemParam)]
+pub(crate) struct InputPickingParam<'w, 's> {
+    pub commands: Commands<'w, 's>,
+    pub mouse_writer: EventWriter<'w, FaMouseEvent>,
+    pub tooltip_q: Query<'w, 's, (&'static mut Node, &'static mut Transform), With<IsFamiqTooltip>>,
+    pub window: Single<'w, Entity, With<Window>>,
+    pub cursor_icons: Res<'w, CursorIcons>,
+}
+
+#[derive(SystemParam)]
+pub(crate) struct RequestRedrawBufferParam<'w, 's> {
+    pub request_redraw: EventReader<'w, 's, RequestRedrawBuffer>,
+    pub input_q: Query<'w, 's,
+        (
+            &'static mut CosmicData,
+            &'static CosmicDataColor,
+            &'static FaTextInputBufferTextureEntity
+        )
+    >,
+    pub font_system: ResMut<'w, CosmicFontSystem>,
+    pub swash_cache: ResMut<'w, CosmicSwashCache>,
+    pub image_asset: ResMut<'w, Assets<Image>>,
+    pub texture_q: Query<'w, 's, &'static ImageNode, With<IsFamiqTextInputBufferTexture>>,
+}
+
+#[derive(SystemParam)]
+pub(crate) struct DetectNewTextInputWidgetParam<'w, 's> {
+    pub input_q: Query<
+        'w, 's,
+        (
+            Entity,
+            Option<&'static FamiqWidgetId>,
+            &'static TextFont,
+            &'static CosmicDataColor,
+            &'static mut FaTextEdit,
+            &'static mut CosmicData,
+        ),
+        Added<IsFamiqTextInput>
+    >,
+    pub font_system: ResMut<'w, CosmicFontSystem>,
+    pub swash_cache: ResMut<'w, CosmicSwashCache>,
+    pub input_res: ResMut<'w, FaTextInputResource>,
+    pub commands: Commands<'w, 's>,
+    pub font_assets: Res<'w, Assets<Font>>,
+    pub image_assets: ResMut<'w, Assets<Image>>,
+    pub window: Single<'w, &'static Window>
+}
+
+#[derive(SystemParam)]
+pub(crate) struct DetectTextStyleChangeParam<'w, 's> {
+    pub input_q: Query<
+        'w, 's,
+        (
+            Entity,
+            &'static mut CosmicData,
+            &'static mut CosmicDataColor,
+            &'static mut FaTextEdit,
+            &'static TextFont,
+            &'static TextColor
+        ),
+        Or<(Changed<TextColor>, Changed<TextFont>)>
+    >,
+    pub request_redraw: EventWriter<'w, RequestRedrawBuffer>,
+    pub font_system: ResMut<'w, CosmicFontSystem>,
+    pub famiq_res: Res<'w, FamiqResource>,
+    pub window: Single<'w, &'static Window>
+}
+
+#[derive(SystemParam)]
+pub(crate) struct TypingParam<'w, 's> {
+    pub input_q: Query<
+        'w, 's,
+        (
+            Entity,
+            &'static ComputedNode,
+            &'static FaTextInputBufferTextureEntity,
+            &'static mut CursorBlinkTimer,
+            &'static mut CosmicData,
+            &'static mut FaTextEdit,
+            Option<&'static FamiqWidgetId>
+        ),
+        With<IsFamiqTextInput>
+    >,
+    pub texture_q: Query<'w, 's, &'static mut Node, With<IsFamiqTextInputBufferTexture>>,
+    pub evr_kbd: EventReader<'w, 's, KeyboardInput>,
+    pub input_res: ResMut<'w, FaTextInputResource>,
+    pub famiq_res: ResMut<'w, FamiqResource>,
+    pub font_system: ResMut<'w, CosmicFontSystem>,
+    pub change_writer: EventWriter<'w, FaValueChangeEvent>,
+    pub request_redraw: EventWriter<'w, RequestRedrawBuffer>,
+    pub keys: Res<'w, ButtonInput<KeyCode>>,
+}
