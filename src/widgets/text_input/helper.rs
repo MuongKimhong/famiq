@@ -142,7 +142,6 @@ pub(crate) fn update_buffer_text_layout(
         text_edit.check_need_scroll(glyphs, texture_node);
 
         buffer_dim.x = text_edit.text_width + text_edit.glyph_width;
-        buffer_dim.x *= 2.0;
     }
     buffer.set_size(font_system, Some(buffer_dim.x), Some(buffer_dim.y));
 }

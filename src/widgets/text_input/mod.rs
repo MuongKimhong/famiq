@@ -27,13 +27,12 @@ use bevy::prelude::*;
 use cosmic_text::{
     Attrs, Metrics, Buffer, Editor, Family, Edit, Shaping, Weight, Cursor, Selection, Action
 };
-use cosmic_text::ttf_parser::Face;
 use smol_str::SmolStr;
 use arboard::Clipboard;
 use std::sync::Arc;
 
 // scaling factor for buffer, used for Window platform.
-pub const BUFFER_SCALE_FACTOR: f32 = 2.0;
+pub const BUFFER_SCALE_FACTOR: f32 = 1.0;
 
 #[derive(Default)]
 pub struct IsFamiqTextInputResource;
@@ -350,9 +349,6 @@ impl<'a> FaTextInput {
 
                     let (texture, mut node) = param.texture_q.get_mut(texture_entity.0).unwrap();
                     if let Some(image) = param.image_asset.get_mut(texture.image.id()) {
-                        let scale = 2.0;
-                        node.width = Val::Px(buffer_dim.x / scale);
-                        node.height = Val::Px(buffer_dim.y / scale);
                         let new_size = Extent3d {
                             width: buffer_dim.x as u32,
                             height: buffer_dim.y as u32,
@@ -417,13 +413,7 @@ impl<'a> FaTextInput {
                 }
             }
 
-            let font_size = if cfg!(target_os = "windows") {
-                text_data.size * BUFFER_SCALE_FACTOR
-            } else {
-                text_data.size
-            };
-
-            let metrics = Metrics::relative(font_size, 1.2).scale(window.scale_factor());
+            let metrics = Metrics::relative(text_data.size, 1.2).scale(window.scale_factor());
             let mut buffer = Buffer::new(&mut font_system.0, metrics);
             let mut buffer = buffer.borrow_with(&mut font_system.0);
             buffer.set_text(&text_edit.placeholder, attrs, Shaping::Advanced);
@@ -468,19 +458,12 @@ impl<'a> FaTextInput {
                     RenderAssetUsages::default()
                 );
 
-                // Use linear sampler because we're scaling down on Windows
+                // - using linear makes text look clean but faint.
+                // - using nearest makes text clear but ugly.
+                // what's up window?
                 if cfg!(target_os = "windows") {
                     texture.sampler = ImageSampler::linear();
                 }
-
-                let (screen_width, screen_height) = if cfg!(target_os = "windows") {
-                    (
-                        buffer_dim.x / BUFFER_SCALE_FACTOR,
-                        buffer_dim.y / BUFFER_SCALE_FACTOR,
-                    )
-                } else {
-                    (buffer_dim.x, buffer_dim.y)
-                };
 
                 let texture_handle = image_assets.add(texture);
                 let texture_image = commands
@@ -488,8 +471,6 @@ impl<'a> FaTextInput {
                         ImageNode::new(texture_handle),
                         Node {
                             left: Val::Px(0.0),
-                            width: Val::Px(screen_width),
-                            height: Val::Px(screen_height),
                             ..default()
                         },
                         IsFamiqTextInputBufferTexture

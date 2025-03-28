@@ -248,7 +248,7 @@ impl FaTextEdit {
         let mut pos = 0.0;
 
         for i in 0..max_index {
-            self.glyph_width = glyphs[i].w / 2.0;
+            self.glyph_width = glyphs[i].w;
             pos += self.glyph_width;
         }
         left_val + pos
