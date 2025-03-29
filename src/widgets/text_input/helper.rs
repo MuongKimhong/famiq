@@ -306,6 +306,15 @@ where F: FnMut(i32, i32, u32, u32, CosmicColor)
     }
 }
 
+fn linear_to_srgb(x: f32) -> f32 {
+    if x <= 0.0031308 {
+        12.92 * x
+    } else {
+        1.055 * x.powf(1.0 / 2.4) - 0.055
+    }
+}
+
+
 fn draw_glyphs<F>(
     run: &LayoutRun,
     selection_bounds: Option<(Cursor, Cursor)>,
@@ -453,10 +462,15 @@ pub fn draw_editor_buffer(
                 let out_b = src_b * src_a + dst_b * (1.0 - src_a);
 
                 // Write blended color back to pixel buffer
-                pixels[idx]     = (out_r * 255.0).clamp(0.0, 255.0) as u8;
-                pixels[idx + 1] = (out_g * 255.0).clamp(0.0, 255.0) as u8;
-                pixels[idx + 2] = (out_b * 255.0).clamp(0.0, 255.0) as u8;
+                // pixels[idx]     = (out_r * 255.0).clamp(0.0, 255.0) as u8;
+                // pixels[idx + 1] = (out_g * 255.0).clamp(0.0, 255.0) as u8;
+                // pixels[idx + 2] = (out_b * 255.0).clamp(0.0, 255.0) as u8;
+                // pixels[idx + 3] = (out_a * 255.0).clamp(0.0, 255.0) as u8;
+                pixels[idx]     = (linear_to_srgb(out_r) * 255.0).clamp(0.0, 255.0) as u8;
+                pixels[idx + 1] = (linear_to_srgb(out_g) * 255.0).clamp(0.0, 255.0) as u8;
+                pixels[idx + 2] = (linear_to_srgb(out_b) * 255.0).clamp(0.0, 255.0) as u8;
                 pixels[idx + 3] = (out_a * 255.0).clamp(0.0, 255.0) as u8;
+
             }
         }
     };
