@@ -352,7 +352,7 @@ impl<'a> FaTextInput {
                     if let Some(image) = param.image_asset.get_mut(texture.image.id()) {
                         let scale = 2.0;
                         node.width = Val::Px(buffer_dim.x / scale);
-                        // node.height = Val::Px(buffer_dim.y / scale);
+                        node.height = Val::Px(buffer_dim.y / scale);
                         let new_size = Extent3d {
                             width: buffer_dim.x as u32,
                             height: buffer_dim.y as u32,
