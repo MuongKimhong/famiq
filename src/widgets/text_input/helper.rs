@@ -1,5 +1,6 @@
 use bevy::prelude::*;
-use cosmic_text::*;
+use cosmic_text::{Attrs, Buffer, Editor, FontSystem};
+use std::sync::Arc;
 use crate::utils::*;
 use super::*;
 
@@ -141,6 +142,7 @@ pub(crate) fn update_buffer_text_layout(
         text_edit.check_need_scroll(glyphs, texture_node);
 
         buffer_dim.x = text_edit.text_width + text_edit.glyph_width;
+        buffer_dim.x *= 2.0;
     }
     buffer.set_size(font_system, Some(buffer_dim.x), Some(buffer_dim.y));
 }

@@ -19,6 +19,7 @@ use crate::widgets::*;
 
 use bevy::render::render_resource::{TextureDimension, Extent3d, TextureFormat};
 use bevy::input::keyboard::{Key, KeyboardInput};
+use bevy::image::ImageSampler;
 use bevy::asset::RenderAssetUsages;
 use bevy::ecs::system::EntityCommands;
 use bevy::input::ButtonState;
@@ -29,6 +30,10 @@ use cosmic_text::{
 use cosmic_text::ttf_parser::Face;
 use smol_str::SmolStr;
 use arboard::Clipboard;
+use std::sync::Arc;
+
+// scaling factor for buffer, used for Window platform.
+pub const BUFFER_SCALE_FACTOR: f32 = 2.0;
 
 #[derive(Default)]
 pub struct IsFamiqTextInputResource;
@@ -66,10 +71,9 @@ impl<'a> FaTextInput {
         style_components.background_color = BackgroundColor(input_color);
         style_components.border_radius = BorderRadius::all(Val::Px(6.0));
 
-        let txt_font = TextFont {
-            font: attributes.font_handle.clone().unwrap(),
-            font_size: get_text_size(&attributes.size),
-            ..default()
+        let text_data = CosmicTextData {
+            handle: attributes.font_handle.clone().unwrap(),
+            size: get_text_size(&attributes.size),
         };
 
         let entity = root_node
@@ -84,7 +88,7 @@ impl<'a> FaTextInput {
                 CosmicData::default(),
                 TextColor(get_text_color(&attributes.color)),
                 CursorBlinkTimer::default(),
-                txt_font
+                text_data
             ))
             .observe(FaTextInput::handle_on_mouse_over)
             .observe(FaTextInput::handle_on_mouse_out)
@@ -344,8 +348,11 @@ impl<'a> FaTextInput {
                         cosmic_color.selected_text_color,
                     );
 
-                    let texture = param.texture_q.get(texture_entity.0).unwrap();
+                    let (texture, mut node) = param.texture_q.get_mut(texture_entity.0).unwrap();
                     if let Some(image) = param.image_asset.get_mut(texture.image.id()) {
+                        let scale = 2.0;
+                        node.width = Val::Px(buffer_dim.x / scale);
+                        // node.height = Val::Px(buffer_dim.y / scale);
                         let new_size = Extent3d {
                             width: buffer_dim.x as u32,
                             height: buffer_dim.y as u32,
@@ -361,65 +368,98 @@ impl<'a> FaTextInput {
         }
     }
 
-    /// Internal system to detect new text_input being created.
-    pub(crate) fn detect_new_text_input_widget_system(mut param: DetectNewTextInputWidgetParam) {
-        param.input_q.iter_mut().for_each(|(entity, id, text_font, cosmic_color, mut text_edit, mut cosmic_data)| {
-
+    pub(crate) fn detect_new_text_input_widget_system(
+        mut input_q: Query<
+            (
+                Entity,
+                Option<&FamiqWidgetId>,
+                &CosmicTextData,
+                &CosmicDataColor,
+                &mut FaTextEdit,
+                &mut CosmicData,
+            ),
+            Added<IsFamiqTextInput>
+        >,
+        mut font_system: ResMut<CosmicFontSystem>,
+        mut swash_cache: ResMut<CosmicSwashCache>,
+        mut input_res: ResMut<FaTextInputResource>,
+        mut commands: Commands,
+        mut font_assets: Res<Assets<Font>>,
+        mut image_assets: ResMut<Assets<Image>>,
+        window: Single<&Window>
+    ) {
+        input_q.iter_mut().for_each(|(entity, id, text_data, cosmic_color, mut text_edit, mut cosmic_data)| {
             if let Some(id) = id {
-                if !param.input_res.exists(id.0.as_str()) {
-                    param.input_res._insert(id.0.clone(), String::new());
+                if !input_res.exists(id.0.as_str()) {
+                    input_res._insert(id.0.clone(), String::new());
+                }
+            }
+            let mut attrs = Attrs::new();
+            if let Some(font) = font_assets.get(&text_data.handle) {
+                let data: Arc<dyn AsRef<[u8]> + Send + Sync> = Arc::new((*font.data).clone());
+
+                let face_ids = font_system.0
+                    .db_mut()
+                    .load_font_source(cosmic_text::fontdb::Source::Binary(data));
+
+                // Get face ID for Attrs.
+                // ref: https://github.com/bevyengine/bevy/blob/main/crates/bevy_text/src/pipeline.rs#L170
+                if let Some(&face_id) = face_ids.last() {
+                    let face = font_system.0.db().face(face_id).unwrap().clone();
+                    let family_name = face.families[0].0.clone();
+                    let family_name: &'static str = Box::leak(family_name.into_boxed_str());
+
+                    attrs = Attrs::new()
+                        .family(Family::Name(family_name))
+                        .weight(Weight(face.weight.0))
+                        .stretch(face.stretch)
+                        .style(face.style);
                 }
             }
 
-            let mut font_weight: u16 = 500; // default font-weight
+            let font_size = if cfg!(target_os = "windows") {
+                text_data.size * BUFFER_SCALE_FACTOR
+            } else {
+                text_data.size
+            };
 
-            if let Some(font) = param.font_assets.get(&text_font.font) {
-                let face = Face::parse(&font.data, 0).unwrap();
-                font_weight = face.weight().to_number();
-                param.font_system.0.db_mut().load_font_data((*font.data).clone());
-            }
-            let attrs = Attrs::new().family(Family::Monospace).weight(Weight(font_weight));
-            let metrics = Metrics::relative(text_font.font_size, 1.2).scale(param.window.scale_factor());
-
-            let mut buffer = Buffer::new(&mut param.font_system.0, metrics);
-            let mut buffer = buffer.borrow_with(&mut param.font_system.0);
+            let metrics = Metrics::relative(font_size, 1.2).scale(window.scale_factor());
+            let mut buffer = Buffer::new(&mut font_system.0, metrics);
+            let mut buffer = buffer.borrow_with(&mut font_system.0);
             buffer.set_text(&text_edit.placeholder, attrs, Shaping::Advanced);
 
             if let Some(layout) = buffer.line_layout(0) {
                 text_edit.text_width = layout[0].w;
                 text_edit.text_height = metrics.line_height;
 
-                // give extra space to buffer width to prevent weired rendering
                 let buffer_dim = Vec2::new(
                     text_edit.text_width + 5.0,
                     text_edit.text_height + 5.0
                 );
+
                 buffer.set_size(Some(buffer_dim.x), Some(buffer_dim.y));
                 buffer.shape_until_scroll(true);
                 buffer.shape_until_cursor(Cursor::new(0, 0), true);
 
                 let mut editor = Editor::new(buffer.clone());
 
-                // set as u32 to prevent floating-point round error on Window & Mac
-                let buffer_width_u32 = buffer_dim.x as u32;
-                let buffer_height_u32 = buffer_dim.y as u32;
+                let texture_width = buffer_dim.x as u32;
+                let texture_height = buffer_dim.y as u32;
 
-                // initially draw the buffer with placeholder text
                 let pixels = draw_editor_buffer(
                     &buffer_dim,
-                    &mut param.font_system.0,
-                    &mut param.swash_cache.0,
+                    &mut font_system.0,
+                    &mut swash_cache.0,
                     &mut editor,
                     cosmic_color.text_color,
                     cosmic_color.cursor_color,
                     cosmic_color.selection_color,
                     cosmic_color.selected_text_color
                 );
-
-                let texture = Image::new_fill(
+                let mut texture = Image::new_fill(
                     Extent3d {
-                        width: buffer_width_u32,
-                        height: buffer_height_u32,
+                        width: texture_width,
+                        height: texture_height,
                         depth_or_array_layers: 1,
                     },
                     TextureDimension::D2,
@@ -427,13 +467,29 @@ impl<'a> FaTextInput {
                     TextureFormat::Rgba8UnormSrgb,
                     RenderAssetUsages::default()
                 );
-                let texture_handle = param.image_assets.add(texture);
 
-                let texture_image = param.commands
+                // Use linear sampler because we're scaling down on Windows
+                if cfg!(target_os = "windows") {
+                    texture.sampler = ImageSampler::linear();
+                }
+
+                let (screen_width, screen_height) = if cfg!(target_os = "windows") {
+                    (
+                        buffer_dim.x / BUFFER_SCALE_FACTOR,
+                        buffer_dim.y / BUFFER_SCALE_FACTOR,
+                    )
+                } else {
+                    (buffer_dim.x, buffer_dim.y)
+                };
+
+                let texture_handle = image_assets.add(texture);
+                let texture_image = commands
                     .spawn((
                         ImageNode::new(texture_handle),
                         Node {
                             left: Val::Px(0.0),
+                            width: Val::Px(screen_width),
+                            height: Val::Px(screen_height),
                             ..default()
                         },
                         IsFamiqTextInputBufferTexture
@@ -443,11 +499,11 @@ impl<'a> FaTextInput {
                     .observe(FaTextInput::handle_buffer_texture_on_selecting)
                     .id();
 
-                param.commands.entity(entity)
+                commands.entity(entity)
                     .insert(FaTextInputBufferTextureEntity(texture_image))
                     .add_child(texture_image);
 
-                param.commands.entity(texture_image).insert(FaTextInputEntity(entity));
+                commands.entity(texture_image).insert(FaTextInputEntity(entity));
 
                 cosmic_data.editor = Some(editor);
                 cosmic_data.attrs = Some(attrs);

@@ -515,6 +515,15 @@ pub fn bevy_color_to_cosmic_rgba(bevy_color: Color) -> Option<CosmicColor> {
     None
 }
 
+fn to_srgb_encoded(linear: f32) -> f32 {
+    if linear <= 0.0031308 {
+        linear * 12.92
+    } else {
+        1.055 * linear.powf(1.0 / 2.4) - 0.055
+    }
+}
+
+
 pub fn draw_editor_buffer(
     buffer_dim: &Vec2,
     font_system: &mut FontSystem,
@@ -563,15 +572,16 @@ pub fn draw_editor_buffer(
 
                 // blend alpha
                 let out_a = src_a + dst_a * (1.0 - src_a);
-                let out_r = (src_r * src_a + dst_r * dst_a * (1.0 - src_a)) / out_a.max(1e-6);
-                let out_g = (src_g * src_a + dst_g * dst_a * (1.0 - src_a)) / out_a.max(1e-6);
-                let out_b = (src_b * src_a + dst_b * dst_a * (1.0 - src_a)) / out_a.max(1e-6);
+                let out_r = src_r * src_a + dst_r * (1.0 - src_a);
+                let out_g = src_g * src_a + dst_g * (1.0 - src_a);
+                let out_b = src_b * src_a + dst_b * (1.0 - src_a);
+
 
                 // Write blended color back to pixel buffer
-                pixels[idx]     = (out_r * 255.0).clamp(0.0, 255.0) as u8;
-                pixels[idx + 1] = (out_g * 255.0).clamp(0.0, 255.0) as u8;
-                pixels[idx + 2] = (out_b * 255.0).clamp(0.0, 255.0) as u8;
-                pixels[idx + 3] = (out_a * 255.0).clamp(0.0, 255.0) as u8;
+                pixels[idx]     = (to_srgb_encoded(out_r) * 255.0).clamp(0.0, 255.0) as u8;
+                pixels[idx + 1] = (to_srgb_encoded(out_g) * 255.0).clamp(0.0, 255.0) as u8;
+                pixels[idx + 2] = (to_srgb_encoded(out_b) * 255.0).clamp(0.0, 255.0) as u8;
+                pixels[idx + 3] = (out_a * 255.0).clamp(0.0, 255.0) as u8; // alpha stays linear
             }
         }
     };

@@ -51,3 +51,9 @@ impl Default for CursorBlinkTimer {
         }
     }
 }
+
+#[derive(Component)]
+pub struct CosmicTextData {
+    pub handle: Handle<Font>,
+    pub size: f32
+}
