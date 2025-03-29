@@ -336,7 +336,7 @@ impl<'a> FaTextInput {
                 let CosmicData {editor, buffer_dim, .. } = &mut *cosmic_data;
 
                 if let Some(editor) = editor.as_mut() {
-                    let pixels = draw_editor_buffer(
+                    let pixels = helper::draw_editor_buffer(
                         buffer_dim,
                         &mut param.font_system.0,
                         &mut param.swash_cache.0,
@@ -347,7 +347,7 @@ impl<'a> FaTextInput {
                         cosmic_color.selected_text_color,
                     );
 
-                    let (texture, mut node) = param.texture_q.get_mut(texture_entity.0).unwrap();
+                    let texture = param.texture_q.get(texture_entity.0).unwrap();
                     if let Some(image) = param.image_asset.get_mut(texture.image.id()) {
                         let new_size = Extent3d {
                             width: buffer_dim.x as u32,
@@ -380,8 +380,8 @@ impl<'a> FaTextInput {
         mut swash_cache: ResMut<CosmicSwashCache>,
         mut input_res: ResMut<FaTextInputResource>,
         mut commands: Commands,
-        mut font_assets: Res<Assets<Font>>,
         mut image_assets: ResMut<Assets<Image>>,
+        font_assets: Res<Assets<Font>>,
         window: Single<&Window>
     ) {
         input_q.iter_mut().for_each(|(entity, id, text_data, cosmic_color, mut text_edit, mut cosmic_data)| {
@@ -436,7 +436,7 @@ impl<'a> FaTextInput {
                 let texture_width = buffer_dim.x as u32;
                 let texture_height = buffer_dim.y as u32;
 
-                let pixels = draw_editor_buffer(
+                let pixels = helper::draw_editor_buffer(
                     &buffer_dim,
                     &mut font_system.0,
                     &mut swash_cache.0,
@@ -461,9 +461,9 @@ impl<'a> FaTextInput {
                 // - using linear makes text look clean but faint.
                 // - using nearest makes text clear but ugly.
                 // what's up window?
-                if cfg!(target_os = "windows") {
+                // if cfg!(target_os = "windows") {
                     texture.sampler = ImageSampler::linear();
-                }
+                // }
 
                 let texture_handle = image_assets.add(texture);
                 let texture_image = commands

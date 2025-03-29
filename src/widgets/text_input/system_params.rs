@@ -42,33 +42,10 @@ pub(crate) struct RequestRedrawBufferParam<'w, 's> {
     pub swash_cache: ResMut<'w, CosmicSwashCache>,
     pub image_asset: ResMut<'w, Assets<Image>>,
     pub texture_q: Query<
-        'w, 's, 
-        (&'static ImageNode, &'static mut Node), 
+        'w, 's,
+        &'static ImageNode,
         With<IsFamiqTextInputBufferTexture>
         >,
-}
-
-#[derive(SystemParam)]
-pub(crate) struct DetectNewTextInputWidgetParam<'w, 's> {
-    pub input_q: Query<
-        'w, 's,
-        (
-            Entity,
-            Option<&'static FamiqWidgetId>,
-            &'static TextFont,
-            &'static CosmicDataColor,
-            &'static mut FaTextEdit,
-            &'static mut CosmicData,
-        ),
-        Added<IsFamiqTextInput>
-    >,
-    pub font_system: ResMut<'w, CosmicFontSystem>,
-    pub swash_cache: ResMut<'w, CosmicSwashCache>,
-    pub input_res: ResMut<'w, FaTextInputResource>,
-    pub commands: Commands<'w, 's>,
-    pub font_assets: Res<'w, Assets<Font>>,
-    pub image_assets: ResMut<'w, Assets<Image>>,
-    pub window: Single<'w, &'static Window>
 }
 
 #[derive(SystemParam)]
