@@ -17,7 +17,8 @@ use crate::utils::*;
 use crate::resources::*;
 use crate::widgets::*;
 
-use bevy::render::render_resource::{TextureDimension, Extent3d, TextureFormat};
+use bevy::reflect::TypePath;
+use bevy::render::render_resource::*;
 use bevy::input::keyboard::{Key, KeyboardInput};
 use bevy::image::ImageSampler;
 use bevy::asset::RenderAssetUsages;
@@ -48,6 +49,21 @@ impl RequestRedrawBuffer {
         Self {
             input_entity
         }
+    }
+}
+
+#[derive(AsBindGroup, Asset, TypePath, Debug, Clone)]
+pub struct TextInputMaterial {
+    #[uniform(1)]
+    color: Vec3,
+    #[texture(2)]
+    #[sampler(3)]
+    texture: Handle<Image>,
+}
+
+impl UiMaterial for TextInputMaterial {
+    fn fragment_shader() -> ShaderRef {
+        get_embedded_asset_path("embedded_assets/shaders/text_input.wgsl").into()
     }
 }
 
@@ -85,7 +101,7 @@ impl<'a> FaTextInput {
                 FaTextEdit::new(placeholder),
                 CosmicDataColor::new(placeholder_color),
                 CosmicData::default(),
-                TextColor(get_text_color(&attributes.color)),
+                // TextColor(get_text_color(&attributes.color)),
                 CursorBlinkTimer::default(),
                 text_data
             ))
@@ -332,6 +348,8 @@ impl<'a> FaTextInput {
 
     pub(crate) fn on_request_redraw_editor_buffer(mut param: RequestRedrawBufferParam) {
         for request in param.request_redraw.read() {
+            use std::time::Instant;
+        let now = Instant::now();
             if let Ok((mut cosmic_data, cosmic_color, texture_entity)) = param.input_q.get_mut(request.input_entity) {
                 let CosmicData {editor, buffer_dim, .. } = &mut *cosmic_data;
 
@@ -347,8 +365,39 @@ impl<'a> FaTextInput {
                         cosmic_color.selected_text_color,
                     );
 
-                    let texture = param.texture_q.get(texture_entity.0).unwrap();
-                    if let Some(image) = param.image_asset.get_mut(texture.image.id()) {
+                    // let texture = param.texture_q.get(texture_entity.0).unwrap();
+                    // if let Some(image) = param.image_asset.get_mut(texture.image.id()) {
+                    //     let new_size = Extent3d {
+                    //         width: buffer_dim.x as u32,
+                    //         height: buffer_dim.y as u32,
+                    //         depth_or_array_layers: 1,
+                    //     };
+                    //     if image.texture_descriptor.size != new_size {
+                    //         image.resize(new_size);
+                    //     }
+                    //     image.data.copy_from_slice(&pixels);
+                    // }
+
+                    let (material_handle, image_node)= param.texture_q.get(texture_entity.0).unwrap(); 
+
+
+                    if let Some(material) = param.materials.get_mut(material_handle) {
+                        if let Some(texture) = param.image_asset.get_mut(material.texture.id()) {
+                            let new_size = Extent3d {
+                                width: buffer_dim.x as u32,
+                                height: buffer_dim.y as u32,
+                                depth_or_array_layers: 1,
+                            };
+                            if texture.texture_descriptor.size != new_size {
+                                texture.resize(new_size);
+                            }
+                            texture.data.copy_from_slice(&pixels);
+                        }
+                    }
+
+                    // resize ImageNode so that it can grows the Node size automatically.
+                    // resizing Node directly will cause text shaking.
+                    if let Some(image) = param.image_asset.get_mut(image_node.image.id()) {
                         let new_size = Extent3d {
                             width: buffer_dim.x as u32,
                             height: buffer_dim.y as u32,
@@ -356,11 +405,12 @@ impl<'a> FaTextInput {
                         };
                         if image.texture_descriptor.size != new_size {
                             image.resize(new_size);
-                        }
-                        image.data.copy_from_slice(&pixels);
+                        } 
                     }
                 }
             }
+            let elapsed = now.elapsed();
+         println!("Elapsed: {:.2?}", elapsed);
         }
     }
 
@@ -381,6 +431,7 @@ impl<'a> FaTextInput {
         mut input_res: ResMut<FaTextInputResource>,
         mut commands: Commands,
         mut image_assets: ResMut<Assets<Image>>,
+        mut materials: ResMut<Assets<TextInputMaterial>>,
         font_assets: Res<Assets<Font>>,
         window: Single<&Window>
     ) {
@@ -413,7 +464,12 @@ impl<'a> FaTextInput {
                 }
             }
 
-            let metrics = Metrics::relative(text_data.size, 1.2).scale(window.scale_factor());
+            let metrics = Metrics::relative(text_data.size, 1.2);
+
+            #[cfg(not(target_os = "macos"))] {
+                metrics.scale(window.scale_factor());
+            }
+
             let mut buffer = Buffer::new(&mut font_system.0, metrics);
             let mut buffer = buffer.borrow_with(&mut font_system.0);
             buffer.set_text(&text_edit.placeholder, attrs, Shaping::Advanced);
@@ -436,7 +492,10 @@ impl<'a> FaTextInput {
                 let texture_width = buffer_dim.x as u32;
                 let texture_height = buffer_dim.y as u32;
 
-                let pixels = helper::draw_editor_buffer(
+                // need empty pixels at buffer size for ImageNode. see 'on_request_redraw_editor_buffer' system
+                let empty_pixels: Vec<u8> = vec![0; (buffer_dim.x as usize) * (buffer_dim.y as usize) * 4];
+
+                let pixels= helper::draw_editor_buffer(
                     &buffer_dim,
                     &mut font_system.0,
                     &mut swash_cache.0,
@@ -454,21 +513,34 @@ impl<'a> FaTextInput {
                     },
                     TextureDimension::D2,
                     &pixels,
-                    TextureFormat::Rgba8UnormSrgb,
+                    TextureFormat::Rgba8Unorm,
+                    RenderAssetUsages::default()
+                );
+                texture.sampler = ImageSampler::linear();
+
+                let empty_texture = Image::new_fill(
+                    Extent3d {
+                        width: texture_width,
+                        height: texture_height,
+                        depth_or_array_layers: 1,
+                    },
+                    TextureDimension::D2,
+                    &empty_pixels,
+                    TextureFormat::Rgba8Unorm,
                     RenderAssetUsages::default()
                 );
 
-                // - using linear makes text look clean but faint.
-                // - using nearest makes text clear but ugly.
-                // what's up window?
-                // if cfg!(target_os = "windows") {
-                    texture.sampler = ImageSampler::linear();
-                // }
-
                 let texture_handle = image_assets.add(texture);
-                let texture_image = commands
+                let empty_texture_handle = image_assets.add(empty_texture);
+
+                if let Color::Srgba(value) = cosmic_rgba_to_bevy_srgba(cosmic_color.text_color) {
+                    let texture_image = commands
                     .spawn((
-                        ImageNode::new(texture_handle),
+                        ImageNode::new(empty_texture_handle),
+                        MaterialNode(materials.add(TextInputMaterial {
+                            color: Vec3::new(value.red, value.green, value.blue),
+                            texture: texture_handle
+                        })),
                         Node {
                             left: Val::Px(0.0),
                             ..default()
@@ -480,11 +552,16 @@ impl<'a> FaTextInput {
                     .observe(FaTextInput::handle_buffer_texture_on_selecting)
                     .id();
 
-                commands.entity(entity)
-                    .insert(FaTextInputBufferTextureEntity(texture_image))
-                    .add_child(texture_image);
+                    commands.entity(entity)
+                        .insert(FaTextInputBufferTextureEntity(texture_image))
+                        .add_child(texture_image);
 
-                commands.entity(texture_image).insert(FaTextInputEntity(entity));
+                    commands.entity(texture_image).insert(FaTextInputEntity(entity));
+                }
+
+                
+
+                
 
                 cosmic_data.editor = Some(editor);
                 cosmic_data.attrs = Some(attrs);

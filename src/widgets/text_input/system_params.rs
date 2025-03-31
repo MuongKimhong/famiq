@@ -41,9 +41,13 @@ pub(crate) struct RequestRedrawBufferParam<'w, 's> {
     pub font_system: ResMut<'w, CosmicFontSystem>,
     pub swash_cache: ResMut<'w, CosmicSwashCache>,
     pub image_asset: ResMut<'w, Assets<Image>>,
+    pub materials: ResMut<'w, Assets<TextInputMaterial>>,
     pub texture_q: Query<
         'w, 's,
-        &'static ImageNode,
+        (
+            &'static MaterialNode<TextInputMaterial>,
+            &'static ImageNode
+        ),
         With<IsFamiqTextInputBufferTexture>
         >,
 }

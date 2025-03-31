@@ -191,6 +191,7 @@ impl Plugin for FamiqPlugin {
         embedded_asset!(app, "embedded_assets/fonts/fira-mono-medium.ttf");
         embedded_asset!(app, "embedded_assets/shaders/progress_bar.wgsl");
         embedded_asset!(app, "embedded_assets/shaders/circular.wgsl");
+        embedded_asset!(app, "embedded_assets/shaders/text_input.wgsl");
         embedded_asset!(app, "embedded_assets/logo.jpeg"); // for testing
 
         app.add_systems(PreStartup, _spawn_root_node);
@@ -201,6 +202,7 @@ impl Plugin for FamiqPlugin {
 
         app.add_plugins(UiMaterialPlugin::<ProgressBarMaterial>::default());
         app.add_plugins(UiMaterialPlugin::<CircularMaterial>::default());
+        app.add_plugins(UiMaterialPlugin::<TextInputMaterial>::default());
         app.add_plugins(FrameTimeDiagnosticsPlugin::default());
         app.insert_resource(StylesKeyValueResource::default());
         app.insert_resource(FamiqResource::new());
