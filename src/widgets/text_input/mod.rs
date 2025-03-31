@@ -32,9 +32,6 @@ use smol_str::SmolStr;
 use arboard::Clipboard;
 use std::sync::Arc;
 
-// scaling factor for buffer, used for Window platform.
-pub const BUFFER_SCALE_FACTOR: f32 = 1.0;
-
 #[derive(Default)]
 pub struct IsFamiqTextInputResource;
 pub type FaTextInputResource = InputResource<IsFamiqTextInputResource>;
@@ -101,7 +98,6 @@ impl<'a> FaTextInput {
                 FaTextEdit::new(placeholder),
                 CosmicDataColor::new(placeholder_color),
                 CosmicData::default(),
-                // TextColor(get_text_color(&attributes.color)),
                 CursorBlinkTimer::default(),
                 text_data
             ))
@@ -359,28 +355,10 @@ impl<'a> FaTextInput {
                         &mut param.font_system.0,
                         &mut param.swash_cache.0,
                         editor,
-                        cosmic_color.text_color,
-                        cosmic_color.cursor_color,
-                        cosmic_color.selection_color,
-                        cosmic_color.selected_text_color,
+                        cosmic_color
                     );
 
-                    // let texture = param.texture_q.get(texture_entity.0).unwrap();
-                    // if let Some(image) = param.image_asset.get_mut(texture.image.id()) {
-                    //     let new_size = Extent3d {
-                    //         width: buffer_dim.x as u32,
-                    //         height: buffer_dim.y as u32,
-                    //         depth_or_array_layers: 1,
-                    //     };
-                    //     if image.texture_descriptor.size != new_size {
-                    //         image.resize(new_size);
-                    //     }
-                    //     image.data.copy_from_slice(&pixels);
-                    // }
-
                     let (material_handle, image_node)= param.texture_q.get(texture_entity.0).unwrap(); 
-
-
                     if let Some(material) = param.materials.get_mut(material_handle) {
                         if let Some(texture) = param.image_asset.get_mut(material.texture.id()) {
                             let new_size = Extent3d {
@@ -489,49 +467,17 @@ impl<'a> FaTextInput {
 
                 let mut editor = Editor::new(buffer.clone());
 
-                let texture_width = buffer_dim.x as u32;
-                let texture_height = buffer_dim.y as u32;
-
-                // need empty pixels at buffer size for ImageNode. see 'on_request_redraw_editor_buffer' system
-                let empty_pixels: Vec<u8> = vec![0; (buffer_dim.x as usize) * (buffer_dim.y as usize) * 4];
-
                 let pixels= helper::draw_editor_buffer(
                     &buffer_dim,
                     &mut font_system.0,
                     &mut swash_cache.0,
                     &mut editor,
-                    cosmic_color.text_color,
-                    cosmic_color.cursor_color,
-                    cosmic_color.selection_color,
-                    cosmic_color.selected_text_color
-                );
-                let mut texture = Image::new_fill(
-                    Extent3d {
-                        width: texture_width,
-                        height: texture_height,
-                        depth_or_array_layers: 1,
-                    },
-                    TextureDimension::D2,
-                    &pixels,
-                    TextureFormat::Rgba8Unorm,
-                    RenderAssetUsages::default()
-                );
-                texture.sampler = ImageSampler::linear();
-
-                let empty_texture = Image::new_fill(
-                    Extent3d {
-                        width: texture_width,
-                        height: texture_height,
-                        depth_or_array_layers: 1,
-                    },
-                    TextureDimension::D2,
-                    &empty_pixels,
-                    TextureFormat::Rgba8Unorm,
-                    RenderAssetUsages::default()
+                    cosmic_color
                 );
 
-                let texture_handle = image_assets.add(texture);
-                let empty_texture_handle = image_assets.add(empty_texture);
+                // need empty pixels at buffer size for ImageNode. see 'on_request_redraw_editor_buffer' system
+                let empty_texture_handle = helper::create_empty_buffer_texture(&buffer_dim, &mut image_assets);
+                let texture_handle = helper::create_buffer_texture(&buffer_dim, &pixels, &mut image_assets);
 
                 if let Color::Srgba(value) = cosmic_rgba_to_bevy_srgba(cosmic_color.text_color) {
                     let texture_image = commands
@@ -558,11 +504,6 @@ impl<'a> FaTextInput {
 
                     commands.entity(texture_image).insert(FaTextInputEntity(entity));
                 }
-
-                
-
-                
-
                 cosmic_data.editor = Some(editor);
                 cosmic_data.attrs = Some(attrs);
                 cosmic_data.metrics = Some(metrics);

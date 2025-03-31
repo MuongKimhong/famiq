@@ -1,9 +1,5 @@
 use bevy::prelude::*;
-use cosmic_text::{
-    Attrs, Buffer, Editor, FontSystem, Edit, SwashCache, Color as CosmicColor,
-    LayoutRun, LayoutGlyph, Placement, SwashContent
-};
-use std::{cmp, iter::once};
+use cosmic_text::{Attrs, Buffer, Editor, FontSystem, Edit, SwashCache, Color as CosmicColor};
 use crate::utils::*;
 use super::*;
 
@@ -149,16 +145,51 @@ pub(crate) fn update_buffer_text_layout(
     buffer.set_size(font_system, Some(buffer_dim.x), Some(buffer_dim.y));
 }
 
-// return (pixels, empty_pixels)
+fn blend_alpha(color: CosmicColor, pixels: &mut Vec<u8>, pixel_index: usize) {
+    // Convert to [0,1]
+    let src_a = color.a() as f32 / 255.0;
+    if src_a <= 0.01 {
+        return;
+    } 
+    let src_r = color.r() as f32 / 255.0;
+    let src_g = color.g() as f32 / 255.0;
+    let src_b = color.b() as f32 / 255.0;
+
+    let dst_r = pixels[pixel_index] as f32 / 255.0;
+    let dst_g = pixels[pixel_index + 1] as f32 / 255.0;
+    let dst_b = pixels[pixel_index + 2] as f32 / 255.0;
+    let dst_a = pixels[pixel_index + 3] as f32 / 255.0;
+
+    // pre-multiplied alpha
+    let premul_src_r = src_r * src_a;
+    let premul_src_g = src_g * src_a;
+    let premul_src_b = src_b * src_a;
+
+    let premul_dst_r = dst_r * dst_a;
+    let premul_dst_g = dst_g * dst_a;
+    let premul_dst_b = dst_b * dst_a;
+
+    let out_a = src_a + dst_a * (1.0 - src_a);
+    let out_r = (premul_src_r + premul_dst_r * (1.0 - src_a)) / out_a.max(1e-5);
+    let out_g = (premul_src_g + premul_dst_g * (1.0 - src_a)) / out_a.max(1e-5);
+    let out_b = (premul_src_b + premul_dst_b * (1.0 - src_a)) / out_a.max(1e-5);
+
+    // reduce faint 
+    let gamma_boost = 1.1;
+    let boosted_a = (out_a * gamma_boost).clamp(0.0, 1.0);
+
+    pixels[pixel_index]     = (out_r * 255.0).clamp(0.0, 255.0) as u8;
+    pixels[pixel_index + 1] = (out_g * 255.0).clamp(0.0, 255.0) as u8;
+    pixels[pixel_index + 2] = (out_b * 255.0).clamp(0.0, 255.0) as u8;
+    pixels[pixel_index + 3] = (boosted_a * 255.0).clamp(0.0, 255.0) as u8;
+}
+
 pub fn draw_editor_buffer(
     buffer_dim: &Vec2,
     font_system: &mut FontSystem,
     swash_cache: &mut SwashCache,
     editor: &mut Editor,
-    text_color: CosmicColor,
-    cursor_color: CosmicColor,
-    selection_color: CosmicColor,
-    selected_text_color: CosmicColor
+    cosmic_data_color: &CosmicDataColor
 ) -> Vec<u8>{
     let y_offset = 2.5;
     let width = buffer_dim.x as usize;
@@ -177,84 +208,59 @@ pub fn draw_editor_buffer(
                     continue;
                 }
 
-                let idx = (y_row as usize * width + x_col as usize) * 4;
+                let pixel_index = (y_row as usize * width + x_col as usize) * 4;
 
-                if idx + 3 >= pixels.len() {
+                if pixel_index + 3 >= pixels.len() {
                     continue;
                 }
-                // let src_a = color.a() as f32 / 255.0;
-
-                // // Convert to [0,1]
-                // let src_r = color.r() as f32 / 255.0;
-                // let src_g = color.g() as f32 / 255.0;
-                // let src_b = color.b() as f32 / 255.0;
-
-                // let dst_r = pixels[idx] as f32 / 255.0;
-                // let dst_g = pixels[idx + 1] as f32 / 255.0;
-                // let dst_b = pixels[idx + 2] as f32 / 255.0;
-                // let dst_a = pixels[idx + 3] as f32 / 255.0;
-
-                // let out_a = src_a + dst_a * (1.0 - src_a);
-                // let out_r = src_r * src_a + dst_r * (1.0 - src_a);
-                // let out_g = src_g * src_a + dst_g * (1.0 - src_a);
-                // let out_b = src_b * src_a + dst_b * (1.0 - src_a);
-
-                // pixels[idx]     = (out_r * 255.0).clamp(0.0, 255.0) as u8;
-                // pixels[idx + 1] = (out_g * 255.0).clamp(0.0, 255.0) as u8;
-                // pixels[idx + 2] = (out_b * 255.0).clamp(0.0, 255.0) as u8;
-                // pixels[idx + 3] = (out_a * 255.0).clamp(0.0, 255.0) as u8;
-
-                let src_a = color.a() as f32 / 255.0;
-                if src_a <= 0.01 {
-                    return; // skip almost-transparent
-                }
-
-                // Convert to [0,1] sRGB linear space
-                let src_r = color.r() as f32 / 255.0;
-                let src_g = color.g() as f32 / 255.0;
-                let src_b = color.b() as f32 / 255.0;
-
-                let dst_r = pixels[idx] as f32 / 255.0;
-                let dst_g = pixels[idx + 1] as f32 / 255.0;
-                let dst_b = pixels[idx + 2] as f32 / 255.0;
-                let dst_a = pixels[idx + 3] as f32 / 255.0;
-
-                // pre-multiplied alpha blending in linear space
-                let premul_src_r = src_r * src_a;
-                let premul_src_g = src_g * src_a;
-                let premul_src_b = src_b * src_a;
-
-                let premul_dst_r = dst_r * dst_a;
-                let premul_dst_g = dst_g * dst_a;
-                let premul_dst_b = dst_b * dst_a;
-
-                let out_a = src_a + dst_a * (1.0 - src_a);
-                let out_r = (premul_src_r + premul_dst_r * (1.0 - src_a)) / out_a.max(1e-5);
-                let out_g = (premul_src_g + premul_dst_g * (1.0 - src_a)) / out_a.max(1e-5);
-                let out_b = (premul_src_b + premul_dst_b * (1.0 - src_a)) / out_a.max(1e-5);
-
-                // Optional: slight gamma boost to reduce "faint" feel
-                let gamma_boost = 1.1;
-                let boosted_a = (out_a * gamma_boost).clamp(0.0, 1.0);
-
-                // Store final blended color (leave full contrast control to shader)
-                pixels[idx]     = (out_r * 255.0).clamp(0.0, 255.0) as u8;
-                pixels[idx + 1] = (out_g * 255.0).clamp(0.0, 255.0) as u8;
-                pixels[idx + 2] = (out_b * 255.0).clamp(0.0, 255.0) as u8;
-                pixels[idx + 3] = (boosted_a * 255.0).clamp(0.0, 255.0) as u8;
-                
-
+                blend_alpha(color, &mut pixels, pixel_index);
             }
         }
     };
     editor.draw(
         font_system,
         swash_cache,
-        text_color,
-        cursor_color,
-        selection_color,
-        selected_text_color,
+        cosmic_data_color.text_color,
+        cosmic_data_color.cursor_color,
+        cosmic_data_color.selection_color,
+        cosmic_data_color.selected_text_color,
         draw_closure,
     );
     pixels
+}
+
+pub(crate) fn create_empty_buffer_texture(buffer_dim: &Vec2, image_assets: &mut ResMut<Assets<Image>>) -> Handle<Image> {
+    let empty_pixels: Vec<u8> = vec![0; (buffer_dim.x as usize) * (buffer_dim.y as usize) * 4];
+    let empty_texture = Image::new_fill(
+        Extent3d {
+            width: buffer_dim.x as u32,
+            height: buffer_dim.y as u32,
+            depth_or_array_layers: 1,
+        },
+        TextureDimension::D2,
+        &empty_pixels,
+        TextureFormat::Rgba8Unorm,
+        RenderAssetUsages::default()
+    );
+    image_assets.add(empty_texture)
+}
+
+pub(crate) fn create_buffer_texture(
+    buffer_dim: &Vec2, 
+    buffer_pixels: &Vec<u8>,
+    image_assets: &mut ResMut<Assets<Image>>
+) -> Handle<Image> {
+    let mut texture = Image::new_fill(
+        Extent3d {
+            width: buffer_dim.x as u32,
+            height: buffer_dim.y as u32,
+            depth_or_array_layers: 1,
+        },
+        TextureDimension::D2,
+        buffer_pixels,
+        TextureFormat::Rgba8Unorm,
+        RenderAssetUsages::default()
+    );
+    texture.sampler = ImageSampler::linear();
+    image_assets.add(texture)
 }
