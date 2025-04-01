@@ -48,7 +48,6 @@ pub(crate) fn find_glyph_index_on_mouse_down(
             closest_glyph_index = Some(i);
         }
     }
-
     return closest_glyph_index;
 }
 
@@ -150,7 +149,7 @@ fn blend_alpha(color: CosmicColor, pixels: &mut Vec<u8>, pixel_index: usize) {
     let src_a = color.a() as f32 / 255.0;
     if src_a <= 0.01 {
         return;
-    } 
+    }
     let src_r = color.r() as f32 / 255.0;
     let src_g = color.g() as f32 / 255.0;
     let src_b = color.b() as f32 / 255.0;
@@ -174,7 +173,7 @@ fn blend_alpha(color: CosmicColor, pixels: &mut Vec<u8>, pixel_index: usize) {
     let out_g = (premul_src_g + premul_dst_g * (1.0 - src_a)) / out_a.max(1e-5);
     let out_b = (premul_src_b + premul_dst_b * (1.0 - src_a)) / out_a.max(1e-5);
 
-    // reduce faint 
+    // reduce faint
     let gamma_boost = 1.1;
     let boosted_a = (out_a * gamma_boost).clamp(0.0, 1.0);
 
@@ -246,7 +245,7 @@ pub(crate) fn create_empty_buffer_texture(buffer_dim: &Vec2, image_assets: &mut 
 }
 
 pub(crate) fn create_buffer_texture(
-    buffer_dim: &Vec2, 
+    buffer_dim: &Vec2,
     buffer_pixels: &Vec<u8>,
     image_assets: &mut ResMut<Assets<Image>>
 ) -> Handle<Image> {

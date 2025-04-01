@@ -1,9 +1,11 @@
 use bevy::prelude::*;
 use cosmic_text::{
-    Color as CosmicColor, Editor, Edit, Cursor, Selection, Attrs, Metrics, LayoutGlyph
+    Color as CosmicColor, Editor, Edit, Cursor, Selection, Attrs, Metrics, LayoutGlyph,
+    FontSystem
 };
 use smol_str::SmolStr;
 use arboard::Clipboard;
+use super::*;
 
 #[cfg(target_os = "linux")]
 use arboard::{SetExtLinux, LinuxClipboardKind};
@@ -132,13 +134,6 @@ impl FaTextEdit {
             ..default()
         }
     }
-    // pub fn move_cursor_start(&mut self) {
-    //     self.cursor_index = 0;
-    // }
-
-    // pub fn move_cursor_end(&mut self) {
-    //     self.cursor_index = self.value.len();
-    // }
 
     pub fn move_cursor_left(&mut self) {
         if self.cursor_index > 0 {
@@ -321,5 +316,69 @@ impl FaTextEdit {
 
     pub fn is_ctrl_v_pressed(&self, keys: &Res<ButtonInput<KeyCode>>, keycode: KeyCode) -> bool {
         keys.pressed(KeyCode::ControlLeft) && matches!(keycode, KeyCode::KeyV)
+    }
+
+    pub fn insert_char(
+        &mut self,
+        editor: &mut Editor,
+        font_system: &mut FontSystem,
+        key_input: &SmolStr,
+        attrs: Option<Attrs>,
+    ) {
+        helper::clear_buffer_before_insert(editor, self, font_system, attrs.unwrap());
+
+        if !self.selected_text.is_empty() {
+            editor.delete_selection();
+            self.remove_selected_text();
+        }
+        self.insert(key_input);
+
+        let b = key_input.as_bytes();
+        for c in b {
+            let c: char = (*c).into();
+            editor.action(font_system, Action::Insert(c));
+        }
+    }
+
+    pub fn insert_space(
+        &mut self,
+        editor: &mut Editor,
+        font_system: &mut FontSystem,
+        attrs: Option<Attrs>
+    ) {
+        helper::clear_buffer_before_insert(editor, self, font_system, attrs.unwrap());
+
+        if !self.selected_text.is_empty() {
+            editor.delete_selection();
+            self.remove_selected_text();
+        }
+        self.insert(&SmolStr::new(" "));
+        editor.action(font_system, Action::Insert(' '));
+    }
+
+    pub fn backspace(&mut self, editor: &mut Editor, font_system: &mut FontSystem) {
+        if !self.selected_text.is_empty() {
+            editor.delete_selection();
+            self.remove_selected_text();
+        }
+        else {
+            self.remove();
+            editor.action(font_system, Action::Backspace);
+        }
+    }
+
+    pub fn escape(&mut self, editor: &mut Editor, font_system: &mut FontSystem) {
+        self.clear_selection();
+        editor.action(font_system, Action::Escape);
+    }
+
+    pub fn arrow_left(&mut self, editor: &mut Editor) {
+        self.move_cursor_left();
+        helper::update_selection_state_on_arrow_keys(self, editor);
+    }
+
+    pub fn arrow_right(&mut self, editor: &mut Editor) {
+        self.move_cursor_right();
+        helper::update_selection_state_on_arrow_keys(self, editor);
     }
 }

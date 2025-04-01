@@ -3,6 +3,8 @@
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 
+use super::text_input::CosmicTextData;
+
 #[derive(Component)]
 pub struct FamiqToolTipText(pub String);
 
@@ -103,6 +105,19 @@ impl DefaultTextEntity {
             text_font,
             text_color,
             text_layout,
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct DefaultCosmicTextEntity {
+    pub text_data: CosmicTextData
+}
+
+impl DefaultCosmicTextEntity {
+    pub fn new(text_data: CosmicTextData) -> Self {
+        Self {
+            text_data
         }
     }
 }

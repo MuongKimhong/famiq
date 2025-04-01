@@ -61,10 +61,9 @@ pub(crate) struct DetectTextStyleChangeParam<'w, 's> {
             &'static mut CosmicData,
             &'static mut CosmicDataColor,
             &'static mut FaTextEdit,
-            &'static TextFont,
-            &'static TextColor
+            &'static CosmicTextData,
         ),
-        Or<(Changed<TextColor>, Changed<TextFont>)>
+        Changed<CosmicTextData>,
     >,
     pub request_redraw: EventWriter<'w, RequestRedrawBuffer>,
     pub font_system: ResMut<'w, CosmicFontSystem>,

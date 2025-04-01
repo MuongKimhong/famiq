@@ -28,7 +28,6 @@ use bevy::prelude::*;
 use cosmic_text::{
     Attrs, Metrics, Buffer, Editor, Family, Edit, Shaping, Weight, Cursor, Selection, Action
 };
-use smol_str::SmolStr;
 use arboard::Clipboard;
 use std::sync::Arc;
 
@@ -68,7 +67,6 @@ impl UiMaterial for TextInputMaterial {
 /// Support UTF-8 encoded only.
 pub struct FaTextInput;
 
-// Needs container
 impl<'a> FaTextInput {
     fn _build_input(
         attributes: &WidgetAttributes,
@@ -86,6 +84,7 @@ impl<'a> FaTextInput {
         let text_data = CosmicTextData {
             handle: attributes.font_handle.clone().unwrap(),
             size: get_text_size(&attributes.size),
+            color: placeholder_color
         };
 
         let entity = root_node
@@ -99,7 +98,10 @@ impl<'a> FaTextInput {
                 CosmicDataColor::new(placeholder_color),
                 CosmicData::default(),
                 CursorBlinkTimer::default(),
-                text_data
+                text_data.clone(),
+                DefaultCosmicTextEntity {
+                    text_data
+                }
             ))
             .observe(FaTextInput::handle_on_mouse_over)
             .observe(FaTextInput::handle_on_mouse_out)
@@ -344,8 +346,6 @@ impl<'a> FaTextInput {
 
     pub(crate) fn on_request_redraw_editor_buffer(mut param: RequestRedrawBufferParam) {
         for request in param.request_redraw.read() {
-            use std::time::Instant;
-        let now = Instant::now();
             if let Ok((mut cosmic_data, cosmic_color, texture_entity)) = param.input_q.get_mut(request.input_entity) {
                 let CosmicData {editor, buffer_dim, .. } = &mut *cosmic_data;
 
@@ -358,8 +358,11 @@ impl<'a> FaTextInput {
                         cosmic_color
                     );
 
-                    let (material_handle, image_node)= param.texture_q.get(texture_entity.0).unwrap(); 
+                    let (material_handle, image_node)= param.texture_q.get(texture_entity.0).unwrap();
                     if let Some(material) = param.materials.get_mut(material_handle) {
+                        if let Color::Srgba(value) = cosmic_rgba_to_bevy_srgba(cosmic_color.text_color) {
+                            material.color = Vec3::new(value.red, value.green, value.blue);
+                        }
                         if let Some(texture) = param.image_asset.get_mut(material.texture.id()) {
                             let new_size = Extent3d {
                                 width: buffer_dim.x as u32,
@@ -373,7 +376,7 @@ impl<'a> FaTextInput {
                         }
                     }
 
-                    // resize ImageNode so that it can grows the Node size automatically.
+                    // resize ImageNode so that it can grow the Node size automatically.
                     // resizing Node directly will cause text shaking.
                     if let Some(image) = param.image_asset.get_mut(image_node.image.id()) {
                         let new_size = Extent3d {
@@ -383,12 +386,10 @@ impl<'a> FaTextInput {
                         };
                         if image.texture_descriptor.size != new_size {
                             image.resize(new_size);
-                        } 
+                        }
                     }
                 }
             }
-            let elapsed = now.elapsed();
-         println!("Elapsed: {:.2?}", elapsed);
         }
     }
 
@@ -514,8 +515,14 @@ impl<'a> FaTextInput {
 
     /// Internal system to detect text's style (font-size & color) changes
     pub(crate) fn detect_text_input_text_style_change(mut param: DetectTextStyleChangeParam) {
-        param.input_q.iter_mut().for_each(|(entity, mut cosmic_data, mut cosmic_color, mut text_edit, text_font, text_color)| {
-            if let Some(_cosmic_color) = bevy_color_to_cosmic_rgba(text_color.0) {
+        param.input_q.iter_mut().for_each(|(
+            entity,
+            mut cosmic_data,
+            mut cosmic_color,
+            mut text_edit,
+            cosmic_text_data
+        )| {
+            if let Some(_cosmic_color) = bevy_color_to_cosmic_rgba(cosmic_text_data.color) {
                 cosmic_color.text_color = _cosmic_color;
                 cosmic_color.selected_text_color = _cosmic_color;
 
@@ -526,19 +533,23 @@ impl<'a> FaTextInput {
                         cosmic_color.cursor_color = CURSOR_INVISIBLE;
                     }
                 }
+
             }
+
             let CosmicData { editor, attrs, buffer_dim, .. } = &mut *cosmic_data;
 
-            if text_font.font_size > 0.0 {
+            if cosmic_text_data.size > 0.0 {
                 if let Some(editor) = editor {
                     let current_cursor = editor.cursor();
-
                     let font_system = &mut param.font_system.0;
 
                     editor.with_buffer_mut(|buffer| {
                         buffer.set_size(font_system, None, None); // reset
 
-                        let new_metrics = Metrics::relative(text_font.font_size, 1.2).scale(param.window.scale_factor());
+                        let new_metrics = Metrics::relative(cosmic_text_data.size, 1.2);
+                        #[cfg(not(target_os = "macos"))] {
+                            new_metrics.scale(param.window.scale_factor());
+                        }
                         buffer.set_metrics(font_system, new_metrics);
 
                         if text_edit.value.is_empty() {
@@ -546,7 +557,6 @@ impl<'a> FaTextInput {
                         } else {
                             buffer.set_text(font_system, &text_edit.value, attrs.unwrap(), Shaping::Advanced);
                         }
-
                         if let Some(layout) = buffer.line_layout(font_system, 0) {
                             text_edit.text_width = layout[0].w;
                             text_edit.text_height = new_metrics.line_height;
@@ -560,9 +570,9 @@ impl<'a> FaTextInput {
                             buffer.shape_until_cursor(font_system, current_cursor, true);
                         }
                     });
-                    param.request_redraw.send(RequestRedrawBuffer::new(entity));
                 }
             }
+            param.request_redraw.send(RequestRedrawBuffer::new(entity));
         });
     }
 
@@ -572,7 +582,15 @@ impl<'a> FaTextInput {
                 continue;
             }
 
-            for(entity, computed, texture_entity, mut blink_timer, mut cosmic_data, mut text_edit, id) in param.input_q.iter_mut() {
+            for(
+                entity,
+                computed,
+                texture_entity,
+                mut blink_timer,
+                mut cosmic_data,
+                mut text_edit,
+                id
+            ) in param.input_q.iter_mut() {
                 let Some(focused) = param.famiq_res.get_widget_focus_state(&entity) else { continue };
 
                 if !focused {
@@ -640,53 +658,12 @@ impl<'a> FaTextInput {
 
                     if !skip_typing {
                         match &e.logical_key {
-                            Key::Character(key_input) => {
-                                helper::clear_buffer_before_insert(&mut editor, &mut text_edit, font_system, attrs.unwrap());
-
-                                if !text_edit.selected_text.is_empty() {
-                                    editor.delete_selection();
-                                    text_edit.remove_selected_text();
-                                }
-                                text_edit.insert(key_input);
-
-                                let b = key_input.as_bytes();
-                                for c in b {
-                                    let c: char = (*c).into();
-                                    editor.action(font_system, Action::Insert(c));
-                                }
-                            }
-                            Key::Space => {
-                                helper::clear_buffer_before_insert(&mut editor, &mut text_edit, font_system, attrs.unwrap());
-
-                                if !text_edit.selected_text.is_empty() {
-                                    editor.delete_selection();
-                                    text_edit.remove_selected_text();
-                                }
-                                text_edit.insert(&SmolStr::new(" "));
-                                editor.action(font_system, Action::Insert(' '));
-                            }
-                            Key::Backspace => {
-                                if !text_edit.selected_text.is_empty() {
-                                    editor.delete_selection();
-                                    text_edit.remove_selected_text();
-                                }
-                                else {
-                                    text_edit.remove();
-                                    editor.action(font_system, Action::Backspace);
-                                }
-                            }
-                            Key::Escape => {
-                                text_edit.clear_selection();
-                                editor.action(font_system, Action::Escape);
-                            }
-                            Key::ArrowLeft => {
-                                text_edit.move_cursor_left();
-                                helper::update_selection_state_on_arrow_keys(&mut text_edit, &mut editor);
-                            }
-                            Key::ArrowRight => {
-                                text_edit.move_cursor_right();
-                                helper::update_selection_state_on_arrow_keys(&mut text_edit, &mut editor);
-                            }
+                            Key::Character(key_input) => text_edit.insert_char(&mut editor, font_system, key_input, *attrs),
+                            Key::Space => text_edit.insert_space(&mut editor, font_system, *attrs),
+                            Key::Backspace => text_edit.backspace(&mut editor, font_system),
+                            Key::Escape => text_edit.escape(&mut editor, font_system),
+                            Key::ArrowLeft => text_edit.arrow_left(&mut editor),
+                            Key::ArrowRight => text_edit.arrow_right(&mut editor),
                             _ => {}
                         }
                     }
@@ -715,7 +692,6 @@ impl<'a> FaTextInput {
                         NeedScroll::Left => helper::scroll_left(&mut texture_node, &text_edit),
                         _ => {}
                     }
-                    blink_timer.can_blink = false;
                     param.change_writer.send(FaValueChangeEvent::new(
                         entity,
                         id.map(|_id| _id.0.clone()),
@@ -723,9 +699,11 @@ impl<'a> FaTextInput {
                         Vec::new()
                     ));
                     param.request_redraw.send(RequestRedrawBuffer::new(entity));
+
                     if let Some(id) = id {
                         param.input_res._insert(id.0.clone(), text_edit.value.clone());
                     }
+                    blink_timer.can_blink = false;
                 }
             }
         }
@@ -758,6 +736,7 @@ impl<'a> FaTextInput {
                     &mut cosmic_color
                 );
             }
+
             if need_redraw {
                 request_redraw_buffer.send(RequestRedrawBuffer::new(entity));
             }

@@ -3,6 +3,7 @@ use crate::resources::*;
 use crate::widgets::{style_parse::*, *};
 use bevy::prelude::*;
 
+use super::text_input::CosmicTextData;
 use super::DefaultTextSpanEntity;
 
 pub type WidgetStyleQuery<'a, 'w, 's> = Query<
@@ -150,22 +151,26 @@ pub(crate) fn detect_widget_external_styles_change(
 pub(crate) fn detect_text_external_styles_change(
     mut styles: ResMut<StylesKeyValueResource>,
     mut text_query: Query<(
-        &mut TextFont,
-        &mut TextColor,
+        Option<&mut TextFont>,
+        Option<&mut TextColor>,
+        Option<&mut CosmicTextData>,
         Option<&FamiqWidgetId>,
         Option<&FamiqWidgetClasses>,
         Option<&DefaultTextEntity>,
-        Option<&DefaultTextSpanEntity>
+        Option<&DefaultTextSpanEntity>,
+        Option<&DefaultCosmicTextEntity>
     )>
 ) {
     if styles.is_changed() {
         for (
-            mut text_font,
-            mut text_color,
+            text_font,
+            text_color,
+            cosmic_text_data,
             id,
             class,
             default_text_entity,
-            default_text_span_entity
+            default_text_span_entity,
+            default_cosmic_text_entity,
         ) in text_query.iter_mut() {
             let mut _id = String::new();
             let mut _class_split: Vec<&str> = Vec::new();
@@ -219,8 +224,13 @@ pub(crate) fn detect_text_external_styles_change(
                     &empty_style,
                     default_text_entity,
                     default_text_span_entity,
-                    &mut text_font,
-                    &mut text_color
+                    text_font,
+                    text_color,
+                );
+                apply_text_styles_for_cosmic_text(
+                    &empty_style,
+                    default_cosmic_text_entity,
+                    cosmic_text_data
                 );
             }
         }
@@ -232,36 +242,82 @@ pub fn finish_style_applying_system(mut builder_res: ResMut<FamiqResource>) {
     builder_res.external_style_applied = true;
 }
 
+pub(crate) fn apply_text_styles_for_cosmic_text(
+    local_style: &WidgetStyle,
+    default_cosmic_text_entity: Option<&DefaultCosmicTextEntity>,
+    cosmic_text_data: Option<Mut<'_, CosmicTextData>>,
+) {
+    let mut set_new_color = false;
+    let mut set_new_size = false;
+
+    if let Some(mut _cosmic_text_data) = cosmic_text_data {
+        if let Some(font_size) = &local_style.font_size {
+            if let Ok(parsed_value) = font_size.trim().parse::<f32>() {
+                _cosmic_text_data.size = parsed_value;
+                set_new_size = true;
+
+            }
+        }
+        if let Some(color) = &local_style.color {
+            if let Some(v) = parse_color(color) {
+                _cosmic_text_data.color = v;
+                set_new_color = true;
+            }
+        }
+
+        if let Some(default_cosmic_text) = default_cosmic_text_entity {
+            if !set_new_size {
+                _cosmic_text_data.size = default_cosmic_text.text_data.size;
+            }
+            if !set_new_color {
+                _cosmic_text_data.color = default_cosmic_text.text_data.color;
+            }
+        }
+    }
+}
+
 pub(crate) fn apply_text_styles_from_external_json(
     local_style: &WidgetStyle,
     default_text_entity: Option<&DefaultTextEntity>,
     default_text_span_entity: Option<&DefaultTextSpanEntity>,
-    text_font: &mut TextFont,
-    text_color: &mut TextColor,
+    text_font: Option<Mut<'_, TextFont>>,
+    text_color: Option<Mut<'_, TextColor>>,
 ) {
     if let Some(font_size) = &local_style.font_size {
         if let Ok(parsed_value) = font_size.trim().parse::<f32>() {
-            text_font.font_size = parsed_value;
+            if let Some(mut text_font_size) = text_font {
+                text_font_size.font_size = parsed_value;
+            }
         }
     } else {
         if let Some(default_text) = default_text_entity {
-            text_font.font_size = default_text.text_font.font_size.clone();
+            if let Some(mut text_font_size) = text_font {
+                text_font_size.font_size = default_text.text_font.font_size.clone();
+            }
         }
         else if let Some(default_text_span) = default_text_span_entity {
-            text_font.font_size = default_text_span.text_font.font_size.clone();
+            if let Some(mut text_font_size) = text_font {
+                text_font_size.font_size = default_text_span.text_font.font_size.clone();
+            }
         }
     }
 
     if let Some(color) = &local_style.color {
         if let Some(v) = parse_color(color) {
-            text_color.0 = v;
+            if let Some(mut _text_color) = text_color {
+                _text_color.0 = v;
+            }
         }
     } else {
         if let Some(default_text) = default_text_entity {
-            text_color.0 = default_text.text_color.0.clone();
+            if let Some(mut _text_color) = text_color {
+                _text_color.0 = default_text.text_color.0.clone();
+            }
         }
         else if let Some(default_text_span) = default_text_span_entity {
-            text_color.0 = default_text_span.text_color.0.clone();
+            if let Some(mut _text_color) = text_color {
+                _text_color.0 = default_text_span.text_color.0.clone();
+            }
         }
     }
 }
