@@ -1,7 +1,7 @@
 pub mod tests;
 
 use bevy::prelude::*;
-use crate::event_writer::FaMouseEvent;
+use crate::event_writer::*;
 use crate::utils::*;
 use crate::widgets::*;
 
@@ -49,7 +49,7 @@ impl<'a> FaImage {
     ) {
         if let Ok((id, transform, tooltip_entity)) = image_q.get(trigger.entity()) {
             show_tooltip(tooltip_entity, &mut tooltip_q, transform.translation());
-            FaMouseEvent::send_over_event(&mut writer, WidgetType::Image, trigger.entity(), id);
+            FaMouseEvent::send_event(&mut writer, EventType::Over, WidgetType::Image, trigger.entity(), id);
         }
         trigger.propagate(false);
     }
@@ -62,7 +62,7 @@ impl<'a> FaImage {
     ) {
         if let Ok((id, tooltip_entity)) = image_q.get(trigger.entity()) {
             hide_tooltip(tooltip_entity, &mut tooltip_q);
-            FaMouseEvent::send_out_event(&mut writer, WidgetType::Image, trigger.entity(), id);
+            FaMouseEvent::send_event(&mut writer, EventType::Out, WidgetType::Image, trigger.entity(), id);
         }
         trigger.propagate(false);
     }
@@ -74,9 +74,9 @@ impl<'a> FaImage {
     ) {
         if let Ok(id) = image_q.get(trigger.entity()) {
             if trigger.event().button == PointerButton::Secondary {
-                FaMouseEvent::send_down_event(&mut writer, WidgetType::Image, trigger.entity(), id, true);
+                FaMouseEvent::send_event(&mut writer, EventType::DownRight, WidgetType::Image, trigger.entity(), id);
             } else {
-                FaMouseEvent::send_down_event(&mut writer, WidgetType::Image, trigger.entity(), id, false);
+                FaMouseEvent::send_event(&mut writer, EventType::DownLeft, WidgetType::Image, trigger.entity(), id);
             }
         }
         trigger.propagate(false);
@@ -88,7 +88,7 @@ impl<'a> FaImage {
         image_q: Query<Option<&FamiqWidgetId>, With<IsFamiqImage>>
     ) {
         if let Ok(id) = image_q.get(trigger.entity()) {
-            FaMouseEvent::send_up_event(&mut writer, WidgetType::Image, trigger.entity(), id);
+            FaMouseEvent::send_event(&mut writer, EventType::Up, WidgetType::Image, trigger.entity(), id);
         }
         trigger.propagate(false);
     }

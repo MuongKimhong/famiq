@@ -3,7 +3,7 @@ use bevy::utils::HashMap;
 use bevy::window::WindowResized;
 use bevy::asset::{io::AssetSourceId, AssetPath, AssetPlugin};
 use bevy::prelude::*;
-use cosmic_text::{Color as CosmicColor, FontSystem, SwashCache, Editor};
+use cosmic_text::Color as CosmicColor;
 use std::path::Path;
 use std::fs::File;
 use std::io::Read;

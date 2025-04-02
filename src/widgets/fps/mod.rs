@@ -3,7 +3,7 @@ pub mod tests;
 
 use crate::utils::{entity_add_child, insert_id_and_class, process_spacing_built_in_class};
 use crate::widgets::*;
-use crate::event_writer::FaMouseEvent;
+use crate::event_writer::*;
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
@@ -69,8 +69,6 @@ impl<'a> FaFpsText {
             ))
             .observe(FaFpsText::handle_on_mouse_over)
             .observe(FaFpsText::handle_on_mouse_out)
-            .observe(FaFpsText::handle_on_mouse_down)
-            .observe(FaFpsText::handle_on_mouse_up)
             .id();
 
         let count_txt_entity = root_node
@@ -109,7 +107,7 @@ impl<'a> FaFpsText {
         fps_q: Query<Option<&FamiqWidgetId>, With<IsFamiqFPSTextLabel>>
     ) {
         if let Ok(id) = fps_q.get(trigger.entity()) {
-            FaMouseEvent::send_over_event(&mut writer, WidgetType::FpsText, trigger.entity(), id);
+            FaMouseEvent::send_event(&mut writer, EventType::Over, WidgetType::FpsText, trigger.entity(), id);
         }
         trigger.propagate(false);
     }
@@ -120,33 +118,7 @@ impl<'a> FaFpsText {
         fps_q: Query<Option<&FamiqWidgetId>, With<IsFamiqFPSTextLabel>>
     ) {
         if let Ok(id) = fps_q.get(trigger.entity()) {
-            FaMouseEvent::send_out_event(&mut writer, WidgetType::FpsText, trigger.entity(), id);
-        }
-        trigger.propagate(false);
-    }
-
-    fn handle_on_mouse_down(
-        mut trigger: Trigger<Pointer<Down>>,
-        mut writer: EventWriter<FaMouseEvent>,
-        fps_q: Query<Option<&FamiqWidgetId>, With<IsFamiqFPSTextLabel>>
-    ) {
-        if let Ok(id) = fps_q.get(trigger.entity()) {
-            if trigger.event().button == PointerButton::Secondary {
-                FaMouseEvent::send_down_event(&mut writer, WidgetType::FpsText, trigger.entity(), id, true);
-            } else {
-                FaMouseEvent::send_down_event(&mut writer, WidgetType::FpsText, trigger.entity(), id, false);
-            }
-        }
-        trigger.propagate(false);
-    }
-
-    fn handle_on_mouse_up(
-        mut trigger: Trigger<Pointer<Up>>,
-        mut writer: EventWriter<FaMouseEvent>,
-        fps_q: Query<Option<&FamiqWidgetId>, With<IsFamiqFPSTextLabel>>
-    ) {
-        if let Ok(id) = fps_q.get(trigger.entity()) {
-            FaMouseEvent::send_up_event(&mut writer, WidgetType::FpsText, trigger.entity(), id);
+            FaMouseEvent::send_event(&mut writer, EventType::Out, WidgetType::FpsText, trigger.entity(), id);
         }
         trigger.propagate(false);
     }

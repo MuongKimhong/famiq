@@ -11,7 +11,7 @@ use styling::*;
 use system_params::*;
 pub use components::*;
 pub use text_edit::*;
-use crate::event_writer::{FaMouseEvent, FaValueChangeEvent};
+use crate::event_writer::*;
 use crate::plugin::{CursorIcons, CursorType};
 use crate::utils::*;
 use crate::resources::*;
@@ -288,7 +288,13 @@ impl<'a> FaTextInput {
             box_shadow.color = border_color.0.clone();
             show_tooltip(tooltip_entity, &mut param.tooltip_q, transform.translation());
             _change_cursor_icon(&mut param.commands, &param.cursor_icons, *param.window, CursorType::Text);
-            FaMouseEvent::send_over_event(&mut param.mouse_writer, WidgetType::TextInput, trigger.entity(), id);
+            FaMouseEvent::send_event(
+                &mut param.mouse_writer,
+                EventType::Over,
+                WidgetType::TextInput,
+                trigger.entity(),
+                id
+            );
         }
         trigger.propagate(false);
     }
@@ -305,7 +311,13 @@ impl<'a> FaTextInput {
             box_shadow.color = Color::NONE;
             hide_tooltip(tooltip_entity, &mut param.tooltip_q);
             _change_cursor_icon(&mut param.commands, &param.cursor_icons, *param.window, CursorType::Default);
-            FaMouseEvent::send_out_event(&mut param.mouse_writer, WidgetType::TextInput, trigger.entity(), id);
+            FaMouseEvent::send_event(
+                &mut param.mouse_writer,
+                EventType::Out,
+                WidgetType::TextInput,
+                trigger.entity(),
+                id
+            );
         }
         trigger.propagate(false);
     }
@@ -325,9 +337,9 @@ impl<'a> FaTextInput {
                 text_edit.clear_selection();
             }
             if trigger.event().button == PointerButton::Secondary {
-                FaMouseEvent::send_down_event(&mut writer, WidgetType::TextInput, trigger.entity(), id, true);
+                FaMouseEvent::send_event(&mut writer, EventType::DownRight, WidgetType::TextInput, trigger.entity(), id);
             } else {
-                FaMouseEvent::send_down_event(&mut writer, WidgetType::TextInput, trigger.entity(), id, false);
+                FaMouseEvent::send_event(&mut writer, EventType::DownLeft, WidgetType::TextInput, trigger.entity(), id);
             }
         }
         trigger.propagate(false);
@@ -339,7 +351,13 @@ impl<'a> FaTextInput {
         mut writer: EventWriter<FaMouseEvent>,
     ) {
         if let Ok(id) = input_q.get_mut(trigger.entity()) {
-            FaMouseEvent::send_up_event(&mut writer, WidgetType::TextInput, trigger.entity(), id);
+            FaMouseEvent::send_event(
+                &mut writer,
+                EventType::Up,
+                WidgetType::TextInput,
+                trigger.entity(),
+                id
+            );
         }
         trigger.propagate(false);
     }
@@ -375,7 +393,6 @@ impl<'a> FaTextInput {
                             texture.data.copy_from_slice(&pixels);
                         }
                     }
-
                     // resize ImageNode so that it can grow the Node size automatically.
                     // resizing Node directly will cause text shaking.
                     if let Some(image) = param.image_asset.get_mut(image_node.image.id()) {

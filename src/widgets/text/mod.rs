@@ -1,4 +1,4 @@
-use crate::event_writer::FaMouseEvent;
+use crate::event_writer::*;
 use crate::plugin::{CursorType, CursorIcons};
 use crate::widgets::*;
 use crate::utils::{_change_cursor_icon, get_color, insert_id_and_class, process_spacing_built_in_class};
@@ -175,7 +175,7 @@ impl<'a> FaText {
     ) {
         if let Ok(id) = text_q.get(trigger.entity()) {
             _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Text);
-            FaMouseEvent::send_over_event(&mut writer, WidgetType::Text, trigger.entity(), id);
+            FaMouseEvent::send_event(&mut writer, EventType::Over, WidgetType::Text, trigger.entity(), id);
         }
         trigger.propagate(false);
     }
@@ -190,7 +190,7 @@ impl<'a> FaText {
     ) {
         if let Ok(id) = text_q.get(trigger.entity()) {
             _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Default);
-            FaMouseEvent::send_out_event(&mut writer, WidgetType::Text, trigger.entity(), id);
+            FaMouseEvent::send_event(&mut writer, EventType::Out, WidgetType::Text, trigger.entity(), id);
         }
         trigger.propagate(false);
     }
@@ -202,9 +202,9 @@ impl<'a> FaText {
     ) {
         if let Ok(id) = text_q.get(trigger.entity()) {
             if trigger.event().button == PointerButton::Secondary {
-                FaMouseEvent::send_down_event(&mut writer, WidgetType::Text, trigger.entity(), id, true);
+                FaMouseEvent::send_event(&mut writer, EventType::DownRight, WidgetType::Text, trigger.entity(), id);
             } else {
-                FaMouseEvent::send_down_event(&mut writer, WidgetType::Text, trigger.entity(), id, false);
+                FaMouseEvent::send_event(&mut writer, EventType::DownLeft, WidgetType::Text, trigger.entity(), id);
             }
         }
         trigger.propagate(false);
@@ -217,7 +217,7 @@ impl<'a> FaText {
     ) {
         if let Ok(id) = text_q.get(trigger.entity()) {
             if trigger.event().button == PointerButton::Secondary {
-                FaMouseEvent::send_up_event(&mut writer, WidgetType::Text, trigger.entity(), id);
+                FaMouseEvent::send_event(&mut writer, EventType::Up, WidgetType::Text, trigger.entity(), id);
             }
         }
         trigger.propagate(false);

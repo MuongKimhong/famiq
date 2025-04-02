@@ -8,7 +8,7 @@ use bevy::reflect::TypePath;
 use bevy::render::render_resource::*;
 use crate::utils::*;
 use crate::widgets::*;
-use crate::event_writer::FaMouseEvent;
+use crate::event_writer::*;
 
 pub use components::*;
 use helper::*;
@@ -191,7 +191,7 @@ impl<'a> FaProgressBar {
     ) {
         if let Ok((transform, id, tooltip_entity)) = bar_q.get(trigger.entity()) {
             show_tooltip(tooltip_entity, &mut tooltip_q, transform.translation());
-            FaMouseEvent::send_over_event(&mut writer, WidgetType::ProgressBar, trigger.entity(), id);
+            FaMouseEvent::send_event(&mut writer, EventType::Over, WidgetType::ProgressBar, trigger.entity(), id);
         }
         trigger.propagate(false);
     }
@@ -204,7 +204,7 @@ impl<'a> FaProgressBar {
     ) {
         if let Ok((id, tooltip_entity)) = bar_q.get(trigger.entity()) {
             hide_tooltip(tooltip_entity, &mut tooltip_q);
-            FaMouseEvent::send_out_event(&mut writer, WidgetType::ProgressBar, trigger.entity(), id);
+            FaMouseEvent::send_event(&mut writer, EventType::Out, WidgetType::ProgressBar, trigger.entity(), id);
         }
         trigger.propagate(false);
     }
@@ -216,9 +216,9 @@ impl<'a> FaProgressBar {
     ) {
         if let Ok(id) = bar_q.get(trigger.entity()) {
             if trigger.event().button == PointerButton::Secondary {
-                FaMouseEvent::send_down_event(&mut writer, WidgetType::ProgressBar, trigger.entity(), id, true);
+                FaMouseEvent::send_event(&mut writer, EventType::DownRight, WidgetType::ProgressBar, trigger.entity(), id);
             } else {
-                FaMouseEvent::send_down_event(&mut writer, WidgetType::ProgressBar, trigger.entity(), id, false);
+                FaMouseEvent::send_event(&mut writer, EventType::DownLeft, WidgetType::ProgressBar, trigger.entity(), id);
             }
         }
         trigger.propagate(false);
@@ -230,7 +230,7 @@ impl<'a> FaProgressBar {
         bar_q: Query<Option<&FamiqWidgetId>, With<IsFamiqProgressBar>>
     ) {
         if let Ok(id) = bar_q.get(trigger.entity()) {
-            FaMouseEvent::send_up_event(&mut writer, WidgetType::ProgressBar, trigger.entity(), id);
+            FaMouseEvent::send_event(&mut writer, EventType::Up, WidgetType::ProgressBar, trigger.entity(), id);
         }
         trigger.propagate(false);
     }

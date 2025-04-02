@@ -8,7 +8,7 @@ use styling::*;
 use crate::plugin::{CursorIcons, CursorType};
 use crate::utils::*;
 use crate::widgets::*;
-use crate::event_writer::FaMouseEvent;
+use crate::event_writer::*;
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 
@@ -102,7 +102,7 @@ impl<'a> FaButton {
                 &mut tooltip_q,
                 transform.translation()
             );
-            FaMouseEvent::send_over_event(&mut writer, WidgetType::Button, over.entity(), id);
+            FaMouseEvent::send_event(&mut writer, EventType::Over, WidgetType::Button, over.entity(), id);
         }
         over.propagate(false);
     }
@@ -125,9 +125,9 @@ impl<'a> FaButton {
                 bg_color.0 = darkened_color;
             }
             if down.event().button == PointerButton::Secondary {
-                FaMouseEvent::send_down_event(&mut writer, WidgetType::Button, down.entity(), id, true);
+                FaMouseEvent::send_event(&mut writer, EventType::DownRight, WidgetType::Button, down.entity(), id);
             } else {
-                FaMouseEvent::send_down_event(&mut writer, WidgetType::Button, down.entity(), id, false);
+                FaMouseEvent::send_event(&mut writer, EventType::DownLeft, WidgetType::Button, down.entity(), id);
             }
         }
         down.propagate(false);
@@ -142,7 +142,7 @@ impl<'a> FaButton {
             if let Some(color) = before_pressed_color.0 {
                 bg_color.0 = color;
             }
-            FaMouseEvent::send_up_event(&mut writer, WidgetType::Button, up.entity(), id);
+            FaMouseEvent::send_event(&mut writer, EventType::Up, WidgetType::Button, up.entity(), id);
         }
         up.propagate(false);
     }
@@ -166,7 +166,7 @@ impl<'a> FaButton {
                 bg_color.0 = color;
             }
             hide_tooltip(tooltip_entity, &mut tooltip_q);
-            FaMouseEvent::send_out_event(&mut writer, WidgetType::Button, out.entity(), id);
+            FaMouseEvent::send_event(&mut writer, EventType::Out, WidgetType::Button, out.entity(), id);
         }
         out.propagate(false);
     }

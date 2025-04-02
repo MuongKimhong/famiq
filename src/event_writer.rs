@@ -4,7 +4,7 @@ use bevy::ecs::event::EventWriter;
 use bevy::prelude::*;
 
 #[derive(PartialEq, Debug)]
-pub enum MouseEventType {
+pub enum EventType {
     Over,
     DownLeft, // Left click
     DownRight, // Right click
@@ -16,14 +16,14 @@ pub enum MouseEventType {
 /// Mouse events on widget. Over, Down, Up, Out (Leave)
 #[derive(Event, Debug)]
 pub struct FaMouseEvent {
-    pub event_type: MouseEventType,
+    pub event_type: EventType,
     pub widget_type: WidgetType,
     pub entity: Entity,
     pub id: Option<String>,
 }
 
 impl FaMouseEvent {
-    pub fn new(entity: Entity, id: Option<String>, event_type: MouseEventType, widget_type: WidgetType) -> Self {
+    pub fn new(entity: Entity, id: Option<String>, event_type: EventType, widget_type: WidgetType) -> Self {
         Self {
             entity,
             id,
@@ -33,94 +33,31 @@ impl FaMouseEvent {
     }
 
     pub fn is_mouse_left_down(&self, widget_type: WidgetType) -> bool {
-        self.widget_type == widget_type && self.event_type == MouseEventType::DownLeft
+        self.widget_type == widget_type && self.event_type == EventType::DownLeft
     }
 
     pub fn is_mouse_right_down(&self, widget_type: WidgetType) -> bool {
-        self.widget_type == widget_type && self.event_type == MouseEventType::DownRight
+        self.widget_type == widget_type && self.event_type == EventType::DownRight
     }
 
     pub fn is_mouse_up(&self, widget_type: WidgetType) -> bool {
-        self.widget_type == widget_type && self.event_type == MouseEventType::Up
+        self.widget_type == widget_type && self.event_type == EventType::Up
     }
 
     pub fn is_mouse_over(&self, widget_type: WidgetType) -> bool {
-        self.widget_type == widget_type && self.event_type == MouseEventType::Over
+        self.widget_type == widget_type && self.event_type == EventType::Over
     }
 
     pub fn is_mouse_out(&self, widget_type: WidgetType) -> bool {
-        self.widget_type == widget_type && self.event_type == MouseEventType::Out
+        self.widget_type == widget_type && self.event_type == EventType::Out
     }
 
     pub fn is_mouse_scroll(&self, widget_type: WidgetType) -> bool {
-        self.widget_type == widget_type && self.event_type == MouseEventType::Scroll
+        self.widget_type == widget_type && self.event_type == EventType::Scroll
     }
 
     pub fn is_button_pressed(&self) -> bool {
-        self.widget_type == WidgetType::Button && self.event_type == MouseEventType::DownLeft
-    }
-
-    pub(crate) fn send_down_event(
-        writer: &mut EventWriter<FaMouseEvent>,
-        widget_type: WidgetType,
-        entity: Entity,
-        id: Option<&FamiqWidgetId>,
-        right: bool
-    ) {
-        let mut event_type = MouseEventType::DownLeft;
-
-        if right {
-            event_type = MouseEventType::DownRight;
-        }
-
-        writer.send(FaMouseEvent {
-            event_type,
-            widget_type,
-            entity,
-            id: id.map(|_id| _id.0.clone())
-        });
-    }
-
-    pub(crate) fn send_up_event(
-        writer: &mut EventWriter<FaMouseEvent>,
-        widget_type: WidgetType,
-        entity: Entity,
-        id: Option<&FamiqWidgetId>
-    ) {
-        writer.send(FaMouseEvent {
-            event_type: MouseEventType::Up,
-            widget_type,
-            entity,
-            id: id.map(|_id| _id.0.clone())
-        });
-    }
-
-    pub(crate) fn send_over_event(
-        writer: &mut EventWriter<FaMouseEvent>,
-        widget_type: WidgetType,
-        entity: Entity,
-        id: Option<&FamiqWidgetId>
-    ) {
-        writer.send(FaMouseEvent {
-            event_type: MouseEventType::Over,
-            widget_type,
-            entity,
-            id: id.map(|_id| _id.0.clone())
-        });
-    }
-
-    pub(crate) fn send_out_event(
-        writer: &mut EventWriter<FaMouseEvent>,
-        widget_type: WidgetType,
-        entity: Entity,
-        id: Option<&FamiqWidgetId>
-    ) {
-        writer.send(FaMouseEvent {
-            event_type: MouseEventType::Out,
-            widget_type,
-            entity,
-            id: id.map(|_id| _id.0.clone())
-        });
+        self.widget_type == WidgetType::Button && self.event_type == EventType::DownLeft
     }
 
     pub(crate) fn send_scroll_event(
@@ -130,7 +67,22 @@ impl FaMouseEvent {
         id: Option<&FamiqWidgetId>
     ) {
         writer.send(FaMouseEvent {
-            event_type: MouseEventType::Scroll,
+            event_type: EventType::Scroll,
+            widget_type,
+            entity,
+            id: id.map(|_id| _id.0.clone())
+        });
+    }
+
+    pub(crate) fn send_event(
+        writer: &mut EventWriter<FaMouseEvent>,
+        event_type: EventType,
+        widget_type: WidgetType,
+        entity: Entity,
+        id: Option<&FamiqWidgetId>
+    ) {
+        writer.send(FaMouseEvent {
+            event_type,
             widget_type,
             entity,
             id: id.map(|_id| _id.0.clone())

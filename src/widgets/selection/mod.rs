@@ -6,7 +6,7 @@ pub mod tests;
 use crate::resources::*;
 use crate::utils::*;
 use crate::widgets::*;
-use crate::event_writer::FaMouseEvent;
+use crate::event_writer::*;
 use crate::plugin::{CursorType, CursorIcons};
 use bevy::ecs::system::EntityCommands;
 use bevy::ui::FocusPolicy;
@@ -264,7 +264,7 @@ impl<'a> FaSelection {
             box_shadow.color = border_color.0.clone();
             show_tooltip(tooltip_entity, &mut tooltip_q, transform.translation());
             _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Pointer);
-            FaMouseEvent::send_over_event(&mut writer, WidgetType::Selection, trigger.entity(), id);
+            FaMouseEvent::send_event(&mut writer, EventType::Over, WidgetType::Selection, trigger.entity(), id);
         }
         trigger.propagate(false);
     }
@@ -285,7 +285,7 @@ impl<'a> FaSelection {
             box_shadow.color = Color::NONE;
             hide_tooltip(tooltip_entity, &mut tooltip_q);
             _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Default);
-            FaMouseEvent::send_out_event(&mut writer, WidgetType::Selection, trigger.entity(), id);
+            FaMouseEvent::send_event(&mut writer, EventType::Out, WidgetType::Selection, trigger.entity(), id);
         }
         trigger.propagate(false);
     }
@@ -309,9 +309,9 @@ impl<'a> FaSelection {
             famiq_res.update_or_insert_focus_state(trigger.entity(), true);
 
             if trigger.event().button == PointerButton::Secondary {
-                FaMouseEvent::send_down_event(&mut writer, WidgetType::Selection, trigger.entity(), id, true);
+                FaMouseEvent::send_event(&mut writer, EventType::DownRight, WidgetType::Selection, trigger.entity(), id);
             } else {
-                FaMouseEvent::send_down_event(&mut writer, WidgetType::Selection, trigger.entity(), id, false);
+                FaMouseEvent::send_event(&mut writer, EventType::DownLeft, WidgetType::Selection, trigger.entity(), id);
             }
         }
         trigger.propagate(false);
@@ -323,7 +323,7 @@ impl<'a> FaSelection {
         mut writer: EventWriter<FaMouseEvent>,
     ) {
         if let Ok(id) = selector_q.get_mut(trigger.entity()) {
-            FaMouseEvent::send_up_event(&mut writer, WidgetType::Selection, trigger.entity(), id);
+            FaMouseEvent::send_event(&mut writer, EventType::Up, WidgetType::Selection, trigger.entity(), id);
         }
         trigger.propagate(false);
     }

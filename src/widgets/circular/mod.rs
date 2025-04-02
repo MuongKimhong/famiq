@@ -6,7 +6,7 @@ use bevy::prelude::*;
 use crate::widgets::*;
 use bevy::reflect::TypePath;
 use bevy::render::render_resource::*;
-use crate::event_writer::FaMouseEvent;
+use crate::event_writer::*;
 use crate::utils::*;
 
 pub use components::*;
@@ -75,7 +75,7 @@ impl<'a> FaCircular {
     ) {
         if let Ok((transform, tooltip_entity, id)) = circular_q.get(over.entity()) {
             show_tooltip(tooltip_entity, &mut tooltip_q, transform.translation());
-            FaMouseEvent::send_over_event(&mut writer, WidgetType::Circular, over.entity(), id);
+            FaMouseEvent::send_event(&mut writer, EventType::Over, WidgetType::Circular, over.entity(), id);
         }
         over.propagate(false);
     }
@@ -88,7 +88,7 @@ impl<'a> FaCircular {
     ) {
         if let Ok((tooltip_entity, id)) = circular_q.get_mut(out.entity()) {
             hide_tooltip(tooltip_entity, &mut tooltip_q);
-            FaMouseEvent::send_out_event(&mut writer, WidgetType::Circular, out.entity(), id);
+            FaMouseEvent::send_event(&mut writer, EventType::Out, WidgetType::Circular, out.entity(), id);
         }
         out.propagate(false);
     }
@@ -100,9 +100,9 @@ impl<'a> FaCircular {
     ) {
         if let Ok(id) = circular_q.get_mut(down.entity()) {
             if down.event().button == PointerButton::Secondary {
-                FaMouseEvent::send_down_event(&mut writer, WidgetType::Circular, down.entity(), id, true);
+                FaMouseEvent::send_event(&mut writer, EventType::DownRight, WidgetType::Circular, down.entity(), id);
             } else {
-                FaMouseEvent::send_down_event(&mut writer, WidgetType::Circular, down.entity(), id, false);
+                FaMouseEvent::send_event(&mut writer, EventType::DownLeft, WidgetType::Circular, down.entity(), id);
             }
         }
         down.propagate(false);
@@ -114,7 +114,7 @@ impl<'a> FaCircular {
         mut writer: EventWriter<FaMouseEvent>
     ) {
         if let Ok(id) = circular_q.get_mut(up.entity()) {
-            FaMouseEvent::send_up_event(&mut writer, WidgetType::Circular, up.entity(), id);
+            FaMouseEvent::send_event(&mut writer, EventType::Up, WidgetType::Circular, up.entity(), id);
         }
         up.propagate(false);
     }
