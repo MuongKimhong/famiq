@@ -9,7 +9,6 @@ use crate::widgets::{
     fps::*,
     circular::*,
     modal::*,
-    text::*,
     progress_bar::*,
     bg_image::*,
     *
@@ -111,17 +110,6 @@ fn fa_text_input_systems(app: &mut App) {
     app.add_systems(PostUpdate, FaTextInput::on_request_redraw_editor_buffer);
 }
 
-fn fa_text_systems(app: &mut App) {
-    app.add_systems(
-        Update,
-        (
-            FaText::update_text_value_system,
-            FaText::detect_new_text_widget_system
-        )
-        .run_if(can_run_text_systems)
-    );
-}
-
 fn fa_listview_systems(app: &mut App) {
     app.add_systems(
         Update,
@@ -216,7 +204,6 @@ impl Plugin for FamiqPlugin {
         app.insert_resource(FaTextInputResource::default());
         app.insert_resource(FaProgressBarResource::default());
         app.insert_resource(FaModalState::default());
-        app.insert_resource(FaTextResource::default());
         app.insert_resource(CursorIcons::default());
 
         app.add_event::<event_writer::FaValueChangeEvent>();
@@ -225,7 +212,6 @@ impl Plugin for FamiqPlugin {
         app.add_event::<RequestRedrawBuffer>();
 
         external_styles_file_systems(app);
-        fa_text_systems(app);
         fa_selection_systems(app);
         fa_listview_systems(app);
         fa_text_input_systems(app);

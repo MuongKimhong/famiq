@@ -80,10 +80,11 @@ pub mod prelude {
     pub use crate::widgets::progress_bar::{IsFamiqProgressBar, IsFamiqProgressValue, FaProgressBarResource};
     pub use crate::widgets::container::IsFamiqContainer;
     pub use crate::widgets::fps::IsFamiqFPSTextCount;
-    pub use crate::widgets::text::{IsFamiqText, FaTextResource};
+    pub use crate::widgets::text::IsFamiqText;
     pub use crate::widgets::list_view::IsFamiqListView;
     pub use crate::widgets::bg_image::{FaBgImageResource, IsFamiqBgImage};
     pub use crate::event_writer::{FaMouseEvent, FaValueChangeEvent};
+    pub use bevy::utils::hashbrown::HashMap;
 }
 
 pub use prelude::*;

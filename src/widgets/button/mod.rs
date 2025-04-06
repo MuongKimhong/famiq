@@ -37,11 +37,21 @@ impl<'a> FaButton {
                 txt_color.clone(),
                 txt_layout.clone(),
                 DefaultTextEntity::new(txt, txt_font, txt_color, txt_layout),
-                IsFamiqButtonText
+                IsFamiqButtonText,
             ))
             .id();
 
         insert_id_and_class(root_node, entity, &attributes.id, &attributes.class);
+
+        if !attributes.bind_keys.is_empty() {
+            root_node
+                .commands()
+                .entity(entity)
+                .insert((
+                    ReactiveKeys(attributes.bind_keys.to_owned()),
+                    ReactiveText(text.to_string())
+                ));
+        }
         entity
     }
 
@@ -280,6 +290,13 @@ macro_rules! fa_button_attributes {
 
     ($button:ident, display: $display:expr $(, $($rest:tt)+)?) => {{
         $button = $button.display($display);
+        $(
+            $crate::fa_button_attributes!($button, $($rest)+);
+        )?
+    }};
+
+    ($button:ident, bind: $bind:expr $(, $($rest:tt)+)?) => {{
+        $button = $button.bind($bind);
         $(
             $crate::fa_button_attributes!($button, $($rest)+);
         )?

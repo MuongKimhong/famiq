@@ -4,7 +4,6 @@ use crate::widgets::*;
 use crate::utils::{_change_cursor_icon, get_color, insert_id_and_class, process_spacing_built_in_class};
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
-use bevy::utils::hashbrown::{HashSet, HashMap};
 
 /// Marker component for identifying Famiq text widgets.
 #[derive(Component)]
@@ -22,37 +21,6 @@ pub enum TextSize {
     TitleH4,
     TitleH5,
     TitleH6,
-}
-
-/// Resource use to store & update fa_text's value by id
-#[derive(Resource, Default, Debug)]
-pub struct FaTextResource {
-    /// id-value
-    pub text_value: HashMap<String, String>,
-
-    /// Tracks which text IDs changed
-    pub changed_texts: HashSet<String>
-}
-
-impl FaTextResource {
-    /// Update fa_text's value by id
-    pub fn update_value(&mut self, id: &str, new_value: &str) {
-        if let Some(existing) = self.text_value.get(id) {
-            if existing == new_value {
-                return;
-            }
-        }
-        self.text_value.insert(String::from(id), String::from(new_value));
-        self.changed_texts.insert(String::from(id));
-    }
-
-    /// Get `fa_text` value by id, return empty string if id doesn't exist.
-    pub fn get_value(&self, id: &str) -> String {
-        if let Some(v) = self.text_value.get(id) {
-            return v.clone();
-        }
-        String::new()
-    }
 }
 
 /// Represents a Famiq text widget for displaying styled text.
@@ -77,6 +45,7 @@ impl<'a> FaText {
         size: TextSize
     ) -> Entity {
         let txt = Text::new(text);
+
         let mut txt_font = TextFont {
             font: attributes.font_handle.clone().unwrap(),
             font_size: 16.0,
@@ -109,7 +78,8 @@ impl<'a> FaText {
                 IsFamiqText,
                 IsFamiqMainWidget,
                 style_components.clone(),
-                DefaultWidgetEntity::from(style_components)
+                DefaultWidgetEntity::from(style_components),
+                ReactiveText(text.to_string())
             ))
             .observe(FaText::handle_on_mouse_over)
             .observe(FaText::handle_on_mouse_out)
@@ -130,49 +100,10 @@ impl<'a> FaText {
         let text = Self::_build_text(attributes, text, root_node, size);
 
         if !attributes.bind_keys.is_empty() {
-            let keys: Vec<String> = attributes.bind_keys.iter().map(|key| key.to_string()).collect();
-
             root_node
-                .commands().entity(text).insert(ReactiveKeys(keys.clone()));
-
-            println!("insert reactive keys {:?}", keys);
+                .commands().entity(text).insert(ReactiveKeys(attributes.bind_keys.to_owned()));
         }
         text
-    }
-
-    /// Internal system that reads `FaTextResource` and update the corresponding text widget's value
-    pub fn update_text_value_system(
-        mut text_q: Query<(&mut Text, Option<&FamiqWidgetId>), With<IsFamiqText>>,
-        mut text_res: ResMut<FaTextResource>
-    ) {
-        if text_res.is_changed() {
-            for (mut text, id) in text_q.iter_mut() {
-                // Check by id
-                if let Some(id) = id {
-                    if text_res.changed_texts.contains(&id.0) {
-                        if let Some(value) = text_res.text_value.get(&id.0) {
-                            text.0 = value.clone();
-                        }
-                    }
-                }
-            }
-            text_res.changed_texts.clear();
-        }
-    }
-
-    /// Internal system to insert text value into `FaTextResource` after created.
-    pub fn detect_new_text_widget_system(
-        text_q: Query<(&Text, Option<&FamiqWidgetId>), Added<IsFamiqText>>,
-        mut text_res: ResMut<FaTextResource>
-    ) {
-        for (text, id) in text_q.iter() {
-
-            if let Some(id) = id {
-                if !text_res.text_value.contains_key(id.0.as_str()) {
-                    text_res.text_value.insert(id.0.clone(), text.0.clone());
-                }
-            }
-        }
     }
 
     fn handle_on_mouse_over(
@@ -398,62 +329,5 @@ mod tests {
 
         assert_eq!("#test-text".to_string(), id.0);
         assert_eq!("Test Text".to_string(), txt.0);
-    }
-
-    #[test]
-    fn test_update_text_value_by_id() {
-        let mut app = create_test_app();
-        app.add_plugins(FamiqPlugin);
-        app.insert_resource(FaTextResource::default());
-        app.add_systems(Startup, setup_test_default_text);
-        app.add_systems(Update, FaText::update_text_value_system); // internal system that handle updating the text
-        app.update();
-
-        let mut text_res = app.world_mut().resource_mut::<FaTextResource>();
-
-        text_res.update_value("#test-text", "New test text Hello World");
-
-        app.update(); // update again so update_text_value_system run again
-
-        let txt_q = app.world_mut()
-            .query::<(&Text, &IsFamiqText)>()
-            .get_single(app.world());
-
-        let txt = txt_q.as_ref().unwrap().0;
-
-        // original text is "Test Text"
-        assert_eq!("New test text Hello World".to_string(), txt.0);
-    }
-
-    #[test]
-    fn test_get_value_by_non_exist_id() {
-        let mut app = create_test_app();
-        app.add_plugins(FamiqPlugin);
-        app.insert_resource(FaTextResource::default());
-        app.add_systems(Startup, setup_test_default_text);
-        app.add_systems(Update, FaText::update_text_value_system); // internal system that handle updating the text
-        app.update();
-
-        let text_res = app.world_mut().resource::<FaTextResource>();
-
-        let value = text_res.get_value("#random-id");
-
-        assert_eq!(String::new(), value);
-    }
-
-    #[test]
-    fn test_get_value_by_id() {
-        let mut app = create_test_app();
-        app.add_plugins(FamiqPlugin);
-        app.insert_resource(FaTextResource::default());
-        app.add_systems(Startup, setup_test_default_text);
-        app.add_systems(Update, FaText::update_text_value_system); // internal system that handle updating the text
-        app.update();
-
-        let text_res = app.world_mut().resource::<FaTextResource>();
-
-        let value = text_res.get_value("#test-text");
-
-        assert_eq!(String::from("Test Text"), value);
     }
 }

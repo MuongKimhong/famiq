@@ -126,14 +126,40 @@ impl FamiqResource {
 pub enum RVal {
     Num(i32),
     FNum(f32),
-    Str(&'static str)
+    Str(String)
 }
 
+impl RVal {
+    /// Get inner value of Num as i32.
+    pub fn as_num(&self) -> Option<i32> {
+        match self {
+            RVal::Num(v) => Some(*v),
+            _ => None,
+        }
+    }
+
+    /// Get inner value of FNum as f32.
+    pub fn as_f_num(&self) -> Option<f32> {
+        match self {
+            RVal::FNum(v) => Some(*v),
+            _ => None,
+        }
+    }
+
+    /// Get inner value of Str as &str.
+    pub fn as_str(&self) -> Option<&str> {
+        match self {
+            RVal::Str(v) => Some(v.as_str()),
+            _ => None,
+        }
+    }
+}
+
+/// Reactive data
 #[derive(Resource, Debug, Default)]
 pub struct RData {
     pub data: HashMap<String, RVal>,
     pub changed_keys: Vec<String>,
-    pub has_changed: bool
 }
 
 impl RData {
@@ -147,31 +173,28 @@ impl RData {
     }
 }
 
-pub fn detect_reactive_data_change(
+pub(crate) fn detect_reactive_data_change(
     mut r_data: ResMut<RData>,
-    mut keys_q: Query<(&mut Text, &ReactiveKeys)>
+    mut keys_q: Query<(&mut Text, &ReactiveText, &ReactiveKeys)>
 ) {
     if !r_data.is_changed() && !r_data.is_added() {
         return;
     }
-    println!("is changed");
-    for (mut r_text, r_keys) in keys_q.iter_mut() {
-        println!("r_text {:?}, r_keys: {:?}", r_text, r_keys);
-        let mut text = r_text.0.clone();
+    for (mut text, r_text, r_keys) in keys_q.iter_mut() {
+        let mut temp_r_text = r_text.0.clone();
 
         for (i, key) in r_keys.0.iter().enumerate() {
             if let Some(value) = r_data.data.get(key) {
                 let placeholder = format!("$[{}]", i);
 
                 match value {
-                    RVal::Num(v) => text = text.replace(&placeholder, &v.to_string()),
-                    RVal::FNum(v) => text = text.replace(&placeholder, &v.to_string()),
-                    RVal::Str(v) => text = text.replace(&placeholder, *v),
+                    RVal::Num(v) => temp_r_text = temp_r_text.replace(&placeholder, &v.to_string()),
+                    RVal::FNum(v) => temp_r_text = temp_r_text.replace(&placeholder, &v.to_string()),
+                    RVal::Str(v) => temp_r_text = temp_r_text.replace(&placeholder, v),
                 }
             }
         }
-        r_text.0 = text;
+        text.0 = temp_r_text;
     }
     r_data.changed_keys.clear();
-    r_data.has_changed = false;
 }

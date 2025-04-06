@@ -81,7 +81,7 @@ pub struct WidgetAttributes {
     pub image_handle: Option<Handle<Image>>,
     pub has_tooltip: bool,
     pub tooltip_text: String,
-    pub bind_keys: Vec<&'static str>,
+    pub bind_keys: Vec<String>,
     default_display_changed: bool,
     default_display: Display
 }
@@ -90,7 +90,8 @@ pub trait SetWidgetAttributes: Sized {
     fn attributes(&mut self) -> &mut WidgetAttributes;
 
     fn bind(mut self, keys: &[&'static str]) -> Self {
-        self.attributes().bind_keys = keys.to_vec();
+        let keys: Vec<String> = keys.iter().map(|k| k.to_string()).collect();
+        self.attributes().bind_keys = keys;
         self
     }
 
@@ -545,10 +546,17 @@ impl<'w, 's> FaQuery<'w, 's> {
         }
     }
 
-    pub fn bind_data(&mut self, new_data: HashMap<String, RVal>) {
+    /// Overwrite existing reactive data with new data.
+    pub fn bind_new_data(&mut self, new_data: HashMap<String, RVal>) {
         self.reactive_data.data = new_data;
     }
 
+    /// Insert new key-value into reactive data.
+    pub fn insert_data(&mut self, key: &str, value: RVal) {
+        self.reactive_data.data.insert(key.to_string(), value);
+    }
+
+    /// Explicitly mutates specific key.
     pub fn mutate_data(&mut self, key: &str, new_val: RVal) {
         let old_val = self.reactive_data.data.get(key);
         if old_val.is_none() {
@@ -562,14 +570,25 @@ impl<'w, 's> FaQuery<'w, 's> {
             self.reactive_data.changed_keys.push(key.to_string());
         }
         self.reactive_data.data.insert(key.to_string(), new_val);
-        self.reactive_data.has_changed = true;
     }
 
-    pub fn get_data(&mut self, key: &str) -> Option<&RVal> {
+    /// Get value of provided key.
+    pub fn get_data(&self, key: &str) -> Option<&RVal> {
         if let Some(val) = self.reactive_data.data.get(key) {
             return Some(val);
         }
         None
+    }
+
+    /// Get mutable value of provided key.
+    pub fn get_data_mut(&mut self, key: &str) -> Option<&mut RVal> {
+        if self.get_data(key).is_none() {
+            return None;
+        }
+        if !self.reactive_data.changed_keys.contains(&key.to_string()) {
+            self.reactive_data.changed_keys.push(key.to_string());
+        }
+        self.reactive_data.data.get_mut(key)
     }
 }
 
