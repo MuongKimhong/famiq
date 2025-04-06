@@ -3,7 +3,6 @@
 use bevy::utils::hashbrown::HashMap;
 use bevy::prelude::*;
 use cosmic_text::{FontSystem, SwashCache};
-use std::marker::PhantomData;
 use cosmic_text::{Edit, Shaping, Cursor};
 
 use crate::widgets::button::IsFamiqButtonText;
@@ -18,43 +17,6 @@ use crate::widgets::text_input::*;
 use crate::widgets::text_input::helper;
 use crate::widgets::color::PRIMARY_DARK_COLOR;
 use crate::FaValueChangeEvent;
-
-/// Generic resource for `FaTextInputResource` and `FaSelectionResource`
-#[derive(Resource, Default, Debug)]
-pub struct InputResource<T> {
-    pub values_id: HashMap<String, String>,   // id - value
-    _marker: PhantomData<T>
-}
-
-/// trait for `fa_text_input` and `fa_selection`
-pub trait InputResourceMap {
-    /// internal method to insert a value by id
-    fn _insert(&mut self, id: String, value: String);
-
-    /// Get a value by id
-    fn get_value(&self, id: &str) -> String;
-
-    /// Check if an id exists
-    fn exists(&self, id: &str) -> bool;
-}
-
-/// Generic methods for InputResource<T>
-impl<T> InputResourceMap for InputResource<T> {
-    fn _insert(&mut self, id: String, value: String) {
-        self.values_id.insert(id, value);
-    }
-
-    fn get_value(&self, id: &str) -> String {
-        self.values_id.get(id).map_or_else(
-            || String::from(""),
-            |v| if v == "-/-" { String::from("") } else { v.clone() },
-        )
-    }
-
-    fn exists(&self, id: &str) -> bool {
-        self.values_id.contains_key(id)
-    }
-}
 
 /// Resource for detecting style changes in json file
 #[derive(Resource, Default)]
