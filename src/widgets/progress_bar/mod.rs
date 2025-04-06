@@ -393,8 +393,8 @@ impl<'a> FaProgressBarBuilder<'a> {
     }
 
     /// Method to set percentage value
-    pub fn percentage(mut self, percentage: f32) -> Self {
-        self.percentage = Some(percentage);
+    pub fn percent(mut self, percent: f32) -> Self {
+        self.percentage = Some(percent);
         self
     }
 
@@ -426,12 +426,72 @@ impl<'a> SetWidgetAttributes for FaProgressBarBuilder<'a> {
 }
 
 /// API to create `FaProgressBar`.
-pub fn fa_progress_bar<'a>(builder: &'a mut FamiqBuilder) -> FaProgressBarBuilder<'a> {
+pub fn fa_progress_bar_builder<'a>(builder: &'a mut FamiqBuilder) -> FaProgressBarBuilder<'a> {
     let font_handle = builder.asset_server.load(&builder.resource.font_path);
     FaProgressBarBuilder::new(
         builder.ui_root_node.reborrow(),
         font_handle
     )
+}
+
+#[macro_export]
+macro_rules! fa_progress_bar {
+    (
+        $builder:expr
+        $(, $($rest:tt)+)?
+    ) => {{
+        let mut progress_bar = fa_progress_bar_builder($builder);
+        $(
+            $crate::fa_progress_bar_attributes!(progress_bar, $($rest)+);
+        )?
+        progress_bar.build()
+    }};
+}
+
+#[macro_export]
+macro_rules! fa_progress_bar_attributes {
+
+    ($progress_bar:ident, class: $class:expr $(, $($rest:tt)+)?) => {{
+        $progress_bar = $progress_bar.class($class);
+        $(
+            $crate::fa_progress_bar_attributes!($progress_bar, $($rest)+);
+        )?
+    }};
+
+    ($progress_bar:ident, id: $id:expr $(, $($rest:tt)+)?) => {{
+        $progress_bar = $progress_bar.id($id);
+        $(
+            $crate::fa_progress_bar_attributes!($progress_bar, $($rest)+);
+        )?
+    }};
+
+    ($progress_bar:ident, tooltip: $tooltip:expr $(, $($rest:tt)+)?) => {{
+        $progress_bar = $progress_bar.tooltip($tooltip);
+        $(
+            $crate::fa_progress_bar_attributes!($progress_bar, $($rest)+);
+        )?
+    }};
+
+    ($progress_bar:ident, color: $color:expr $(, $($rest:tt)+)?) => {{
+        $progress_bar = $progress_bar.color($color);
+        $(
+            $crate::fa_progress_bar_attributes!($progress_bar, $($rest)+);
+        )?
+    }};
+
+    ($progress_bar:ident, display: $display:expr $(, $($rest:tt)+)?) => {{
+        $progress_bar = $progress_bar.display($display);
+        $(
+            $crate::fa_progress_bar_attributes!($progress_bar, $($rest)+);
+        )?
+    }};
+
+    ($progress_bar:ident, percent: $percent:expr $(, $($rest:tt)+)?) => {{
+        $progress_bar = $progress_bar.percent($percent);
+        $(
+            $crate::fa_progress_bar_attributes!($progress_bar, $($rest)+);
+        )?
+    }};
 }
 
 pub fn can_run_fa_progress_bar_systems(bar_q: Query<&IsFamiqProgressBar>) -> bool {

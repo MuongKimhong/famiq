@@ -1,7 +1,8 @@
 #![cfg(test)]
 
 use crate::plugin::FamiqPlugin;
-use crate::widgets::button::fa_button;
+use crate::fa_container;
+use crate::fa_button;
 use crate::widgets::{FamiqResource, FamiqWidgetId, FamiqWidgetClasses};
 use super::*;
 
@@ -10,7 +11,8 @@ fn setup_test_default_container(
     mut fa_query: FaQuery
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    fa_container(&mut builder).id("#test-container").build();
+
+    fa_container!(&mut builder, id: "#test-container");
 }
 
 fn setup_test_container_with_class(
@@ -18,10 +20,11 @@ fn setup_test_container_with_class(
     mut fa_query: FaQuery
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    fa_container(&mut builder)
-        .id("#test-container")
-        .class("test-class-one test-class-two")
-        .build();
+    fa_container!(
+        &mut builder,
+        id: "#test-container",
+        class: "test-class-one test-class-two"
+    );
 }
 
 fn setup_test_container_with_children(
@@ -30,13 +33,14 @@ fn setup_test_container_with_children(
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
 
-    let test_btn_1 = fa_button(&mut builder, "Button 1").build();
-    let test_btn_2 = fa_button(&mut builder, "Button 2").build();
+    let test_btn_1 = fa_button!(&mut builder, text: "Button 1");
+    let test_btn_2 = fa_button!(&mut builder, text: "Button 2");
 
-    fa_container(&mut builder)
-        .id("#test-container")
-        .children(vec![test_btn_1, test_btn_2])
-        .build();
+    fa_container!(
+        &mut builder,
+        id: "#test-container",
+        children: [test_btn_1, test_btn_2]
+    );
 }
 
 #[test]

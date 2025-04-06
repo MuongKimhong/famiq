@@ -102,8 +102,21 @@ impl<'a> FaBgImageBuilder<'a> {
 }
 
 /// API to create a `FaBgImageBuilder` for a background image.
-pub fn fa_bg_image<'a>(builder: &'a mut FamiqBuilder, path: &str) -> FaBgImageBuilder<'a> {
+pub fn fa_bg_image_builder<'a>(builder: &'a mut FamiqBuilder, path: &str) -> FaBgImageBuilder<'a> {
     FaBgImageBuilder::new(builder.ui_root_node.reborrow(), path)
+}
+
+#[macro_export]
+macro_rules! fa_bg_image {
+    (
+        $builder:expr,
+        $path:expr
+    ) => {
+        {
+            let mut bg_image = fa_bg_image_builder($builder, $path);
+            bg_image.build()
+        }
+    };
 }
 
 pub fn can_run_bg_image_systems(bg_q: Query<&IsFamiqBgImage>) -> bool {

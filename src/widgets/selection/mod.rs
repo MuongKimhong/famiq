@@ -388,7 +388,7 @@ impl<'a> SetWidgetAttributes for FaSelectionBuilder<'a> {
     }
 }
 
-pub fn fa_selection<'a>(
+pub fn fa_selection_builder<'a>(
     builder: &'a mut FamiqBuilder,
     placeholder: &str
 ) -> FaSelectionBuilder<'a> {
@@ -398,6 +398,59 @@ pub fn fa_selection<'a>(
         font_handle,
         builder.ui_root_node.reborrow()
     )
+}
+
+#[macro_export]
+macro_rules! fa_selection {
+    (
+        $builder:expr,
+        placeholder: $placeholder:expr
+        $(, $($rest:tt)+)?
+    ) => {{
+        let mut selection = fa_selection_builder($builder, $placeholder);
+        $(
+            $crate::fa_selection_attributes!(selection, $($rest)+);
+        )?
+        selection.build()
+    }};
+}
+
+#[macro_export]
+macro_rules! fa_selection_attributes {
+    ($selection:ident, id: $id:expr $(, $($rest:tt)+)?) => {{
+        $selection = $selection.id($id);
+        $(
+            $crate::fa_selection_attributes!($selection, $($rest)+);
+        )?
+    }};
+
+    ($selection:ident, class: $class:expr $(, $($rest:tt)+)?) => {{
+        $selection = $selection.class($class);
+        $(
+            $crate::fa_selection_attributes!($selection, $($rest)+);
+        )?
+    }};
+
+    ($selection:ident, choices: $choices:expr $(, $($rest:tt)+)?) => {{
+        $selection = $selection.choices($choices.into_iter());
+        $(
+            $crate::fa_selection_attributes!($selection, $($rest)+);
+        )?
+    }};
+
+    ($selection:ident, display: $display:expr $(, $($rest:tt)+)?) => {{
+        $selection = $selection.display($display);
+        $(
+            $crate::fa_selection_attributes!($selection, $($rest)+);
+        )?
+    }};
+
+    ($selection:ident, tooltip: $tooltip:expr $(, $($rest:tt)+)?) => {{
+        $selection = $selection.tooltip($tooltip);
+        $(
+            $crate::fa_selection_attributes!($selection, $($rest)+);
+        )?
+    }};
 }
 
 pub fn can_run_selection_systems(selection_q: Query<&IsFamiqSelectionSelector>) -> bool {

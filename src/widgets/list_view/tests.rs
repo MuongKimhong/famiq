@@ -1,17 +1,19 @@
 #![cfg(test)]
 
 use crate::plugin::FamiqPlugin;
-use crate::widgets::button::fa_button;
+use crate::fa_button;
 use crate::widgets::FamiqResource;
 use bevy::input::InputPlugin;
+use crate::fa_listview;
 use super::*;
+
 
 fn setup_test_default_listview(
     mut famiq_res: ResMut<FamiqResource>,
     mut fa_query: FaQuery
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    fa_listview(&mut builder).id("#test-listview").build();
+    fa_listview!(&mut builder, id: "#test-listview");
 }
 
 fn setup_test_listview_with_children(
@@ -19,12 +21,10 @@ fn setup_test_listview_with_children(
     mut fa_query: FaQuery
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    let button_one = fa_button(&mut builder, "Button 1").build();
-    let button_two = fa_button(&mut builder, "Button 2").build();
+    let button_one = fa_button!(&mut builder, text: "Button 1");
+    let button_two = fa_button!(&mut builder, text: "Button 2");
 
-    fa_listview(&mut builder)
-        .children(vec![button_one, button_two])
-        .build();
+    fa_listview!(&mut builder, children: [button_one, button_two]);
 }
 
 #[test]

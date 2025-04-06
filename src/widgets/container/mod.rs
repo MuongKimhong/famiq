@@ -109,10 +109,55 @@ impl<'a> SetWidgetAttributes for FaContainerBuilder<'a> {
 }
 
 /// API to create `FaContainerBuilder`
-pub fn fa_container<'a>(builder: &'a mut FamiqBuilder) -> FaContainerBuilder<'a> {
+pub fn fa_container_builder<'a>(builder: &'a mut FamiqBuilder) -> FaContainerBuilder<'a> {
     FaContainerBuilder::new(
         builder.ui_root_node.reborrow()
     )
+}
+
+#[macro_export]
+macro_rules! fa_container {
+    (
+        $builder:expr
+        $(, $($rest:tt)+)?
+    ) => {{
+        let mut container = fa_container_builder($builder);
+        $(
+            $crate::fa_container_attributes!(container, $($rest)+);
+        )?
+        container.build()
+    }};
+}
+
+#[macro_export]
+macro_rules! fa_container_attributes {
+    ($container:ident, id: $id:expr $(, $($rest:tt)+)?) => {{
+        $container = $container.id($id);
+        $(
+            $crate::fa_container_attributes!($container, $($rest)+);
+        )?
+    }};
+
+    ($container:ident, class: $class:expr $(, $($rest:tt)+)?) => {{
+        $container = $container.class($class);
+        $(
+            $crate::fa_container_attributes!($container, $($rest)+);
+        )?
+    }};
+
+    ($container:ident, display: $display:expr $(, $($rest:tt)+)?) => {{
+        $container = $container.display($display);
+        $(
+            $crate::fa_container_attributes!($container, $($rest)+);
+        )?
+    }};
+
+    ($container:ident, children: $children:expr $(, $($rest:tt)+)?) => {{
+        $container = $container.children($children);
+        $(
+            $crate::fa_container_attributes!($container, $($rest)+);
+        )?
+    }};
 }
 
 pub fn can_run_container_systems(q: Query<&IsFamiqContainer>) -> bool {

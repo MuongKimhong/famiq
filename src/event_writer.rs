@@ -56,22 +56,14 @@ impl FaMouseEvent {
         self.widget_type == widget_type && self.event_type == EventType::Scroll
     }
 
-    pub fn is_button_pressed(&self) -> bool {
-        self.widget_type == WidgetType::Button && self.event_type == EventType::DownLeft
-    }
+    pub fn is_button_pressed(&self, id: &str) -> bool {
+        if self.id.is_none() {
+            return false;
+        }
 
-    pub(crate) fn send_scroll_event(
-        writer: &mut EventWriter<FaMouseEvent>,
-        widget_type: WidgetType,
-        entity: Entity,
-        id: Option<&FamiqWidgetId>
-    ) {
-        writer.send(FaMouseEvent {
-            event_type: EventType::Scroll,
-            widget_type,
-            entity,
-            id: id.map(|_id| _id.0.clone())
-        });
+        self.widget_type == WidgetType::Button &&
+        self.event_type == EventType::DownLeft &&
+        self.id.as_ref().unwrap().as_str() == id
     }
 
     pub(crate) fn send_event(
@@ -117,3 +109,13 @@ impl FaValueChangeEvent {
         }
     }
 }
+
+// pub enum RVal<T> {
+//     List(Vec<T>),
+//     Custom(T),
+//     Num(f32),
+//     Str(String)
+// }
+// use bevy::utils::HashMap;
+// #[derive(Resource)]
+// pub struct MyResource<T>(pub HashMap<String, RVal<T>>);

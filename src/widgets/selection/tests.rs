@@ -3,6 +3,7 @@
 use crate::plugin::FamiqPlugin;
 use crate::widgets::color::PRIMARY_COLOR;
 use crate::widgets::FamiqResource;
+use crate::fa_selection;
 use super::*;
 
 fn setup_test_default_selection(
@@ -10,7 +11,7 @@ fn setup_test_default_selection(
     mut fa_query: FaQuery
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    fa_selection(&mut builder, "Test select choice").id("#test-selection").build();
+    fa_selection!(&mut builder, placeholder: "Test select choice", id: "#test-selection");
 }
 
 fn setup_test_selection_with_built_in_class_color(
@@ -18,9 +19,7 @@ fn setup_test_selection_with_built_in_class_color(
     mut fa_query: FaQuery
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    fa_selection(&mut builder, "Test select choice")
-        .class("is-primary")
-        .build();
+    fa_selection!(&mut builder, placeholder: "Test select choice", class: "is-primary");
 }
 
 fn setup_test_selection_with_choices(
@@ -28,9 +27,11 @@ fn setup_test_selection_with_choices(
     mut fa_query: FaQuery
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    fa_selection(&mut builder, "Test select choice")
-        .choices(vec!["Test one", "Test two"])
-        .build();
+    fa_selection!(
+        &mut builder,
+        placeholder: "Test select choice",
+        choices: ["Test one", "Test two"]
+    );
 }
 
 #[test]

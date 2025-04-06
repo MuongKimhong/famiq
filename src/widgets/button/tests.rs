@@ -1,6 +1,7 @@
 #![cfg(test)]
 
 use crate::plugin::FamiqPlugin;
+use crate::fa_button;
 use crate::widgets::{FamiqWidgetId, FamiqWidgetClasses, FaQuery};
 use super::*;
 
@@ -9,7 +10,8 @@ fn setup_test_default_button(
     mut famiq_query: FaQuery
 ) {
     let mut builder = FamiqBuilder::new(&mut famiq_query, &mut famiq_res);
-    fa_button(&mut builder, "Press me").id("#test-btn").build();
+    // fa_button!(&mut builder, "Press me").id("#test-btn").build();
+    fa_button!(&mut builder, text: "Press me", id: "#test-btn");
 }
 
 fn setup_test_button_with_built_in_class(
@@ -17,10 +19,17 @@ fn setup_test_button_with_built_in_class(
     mut famiq_query: FaQuery
 ) {
     let mut builder = FamiqBuilder::new(&mut famiq_query, &mut famiq_res);
-    fa_button(&mut builder, "Press me")
-        .id("#test-btn")
-        .class("is-primary is-large is-round")
-        .build();
+    // fa_button!(&mut builder, "Press me")
+    //     .id("#test-btn")
+    //     .class("is-primary is-large is-round")
+    //     .build();
+
+    fa_button!(
+        &mut builder,
+        text: "Press me",
+        id: "#test-btn",
+        class: "is-primary is-large is-round"
+    );
 }
 
 #[test]

@@ -224,13 +224,66 @@ impl<'a> SetWidgetAttributes for FaButtonBuilder<'a> {
 }
 
 /// API to create a `FaButtonBuilder`.
-pub fn fa_button<'a>(builder: &'a mut FamiqBuilder, text: &str) -> FaButtonBuilder<'a> {
+pub fn fa_button_builder<'a>(builder: &'a mut FamiqBuilder, text: &str) -> FaButtonBuilder<'a> {
     let font_handle = builder.asset_server.load(&builder.resource.font_path);
     FaButtonBuilder::new(
         text.to_string(),
         font_handle,
         builder.ui_root_node.reborrow(),
     )
+}
+
+#[macro_export]
+macro_rules! fa_button {
+    (
+        $builder:expr,
+        text: $text:expr
+        $(, $($rest:tt)+)?
+    ) => {{
+        let mut button = fa_button_builder($builder, $text);
+        $(
+            $crate::fa_button_attributes!(button, $($rest)+);
+        )?
+        button.build()
+    }};
+}
+
+#[macro_export]
+macro_rules! fa_button_attributes {
+    ($button:ident, id: $id:expr $(, $($rest:tt)+)?) => {{
+        $button = $button.id($id);
+        $(
+            $crate::fa_button_attributes!($button, $($rest)+);
+        )?
+    }};
+
+    ($button:ident, class: $class:expr $(, $($rest:tt)+)?) => {{
+        $button = $button.class($class);
+        $(
+            $crate::fa_button_attributes!($button, $($rest)+);
+        )?
+    }};
+
+    ($button:ident, color: $color:expr $(, $($rest:tt)+)?) => {{
+        $button = $button.color($color);
+        $(
+            $crate::fa_button_attributes!($button, $($rest)+);
+        )?
+    }};
+
+    ($button:ident, tooltip: $tooltip:expr $(, $($rest:tt)+)?) => {{
+        $button = $button.tooltip($tooltip);
+        $(
+            $crate::fa_button_attributes!($button, $($rest)+);
+        )?
+    }};
+
+    ($button:ident, display: $display:expr $(, $($rest:tt)+)?) => {{
+        $button = $button.display($display);
+        $(
+            $crate::fa_button_attributes!($button, $($rest)+);
+        )?
+    }};
 }
 
 

@@ -121,3 +121,57 @@ impl FamiqResource {
         }
     }
 }
+
+#[derive(Debug)]
+pub enum RVal {
+    Num(i32),
+    FNum(f32),
+    Str(&'static str)
+}
+
+#[derive(Resource, Debug, Default)]
+pub struct RData {
+    pub data: HashMap<String, RVal>,
+    pub changed_keys: Vec<String>,
+    pub has_changed: bool
+}
+
+impl RData {
+    pub fn type_match(old_val: &RVal, new_val: &RVal) -> bool {
+        match (old_val, new_val) {
+            (RVal::Num(_), RVal::Num(_)) => true,
+            (RVal::FNum(_), RVal::FNum(_)) => true,
+            (RVal::Str(_), RVal::Str(_)) => true,
+            _ => false
+        }
+    }
+}
+
+pub fn detect_reactive_data_change(
+    mut r_data: ResMut<RData>,
+    mut keys_q: Query<(&mut Text, &ReactiveKeys)>
+) {
+    if !r_data.is_changed() && !r_data.is_added() {
+        return;
+    }
+    println!("is changed");
+    for (mut r_text, r_keys) in keys_q.iter_mut() {
+        println!("r_text {:?}, r_keys: {:?}", r_text, r_keys);
+        let mut text = r_text.0.clone();
+
+        for (i, key) in r_keys.0.iter().enumerate() {
+            if let Some(value) = r_data.data.get(key) {
+                let placeholder = format!("$[{}]", i);
+
+                match value {
+                    RVal::Num(v) => text = text.replace(&placeholder, &v.to_string()),
+                    RVal::FNum(v) => text = text.replace(&placeholder, &v.to_string()),
+                    RVal::Str(v) => text = text.replace(&placeholder, *v),
+                }
+            }
+        }
+        r_text.0 = text;
+    }
+    r_data.changed_keys.clear();
+    r_data.has_changed = false;
+}

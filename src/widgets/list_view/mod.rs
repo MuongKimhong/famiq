@@ -3,7 +3,7 @@ pub mod tests;
 
 use crate::utils;
 use crate::widgets::*;
-use crate::event_writer::FaMouseEvent;
+use crate::event_writer::*;
 use bevy::ecs::system::EntityCommands;
 use bevy::input::mouse::{MouseScrollUnit, MouseWheel};
 use bevy::prelude::*;
@@ -193,7 +193,13 @@ impl<'a> FaListView {
                         panel_node.top = Val::Px(scroll_list.position);
                         default_style.node.top = Val::Px(scroll_list.position);
 
-                        FaMouseEvent::send_scroll_event(&mut mouse_event_writer, WidgetType::ListView, hovered_listview, listview_id);
+                        FaMouseEvent::send_event(
+                            &mut mouse_event_writer,
+                            EventType::Scroll,
+                            WidgetType::ListView,
+                            hovered_listview,
+                            listview_id
+                        );
                     }
                 }
             }
@@ -269,8 +275,60 @@ impl<'a> SetWidgetAttributes for FaListViewBuilder<'a> {
 }
 
 /// API to create `FaListViewBuilder`.
-pub fn fa_listview<'a>(builder: &'a mut FamiqBuilder) -> FaListViewBuilder<'a> {
+pub fn fa_listview_builder<'a>(builder: &'a mut FamiqBuilder) -> FaListViewBuilder<'a> {
     FaListViewBuilder::new(builder.ui_root_node.reborrow())
+}
+
+#[macro_export]
+macro_rules! fa_listview {
+    (
+        $builder:expr
+        $(, $($rest:tt)+)?
+    ) => {{
+        let mut listview = fa_listview_builder($builder);
+        $(
+            $crate::fa_listview_attributes!(listview, $($rest)+);
+        )?
+        listview.build()
+    }};
+}
+
+#[macro_export]
+macro_rules! fa_listview_attributes {
+    ($listview:ident, id: $id:expr $(, $($rest:tt)+)?) => {{
+        $listview = $listview.id($id);
+        $(
+            $crate::fa_listview_attributes!($listview, $($rest)+);
+        )?
+    }};
+
+    ($listview:ident, class: $class:expr $(, $($rest:tt)+)?) => {{
+        $listview = $listview.class($class);
+        $(
+            $crate::fa_listview_attributes!($listview, $($rest)+);
+        )?
+    }};
+
+    ($listview:ident, scroll_height: $scroll_height:expr $(, $($rest:tt)+)?) => {{
+        $listview = $listview.scroll_height($scroll_height);
+        $(
+            $crate::fa_listview_attributes!($listview, $($rest)+);
+        )?
+    }};
+
+    ($listview:ident, display: $display:expr $(, $($rest:tt)+)?) => {{
+        $listview = $listview.display($display);
+        $(
+            $crate::fa_listview_attributes!($listview, $($rest)+);
+        )?
+    }};
+
+    ($listview:ident, children: $children:expr $(, $($rest:tt)+)?) => {{
+        $listview = $listview.children($children);
+        $(
+            $crate::fa_listview_attributes!($listview, $($rest)+);
+        )?
+    }};
 }
 
 /// Determines if ListView internal system(s) can run.

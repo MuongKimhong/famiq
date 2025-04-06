@@ -26,9 +26,9 @@
 //!     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
 //!
 //!     let txt = fa_text(&mut builder, "Hello world").build();
-//!     let btn = fa_button(&mut builder, "Press me").build();
+//!     let btn = fa_button!(&mut builder, text: "Press me");
 //!
-//!     fa_container(&mut builder).children([txt, btn]).build();
+//!     fa_container!(&mut builder, children: [txt, btn]);
 //! }
 //! ```
 
@@ -46,20 +46,34 @@ pub mod prelude {
         FamiqBuilder, WidgetType, FamiqWidgetId,
         DefaultTextEntity, DefaultWidgetEntity,
         SetWidgetAttributes, FaQuery, WidgetSelector,
-        fa_button,
-        fa_circular,
-        fa_container,
-        fa_fps,
-        fa_image,
-        fa_listview,
-        fa_modal,
-        fa_text,
-        fa_text_input,
-        fa_selection,
-        fa_bg_image,
-        fa_progress_bar,
-        fa_checkbox
+        fa_button_builder,
+        fa_circular_builder,
+        fa_container_builder,
+        fa_fps_builder,
+        fa_image_builder,
+        fa_listview_builder,
+        fa_modal_builder,
+        fa_text_builder,
+        fa_text_input_builder,
+        fa_selection_builder,
+        fa_bg_image_builder,
+        fa_progress_bar_builder,
+        fa_checkbox_builder,
     };
+    pub use crate::fa_button;
+    pub use crate::fa_bg_image;
+    pub use crate::fa_checkbox;
+    pub use crate::fa_circular;
+    pub use crate::fa_container;
+    pub use crate::fa_fps;
+    pub use crate::fa_image;
+    pub use crate::fa_listview;
+    pub use crate::fa_modal;
+    pub use crate::fa_progress_bar;
+    pub use crate::fa_selection;
+    pub use crate::fa_text;
+    pub use crate::fa_text_input;
+    pub use crate::children;
     pub use crate::widgets::modal::{IsFamiqModalContainer, IsFamiqModalBackground};
     pub use crate::widgets::text_input::{IsFamiqTextInput, FaTextInputResource};
     pub use crate::widgets::selection::{IsFamiqSelectionSelector, FaSelectionResource};
@@ -71,3 +85,5 @@ pub mod prelude {
     pub use crate::widgets::bg_image::{FaBgImageResource, IsFamiqBgImage};
     pub use crate::event_writer::{FaMouseEvent, FaValueChangeEvent};
 }
+
+pub use prelude::*;

@@ -3,6 +3,7 @@
 use crate::utils::create_test_app;
 use crate::plugin::FamiqPlugin;
 use crate::widgets::{FamiqWidgetId, FamiqWidgetClasses, FamiqResource};
+use crate::fa_progress_bar;
 use super::*;
 
 fn setup_test_default_bar(
@@ -10,7 +11,7 @@ fn setup_test_default_bar(
     mut fa_query: FaQuery
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    fa_progress_bar(&mut builder).id("#test-bar").build();
+    fa_progress_bar!(&mut builder, id: "#test-bar");
 }
 
 fn setup_test_bar_with_built_in_class(
@@ -18,9 +19,7 @@ fn setup_test_bar_with_built_in_class(
     mut fa_query: FaQuery
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    fa_progress_bar(&mut builder)
-        .class("is-primary is-large")
-        .build();
+    fa_progress_bar!(&mut builder, class: "is-primary is-large");
 }
 
 fn setup_test_bar_with_percentage(
@@ -28,10 +27,7 @@ fn setup_test_bar_with_percentage(
     mut fa_query: FaQuery
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    fa_progress_bar(&mut builder)
-        .id("#test-bar")
-        .percentage(50.0)
-        .build();
+    fa_progress_bar!(&mut builder, percent: 50.0, id: "#test-bar");
 }
 
 #[test]

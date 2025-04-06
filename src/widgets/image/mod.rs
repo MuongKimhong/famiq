@@ -112,9 +112,9 @@ impl<'a> FaImageBuilder<'a> {
     }
 
     /// set custom size for image
-    pub fn set_size(mut self, width: Val, height: Val) -> Self {
-        self.attributes.node.width = width;
-        self.attributes.node.height = height;
+    pub fn set_size(mut self, size: (Val, Val)) -> Self {
+        self.attributes.node.width = size.0;
+        self.attributes.node.height = size.1;
         self
     }
 
@@ -139,7 +139,7 @@ impl<'a> SetWidgetAttributes for FaImageBuilder<'a> {
 }
 
 /// API to create `FaImageBuilder`
-pub fn fa_image<'a>(builder: &'a mut FamiqBuilder, path: &str) -> FaImageBuilder<'a> {
+pub fn fa_image_builder<'a>(builder: &'a mut FamiqBuilder, path: &str) -> FaImageBuilder<'a> {
     let image_handle = builder.asset_server.load(path);
     let font_handle = builder.asset_server.load(&builder.resource.font_path);
     FaImageBuilder::new(
@@ -147,6 +147,59 @@ pub fn fa_image<'a>(builder: &'a mut FamiqBuilder, path: &str) -> FaImageBuilder
         font_handle,
         builder.ui_root_node.reborrow()
     )
+}
+
+#[macro_export]
+macro_rules! fa_image {
+    (
+        $builder:expr,
+        path: $path:expr
+        $(, $($rest:tt)+)?
+    ) => {{
+        let mut image = fa_image_builder($builder, $path);
+        $(
+            $crate::fa_image_attributes!(image, $($rest)+);
+        )?
+        image.build()
+    }};
+}
+
+#[macro_export]
+macro_rules! fa_image_attributes {
+    ($image:ident, id: $id:expr $(, $($rest:tt)+)?) => {{
+        $image = $image.id($id);
+        $(
+            $crate::fa_image_attributes!($image, $($rest)+);
+        )?
+    }};
+
+    ($image:ident, class: $class:expr $(, $($rest:tt)+)?) => {{
+        $image = $image.class($class);
+        $(
+            $crate::fa_image_attributes!($image, $($rest)+);
+        )?
+    }};
+
+    ($image:ident, tooltip: $tooltip:expr $(, $($rest:tt)+)?) => {{
+        $image = $image.tooltip($tooltip);
+        $(
+            $crate::fa_image_attributes!($image, $($rest)+);
+        )?
+    }};
+
+    ($image:ident, display: $display:expr $(, $($rest:tt)+)?) => {{
+        $image = $image.display($display);
+        $(
+            $crate::fa_image_attributes!($image, $($rest)+);
+        )?
+    }};
+
+    ($image:ident, set_size: $set_size:expr $(, $($rest:tt)+)?) => {{
+        $image = $image.set_size($set_size);
+        $(
+            $crate::fa_image_attributes!($image, $($rest)+);
+        )?
+    }};
 }
 
 /// a system to check if Image internal system(s) can run.

@@ -234,8 +234,8 @@ impl<'a> FaCheckboxBuilder<'a> {
         self
     }
 
-    pub fn vertical(mut self) -> Self {
-        self.vertical = true;
+    pub fn vertical(mut self, vertical: bool) -> Self {
+        self.vertical = vertical;
         self
     }
 
@@ -265,13 +265,73 @@ impl<'a> SetWidgetAttributes for FaCheckboxBuilder<'a> {
     }
 }
 
-pub fn fa_checkbox<'a>(builder: &'a mut FamiqBuilder) -> FaCheckboxBuilder<'a> {
+pub fn fa_checkbox_builder<'a>(builder: &'a mut FamiqBuilder) -> FaCheckboxBuilder<'a> {
     let font_handle = builder.asset_server.load(&builder.resource.font_path);
     FaCheckboxBuilder::new(
         font_handle,
         builder.ui_root_node.reborrow()
     )
 }
+
+#[macro_export]
+macro_rules! fa_checkbox {
+    (
+        $builder:expr
+        $(, $($rest:tt)+)?
+    ) => {{
+        let mut checkbox = fa_checkbox_builder($builder);
+        $(
+            $crate::fa_checkbox_attributes!(checkbox, $($rest)+);
+        )?
+        checkbox.build()
+    }};
+}
+
+#[macro_export]
+macro_rules! fa_checkbox_attributes {
+    ($checkbox:ident, id: $id:expr $(, $($rest:tt)+)?) => {{
+        $checkbox = $checkbox.id($id);
+        $(
+            $crate::fa_checkbox_attributes!($checkbox, $($rest)+);
+        )?
+    }};
+
+    ($checkbox:ident, class: $class:expr $(, $($rest:tt)+)?) => {{
+        $checkbox = $checkbox.class($class);
+        $(
+            $crate::fa_checkbox_attributes!($checkbox, $($rest)+);
+        )?
+    }};
+
+    ($checkbox:ident, color: $color:expr $(, $($rest:tt)+)?) => {{
+        $checkbox = $checkbox.color($color);
+        $(
+            $crate::fa_checkbox_attributes!($checkbox, $($rest)+);
+        )?
+    }};
+
+    ($checkbox:ident, display: $display:expr $(, $($rest:tt)+)?) => {{
+        $checkbox = $checkbox.display($display);
+        $(
+            $crate::fa_checkbox_attributes!($checkbox, $($rest)+);
+        )?
+    }};
+
+    ($checkbox:ident, choices: $choices:expr $(, $($rest:tt)+)?) => {{
+        $checkbox = $checkbox.choices($choices.into_iter());
+        $(
+            $crate::fa_checkbox_attributes!($checkbox, $($rest)+);
+        )?
+    }};
+
+    ($checkbox:ident, vertical: $vertical:expr $(, $($rest:tt)+)?) => {{
+        $checkbox = $checkbox.vertical($vertical);
+        $(
+            $crate::fa_checkbox_attributes!($checkbox, $($rest)+);
+        )?
+    }};
+}
+
 
 pub fn can_run_checkbox_systems(checkbox_q: Query<&IsFamiqCheckbox>) -> bool {
     !checkbox_q.is_empty()

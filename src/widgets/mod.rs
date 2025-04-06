@@ -19,19 +19,20 @@ pub mod checkbox;
 pub mod tests;
 pub mod base_components;
 
-pub use button::fa_button;
-pub use circular::fa_circular;
+use bevy::utils::hashbrown::HashMap;
+pub use button::fa_button_builder;
+pub use circular::fa_circular_builder;
 pub use container::*;
-pub use fps::fa_fps;
-pub use image::fa_image;
-pub use list_view::{fa_listview, ListViewMovePanelEntity};
-pub use modal::{fa_modal, FaModalState, FaModalContainerEntity, IsFamiqModalBackground};
-pub use text::fa_text;
-pub use text_input::fa_text_input;
-pub use selection::fa_selection;
-pub use bg_image::fa_bg_image;
-pub use progress_bar::fa_progress_bar;
-pub use checkbox::fa_checkbox;
+pub use fps::fa_fps_builder;
+pub use image::fa_image_builder;
+pub use list_view::{fa_listview_builder, ListViewMovePanelEntity};
+pub use modal::{fa_modal_builder, FaModalState, FaModalContainerEntity, IsFamiqModalBackground};
+pub use text::fa_text_builder;
+pub use text_input::fa_text_input_builder;
+pub use selection::fa_selection_builder;
+pub use bg_image::fa_bg_image_builder;
+pub use progress_bar::fa_progress_bar_builder;
+pub use checkbox::fa_checkbox_builder;
 pub use base_components::*;
 pub use style::*;
 use crate::resources::*;
@@ -80,12 +81,18 @@ pub struct WidgetAttributes {
     pub image_handle: Option<Handle<Image>>,
     pub has_tooltip: bool,
     pub tooltip_text: String,
+    pub bind_keys: Vec<&'static str>,
     default_display_changed: bool,
     default_display: Display
 }
 
 pub trait SetWidgetAttributes: Sized {
     fn attributes(&mut self) -> &mut WidgetAttributes;
+
+    fn bind(mut self, keys: &[&'static str]) -> Self {
+        self.attributes().bind_keys = keys.to_vec();
+        self
+    }
 
     fn id(mut self, id: &str) -> Self {
         self.attributes().id = Some(id.to_string());
@@ -397,6 +404,7 @@ pub struct FaQuery<'w, 's> {
     pub containable_query: Query<'w, 's, ContainableQuery, With<IsFamiqContainableWidget>>,
     pub modal_query: Query<'w, 's, ModalQuery, With<IsFamiqModalBackground>>,
     pub modal_state: ResMut<'w, FaModalState>,
+    pub reactive_data: ResMut<'w, RData>,
     pub commands: Commands<'w, 's>,
     pub asset_server: Res<'w, AssetServer>
 }
@@ -536,4 +544,45 @@ impl<'w, 's> FaQuery<'w, 's> {
             self.modal_state.hide_by_entity(entity);
         }
     }
+
+    pub fn bind_data(&mut self, new_data: HashMap<String, RVal>) {
+        self.reactive_data.data = new_data;
+    }
+
+    pub fn mutate_data(&mut self, key: &str, new_val: RVal) {
+        let old_val = self.reactive_data.data.get(key);
+        if old_val.is_none() {
+            panic!("\n[FamiqError]: mutate_data, key {:?} not found\n", key);
+        }
+        let old_val = old_val.unwrap();
+        if !RData::type_match(old_val, &new_val) {
+            panic!("\n[FamiqError]: mutate_data, expected {:?} found {:?}\n", old_val, new_val);
+        }
+        if !self.reactive_data.changed_keys.contains(&key.to_string()) {
+            self.reactive_data.changed_keys.push(key.to_string());
+        }
+        self.reactive_data.data.insert(key.to_string(), new_val);
+        self.reactive_data.has_changed = true;
+    }
+
+    pub fn get_data(&mut self, key: &str) -> Option<&RVal> {
+        if let Some(val) = self.reactive_data.data.get(key) {
+            return Some(val);
+        }
+        None
+    }
+}
+
+#[macro_export]
+macro_rules! children {
+    ( $( $child:expr ),* $(,)? ) => {
+        {
+            let mut vec = Vec::new();
+            $(
+                let child = $child;
+                vec.push(child);
+            )*
+            vec
+        }
+    };
 }

@@ -2,7 +2,8 @@
 
 use crate::plugin::FamiqPlugin;
 use crate::widgets::FamiqResource;
-use crate::widgets::text::fa_text;
+use crate::fa_text;
+use crate::fa_modal;
 use super::*;
 
 fn setup_test_default_modal(
@@ -10,7 +11,7 @@ fn setup_test_default_modal(
     mut fa_query: FaQuery
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    fa_modal(&mut builder).id("#test-modal").build();
+    fa_modal!(&mut builder, id: "#test-modal");
 }
 
 fn setup_test_modal_with_children(
@@ -18,12 +19,10 @@ fn setup_test_modal_with_children(
     mut fa_query: FaQuery
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    let txt_one = fa_text(&mut builder, "Text one").build();
-    let txt_two = fa_text(&mut builder, "Text two").build();
+    let txt_one = fa_text!(&mut builder, text: "Text one");
+    let txt_two = fa_text!(&mut builder, text: "Text two");
 
-    fa_modal(&mut builder)
-        .children(vec![txt_one, txt_two])
-        .build();
+    fa_modal!(&mut builder, children: [txt_one, txt_two]);
 }
 
 #[test]

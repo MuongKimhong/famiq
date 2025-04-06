@@ -3,6 +3,7 @@
 use crate::plugin::FamiqPlugin;
 use crate::utils::create_test_app;
 use crate::widgets::{FamiqResource, FamiqWidgetId, FamiqWidgetClasses};
+use crate::fa_fps;
 use super::*;
 
 fn setup_test_default_fps(
@@ -10,10 +11,7 @@ fn setup_test_default_fps(
     mut fa_query: FaQuery
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    fa_fps(&mut builder)
-        .id("#test-fps")
-        .class("test-class")
-        .build();
+    fa_fps!(&mut builder, id: "#test-fps", class: "test-class");
 }
 
 fn setup_test_fps_with_change_color(
@@ -21,9 +19,7 @@ fn setup_test_fps_with_change_color(
     mut fa_query: FaQuery
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    fa_fps(&mut builder)
-        .change_color()
-        .build();
+    fa_fps!(&mut builder, change_color: true);
 }
 
 fn setup_test_fps_with_right_side(
@@ -31,9 +27,7 @@ fn setup_test_fps_with_right_side(
     mut fa_query: FaQuery
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    fa_fps(&mut builder)
-        .right_side()
-        .build();
+    fa_fps!(&mut builder, right_side: true);
 }
 
 #[test]

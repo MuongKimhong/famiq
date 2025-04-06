@@ -3,6 +3,7 @@
 use crate::plugin::FamiqPlugin;
 use crate::widgets::{FamiqResource, FamiqWidgetId, FamiqWidgetClasses};
 use crate::utils::{get_embedded_asset_path, create_test_app};
+use crate::fa_image;
 use super::*;
 
 fn setup_test_default_image(
@@ -11,7 +12,7 @@ fn setup_test_default_image(
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     let path = get_embedded_asset_path("embedded_assets/logo.jpeg").to_string();
-    fa_image(&mut builder, path.as_str()).id("#test-image").build();
+    fa_image!(&mut builder, path: &path, id: "#test-image");
 }
 
 fn setup_test_image_with_class(
@@ -20,9 +21,7 @@ fn setup_test_image_with_class(
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     let path = get_embedded_asset_path("embedded_assets/logo.jpeg").to_string();
-    fa_image(&mut builder, path.as_str())
-        .class("test-class-one")
-        .build();
+    fa_image!(&mut builder, path: &path, class: "test-class-one");
 }
 
 fn setup_test_image_with_custom_size(
@@ -31,9 +30,7 @@ fn setup_test_image_with_custom_size(
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     let path = get_embedded_asset_path("embedded_assets/logo.jpeg").to_string();
-    fa_image(&mut builder, path.as_str())
-        .set_size(Val::Px(200.0), Val::Px(200.0))
-        .build();
+    fa_image!(&mut builder, path: &path, set_size: (Val::Px(200.0), Val::Px(200.0)));
 }
 
 #[test]

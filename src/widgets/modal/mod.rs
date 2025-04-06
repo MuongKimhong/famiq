@@ -28,43 +28,19 @@ pub struct AnimationProgress(pub f32);
 /// by id or entity.
 #[derive(Resource, Default, Debug)]
 pub struct FaModalState {
-    // pub id_states: HashMap<String, bool>,
     pub entity_states: HashMap<Entity, bool>,
     pub state_changed: bool
 }
 
 impl FaModalState {
-    // fn _update_or_insert_id(&mut self, id: &str, new_state: bool) {
-    //     self.id_states.entry(id.to_string()).or_insert(false);
-    //     self.id_states.insert(id.to_string(), new_state);
-    // }
-
     fn _update_or_insert_entity(&mut self, entity: Entity, new_state: bool) {
         self.entity_states.entry(entity).or_insert(false);
         self.entity_states.insert(entity, new_state);
     }
 
     fn _hide_all(&mut self) {
-        // self.id_states.values_mut().for_each(|v| *v = false);
         self.entity_states.values_mut().for_each(|v| *v = false);
     }
-
-    // /// Show modal by ID (Only one can be `true`)
-    // pub(crate) fn show_by_id(&mut self, id: &str) {
-    //     self._hide_all();
-    //     self._update_or_insert_id(id, true);
-    //     self.state_changed = true;
-    // }
-
-    // /// Hide modal by ID
-    // pub(crate) fn hide_by_id(&mut self, id: &str) {
-    //     self._update_or_insert_id(id, false);
-    //     self.state_changed = true;
-    // }
-
-    // pub fn get_state_by_id(&self, id: &str) -> Option<&bool> {
-    //     self.id_states.get(id)
-    // }
 
     /// Show modal by entity (Only one can be `true`)
     pub(crate) fn show_by_entity(&mut self, entity: Entity) {
@@ -255,10 +231,55 @@ impl<'a> SetWidgetAttributes for FaModalBuilder<'a> {
 }
 
 /// API to create `FaModalBuilder`
-pub fn fa_modal<'a>(builder: &'a mut FamiqBuilder) -> FaModalBuilder<'a> {
+pub fn fa_modal_builder<'a>(builder: &'a mut FamiqBuilder) -> FaModalBuilder<'a> {
     FaModalBuilder::new(
         builder.ui_root_node.reborrow(),
     )
+}
+
+#[macro_export]
+macro_rules! fa_modal {
+    (
+        $builder:expr
+        $(, $($rest:tt)+)?
+    ) => {{
+        let mut modal = fa_modal_builder($builder);
+        $(
+            $crate::fa_modal_attributes!(modal, $($rest)+);
+        )?
+        modal.build()
+    }};
+}
+
+#[macro_export]
+macro_rules! fa_modal_attributes {
+    ($modal:ident, id: $id:expr $(, $($rest:tt)+)?) => {{
+        $modal = $modal.id($id);
+        $(
+            $crate::fa_modal_attributes!($modal, $($rest)+);
+        )?
+    }};
+
+    ($modal:ident, class: $class:expr $(, $($rest:tt)+)?) => {{
+        $modal = $modal.class($class);
+        $(
+            $crate::fa_modal_attributes!($modal, $($rest)+);
+        )?
+    }};
+
+    ($modal:ident, display: $display:expr $(, $($rest:tt)+)?) => {{
+        $modal = $modal.display($display);
+        $(
+            $crate::fa_modal_attributes!($modal, $($rest)+);
+        )?
+    }};
+
+    ($modal:ident, children: $children:expr $(, $($rest:tt)+)?) => {{
+        $modal = $modal.children($children);
+        $(
+            $crate::fa_modal_attributes!($modal, $($rest)+);
+        )?
+    }};
 }
 
 /// Determines if modal internal system(s) can run.

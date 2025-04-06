@@ -174,14 +174,14 @@ impl<'a> FaFpsTextBuilder<'a> {
     }
 
     /// Enables dynamic color changes based on FPS value.
-    pub fn change_color(mut self) -> Self {
-        self.change_color = true;
+    pub fn change_color(mut self, can_change: bool) -> Self {
+        self.change_color = can_change;
         self
     }
 
-    /// Aligns the FPS widget to the right top corner of the screen.
-    pub fn right_side(mut self) -> Self {
-        self.right_side = true;
+    /// Aligns the FPS widget to the right or left top corner of the screen.
+    pub fn side(mut self, right: bool) -> Self {
+        self.right_side = right;
         self
     }
 
@@ -217,13 +217,73 @@ impl<'a> SetWidgetAttributes for FaFpsTextBuilder<'a> {
 }
 
 /// API to create an `FaFpsTextBuilder`.
-pub fn fa_fps<'a>(builder: &'a mut FamiqBuilder) -> FaFpsTextBuilder<'a> {
+pub fn fa_fps_builder<'a>(builder: &'a mut FamiqBuilder) -> FaFpsTextBuilder<'a> {
     let font_handle = builder.asset_server.load(&builder.resource.font_path);
     FaFpsTextBuilder::new(
         font_handle,
         builder.ui_root_node.reborrow()
     )
 }
+
+#[macro_export]
+macro_rules! fa_fps {
+    (
+        $builder:expr
+        $(, $($rest:tt)+)?
+    ) => {{
+        let mut fps = fa_fps_builder($builder);
+        $(
+            $crate::fa_fps_attributes!(fps, $($rest)+);
+        )?
+        fps.build()
+    }};
+}
+
+#[macro_export]
+macro_rules! fa_fps_attributes {
+    ($fps:ident, id: $id:expr $(, $($rest:tt)+)?) => {{
+        $fps = $fps.id($id);
+        $(
+            $crate::fa_fps_attributes!($fps, $($rest)+);
+        )?
+    }};
+
+    ($fps:ident, class: $class:expr $(, $($rest:tt)+)?) => {{
+        $fps = $fps.class($class);
+        $(
+            $crate::fa_fps_attributes!($fps, $($rest)+);
+        )?
+    }};
+
+    ($fps:ident, color: $color:expr $(, $($rest:tt)+)?) => {{
+        $fps = $fps.color($color);
+        $(
+            $crate::fa_fps_attributes!($fps, $($rest)+);
+        )?
+    }};
+
+    ($fps:ident, display: $display:expr $(, $($rest:tt)+)?) => {{
+        $fps = $fps.display($display);
+        $(
+            $crate::fa_fps_attributes!($fps, $($rest)+);
+        )?
+    }};
+
+    ($fps:ident, right_side: $right_side:expr $(, $($rest:tt)+)?) => {{
+        $fps = $fps.side($right_side);
+        $(
+            $crate::fa_fps_attributes!($fps, $($rest)+);
+        )?
+    }};
+
+    ($fps:ident, change_color: $change_color:expr $(, $($rest:tt)+)?) => {{
+        $fps = $fps.change_color($change_color);
+        $(
+            $crate::fa_fps_attributes!($fps, $($rest)+);
+        )?
+    }};
+}
+
 
 /// a system to check if FPS internal system(s) can run.
 ///

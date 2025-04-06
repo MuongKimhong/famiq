@@ -127,7 +127,17 @@ impl<'a> FaText {
         root_node: &'a mut EntityCommands,
         size: TextSize
     ) -> Entity {
-        Self::_build_text(attributes, text, root_node, size)
+        let text = Self::_build_text(attributes, text, root_node, size);
+
+        if !attributes.bind_keys.is_empty() {
+            let keys: Vec<String> = attributes.bind_keys.iter().map(|key| key.to_string()).collect();
+
+            root_node
+                .commands().entity(text).insert(ReactiveKeys(keys.clone()));
+
+            println!("insert reactive keys {:?}", keys);
+        }
+        text
     }
 
     /// Internal system that reads `FaTextResource` and update the corresponding text widget's value
@@ -291,13 +301,66 @@ impl<'a> SetWidgetAttributes for FaTextBuilder<'a> {
 }
 
 /// API to create `FaTextBuilder`.
-pub fn fa_text<'a>(builder: &'a mut FamiqBuilder, value: &str) -> FaTextBuilder<'a> {
+pub fn fa_text_builder<'a>(builder: &'a mut FamiqBuilder, value: &str) -> FaTextBuilder<'a> {
     let font_handle = builder.asset_server.load(&builder.resource.font_path);
     FaTextBuilder::new(
         value.to_string(),
         font_handle,
         builder.ui_root_node.reborrow()
     )
+}
+
+#[macro_export]
+macro_rules! fa_text {
+    (
+        $builder:expr,
+        text: $text:expr
+        $(, $($rest:tt)+)?
+    ) => {{
+        let mut text = fa_text_builder($builder, $text);
+        $(
+            $crate::fa_text_attributes!(text, $($rest)+);
+        )?
+        text.build()
+    }};
+}
+
+#[macro_export]
+macro_rules! fa_text_attributes {
+    ($text:ident, id: $id:expr $(, $($rest:tt)+)?) => {{
+        $text = $text.id($id);
+        $(
+            $crate::fa_text_attributes!($text, $($rest)+);
+        )?
+    }};
+
+    ($text:ident, class: $class:expr $(, $($rest:tt)+)?) => {{
+        $text = $text.class($class);
+        $(
+            $crate::fa_text_attributes!($text, $($rest)+);
+        )?
+    }};
+
+    ($text:ident, color: $color:expr $(, $($rest:tt)+)?) => {{
+        $text = $text.color($color);
+        $(
+            $crate::fa_text_attributes!($text, $($rest)+);
+        )?
+    }};
+
+    ($text:ident, display: $display:expr $(, $($rest:tt)+)?) => {{
+        $text = $text.display($display);
+        $(
+            $crate::fa_text_attributes!($text, $($rest)+);
+        )?
+    }};
+
+    ($text:ident, bind: $bind:expr $(, $($rest:tt)+)?) => {{
+        $text = $text.bind($bind);
+        $(
+            $crate::fa_text_attributes!($text, $($rest)+);
+        )?
+    }};
 }
 
 pub fn can_run_text_systems(text_q: Query<&IsFamiqText>) -> bool {
@@ -316,7 +379,7 @@ mod tests {
         mut fa_query: FaQuery
     ) {
         let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-        fa_text(&mut builder, "Test Text").id("#test-text").build();
+        fa_text!(&mut builder, text: "Test Text", id: "#test-text");
     }
 
     #[test]

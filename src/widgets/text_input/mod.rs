@@ -821,7 +821,7 @@ impl<'a> SetWidgetAttributes for FaTextInputBuilder<'a> {
 }
 
 /// API to create `FaTextInputBuilder`
-pub fn fa_text_input<'a>(
+pub fn fa_text_input_builder<'a>(
     builder: &'a mut FamiqBuilder,
     placeholder: &str
 ) -> FaTextInputBuilder<'a> {
@@ -832,6 +832,60 @@ pub fn fa_text_input<'a>(
         builder.ui_root_node.reborrow()
     )
 }
+
+#[macro_export]
+macro_rules! fa_text_input {
+    (
+        $builder:expr,
+        placeholder: $placeholder:expr
+        $(, $($rest:tt)+)?
+    ) => {{
+        let mut text_input = fa_text_input_builder($builder, $placeholder);
+        $(
+            $crate::fa_text_input_attributes!(text_input, $($rest)+);
+        )?
+        text_input.build()
+    }};
+}
+
+#[macro_export]
+macro_rules! fa_text_input_attributes {
+    ($text_input:ident, id: $id:expr $(, $($rest:tt)+)?) => {{
+        $text_input = $text_input.id($id);
+        $(
+            $crate::fa_text_input_attributes!($text_input, $($rest)+);
+        )?
+    }};
+
+    ($text_input:ident, class: $class:expr $(, $($rest:tt)+)?) => {{
+        $text_input = $text_input.class($class);
+        $(
+            $crate::fa_text_input_attributes!($text_input, $($rest)+);
+        )?
+    }};
+
+    ($text_input:ident, tooltip: $tooltip:expr $(, $($rest:tt)+)?) => {{
+        $text_input = $text_input.tooltip($tooltip);
+        $(
+            $crate::fa_text_input_attributes!($text_input, $($rest)+);
+        )?
+    }};
+
+    ($text_input:ident, display: $display:expr $(, $($rest:tt)+)?) => {{
+        $text_input = $text_input.display($display);
+        $(
+            $crate::fa_text_input_attributes!($text_input, $($rest)+);
+        )?
+    }};
+
+    ($text_input:ident, password: $password:expr $(, $($rest:tt)+)?) => {{
+        $text_input = $text_input.password($password);
+        $(
+            $crate::fa_text_input_attributes!($text_input, $($rest)+);
+        )?
+    }};
+}
+
 
 /// Determines if text_input internal system(s) can run.
 ///

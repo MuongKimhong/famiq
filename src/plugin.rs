@@ -199,11 +199,13 @@ impl Plugin for FamiqPlugin {
         app.add_systems(Update, detect_new_widget_with_id);
         app.add_systems(Update, handle_window_resized_system);
         app.add_systems(Update, FaModal::hide_or_display_modal_system.run_if(can_run_modal_systems));
+        app.add_systems(PostUpdate, detect_reactive_data_change);
 
         app.add_plugins(UiMaterialPlugin::<ProgressBarMaterial>::default());
         app.add_plugins(UiMaterialPlugin::<CircularMaterial>::default());
         app.add_plugins(UiMaterialPlugin::<TextInputMaterial>::default());
         app.add_plugins(FrameTimeDiagnosticsPlugin::default());
+        app.insert_resource(RData::default());
         app.insert_resource(StylesKeyValueResource::default());
         app.insert_resource(FamiqResource::new());
         app.insert_resource(CosmicFontSystem(FontSystem::new()));

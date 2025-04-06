@@ -197,10 +197,70 @@ impl<'a> SetWidgetAttributes for FaCircularBuilder<'a> {
 }
 
 /// API to create `FaCircularBuilder`
-pub fn fa_circular<'a>(builder: &'a mut FamiqBuilder) -> FaCircularBuilder<'a> {
+pub fn fa_circular_builder<'a>(builder: &'a mut FamiqBuilder) -> FaCircularBuilder<'a> {
     let font_handle = builder.asset_server.load(&builder.resource.font_path);
     FaCircularBuilder::new(builder.ui_root_node.reborrow(), font_handle)
 }
+
+#[macro_export]
+macro_rules! fa_circular {
+    (
+        $builder:expr
+        $(, $($rest:tt)+)?
+    ) => {{
+        let mut circular = fa_circular_builder($builder);
+        $(
+            $crate::fa_circular_attributes!(circular, $($rest)+);
+        )?
+        circular.build()
+    }};
+}
+
+#[macro_export]
+macro_rules! fa_circular_attributes {
+    ($circular:ident, id: $id:expr $(, $($rest:tt)+)?) => {{
+        $circular = $circular.id($id);
+        $(
+            $crate::fa_circular_attributes!($circular, $($rest)+);
+        )?
+    }};
+
+    ($circular:ident, class: $class:expr $(, $($rest:tt)+)?) => {{
+        $circular = $circular.class($class);
+        $(
+            $crate::fa_circular_attributes!($circular, $($rest)+);
+        )?
+    }};
+
+    ($circular:ident, color: $color:expr $(, $($rest:tt)+)?) => {{
+        $circular = $circular.color($color);
+        $(
+            $crate::fa_circular_attributes!($circular, $($rest)+);
+        )?
+    }};
+
+    ($circular:ident, size: $size:expr $(, $($rest:tt)+)?) => {{
+        $circular = $circular.size($size);
+        $(
+            $crate::fa_circular_attributes!($circular, $($rest)+);
+        )?
+    }};
+
+    ($circular:ident, tooltip: $tooltip:expr $(, $($rest:tt)+)?) => {{
+        $circular = $circular.tooltip($tooltip);
+        $(
+            $crate::fa_circular_attributes!($circular, $($rest)+);
+        )?
+    }};
+
+    ($circular:ident, display: $display:expr $(, $($rest:tt)+)?) => {{
+        $circular = $circular.display($display);
+        $(
+            $crate::fa_circular_attributes!($circular, $($rest)+);
+        )?
+    }};
+}
+
 
 /// Determines if circular internal system(s) can run.
 ///
