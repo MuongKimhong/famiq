@@ -1,6 +1,5 @@
 use crate::widgets::selection::*;
 use crate::widgets::FamiqResource;
-use crate::event_writer::FaValueChangeEvent;
 use super::FaSelection;
 use bevy::prelude::*;
 
@@ -40,20 +39,6 @@ pub fn handle_show_and_hide_choices_panel(
     }
 }
 
-/// Internal system to detect new selection being created.
-pub fn detect_new_selection_widget_system(
-    selection_q: Query<Option<&FamiqWidgetId> , Added<IsFamiqSelectionSelector>>,
-    mut selection_res: ResMut<FaSelectionResource>
-) {
-    for id in selection_q.iter() {
-        if let Some(id) = id {
-            if !selection_res.exists(id.0.as_str()) {
-                selection_res._insert(id.0.clone(), String::new());
-            }
-        }
-    }
-}
-
 pub fn handle_selection_choice_interaction_system(
     mut selection_choice_q: Query<
         (
@@ -62,19 +47,12 @@ pub fn handle_selection_choice_interaction_system(
             &SelectionChoiceTextEntity,
             &SelectorEntity
         ),
-        (With<IsFamiqSelectionChoice>, Changed<Interaction>)
+        (With<IsFamiqSelectionChoice>, Without<IsFamiqMainWidget>, Changed<Interaction>)
     >,
-    mut selection_q: Query<(
-        Entity,
-        &Selection,
-        &mut SelectionValue,
-        Option<&FamiqWidgetId>,
-        &mut SelectorPlaceHolderEntity,
-    )>,
-    mut selection_res: ResMut<FaSelectionResource>,
+    mut selection_q: Query<(Entity, &ReactiveModelKey), With<IsFamiqSelectionSelector>>,
+    mut fa_query: FaQuery,
     mut text_q: Query<&mut Text>,
     mut builder_res: ResMut<FamiqResource>,
-    mut change_writer: EventWriter<FaValueChangeEvent>
 ) {
     for (mut choice_bg_color, interaction, choice_txt_entity, selector_entity) in selection_choice_q.iter_mut() {
         match interaction {
@@ -82,13 +60,7 @@ pub fn handle_selection_choice_interaction_system(
                 *choice_bg_color = ITEM_ON_HOVER_BG_COLOR.into();
             },
             Interaction::Pressed => {
-                if let Ok((
-                    selection_entity,
-                    selection,
-                    mut selection_value,
-                    selection_id,
-                    placeholder_entity,
-                )) = selection_q.get_mut(selector_entity.0) {
+                if let Ok((selection_entity, model_key)) = selection_q.get_mut(selector_entity.0) {
                     let mut selected_choice = String::new();
 
                     // Update selected items resource
@@ -98,29 +70,13 @@ pub fn handle_selection_choice_interaction_system(
                         } else {
                             text.0.clone()
                         };
-                        if let Some(id) = selection_id {
-                            selection_res._insert(id.0.clone(), text.0.clone());
+                    }
+                    if let Some(value) = fa_query.get_data_mut(&model_key.0) {
+                        match value {
+                            RVal::Str(v) => *v = selected_choice,
+                            _ => {}
                         }
                     }
-
-                    // update placeholder value
-                    if let Ok(mut text) = text_q.get_mut(placeholder_entity.0) {
-                        if selected_choice != "" {
-                            text.0 = selected_choice.clone();
-                            selection_value.0 = selected_choice.clone();
-                        } else {
-                            text.0 = selection.placeholder.clone();
-                            selection_value.0 = String::new();
-                        }
-
-                        change_writer.send(FaValueChangeEvent::new(
-                            selection_entity,
-                            selection_id.map(|_id| _id.0.clone()),
-                            selection_value.0.clone(),
-                            Vec::new()
-                        ));
-                    }
-
                     // set selection to unfocus after choice is selected
                     builder_res.update_or_insert_focus_state(selection_entity, false);
                     *choice_bg_color = BackgroundColor(ITEM_NORMAL_BG_COLOR);

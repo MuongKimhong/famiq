@@ -31,10 +31,6 @@ use cosmic_text::{
 use arboard::Clipboard;
 use std::sync::Arc;
 
-#[derive(Default)]
-pub struct IsFamiqTextInputResource;
-pub type FaTextInputResource = InputResource<IsFamiqTextInputResource>;
-
 #[derive(Event, Debug)]
 pub struct RequestRedrawBuffer {
     pub input_entity: Entity
@@ -110,6 +106,10 @@ impl<'a> FaTextInput {
             .id();
 
         insert_id_and_class(root_node, entity, &attributes.id, &attributes.class);
+
+        if let Some(model_key) = attributes.model_key.as_ref() {
+            root_node.commands().entity(entity).insert(ReactiveModelKey(model_key.to_owned()));
+        }
         entity
     }
 
@@ -414,7 +414,6 @@ impl<'a> FaTextInput {
         mut input_q: Query<
             (
                 Entity,
-                Option<&FamiqWidgetId>,
                 &CosmicTextData,
                 &CosmicDataColor,
                 &mut FaTextEdit,
@@ -424,19 +423,13 @@ impl<'a> FaTextInput {
         >,
         mut font_system: ResMut<CosmicFontSystem>,
         mut swash_cache: ResMut<CosmicSwashCache>,
-        mut input_res: ResMut<FaTextInputResource>,
         mut commands: Commands,
         mut image_assets: ResMut<Assets<Image>>,
         mut materials: ResMut<Assets<TextInputMaterial>>,
         font_assets: Res<Assets<Font>>,
         window: Single<&Window>
     ) {
-        input_q.iter_mut().for_each(|(entity, id, text_data, cosmic_color, mut text_edit, mut cosmic_data)| {
-            if let Some(id) = id {
-                if !input_res.exists(id.0.as_str()) {
-                    input_res._insert(id.0.clone(), String::new());
-                }
-            }
+        input_q.iter_mut().for_each(|(entity, text_data, cosmic_color, mut text_edit, mut cosmic_data)| {
             let mut attrs = Attrs::new();
             if let Some(font) = font_assets.get(&text_data.handle) {
                 let data: Arc<dyn AsRef<[u8]> + Send + Sync> = Arc::new((*font.data).clone());
@@ -606,7 +599,7 @@ impl<'a> FaTextInput {
                 mut blink_timer,
                 mut cosmic_data,
                 mut text_edit,
-                id
+                model_key
             ) in param.input_q.iter_mut() {
                 let Some(focused) = param.famiq_res.get_widget_focus_state(&entity) else { continue };
 
@@ -709,16 +702,13 @@ impl<'a> FaTextInput {
                         NeedScroll::Left => helper::scroll_left(&mut texture_node, &text_edit),
                         _ => {}
                     }
-                    param.change_writer.send(FaValueChangeEvent::new(
-                        entity,
-                        id.map(|_id| _id.0.clone()),
-                        text_edit.value.clone(),
-                        Vec::new()
-                    ));
-                    param.request_redraw.send(RequestRedrawBuffer::new(entity));
-
-                    if let Some(id) = id {
-                        param.input_res._insert(id.0.clone(), text_edit.value.clone());
+                    if let Some(value) = param.fa_query.get_data_mut(&model_key.0) {
+                        match value {
+                            RVal::Str(v) => {
+                                *v = text_edit.value.to_owned();
+                            }
+                            _ => {}
+                        }
                     }
                     blink_timer.can_blink = false;
                 }
@@ -873,6 +863,13 @@ macro_rules! fa_text_input_attributes {
 
     ($text_input:ident, display: $display:expr $(, $($rest:tt)+)?) => {{
         $text_input = $text_input.display($display);
+        $(
+            $crate::fa_text_input_attributes!($text_input, $($rest)+);
+        )?
+    }};
+
+    ($text_input:ident, model: $model:expr $(, $($rest:tt)+)?) => {{
+        $text_input = $text_input.model($model);
         $(
             $crate::fa_text_input_attributes!($text_input, $($rest)+);
         )?

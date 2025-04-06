@@ -92,20 +92,15 @@ pub struct FaValueChangeEvent {
     /// widget id.
     pub widget_id: Option<String>,
 
-    /// widget new value, for `fa_text_input`, `fa_selection`.
-    pub new_value: String,
-
-    /// widget new values, for `fa_checkbox` only.
-    pub new_values: Vec<String>
+    pub model_key: String
 }
 
 impl FaValueChangeEvent {
-    pub fn new(entity: Entity, widget_id: Option<String>, new_value: String, new_values: Vec<String>) -> Self {
+    pub fn new(entity: Entity, widget_id: Option<String>, model_key: String) -> Self {
         Self {
             entity,
             widget_id,
-            new_value,
-            new_values
+            model_key
         }
     }
 }

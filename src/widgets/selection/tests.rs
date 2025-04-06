@@ -83,16 +83,3 @@ fn test_create_selection_with_choices() {
     // 2 provided choices, 1 default "-/-"
     assert_eq!(3 as usize, panel_q.unwrap().0.len());
 }
-
-#[test]
-fn test_get_value_by_id() {
-    let mut app = create_test_app();
-    app.add_plugins(FamiqPlugin);
-    app.add_systems(Startup, setup_test_default_selection);
-    app.update();
-
-    let selection_res = app.world_mut().resource::<FaSelectionResource>();
-    let value = selection_res.get_value("#test-selection");
-
-    assert_eq!("".to_string(), value);
-}

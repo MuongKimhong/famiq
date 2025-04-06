@@ -82,16 +82,18 @@ pub(crate) struct TypingParam<'w, 's> {
             &'static mut CursorBlinkTimer,
             &'static mut CosmicData,
             &'static mut FaTextEdit,
-            Option<&'static FamiqWidgetId>
+            &'static ReactiveModelKey
         ),
         With<IsFamiqTextInput>
     >,
-    pub texture_q: Query<'w, 's, &'static mut Node, With<IsFamiqTextInputBufferTexture>>,
+    pub texture_q: Query<
+        'w, 's, &'static mut Node,
+        (With<IsFamiqTextInputBufferTexture>, Without<IsFamiqMainWidget>)
+    >,
+    pub fa_query: FaQuery<'w, 's>,
     pub evr_kbd: EventReader<'w, 's, KeyboardInput>,
-    pub input_res: ResMut<'w, FaTextInputResource>,
     pub famiq_res: ResMut<'w, FamiqResource>,
     pub font_system: ResMut<'w, CosmicFontSystem>,
-    pub change_writer: EventWriter<'w, FaValueChangeEvent>,
     pub request_redraw: EventWriter<'w, RequestRedrawBuffer>,
     pub keys: Res<'w, ButtonInput<KeyCode>>,
 }

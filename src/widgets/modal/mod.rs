@@ -116,6 +116,13 @@ impl<'a> FaModal {
 
         utils::insert_id_and_class(root_node, entity, &attributes.id, &attributes.class);
         root_node.add_child(entity);
+
+        if attributes.model_key.is_some() {
+            root_node
+                .commands()
+                .entity(entity)
+                .insert(ReactiveModelKey(attributes.model_key.clone().unwrap()));
+        }
         entity
     }
 
@@ -276,6 +283,13 @@ macro_rules! fa_modal_attributes {
 
     ($modal:ident, children: $children:expr $(, $($rest:tt)+)?) => {{
         $modal = $modal.children($children);
+        $(
+            $crate::fa_modal_attributes!($modal, $($rest)+);
+        )?
+    }};
+
+    ($modal:ident, model: $model:expr $(, $($rest:tt)+)?) => {{
+        $modal = $modal.model($model);
         $(
             $crate::fa_modal_attributes!($modal, $($rest)+);
         )?

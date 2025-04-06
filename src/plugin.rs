@@ -88,8 +88,7 @@ fn fa_selection_systems(app: &mut App) {
         Update,
         (
             handle_show_and_hide_choices_panel,
-            handle_selection_choice_interaction_system,
-            detect_new_selection_widget_system
+            handle_selection_choice_interaction_system
         )
         .run_if(can_run_selection_systems)
     );
@@ -152,7 +151,6 @@ fn fa_progress_bar_systems(app: &mut App) {
     app.add_systems(
         Update,
         (
-            FaProgressBar::handle_progress_value_change,
             FaProgressBar::detect_new_progress_bar_widget_system,
             FaProgressBar::_update_progress_bar_material_u_time
         )
@@ -200,9 +198,6 @@ impl Plugin for FamiqPlugin {
         app.insert_resource(CosmicSwashCache(SwashCache::new()));
         app.insert_resource(FaBgImageResource::default());
         app.insert_resource(CanBeScrolledListView { entity: None });
-        app.insert_resource(FaSelectionResource::default());
-        app.insert_resource(FaTextInputResource::default());
-        app.insert_resource(FaProgressBarResource::default());
         app.insert_resource(FaModalState::default());
         app.insert_resource(CursorIcons::default());
 

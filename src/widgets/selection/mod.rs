@@ -16,10 +16,6 @@ pub use components::*;
 pub use styling::*;
 pub use systems::*;
 
-#[derive(Default)]
-pub struct IsFamiqSelectionResource;
-pub type FaSelectionResource = InputResource<IsFamiqSelectionResource>;
-
 pub struct FaSelection;
 
 impl<'a> FaSelection {
@@ -115,6 +111,12 @@ impl<'a> FaSelection {
 
         if attributes.has_tooltip {
             build_tooltip_node(attributes, root_node, selector_entity);
+        }
+        if attributes.model_key.is_some() {
+            root_node
+                .commands()
+                .entity(selector_entity)
+                .insert(ReactiveModelKey(attributes.model_key.clone().unwrap()));
         }
 
         insert_id_and_class(root_node, selector_entity, &attributes.id, &attributes.class);
@@ -440,6 +442,13 @@ macro_rules! fa_selection_attributes {
 
     ($selection:ident, display: $display:expr $(, $($rest:tt)+)?) => {{
         $selection = $selection.display($display);
+        $(
+            $crate::fa_selection_attributes!($selection, $($rest)+);
+        )?
+    }};
+
+    ($selection:ident, model: $model:expr $(, $($rest:tt)+)?) => {{
+        $selection = $selection.model($model);
         $(
             $crate::fa_selection_attributes!($selection, $($rest)+);
         )?

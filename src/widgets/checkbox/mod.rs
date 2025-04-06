@@ -4,10 +4,8 @@ use styling::*;
 use bevy::prelude::*;
 use bevy::ecs::system::EntityCommands;
 
-use crate::event_writer::FaValueChangeEvent;
 use crate::plugin::{CursorType, CursorIcons};
 use crate::utils::*;
-use crate::widgets::color::*;
 use crate::widgets::*;
 
 #[derive(Component)]
@@ -15,9 +13,6 @@ pub struct IsFamiqCheckbox;
 
 #[derive(Component)]
 pub struct IsFamiqCheckboxItem;
-
-#[derive(Component, Default)]
-pub struct CheckBoxValues(pub Vec<String>);
 
 #[derive(Component)]
 pub struct CheckBoxMainContainerEntity(pub Entity);
@@ -47,13 +42,16 @@ impl<'a> FaCheckbox {
             .spawn((
                 style_components.clone(),
                 DefaultWidgetEntity::from(style_components),
-                CheckBoxValues::default(),
                 IsFamiqMainWidget,
                 IsFamiqCheckbox
             ))
             .id();
 
         insert_id_and_class(root_node, entity, &attributes.id, &attributes.class);
+
+        if attributes.model_key.is_some() {
+            root_node.commands().entity(entity).insert(ReactiveModelKey(attributes.model_key.clone().unwrap()));
+        }
         entity
     }
 
@@ -168,38 +166,24 @@ impl<'a> FaCheckbox {
 
     fn handle_on_mouse_down(
         mut trigger: Trigger<Pointer<Down>>,
-        mut item_box_q: Query<(&mut CheckBoxChoiceTicked, &mut BackgroundColor)>,
-        mut checkbox_q: Query<(Entity, &mut CheckBoxValues, Option<&FamiqWidgetId>)>,
-        item_q: Query<(&CheckBoxItemBoxEntity, &CheckBoxItemText, &CheckBoxMainContainerEntity)>,
-        mut change_writer: EventWriter<FaValueChangeEvent>
+        checkbox_q: Query<&ReactiveModelKey, With<IsFamiqCheckbox>>,
+        item_q: Query<(&CheckBoxItemText, &CheckBoxMainContainerEntity)>,
+        mut fa_query: FaQuery,
     ) {
-        if let Ok((box_entity, item_text, main_entity)) = item_q.get(trigger.entity()) {
-
-            // change box background color
-            if let Ok((mut box_ticked, mut bg_color)) = item_box_q.get_mut(box_entity.0) {
-                box_ticked.0 = !box_ticked.0;
-
-                if box_ticked.0 {
-                    bg_color.0 = PRIMARY_DARK_COLOR;
-                } else {
-                    bg_color.0 = Color::NONE;
+        if let Ok((item_text, main_entity)) = item_q.get(trigger.entity()) {
+            if let Ok(model_key) = checkbox_q.get(main_entity.0) {
+                if let Some(value) = fa_query.get_data_mut(&*model_key.0) {
+                    match value {
+                        RVal::List(v) => {
+                            if v.contains(&item_text.0) {
+                                v.retain(|value| *value != item_text.0);
+                            } else {
+                                v.push(item_text.0.clone());
+                            }
+                        }
+                        _ => {}
+                    }
                 }
-            }
-
-            // update CheckBoxValues
-            if let Ok((checkbox_entity, mut checkbox_values, id)) = checkbox_q.get_mut(main_entity.0) {
-                if checkbox_values.0.contains(&item_text.0) {
-                    checkbox_values.0.retain(|value| *value != item_text.0);
-                } else {
-                    checkbox_values.0.push(item_text.0.clone());
-                }
-
-                change_writer.send(FaValueChangeEvent::new(
-                    checkbox_entity,
-                    id.map(|_id| _id.0.clone()),
-                    String::new(),
-                    checkbox_values.0.clone()
-                ));
             }
         }
         trigger.propagate(false);
@@ -312,6 +296,13 @@ macro_rules! fa_checkbox_attributes {
 
     ($checkbox:ident, display: $display:expr $(, $($rest:tt)+)?) => {{
         $checkbox = $checkbox.display($display);
+        $(
+            $crate::fa_checkbox_attributes!($checkbox, $($rest)+);
+        )?
+    }};
+
+    ($checkbox:ident, model: $model:expr $(, $($rest:tt)+)?) => {{
+        $checkbox = $checkbox.model($model);
         $(
             $crate::fa_checkbox_attributes!($checkbox, $($rest)+);
         )?

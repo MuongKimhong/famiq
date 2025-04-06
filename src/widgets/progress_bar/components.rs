@@ -17,8 +17,9 @@ pub struct FamiqProgressBarEntity(pub Entity);
 pub struct FamiqProgressValueEntity(pub Entity);
 
 /// Component storing percentage of a progress bar.
+/// None means indeterminate.
 #[derive(Component)]
-pub struct FaProgressValuePercentage(pub f32);
+pub struct FaProgressValuePercentage(pub Option<f32>);
 
 #[derive(Component)]
 pub struct ProgressValueColor(pub Color);

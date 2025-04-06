@@ -82,6 +82,7 @@ pub struct WidgetAttributes {
     pub has_tooltip: bool,
     pub tooltip_text: String,
     pub bind_keys: Vec<String>,
+    pub model_key: Option<String>,
     default_display_changed: bool,
     default_display: Display
 }
@@ -92,6 +93,11 @@ pub trait SetWidgetAttributes: Sized {
     fn bind(mut self, keys: &[&'static str]) -> Self {
         let keys: Vec<String> = keys.iter().map(|k| k.to_string()).collect();
         self.attributes().bind_keys = keys;
+        self
+    }
+
+    fn model(mut self, model_key: &str) -> Self {
+        self.attributes().model_key = Some(model_key.to_string());
         self
     }
 
@@ -400,8 +406,8 @@ pub struct ModalQuery {
 /// Famiq query
 #[derive(SystemParam)]
 pub struct FaQuery<'w, 's> {
-    pub style_query: Query<'w, 's, StyleQuery>,
-    pub text_style_query: Query<'w, 's, TextStyleQuery>,
+    pub style_query: Query<'w, 's, StyleQuery, With<IsFamiqMainWidget>>,
+    pub text_style_query: Query<'w, 's, TextStyleQuery, With<IsFamiqMainWidget>>,
     pub containable_query: Query<'w, 's, ContainableQuery, With<IsFamiqContainableWidget>>,
     pub modal_query: Query<'w, 's, ModalQuery, With<IsFamiqModalBackground>>,
     pub modal_state: ResMut<'w, FaModalState>,
@@ -561,10 +567,6 @@ impl<'w, 's> FaQuery<'w, 's> {
         let old_val = self.reactive_data.data.get(key);
         if old_val.is_none() {
             panic!("\n[FamiqError]: mutate_data, key {:?} not found\n", key);
-        }
-        let old_val = old_val.unwrap();
-        if !RData::type_match(old_val, &new_val) {
-            panic!("\n[FamiqError]: mutate_data, expected {:?} found {:?}\n", old_val, new_val);
         }
         if !self.reactive_data.changed_keys.contains(&key.to_string()) {
             self.reactive_data.changed_keys.push(key.to_string());

@@ -3,7 +3,6 @@ pub mod components;
 pub mod tests;
 
 use bevy::prelude::*;
-use bevy::utils::hashbrown::{HashSet, HashMap};
 use bevy::reflect::TypePath;
 use bevy::render::render_resource::*;
 use crate::utils::*;
@@ -30,54 +29,6 @@ impl UiMaterial for ProgressBarMaterial {
         get_embedded_asset_path("embedded_assets/shaders/progress_bar.wgsl").into()
     }
 }
-
-/// Stores the progress percetages in a `HashMap` where keys are IDs of the progress bar.
-#[derive(Resource, Default, Debug)]
-pub struct FaProgressBarResource {
-    /// Store progress bars as id-value pairs
-    pub bars: HashMap<String, Option<f32>>,
-
-    /// Track changed keys (for ID-based bars)
-    changed_bars: HashSet<String>
-}
-
-impl FaProgressBarResource {
-    /// Insert a progress value by ID (ensuring non-negative values)
-    fn _insert(&mut self, id: String, percentage: Option<f32>) {
-        if percentage.map_or(true, |v| v >= 0.0) {
-            let old_value = self.bars.get(&id);
-            if old_value != Some(&percentage) {
-                self.bars.insert(id.clone(), percentage);
-                self.changed_bars.insert(id);
-            }
-        }
-    }
-
-    /// Retrieve a percentage value by ID
-    pub fn get_percentage(&self, id: &str) -> Option<f32> {
-        self.bars.get(id).copied().flatten()
-    }
-    /// Set a progress value by ID
-    pub fn set_percentage(&mut self, id: &str, percentage: Option<f32>) {
-        self._insert(id.to_string(), percentage);
-    }
-
-    /// Check which IDs have changed
-    pub fn get_changed_ids(&self) -> Vec<String> {
-        self.changed_bars.iter().cloned().collect()
-    }
-
-    /// Check if an ID exists
-    pub fn exists_by_id(&self, id: &str) -> bool {
-        self.bars.contains_key(id)
-    }
-
-    /// Clear change-list of ids
-    pub fn clear_changes_id(&mut self) {
-        self.changed_bars.clear();
-    }
-}
-
 
 /// Size options for progress bar.
 #[derive(PartialEq, Debug)]
@@ -141,12 +92,12 @@ impl<'a> FaProgressBar {
 
     fn _build_progress_value(
         root_node: &'a mut EntityCommands,
-        percentage: Option<f32>,
+        attributes: &WidgetAttributes,
         color: &WidgetColor,
         bar_entity: Entity
     ) -> Entity {
         let mut style_components = BaseStyleComponents::default();
-        style_components.node = default_progress_value_node(percentage);
+        style_components.node = default_progress_value_node(None);
 
         let entity = root_node
             .commands()
@@ -158,22 +109,22 @@ impl<'a> FaProgressBar {
             ))
             .id();
 
-        if percentage.is_some() {
-            root_node
-                .commands()
-                .entity(entity)
-                .insert(FaProgressValuePercentage(percentage.unwrap()));
+        if attributes.model_key.is_some() {
+            root_node.commands().entity(entity).insert(ReactiveModelKey(attributes.model_key.clone().unwrap()));
         }
+        root_node
+            .commands()
+            .entity(entity)
+            .insert(FaProgressValuePercentage(None));
         entity
     }
 
     pub fn new(
         attributes: &WidgetAttributes,
         root_node: &'a mut EntityCommands,
-        percentage: Option<f32>,
     ) -> Entity {
         let bar = Self::_build_progress_bar(attributes, root_node);
-        let value = Self::_build_progress_value(root_node, percentage, &attributes.color, bar);
+        let value = Self::_build_progress_value(root_node, attributes, &attributes.color, bar);
 
         if attributes.has_tooltip {
             build_tooltip_node(attributes, root_node, bar);
@@ -235,95 +186,21 @@ impl<'a> FaProgressBar {
         trigger.propagate(false);
     }
 
-    fn _set_to_percentage(
-        commands: &mut Commands,
-        node: &mut Node,
-        percentage: Option<Mut<'_, FaProgressValuePercentage>>,
-        new_percentage: f32,
-        value_entity: Entity
-    ) {
-        if let Some(mut old_percentage) = percentage {
-            old_percentage.0 = new_percentage;
-        } else {
-            commands.entity(value_entity).insert(FaProgressValuePercentage(new_percentage));
-        }
-        node.width = Val::Percent(new_percentage);
-        node.left = Val::Px(0.0);
-    }
-
-    fn _set_to_indeterminate(
-        commands: &mut Commands,
-        node: &mut Node,
-        percentage: Option<Mut<'_, FaProgressValuePercentage>>,
-        value_entity: Entity
-    ) {
-        if percentage.is_some() {
-            commands.entity(value_entity).remove::<FaProgressValuePercentage>();
-        }
-        node.width = Val::Percent(100.0);
-        node.left = Val::Px(0.0);
-    }
-
-    /// Internal system to reflect on percentage changes via `FaProgressBarResource` by id.
-    pub fn handle_progress_value_change(
-        mut commands: Commands,
-        bar_q: Query<(&FamiqWidgetId, &FamiqProgressValueEntity)>,
-        mut value_q: Query<
-            (
-                &mut Node,
-                Option<&mut FaProgressValuePercentage>
-            ),
-            With<IsFamiqProgressValue>
-        >,
-        mut progress_bar_res: ResMut<FaProgressBarResource>,
-    ) {
-        if !progress_bar_res.is_changed() {
-            return;
-        }
-
-        for (id, value_entity) in bar_q.iter() {
-            if !progress_bar_res.exists_by_id(id.0.as_str()) {
-                continue;
-            }
-
-            if let Ok((mut node, percentage)) = value_q.get_mut(value_entity.0) {
-                if progress_bar_res.get_changed_ids().contains(&id.0) {
-                    match progress_bar_res.get_percentage(id.0.as_str()) {
-                        Some(new_percentage) => {
-                            Self::_set_to_percentage(
-                                &mut commands,
-                                &mut node,
-                                percentage,
-                                new_percentage,
-                                value_entity.0
-                            );
-                        },
-                        None => {
-                            Self::_set_to_indeterminate(&mut commands, &mut node, percentage, value_entity.0);
-                        }
-                    }
-                }
-            }
-        }
-        progress_bar_res.clear_changes_id();
-    }
-
     /// Internal system to detect new progress bars bing created.
     pub fn detect_new_progress_bar_widget_system(
         mut commands: Commands,
         mut progress_materials: ResMut<Assets<ProgressBarMaterial>>,
         bar_q: Query<
-            (&ComputedNode, Option<&FamiqWidgetId>, &FamiqProgressValueEntity),
+            (&ComputedNode, &FamiqProgressValueEntity),
             Or<(Added<IsFamiqProgressBar>, Changed<ComputedNode>)>
         >,
-        value_q: Query<(&ProgressValueColor, Option<&FaProgressValuePercentage>)>,
-        mut bar_res: ResMut<FaProgressBarResource>
+        value_q: Query<(&ProgressValueColor, &FaProgressValuePercentage)>,
     ) {
-        for (computed_node, id, value_entity) in bar_q.iter() {
+        for (computed_node, value_entity) in bar_q.iter() {
             if let Ok((value_color, percentage)) = value_q.get(value_entity.0) {
 
                 if let Color::Srgba(value) = value_color.0 {
-                    let u_blend = if percentage.is_some() {
+                    let u_blend = if percentage.0.is_some() {
                         0.0
                     } else {
                         1.0
@@ -339,18 +216,6 @@ impl<'a> FaProgressBar {
                             }))
                         );
                 }
-
-                if let Some(id) = id {
-                    if !bar_res.exists_by_id(id.0.as_str()) {
-                        if let Some(percent) = percentage {
-                            bar_res.set_percentage(id.0.as_str(), Some(percent.0));
-                        } else {
-                            bar_res.set_percentage(id.0.as_str(), None);
-                        }
-                    }
-                }
-
-                bar_res.clear_changes_id();
             }
         }
     }
@@ -358,11 +223,11 @@ impl<'a> FaProgressBar {
     pub fn _update_progress_bar_material_u_time(
         time: Res<Time>,
         mut materials: ResMut<Assets<ProgressBarMaterial>>,
-        query: Query<(&MaterialNode<ProgressBarMaterial>, Option<&FaProgressValuePercentage>)>
+        query: Query<(&MaterialNode<ProgressBarMaterial>, &FaProgressValuePercentage)>
     ) {
         for (material_handle, percentage) in query.iter() {
             if let Some(material) = materials.get_mut(material_handle) {
-                if percentage.is_none() {
+                if percentage.0.is_none() {
                     material.u_time = -time.elapsed_secs();
                     material.u_blend = 1.0;
                 } else {
@@ -377,8 +242,7 @@ impl<'a> FaProgressBar {
 /// Builder for creating `FaProgressBar` widget.
 pub struct FaProgressBarBuilder<'a> {
     pub attributes: WidgetAttributes,
-    pub root_node: EntityCommands<'a>,
-    pub percentage: Option<f32>,
+    pub root_node: EntityCommands<'a>
 }
 
 impl<'a> FaProgressBarBuilder<'a> {
@@ -387,15 +251,8 @@ impl<'a> FaProgressBarBuilder<'a> {
         attributes.font_handle = Some(font_handle);
         Self {
             attributes,
-            root_node,
-            percentage: None,
+            root_node
         }
-    }
-
-    /// Method to set percentage value
-    pub fn percent(mut self, percent: f32) -> Self {
-        self.percentage = Some(percent);
-        self
     }
 
     /// Spawn progress bar into UI World.
@@ -405,8 +262,7 @@ impl<'a> FaProgressBarBuilder<'a> {
         self._node();
         FaProgressBar::new(
             &self.attributes,
-            &mut self.root_node,
-            self.percentage.clone(),
+            &mut self.root_node
         )
     }
 }
@@ -486,8 +342,8 @@ macro_rules! fa_progress_bar_attributes {
         )?
     }};
 
-    ($progress_bar:ident, percent: $percent:expr $(, $($rest:tt)+)?) => {{
-        $progress_bar = $progress_bar.percent($percent);
+    ($progress_bar:ident, model: $model:expr $(, $($rest:tt)+)?) => {{
+        $progress_bar = $progress_bar.model($model);
         $(
             $crate::fa_progress_bar_attributes!($progress_bar, $($rest)+);
         )?

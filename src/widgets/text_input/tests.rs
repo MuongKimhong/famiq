@@ -58,18 +58,3 @@ fn test_create_input_with_built_in_class() {
     let input_bg = input_q.as_ref().unwrap().1;
     assert_eq!(BackgroundColor(PRIMARY_COLOR), *input_bg);
 }
-
-#[test]
-fn test_get_value_by_id() {
-    let mut app = utils::create_test_app();
-    app.add_plugins(InputPlugin::default());
-    app.add_plugins(FamiqPlugin);
-    app.add_systems(Startup, setup_test_default_input);
-    app.update();
-
-    let input_res = app.world_mut().resource::<FaTextInputResource>();
-    let value = input_res.get_value("#test-input");
-
-    // default value is empty string
-    assert_eq!("".to_string(), value);
-}
