@@ -281,53 +281,35 @@ pub fn fa_listview_builder<'a>(builder: &'a mut FamiqBuilder) -> FaListViewBuild
 
 #[macro_export]
 macro_rules! fa_listview {
-    (
-        $builder:expr
-        $(, $($rest:tt)+)?
-    ) => {{
+    ( $builder:expr, $( $key:ident : $value:tt ),* $(,)? ) => {{
+        #[allow(unused_mut)]
+        let mut children_vec: Vec<Entity> = Vec::new();
+        $(
+            $crate::extract_children!(children_vec, $builder, $key : $value);
+        )*
+
         let mut listview = fa_listview_builder($builder);
         $(
-            $crate::fa_listview_attributes!(listview, $($rest)+);
-        )?
+            $crate::fa_listview_attributes!(listview, $key : $value);
+        )*
+
+        listview = listview.children(children_vec);
         listview.build()
     }};
 }
 
 #[macro_export]
 macro_rules! fa_listview_attributes {
-    ($listview:ident, id: $id:expr $(, $($rest:tt)+)?) => {{
-        $listview = $listview.id($id);
-        $(
-            $crate::fa_listview_attributes!($listview, $($rest)+);
-        )?
-    }};
+    // skip children
+    ($listview:ident, children: $children_vec:tt) => {{}};
 
-    ($listview:ident, class: $class:expr $(, $($rest:tt)+)?) => {{
-        $listview = $listview.class($class);
-        $(
-            $crate::fa_listview_attributes!($listview, $($rest)+);
-        )?
-    }};
-
-    ($listview:ident, scroll_height: $scroll_height:expr $(, $($rest:tt)+)?) => {{
+    ($listview:ident, scroll_height: $scroll_height:expr) => {{
         $listview = $listview.scroll_height($scroll_height);
-        $(
-            $crate::fa_listview_attributes!($listview, $($rest)+);
-        )?
     }};
 
-    ($listview:ident, display: $display:expr $(, $($rest:tt)+)?) => {{
-        $listview = $listview.display($display);
-        $(
-            $crate::fa_listview_attributes!($listview, $($rest)+);
-        )?
-    }};
-
-    ($listview:ident, children: $children:expr $(, $($rest:tt)+)?) => {{
-        $listview = $listview.children($children);
-        $(
-            $crate::fa_listview_attributes!($listview, $($rest)+);
-        )?
+    // common attributes
+    ($listview:ident, $key:ident : $value:expr) => {{
+        $crate::common_attributes!($listview, $key : $value);
     }};
 }
 

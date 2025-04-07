@@ -118,20 +118,19 @@ pub fn fa_container_builder<'a>(builder: &'a mut FamiqBuilder) -> FaContainerBui
 
 #[macro_export]
 macro_rules! fa_container {
-    (
-        $builder:expr
-        $(, $($rest:tt)+)?
-    ) => {{
+    ( $builder:expr, $( $key:ident : $value:tt ),* $(,)? ) => {{
         #[allow(unused_mut)]
         let mut children_vec: Vec<Entity> = Vec::new();
         $(
-            $crate::extract_children!(children_vec, $builder, $($rest)+);
-        )?
+            $crate::extract_children!(children_vec, $builder, $key : $value);
+        )*
 
         let mut container = fa_container_builder($builder);
+
         $(
-            $crate::fa_container_attributes!(container, $($rest)+);
-        )?
+            $crate::fa_container_attributes!(container, $key : $value);
+        )*
+
         container = container.children(children_vec);
         container.build()
     }};
@@ -139,45 +138,13 @@ macro_rules! fa_container {
 
 #[macro_export]
 macro_rules! fa_container_attributes {
-    ($container:ident, id: $id:expr $(, $($rest:tt)+)?) => {{
-        $container = $container.id($id);
-        $(
-            $crate::fa_container_attributes!($container, $($rest)+);
-        )?
-    }};
+    // skip children
+    ($container:ident, children: $children_vec:tt) => {{}};
 
-    ($container:ident, class: $class:expr $(, $($rest:tt)+)?) => {{
-        $container = $container.class($class);
-        $(
-            $crate::fa_container_attributes!($container, $($rest)+);
-        )?
+    // common attributes
+    ($container:ident, $key:ident : $value:expr) => {{
+        $crate::common_attributes!($container, $key : $value);
     }};
-
-    ($container:ident, display: $display:expr $(, $($rest:tt)+)?) => {{
-        $container = $container.display($display);
-        $(
-            $crate::fa_container_attributes!($container, $($rest)+);
-        )?
-    }};
-
-    // Case 1: swallow children: [ ... ]
-    ($container:ident, children: [ $( $child:expr ),* $(,)? ] $(, $($rest:tt)+)?) => {{
-        // do nothing
-        $(
-            $crate::fa_container_attributes!($container, $($rest)+);
-        )?
-    }};
-
-    // Case 2: swallow children: some_vec
-    ($container:ident, children: $children_vec:expr $(, $($rest:tt)+)?) => {{
-        // do nothing
-        $(
-            $crate::fa_container_attributes!($container, $($rest)+);
-        )?
-    }};
-
-    // End case: no more attributes
-    ($container:ident,) => {{}};
 }
 
 pub fn can_run_container_systems(q: Query<&IsFamiqContainer>) -> bool {

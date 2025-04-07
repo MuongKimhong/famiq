@@ -90,9 +90,12 @@ pub struct WidgetAttributes {
 pub trait SetWidgetAttributes: Sized {
     fn attributes(&mut self) -> &mut WidgetAttributes;
 
-    fn bind(mut self, keys: &[&'static str]) -> Self {
-        let keys: Vec<String> = keys.iter().map(|k| k.to_string()).collect();
-        self.attributes().bind_keys = keys;
+    fn bind<I, S>(mut self, values: I) -> Self
+    where
+        I: IntoIterator<Item = S>,
+        S: Into<String>,
+    {
+        self.attributes().bind_keys = values.into_iter().map(Into::into).collect();
         self
     }
 
@@ -596,7 +599,7 @@ impl<'w, 's> FaQuery<'w, 's> {
 
 #[macro_export]
 macro_rules! extract_children {
-    // Case 1: children: [ item1, item2, item3 ]
+    // For children: [ item1, item2, item3 ]
     ($vec:ident, $builder:expr, children: [ $( $child:expr ),* $(,)? ] $(, $($rest:tt)*)?) => {{
         $(
             $vec.push($child);
@@ -606,7 +609,7 @@ macro_rules! extract_children {
         )?
     }};
 
-    // Case 2: children: some_vec
+    // For children: some_vec
     ($vec:ident, $builder:expr, children: $children_vec:expr $(, $($rest:tt)*)?) => {{
         $vec.extend($children_vec);
         $(
@@ -614,13 +617,24 @@ macro_rules! extract_children {
         )?
     }};
 
-    // Case 3: other keys
+    // other keys
     ($vec:ident, $builder:expr, $key:ident : $val:expr $(, $($rest:tt)*)?) => {{
         $(
             $crate::extract_children!($vec, $builder, $($rest)*);
         )?
     }};
-
-    // Case 4: end of tokens
     ($vec:ident, $builder:expr,) => {{}};
+}
+
+#[macro_export]
+macro_rules! common_attributes {
+    ( $widget:ident, id : $value:expr ) => {{
+        $widget = $widget.id($value);
+    }};
+    ( $widget:ident, class : $value:expr ) => {{
+        $widget = $widget.class($value);
+    }};
+    ( $widget:ident, display : $value:expr ) => {{
+        $widget = $widget.display($value);
+    }};
 }

@@ -197,12 +197,6 @@ impl<'a> FaModalBuilder<'a> {
         }
     }
 
-    /// Method to make modal background full transparent
-    pub fn clear_bg(mut self) -> Self {
-        self.clear_bg = true;
-        self
-    }
-
     /// Sets the child entities for the modal.
     ///
     /// # Parameters
@@ -246,53 +240,40 @@ pub fn fa_modal_builder<'a>(builder: &'a mut FamiqBuilder) -> FaModalBuilder<'a>
 
 #[macro_export]
 macro_rules! fa_modal {
-    (
-        $builder:expr
-        $(, $($rest:tt)+)?
-    ) => {{
-        let mut modal = fa_modal_builder($builder);
+    ( $builder:expr, $( $key:ident : $value:tt ),* $(,)? ) => {{
+        #[allow(unused_mut)]
+        let mut children_vec: Vec<Entity> = Vec::new();
         $(
-            $crate::fa_modal_attributes!(modal, $($rest)+);
-        )?
+            $crate::extract_children!(children_vec, $builder, $key : $value);
+        )*
+
+        let mut modal = fa_modal_builder($builder);
+
+        $(
+            $crate::fa_modal_attributes!(modal, $key : $value);
+        )*
+
+        modal = modal.children(children_vec);
         modal.build()
     }};
 }
 
 #[macro_export]
 macro_rules! fa_modal_attributes {
-    ($modal:ident, id: $id:expr $(, $($rest:tt)+)?) => {{
-        $modal = $modal.id($id);
-        $(
-            $crate::fa_modal_attributes!($modal, $($rest)+);
-        )?
-    }};
+    // skip children
+    ($modal:ident, children: $children_vec:tt) => {{}};
 
-    ($modal:ident, class: $class:expr $(, $($rest:tt)+)?) => {{
-        $modal = $modal.class($class);
-        $(
-            $crate::fa_modal_attributes!($modal, $($rest)+);
-        )?
-    }};
-
-    ($modal:ident, display: $display:expr $(, $($rest:tt)+)?) => {{
-        $modal = $modal.display($display);
-        $(
-            $crate::fa_modal_attributes!($modal, $($rest)+);
-        )?
-    }};
-
-    ($modal:ident, children: $children:expr $(, $($rest:tt)+)?) => {{
-        $modal = $modal.children($children);
-        $(
-            $crate::fa_modal_attributes!($modal, $($rest)+);
-        )?
-    }};
-
-    ($modal:ident, model: $model:expr $(, $($rest:tt)+)?) => {{
+    ($modal:ident, model: $model:expr) => {{
         $modal = $modal.model($model);
-        $(
-            $crate::fa_modal_attributes!($modal, $($rest)+);
-        )?
+    }};
+
+    ($modal:ident, clear_bg: $clear_bg:expr) => {{
+        $modal.clear_bg = $clear_bg;
+    }};
+
+    // common attributes
+    ($modal:ident, $key:ident : $value:expr) => {{
+        $crate::common_attributes!($modal, $key : $value);
     }};
 }
 

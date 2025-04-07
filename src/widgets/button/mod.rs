@@ -248,61 +248,37 @@ macro_rules! fa_button {
     (
         $builder:expr,
         text: $text:expr
-        $(, $($rest:tt)+)?
+        $(, $key:ident : $value:tt )* $(,)?
     ) => {{
         let mut button = fa_button_builder($builder, $text);
+
         $(
-            $crate::fa_button_attributes!(button, $($rest)+);
-        )?
+            $crate::fa_button_attributes!(button, $key : $value);
+        )*
+
         button.build()
     }};
 }
 
 #[macro_export]
 macro_rules! fa_button_attributes {
-    ($button:ident, id: $id:expr $(, $($rest:tt)+)?) => {{
-        $button = $button.id($id);
-        $(
-            $crate::fa_button_attributes!($button, $($rest)+);
-        )?
-    }};
-
-    ($button:ident, class: $class:expr $(, $($rest:tt)+)?) => {{
-        $button = $button.class($class);
-        $(
-            $crate::fa_button_attributes!($button, $($rest)+);
-        )?
-    }};
-
-    ($button:ident, color: $color:expr $(, $($rest:tt)+)?) => {{
+    ($button:ident, color: $color:expr) => {{
         $button = $button.color($color);
-        $(
-            $crate::fa_button_attributes!($button, $($rest)+);
-        )?
     }};
 
-    ($button:ident, tooltip: $tooltip:expr $(, $($rest:tt)+)?) => {{
+    ($button:ident, tooltip: $tooltip:expr) => {{
         $button = $button.tooltip($tooltip);
-        $(
-            $crate::fa_button_attributes!($button, $($rest)+);
-        )?
     }};
 
-    ($button:ident, display: $display:expr $(, $($rest:tt)+)?) => {{
-        $button = $button.display($display);
-        $(
-            $crate::fa_button_attributes!($button, $($rest)+);
-        )?
-    }};
-
-    ($button:ident, bind: $bind:expr $(, $($rest:tt)+)?) => {{
+    ($button:ident, bind: $bind:expr) => {{
         $button = $button.bind($bind);
-        $(
-            $crate::fa_button_attributes!($button, $($rest)+);
-        )?
+    }};
+
+    // common attributes
+    ($button:ident, $key:ident : $value:expr) => {{
+        $crate::common_attributes!($button, $key : $value);
     }};
 }
-
 
 /// Checks if the button internal system(s) can run.
 ///
