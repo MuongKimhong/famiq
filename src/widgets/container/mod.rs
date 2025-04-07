@@ -3,6 +3,7 @@ pub mod tests;
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 
+// use crate::extract_children;
 use crate::utils;
 use crate::widgets::*;
 use super::BaseStyleComponents;
@@ -121,10 +122,17 @@ macro_rules! fa_container {
         $builder:expr
         $(, $($rest:tt)+)?
     ) => {{
+        #[allow(unused_mut)]
+        let mut children_vec: Vec<Entity> = Vec::new();
+        $(
+            $crate::extract_children!(children_vec, $builder, $($rest)+);
+        )?
+
         let mut container = fa_container_builder($builder);
         $(
             $crate::fa_container_attributes!(container, $($rest)+);
         )?
+        container = container.children(children_vec);
         container.build()
     }};
 }
@@ -152,12 +160,24 @@ macro_rules! fa_container_attributes {
         )?
     }};
 
-    ($container:ident, children: $children:expr $(, $($rest:tt)+)?) => {{
-        $container = $container.children($children);
+    // Case 1: swallow children: [ ... ]
+    ($container:ident, children: [ $( $child:expr ),* $(,)? ] $(, $($rest:tt)+)?) => {{
+        // do nothing
         $(
             $crate::fa_container_attributes!($container, $($rest)+);
         )?
     }};
+
+    // Case 2: swallow children: some_vec
+    ($container:ident, children: $children_vec:expr $(, $($rest:tt)+)?) => {{
+        // do nothing
+        $(
+            $crate::fa_container_attributes!($container, $($rest)+);
+        )?
+    }};
+
+    // End case: no more attributes
+    ($container:ident,) => {{}};
 }
 
 pub fn can_run_container_systems(q: Query<&IsFamiqContainer>) -> bool {

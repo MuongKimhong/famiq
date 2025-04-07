@@ -32,14 +32,13 @@ fn setup_test_container_with_children(
     mut fa_query: FaQuery
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-
-    let test_btn_1 = fa_button!(&mut builder, text: "Button 1");
-    let test_btn_2 = fa_button!(&mut builder, text: "Button 2");
-
     fa_container!(
         &mut builder,
         id: "#test-container",
-        children: [test_btn_1, test_btn_2]
+        children: [
+            fa_button!(&mut builder, text: "Button 1"),
+            fa_button!(&mut builder, text: "Button 2")
+        ]
     );
 }
 

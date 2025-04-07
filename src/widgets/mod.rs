@@ -595,15 +595,32 @@ impl<'w, 's> FaQuery<'w, 's> {
 }
 
 #[macro_export]
-macro_rules! children {
-    ( $( $child:expr ),* $(,)? ) => {
-        {
-            let mut vec = Vec::new();
-            $(
-                let child = $child;
-                vec.push(child);
-            )*
-            vec
-        }
-    };
+macro_rules! extract_children {
+    // Case 1: children: [ item1, item2, item3 ]
+    ($vec:ident, $builder:expr, children: [ $( $child:expr ),* $(,)? ] $(, $($rest:tt)*)?) => {{
+        $(
+            $vec.push($child);
+        )*
+        $(
+            $crate::extract_children!($vec, $builder, $($rest)*);
+        )?
+    }};
+
+    // Case 2: children: some_vec
+    ($vec:ident, $builder:expr, children: $children_vec:expr $(, $($rest:tt)*)?) => {{
+        $vec.extend($children_vec);
+        $(
+            $crate::extract_children!($vec, $builder, $($rest)*);
+        )?
+    }};
+
+    // Case 3: other keys
+    ($vec:ident, $builder:expr, $key:ident : $val:expr $(, $($rest:tt)*)?) => {{
+        $(
+            $crate::extract_children!($vec, $builder, $($rest)*);
+        )?
+    }};
+
+    // Case 4: end of tokens
+    ($vec:ident, $builder:expr,) => {{}};
 }

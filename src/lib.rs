@@ -25,7 +25,7 @@
 //! ) {
 //!     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
 //!
-//!     let txt = fa_text(&mut builder, "Hello world").build();
+//!     let txt = fa_text!(&mut builder, text: "Hello world");
 //!     let btn = fa_button!(&mut builder, text: "Press me");
 //!
 //!     fa_container!(&mut builder, children: [txt, btn]);
@@ -73,7 +73,6 @@ pub mod prelude {
     pub use crate::fa_selection;
     pub use crate::fa_text;
     pub use crate::fa_text_input;
-    pub use crate::children;
     pub use crate::widgets::modal::{IsFamiqModalContainer, IsFamiqModalBackground};
     pub use crate::widgets::text_input::IsFamiqTextInput;
     pub use crate::widgets::selection::IsFamiqSelectionSelector;
