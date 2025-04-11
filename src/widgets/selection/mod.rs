@@ -373,14 +373,23 @@ pub fn fa_selection_builder<'a>(
 
 #[macro_export]
 macro_rules! fa_selection {
-    ( placeholder: $placeholder:expr $(, $key:ident : $value:tt )* $(,)? ) => {{
+    (
+        model: $model:expr,
+        placeholder: $placeholder:expr
+        $(, $key:ident : $value:tt )* $(,)?
+    ) => {{
         let builder = builder_mut();
         let mut selection = fa_selection_builder(builder, $placeholder);
+        selection = selection.model($model);
         $(
             $crate::fa_selection_attributes!(selection, $key : $value);
         )*
         selection.build()
     }};
+
+    ( $( $tt:tt )* ) => {
+        panic!("\n[FamiqError]: fa_selection! requires model field.\n");
+    };
 }
 
 #[macro_export]
@@ -391,10 +400,6 @@ macro_rules! fa_selection_attributes {
 
     ($selection:ident, tooltip: $tooltip:expr) => {{
         $selection = $selection.tooltip($tooltip);
-    }};
-
-    ($selection:ident, model: $model:expr) => {{
-        $selection = $selection.model($model);
     }};
 
     // common attributes

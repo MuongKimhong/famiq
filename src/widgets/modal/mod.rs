@@ -240,7 +240,7 @@ pub fn fa_modal_builder<'a>(builder: &'a mut FamiqBuilder) -> FaModalBuilder<'a>
 
 #[macro_export]
 macro_rules! fa_modal {
-    ( $( $key:ident : $value:tt ),* $(,)? ) => {{
+    ( model: $model:expr $(, $key:ident : $value:tt )* $(,)? ) => {{
         let builder = builder_mut();
         #[allow(unused_mut)]
         let mut children_vec: Vec<Entity> = Vec::new();
@@ -249,7 +249,7 @@ macro_rules! fa_modal {
         )*
 
         let mut modal = fa_modal_builder(builder);
-
+        modal = modal.model($model);
         $(
             $crate::fa_modal_attributes!(modal, $key : $value);
         )*
@@ -257,16 +257,16 @@ macro_rules! fa_modal {
         modal = modal.children(children_vec);
         modal.build()
     }};
+
+    ( $( $tt:tt )* ) => {
+        panic!("\n[FamiqError]: fa_modal! requires model field.\n")
+    };
 }
 
 #[macro_export]
 macro_rules! fa_modal_attributes {
     // skip children
     ($modal:ident, children: $children_vec:tt) => {{}};
-
-    ($modal:ident, model: $model:expr) => {{
-        $modal = $modal.model($model);
-    }};
 
     ($modal:ident, clear_bg: $clear_bg:expr) => {{
         $modal.clear_bg = $clear_bg;

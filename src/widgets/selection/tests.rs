@@ -12,7 +12,7 @@ fn setup_test_default_selection(
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     inject_builder(&mut builder);
-    fa_selection!(placeholder: "Test select choice", id: "#test-selection");
+    fa_selection!(model: "", placeholder: "Test select choice", id: "#test-selection");
 }
 
 fn setup_test_selection_with_built_in_class_color(
@@ -21,7 +21,7 @@ fn setup_test_selection_with_built_in_class_color(
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     inject_builder(&mut builder);
-    fa_selection!(placeholder: "Test select choice", class: "is-primary");
+    fa_selection!(model: "", placeholder: "Test select choice", class: "is-primary");
 }
 
 fn setup_test_selection_with_choices(
@@ -31,6 +31,7 @@ fn setup_test_selection_with_choices(
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     inject_builder(&mut builder);
     fa_selection!(
+        model: "",
         placeholder: "Test select choice",
         choices: ["Test one", "Test two"]
     );

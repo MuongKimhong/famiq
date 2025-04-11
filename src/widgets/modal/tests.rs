@@ -21,10 +21,11 @@ fn setup_test_modal_with_children(
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     inject_builder(&mut builder);
-    let txt_one = fa_text!(text: "Text one");
-    let txt_two = fa_text!(text: "Text two");
 
-    fa_modal!(children: [txt_one, txt_two]);
+    fa_modal!(children: [
+        fa_text!(text: "Text one"),
+        fa_text!(text: "Text two")
+    ]);
 }
 
 #[test]

@@ -224,22 +224,23 @@ pub fn fa_checkbox_builder<'a>(builder: &'a mut FamiqBuilder) -> FaCheckboxBuild
 
 #[macro_export]
 macro_rules! fa_checkbox {
-    ( $( $key:ident : $value:tt ),* $(,)? ) => {{
+    ( model: $model:expr $(, $key:ident : $value:tt )* $(,)? ) => {{
         let builder = builder_mut();
         let mut checkbox = fa_checkbox_builder(builder);
+        checkbox = checkbox.model($model);
         $(
             $crate::fa_checkbox_attributes!(checkbox, $key : $value);
         )*
         checkbox.build()
     }};
+
+    ( $( $tt:tt )* ) => {
+        panic!("\n[FamiqError]: fa_checkbox! requires model field.\n");
+    };
 }
 
 #[macro_export]
 macro_rules! fa_checkbox_attributes {
-    ($checkbox:ident, model: $model:expr) => {{
-        $checkbox = $checkbox.model($model);
-    }};
-
     ($checkbox:ident, color: $color:expr) => {{
         $checkbox = $checkbox.color($color);
     }};

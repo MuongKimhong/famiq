@@ -828,11 +828,13 @@ pub fn fa_text_input_builder<'a>(
 #[macro_export]
 macro_rules! fa_text_input {
     (
+        model: $model:expr,
         placeholder: $placeholder:expr
         $(, $key:ident : $value:tt )* $(,)?
     ) => {{
         let builder = builder_mut();
         let mut text_input = fa_text_input_builder(builder, $placeholder);
+        text_input = text_input.model($model);
         $(
             $crate::fa_text_input_attributes!(text_input, $key : $value);
         )*
@@ -848,10 +850,6 @@ macro_rules! fa_text_input_attributes {
 
     ($text_input:ident, tooltip: $tooltip:expr) => {{
         $text_input = $text_input.tooltip($tooltip);
-    }};
-
-    ($text_input:ident, model: $model:expr) => {{
-        $text_input = $text_input.model($model);
     }};
 
     // common attributes
