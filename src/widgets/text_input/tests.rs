@@ -13,7 +13,8 @@ fn setup_test_default_input(
     mut fa_query: FaQuery
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    fa_text_input!(&mut builder, placeholder: "First name", id: "#test-input");
+    inject_builder(&mut builder);
+    fa_text_input!(placeholder: "First name", id: "#test-input");
 }
 
 fn setup_test_input_with_built_in_class(
@@ -21,7 +22,8 @@ fn setup_test_input_with_built_in_class(
     mut fa_query: FaQuery
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    fa_text_input!(&mut builder, placeholder: "First name", class: "is-primary");
+    inject_builder(&mut builder);
+    fa_text_input!(placeholder: "First name", class: "is-primary");
 }
 
 #[test]

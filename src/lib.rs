@@ -24,11 +24,18 @@
 //!     mut famiq_res: ResMut<FamiqResource>, // required
 //! ) {
 //!     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
+//!     inject_builder(&mut builder);
 //!
-//!     let txt = fa_text!(&mut builder, text: "Hello world");
-//!     let btn = fa_button!(&mut builder, text: "Press me");
+//!     let txt = fa_text!(text: "Hello world");
+//!     let btn = fa_button!(text: "Press me");
+//!     fa_container!(children: [txt, btn]);
 //!
-//!     fa_container!(&mut builder, children: [txt, btn]);
+//!     // or
+//!
+//!     fa_container!(children: [
+//!         fa_text!(text: "Hello world"),
+//!         fa_button!(text: "Press me")
+//!     ]);
 //! }
 //! ```
 
@@ -46,6 +53,8 @@ pub mod prelude {
         FamiqBuilder, WidgetType, FamiqWidgetId,
         DefaultTextEntity, DefaultWidgetEntity,
         SetWidgetAttributes, FaQuery, WidgetSelector,
+        builder_mut,
+        inject_builder,
         fa_button_builder,
         fa_circular_builder,
         fa_container_builder,

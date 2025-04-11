@@ -11,7 +11,8 @@ fn setup_test_default_circular(
     mut fa_query: FaQuery
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    fa_circular!(&mut builder, id: "#test-circular");
+    inject_builder(&mut builder);
+    fa_circular!(id: "#test-circular");
 }
 
 fn setup_test_circular_with_built_in_class(
@@ -19,7 +20,8 @@ fn setup_test_circular_with_built_in_class(
     mut fa_query: FaQuery
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    fa_circular!(&mut builder, id: "#test-circular", class: "is-primary is-large");
+    inject_builder(&mut builder);
+    fa_circular!(id: "#test-circular", class: "is-primary is-large");
 }
 
 fn set_up_circular_with_custom_size(
@@ -27,7 +29,8 @@ fn set_up_circular_with_custom_size(
     mut fa_query: FaQuery
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    fa_circular!(&mut builder, size: 90.0);
+    inject_builder(&mut builder);
+    fa_circular!(size: 90.0);
 }
 
 #[test]

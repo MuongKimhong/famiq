@@ -41,6 +41,7 @@ use crate::widgets::style_parse::*;
 use bevy::ecs::system::{EntityCommands, SystemParam};
 use bevy::ecs::query::QueryData;
 use bevy::prelude::*;
+use std::cell::RefCell;
 
 #[derive(Clone, Default, PartialEq)]
 pub enum WidgetColor {
@@ -194,7 +195,7 @@ pub trait SetWidgetAttributes: Sized {
 pub enum WidgetType {
     Root, // globalzindex 1
     Button,
-    // Container,
+    Container,
     Text,
     FpsText, // globalzindex 6
     TextInput,
@@ -637,4 +638,24 @@ macro_rules! common_attributes {
     ( $widget:ident, display : $value:expr ) => {{
         $widget = $widget.display($value);
     }};
+}
+
+thread_local! {
+    static GLOBAL_BUILDER: RefCell<Option<*mut ()>> = RefCell::new(None);
+}
+
+/// Initialize the global builder before spawning UI widgets
+pub fn inject_builder<'a>(builder: &'a mut FamiqBuilder<'a>) {
+    let raw = builder as *mut FamiqBuilder as *mut (); // get the raw pointer
+    GLOBAL_BUILDER.with(|cell| {
+        *cell.borrow_mut() = Some(raw);
+    });
+}
+
+/// Access the builder inside widget macros
+pub fn builder_mut<'a>() -> &'a mut FamiqBuilder<'a> {
+    GLOBAL_BUILDER.with(|cell| {
+        let ptr = cell.borrow().expect("Can't access global widget builder!");
+        unsafe { &mut *(ptr as *mut FamiqBuilder) }
+    })
 }

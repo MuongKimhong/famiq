@@ -151,54 +151,29 @@ pub fn fa_image_builder<'a>(builder: &'a mut FamiqBuilder, path: &str) -> FaImag
 
 #[macro_export]
 macro_rules! fa_image {
-    (
-        $builder:expr,
-        path: $path:expr
-        $(, $($rest:tt)+)?
-    ) => {{
-        let mut image = fa_image_builder($builder, $path);
+    ( path: $path:expr $(, $key:ident : $value:tt )* $(,)? ) => {{
+        let builder = builder_mut();
+        let mut image = fa_image_builder(builder, $path);
         $(
-            $crate::fa_image_attributes!(image, $($rest)+);
-        )?
+            $crate::fa_image_attributes!(image, $key : $value);
+        )*
         image.build()
     }};
 }
 
 #[macro_export]
 macro_rules! fa_image_attributes {
-    ($image:ident, id: $id:expr $(, $($rest:tt)+)?) => {{
-        $image = $image.id($id);
-        $(
-            $crate::fa_image_attributes!($image, $($rest)+);
-        )?
-    }};
-
-    ($image:ident, class: $class:expr $(, $($rest:tt)+)?) => {{
-        $image = $image.class($class);
-        $(
-            $crate::fa_image_attributes!($image, $($rest)+);
-        )?
-    }};
-
-    ($image:ident, tooltip: $tooltip:expr $(, $($rest:tt)+)?) => {{
+    ($image:ident, tooltip: $tooltip:expr) => {{
         $image = $image.tooltip($tooltip);
-        $(
-            $crate::fa_image_attributes!($image, $($rest)+);
-        )?
     }};
 
-    ($image:ident, display: $display:expr $(, $($rest:tt)+)?) => {{
-        $image = $image.display($display);
-        $(
-            $crate::fa_image_attributes!($image, $($rest)+);
-        )?
-    }};
-
-    ($image:ident, set_size: $set_size:expr $(, $($rest:tt)+)?) => {{
+    ($image:ident, set_size: $set_size:expr) => {{
         $image = $image.set_size($set_size);
-        $(
-            $crate::fa_image_attributes!($image, $($rest)+);
-        )?
+    }};
+
+    // common attributes
+    ($image:ident, $key:ident : $value:expr) => {{
+        $crate::common_attributes!($image, $key : $value);
     }};
 }
 

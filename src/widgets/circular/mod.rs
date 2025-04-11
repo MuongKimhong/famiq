@@ -204,63 +204,35 @@ pub fn fa_circular_builder<'a>(builder: &'a mut FamiqBuilder) -> FaCircularBuild
 
 #[macro_export]
 macro_rules! fa_circular {
-    (
-        $builder:expr
-        $(, $($rest:tt)+)?
-    ) => {{
-        let mut circular = fa_circular_builder($builder);
+    ( $( $key:ident : $value:tt ),* $(,)? ) => {{
+        let builder = builder_mut();
+        let mut circular = fa_circular_builder(builder);
         $(
-            $crate::fa_circular_attributes!(circular, $($rest)+);
-        )?
+            $crate::fa_circular_attributes!(circular, $key : $value);
+        )*
         circular.build()
     }};
 }
 
 #[macro_export]
 macro_rules! fa_circular_attributes {
-    ($circular:ident, id: $id:expr $(, $($rest:tt)+)?) => {{
-        $circular = $circular.id($id);
-        $(
-            $crate::fa_circular_attributes!($circular, $($rest)+);
-        )?
-    }};
-
-    ($circular:ident, class: $class:expr $(, $($rest:tt)+)?) => {{
-        $circular = $circular.class($class);
-        $(
-            $crate::fa_circular_attributes!($circular, $($rest)+);
-        )?
-    }};
-
-    ($circular:ident, color: $color:expr $(, $($rest:tt)+)?) => {{
+    ($circular:ident, color: $color:expr) => {{
         $circular = $circular.color($color);
-        $(
-            $crate::fa_circular_attributes!($circular, $($rest)+);
-        )?
     }};
 
-    ($circular:ident, size: $size:expr $(, $($rest:tt)+)?) => {{
-        $circular = $circular.size($size);
-        $(
-            $crate::fa_circular_attributes!($circular, $($rest)+);
-        )?
-    }};
-
-    ($circular:ident, tooltip: $tooltip:expr $(, $($rest:tt)+)?) => {{
+    ($circular:ident, tooltip: $tooltip:expr) => {{
         $circular = $circular.tooltip($tooltip);
-        $(
-            $crate::fa_circular_attributes!($circular, $($rest)+);
-        )?
     }};
 
-    ($circular:ident, display: $display:expr $(, $($rest:tt)+)?) => {{
-        $circular = $circular.display($display);
-        $(
-            $crate::fa_circular_attributes!($circular, $($rest)+);
-        )?
+    ($circular:ident, size: $size:expr) => {{
+        $circular = $circular.size($size);
+    }};
+
+    // common attributes
+    ($circular:ident, $key:ident : $value:expr) => {{
+        $crate::common_attributes!($circular, $key : $value);
     }};
 }
-
 
 /// Determines if circular internal system(s) can run.
 ///

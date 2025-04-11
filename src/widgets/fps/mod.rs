@@ -227,63 +227,35 @@ pub fn fa_fps_builder<'a>(builder: &'a mut FamiqBuilder) -> FaFpsTextBuilder<'a>
 
 #[macro_export]
 macro_rules! fa_fps {
-    (
-        $builder:expr
-        $(, $($rest:tt)+)?
-    ) => {{
-        let mut fps = fa_fps_builder($builder);
+    ( $( $key:ident : $value:tt ),* $(,)? ) => {{
+        let builder = builder_mut();
+        let mut fps = fa_fps_builder(builder);
         $(
-            $crate::fa_fps_attributes!(fps, $($rest)+);
-        )?
+            $crate::fa_fps_attributes!(fps, $key : $value);
+        )*
         fps.build()
     }};
 }
 
 #[macro_export]
 macro_rules! fa_fps_attributes {
-    ($fps:ident, id: $id:expr $(, $($rest:tt)+)?) => {{
-        $fps = $fps.id($id);
-        $(
-            $crate::fa_fps_attributes!($fps, $($rest)+);
-        )?
-    }};
-
-    ($fps:ident, class: $class:expr $(, $($rest:tt)+)?) => {{
-        $fps = $fps.class($class);
-        $(
-            $crate::fa_fps_attributes!($fps, $($rest)+);
-        )?
-    }};
-
-    ($fps:ident, color: $color:expr $(, $($rest:tt)+)?) => {{
+    ($fps:ident, color: $color:expr) => {{
         $fps = $fps.color($color);
-        $(
-            $crate::fa_fps_attributes!($fps, $($rest)+);
-        )?
     }};
 
-    ($fps:ident, display: $display:expr $(, $($rest:tt)+)?) => {{
-        $fps = $fps.display($display);
-        $(
-            $crate::fa_fps_attributes!($fps, $($rest)+);
-        )?
+    ($fps:ident, right_side: $right_side:expr) => {{
+        $fps.right_side = $right_side;
     }};
 
-    ($fps:ident, right_side: $right_side:expr $(, $($rest:tt)+)?) => {{
-        $fps = $fps.side($right_side);
-        $(
-            $crate::fa_fps_attributes!($fps, $($rest)+);
-        )?
+    ($fps:ident, change_color: $change_color:expr) => {{
+        $fps.change_color = $change_color;
     }};
 
-    ($fps:ident, change_color: $change_color:expr $(, $($rest:tt)+)?) => {{
-        $fps = $fps.change_color($change_color);
-        $(
-            $crate::fa_fps_attributes!($fps, $($rest)+);
-        )?
+    // common attributes
+    ($fps:ident, $key:ident : $value:expr) => {{
+        $crate::common_attributes!($fps, $key : $value);
     }};
 }
-
 
 /// a system to check if FPS internal system(s) can run.
 ///

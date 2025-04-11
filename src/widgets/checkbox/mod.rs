@@ -7,6 +7,8 @@ use bevy::ecs::system::EntityCommands;
 use crate::plugin::{CursorType, CursorIcons};
 use crate::utils::*;
 use crate::widgets::*;
+use crate::fa_text;
+use crate::fa_container;
 
 #[derive(Component)]
 pub struct IsFamiqCheckbox;
@@ -30,24 +32,20 @@ pub struct FaCheckbox;
 
 impl<'a> FaCheckbox {
     fn build_main_container(attributes: &WidgetAttributes, root_node: &'a mut EntityCommands, vertical: bool) -> Entity {
+        let class = &attributes.class.clone().unwrap_or("".into());
+        let id = &attributes.id.clone().unwrap_or("".into());
         let mut style_components = BaseStyleComponents::default();
         style_components.node = default_main_container_node();
 
         if vertical {
             style_components.node.flex_direction = FlexDirection::Column;
         }
-
-        let entity = root_node
-            .commands()
-            .spawn((
-                style_components.clone(),
-                DefaultWidgetEntity::from(style_components),
-                IsFamiqMainWidget,
-                IsFamiqCheckbox
-            ))
-            .id();
-
-        insert_id_and_class(root_node, entity, &attributes.id, &attributes.class);
+        let entity = fa_container!(has_observer: false, id: id, class: class);
+        root_node.commands().entity(entity).insert((
+            style_components.clone(),
+            DefaultWidgetEntity::from(style_components),
+            IsFamiqCheckbox
+        ));
 
         if attributes.model_key.is_some() {
             root_node.commands().entity(entity).insert(ReactiveModelKey(attributes.model_key.clone().unwrap()));
@@ -78,33 +76,11 @@ impl<'a> FaCheckbox {
 
     fn build_choice_text(
         attributes: &WidgetAttributes,
-        root_node: &'a mut EntityCommands,
         text: &str
     ) -> Entity {
-        let text_font = TextFont {
-            font: attributes.font_handle.clone().unwrap(),
-            font_size: 16.0,
-            ..default()
-        };
-
-        let entity = root_node
-            .commands()
-            .spawn((
-                Text::new(text),
-                text_font.clone(),
-                TextColor(get_color(&attributes.color)),
-                TextLayout::default(),
-                DefaultTextEntity::new(
-                    Text::new(text),
-                    text_font,
-                    TextColor(get_color(&attributes.color)),
-                    TextLayout::default()
-                ),
-            ))
-            .id();
-
-        insert_id_and_class(root_node, entity, &attributes.id, &attributes.class);
-        entity
+        let class = &attributes.class.clone().unwrap_or("".into());
+        let id = &attributes.id.clone().unwrap_or("".into());
+        fa_text!(text: text, id: id, class: class, has_node: false, has_observer: false)
     }
 
     fn build_choice_box(
@@ -133,7 +109,7 @@ impl<'a> FaCheckbox {
         let mut all_choices: Vec<Entity> = Vec::with_capacity(choices.len() + 1);
 
         for choice in choices.iter() {
-            let choice_text = Self::build_choice_text(attributes, root_node, choice);
+            let choice_text = Self::build_choice_text(attributes, choice);
             let choice_box = Self::build_choice_box(attributes, root_node);
             let choice_container = Self::build_choice_container(root_node, choice, container, choice_box);
             entity_add_children(root_node, &vec![choice_box, choice_text], choice_container);
@@ -198,11 +174,9 @@ pub struct FaCheckboxBuilder<'a> {
 }
 
 impl<'a> FaCheckboxBuilder<'a> {
-    pub fn new(font_handle: Handle<Font>, root_node: EntityCommands<'a>) -> Self {
-        let mut attributes = WidgetAttributes::default();
-        attributes.font_handle = Some(font_handle);
+    pub fn new(root_node: EntityCommands<'a>) -> Self {
         Self {
-            attributes,
+            attributes: WidgetAttributes::default(),
             choices: Vec::new(),
             root_node,
             vertical: false
@@ -215,11 +189,6 @@ impl<'a> FaCheckboxBuilder<'a> {
         I::Item: Into<String>,
     {
         self.choices = choices.into_iter().map(Into::into).collect();
-        self
-    }
-
-    pub fn vertical(mut self, vertical: bool) -> Self {
-        self.vertical = vertical;
         self
     }
 
@@ -250,79 +219,44 @@ impl<'a> SetWidgetAttributes for FaCheckboxBuilder<'a> {
 }
 
 pub fn fa_checkbox_builder<'a>(builder: &'a mut FamiqBuilder) -> FaCheckboxBuilder<'a> {
-    let font_handle = builder.asset_server.load(&builder.resource.font_path);
-    FaCheckboxBuilder::new(
-        font_handle,
-        builder.ui_root_node.reborrow()
-    )
+    FaCheckboxBuilder::new(builder.ui_root_node.reborrow())
 }
 
 #[macro_export]
 macro_rules! fa_checkbox {
-    (
-        $builder:expr
-        $(, $($rest:tt)+)?
-    ) => {{
-        let mut checkbox = fa_checkbox_builder($builder);
+    ( $( $key:ident : $value:tt ),* $(,)? ) => {{
+        let builder = builder_mut();
+        let mut checkbox = fa_checkbox_builder(builder);
         $(
-            $crate::fa_checkbox_attributes!(checkbox, $($rest)+);
-        )?
+            $crate::fa_checkbox_attributes!(checkbox, $key : $value);
+        )*
         checkbox.build()
     }};
 }
 
 #[macro_export]
 macro_rules! fa_checkbox_attributes {
-    ($checkbox:ident, id: $id:expr $(, $($rest:tt)+)?) => {{
-        $checkbox = $checkbox.id($id);
-        $(
-            $crate::fa_checkbox_attributes!($checkbox, $($rest)+);
-        )?
-    }};
-
-    ($checkbox:ident, class: $class:expr $(, $($rest:tt)+)?) => {{
-        $checkbox = $checkbox.class($class);
-        $(
-            $crate::fa_checkbox_attributes!($checkbox, $($rest)+);
-        )?
-    }};
-
-    ($checkbox:ident, color: $color:expr $(, $($rest:tt)+)?) => {{
-        $checkbox = $checkbox.color($color);
-        $(
-            $crate::fa_checkbox_attributes!($checkbox, $($rest)+);
-        )?
-    }};
-
-    ($checkbox:ident, display: $display:expr $(, $($rest:tt)+)?) => {{
-        $checkbox = $checkbox.display($display);
-        $(
-            $crate::fa_checkbox_attributes!($checkbox, $($rest)+);
-        )?
-    }};
-
-    ($checkbox:ident, model: $model:expr $(, $($rest:tt)+)?) => {{
+    ($checkbox:ident, model: $model:expr) => {{
         $checkbox = $checkbox.model($model);
-        $(
-            $crate::fa_checkbox_attributes!($checkbox, $($rest)+);
-        )?
     }};
 
-    ($checkbox:ident, choices: $choices:expr $(, $($rest:tt)+)?) => {{
-        $checkbox = $checkbox.choices($choices.into_iter());
-        $(
-            $crate::fa_checkbox_attributes!($checkbox, $($rest)+);
-        )?
+    ($checkbox:ident, color: $color:expr) => {{
+        $checkbox = $checkbox.color($color);
     }};
 
-    ($checkbox:ident, vertical: $vertical:expr $(, $($rest:tt)+)?) => {{
-        $checkbox = $checkbox.vertical($vertical);
-        $(
-            $crate::fa_checkbox_attributes!($checkbox, $($rest)+);
-        )?
+    ($checkbox:ident, choices: $choices:expr) => {{
+        $checkbox = $checkbox.choices($choices);
+    }};
+
+    ($checkbox:ident, vertical: $vertical:expr) => {{
+        $checkbox.vertical = $vertical;
+    }};
+
+    // common attributes
+    ($checkbox:ident, $key:ident : $value:expr) => {{
+        $crate::common_attributes!($checkbox, $key : $value);
     }};
 }
-
 
 pub fn can_run_checkbox_systems(checkbox_q: Query<&IsFamiqCheckbox>) -> bool {
     !checkbox_q.is_empty()

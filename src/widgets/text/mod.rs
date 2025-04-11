@@ -1,7 +1,7 @@
 use crate::event_writer::*;
 use crate::plugin::{CursorType, CursorIcons};
 use crate::widgets::*;
-use crate::utils::{_change_cursor_icon, get_color, insert_id_and_class, process_spacing_built_in_class};
+use crate::utils::*;
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 
@@ -42,13 +42,16 @@ impl<'a> FaText {
         attributes: &WidgetAttributes,
         text: &str,
         root_node: &'a mut EntityCommands,
-        size: TextSize
+        size: TextSize,
+        has_observer: bool,
+        use_get_text_color: bool,
+        text_layout: TextLayout
     ) -> Entity {
         let txt = Text::new(text);
 
         let mut txt_font = TextFont {
             font: attributes.font_handle.clone().unwrap(),
-            font_size: 16.0,
+            font_size: get_text_size(&attributes.size),
             ..default()
         };
         match size {
@@ -61,32 +64,56 @@ impl<'a> FaText {
             _ => {}
         }
 
-        let txt_color = TextColor(get_color(&attributes.color));
-        let txt_layout = TextLayout::new_with_justify(JustifyText::Center);
+        let txt_color = match use_get_text_color {
+            true => TextColor(get_text_color(&attributes.color)),
+            false => TextColor(get_color(&attributes.color))
+        };
+        // let txt_layout = TextLayout::new_with_justify(justify_text);
 
-        let mut style_components = BaseStyleComponents::default();
-        style_components.node = attributes.node.clone();
+        // let mut style_components = BaseStyleComponents::default();
+        // style_components.node = attributes.node.clone();
 
-        let entity = root_node
-            .commands()
+        // let entity = root_node
+        //     .commands()
+        //     .spawn((
+        //         txt.clone(),
+        //         txt_font.clone(),
+        //         txt_color.clone(),
+        //         txt_layout.clone(),
+        //         DefaultTextEntity::new(txt, txt_font, txt_color, txt_layout),
+        //         IsFamiqText,
+        //         IsFamiqMainWidget,
+        //         style_components.clone(),
+        //         DefaultWidgetEntity::from(style_components),
+        //         ReactiveText(text.to_string())
+        //     ))
+        //     .observe(FaText::handle_on_mouse_over)
+        //     .observe(FaText::handle_on_mouse_out)
+        //     .observe(FaText::handle_on_mouse_down)
+        //     .observe(FaText::handle_on_mouse_up)
+        //     .id();
+
+        let mut temp_cmd = root_node.commands();
+
+        let mut entity_cmd = temp_cmd
             .spawn((
                 txt.clone(),
                 txt_font.clone(),
                 txt_color.clone(),
-                txt_layout.clone(),
-                DefaultTextEntity::new(txt, txt_font, txt_color, txt_layout),
+                text_layout.clone(),
+                DefaultTextEntity::new(txt, txt_font, txt_color, text_layout),
                 IsFamiqText,
-                IsFamiqMainWidget,
-                style_components.clone(),
-                DefaultWidgetEntity::from(style_components),
                 ReactiveText(text.to_string())
-            ))
-            .observe(FaText::handle_on_mouse_over)
-            .observe(FaText::handle_on_mouse_out)
-            .observe(FaText::handle_on_mouse_down)
-            .observe(FaText::handle_on_mouse_up)
-            .id();
+            ));
 
+        if has_observer {
+            entity_cmd
+                .observe(FaText::handle_on_mouse_over)
+                .observe(FaText::handle_on_mouse_out)
+                .observe(FaText::handle_on_mouse_down)
+                .observe(FaText::handle_on_mouse_up);
+        }
+        let entity = entity_cmd.id();
         insert_id_and_class(root_node, entity, &attributes.id, &attributes.class);
         entity
     }
@@ -95,13 +122,33 @@ impl<'a> FaText {
         attributes: &WidgetAttributes,
         text: &str,
         root_node: &'a mut EntityCommands,
-        size: TextSize
+        size: TextSize,
+        has_node: bool,
+        has_observer: bool,
+        use_get_text_color: bool,
+        text_layout: TextLayout
     ) -> Entity {
-        let text = Self::_build_text(attributes, text, root_node, size);
-
+        let text = Self::_build_text(
+            attributes,
+            text,
+            root_node,
+            size,
+            has_observer,
+            use_get_text_color,
+            text_layout
+        );
         if !attributes.bind_keys.is_empty() {
             root_node
                 .commands().entity(text).insert(ReactiveKeys(attributes.bind_keys.to_owned()));
+        }
+        if has_node {
+            let mut style_components = BaseStyleComponents::default();
+            style_components.node = attributes.node.clone();
+            root_node.commands().entity(text).insert((
+                IsFamiqMainWidget,
+                style_components.clone(),
+                DefaultWidgetEntity::from(style_components),
+            ));
         }
         text
     }
@@ -169,7 +216,11 @@ impl<'a> FaText {
 pub struct FaTextBuilder<'a> {
     pub attributes: WidgetAttributes,
     pub value: String,
-    pub root_node: EntityCommands<'a>
+    pub root_node: EntityCommands<'a>,
+    pub(crate) has_observer: bool,
+    pub(crate) has_node: bool,
+    pub(crate) use_get_text_color: bool,
+    pub(crate) text_layout: TextLayout
 }
 
 impl<'a> FaTextBuilder<'a> {
@@ -179,7 +230,11 @@ impl<'a> FaTextBuilder<'a> {
         Self {
             attributes,
             value,
-            root_node
+            root_node,
+            has_observer: true,
+            has_node: true,
+            use_get_text_color: false,
+            text_layout: TextLayout::new_with_justify(JustifyText::Center)
         }
     }
 
@@ -206,13 +261,18 @@ impl<'a> FaTextBuilder<'a> {
     /// Spawn text into UI World.
     pub fn build(&mut self) -> Entity {
         self._process_built_in_color_class();
+        self._process_built_in_size_class();
         self._node();
         let size = self._process_built_in_text_size_class();
         FaText::new(
             &self.attributes,
             self.value.as_str(),
             &mut self.root_node,
-            size
+            size,
+            self.has_node,
+            self.has_observer,
+            self.use_get_text_color,
+            self.text_layout
         )
     }
 }
@@ -244,53 +304,51 @@ pub fn fa_text_builder<'a>(builder: &'a mut FamiqBuilder, value: &str) -> FaText
 #[macro_export]
 macro_rules! fa_text {
     (
-        $builder:expr,
         text: $text:expr
-        $(, $($rest:tt)+)?
+        $(, $key:ident : $value:tt )* $(,)?
     ) => {{
-        let mut text = fa_text_builder($builder, $text);
+        let builder = builder_mut();
+        let mut text = fa_text_builder(builder, $text);
         $(
-            $crate::fa_text_attributes!(text, $($rest)+);
-        )?
+            $crate::fa_text_attributes!(text, $key : $value);
+        )*
         text.build()
     }};
 }
 
 #[macro_export]
 macro_rules! fa_text_attributes {
-    ($text:ident, id: $id:expr $(, $($rest:tt)+)?) => {{
-        $text = $text.id($id);
-        $(
-            $crate::fa_text_attributes!($text, $($rest)+);
-        )?
-    }};
-
-    ($text:ident, class: $class:expr $(, $($rest:tt)+)?) => {{
-        $text = $text.class($class);
-        $(
-            $crate::fa_text_attributes!($text, $($rest)+);
-        )?
-    }};
-
-    ($text:ident, color: $color:expr $(, $($rest:tt)+)?) => {{
+    ($text:ident, color: $color:expr) => {{
         $text = $text.color($color);
-        $(
-            $crate::fa_text_attributes!($text, $($rest)+);
-        )?
     }};
 
-    ($text:ident, display: $display:expr $(, $($rest:tt)+)?) => {{
-        $text = $text.display($display);
-        $(
-            $crate::fa_text_attributes!($text, $($rest)+);
-        )?
+    ($text:ident, tooltip: $tooltip:expr) => {{
+        $text = $text.tooltip($tooltip);
     }};
 
-    ($text:ident, bind: $bind:expr $(, $($rest:tt)+)?) => {{
-        $text = $text.bind($bind);
-        $(
-            $crate::fa_text_attributes!($text, $($rest)+);
-        )?
+    ($text:ident, bind: $bind:expr) => {{
+        $text= $text.bind($bind);
+    }};
+
+    ($text:ident, use_get_text_color: $use_get_text_color:expr) => {{
+        $text.use_get_text_color = $use_get_text_color;
+    }};
+
+    ($text:ident, has_observer: $has_observer:expr) => {{
+        $text.has_observer = $has_observer;
+    }};
+
+    ($text:ident, has_node: $has_node:expr) => {{
+        $text.has_node = $has_node;
+    }};
+
+    ($text:ident, text_layout: $text_layout:expr) => {{
+        $text.text_layout = $text_layout;
+    }};
+
+    // common attributes
+    ($text:ident, $key:ident : $value:expr) => {{
+        $crate::common_attributes!($text, $key : $value);
     }};
 }
 
@@ -310,7 +368,8 @@ mod tests {
         mut fa_query: FaQuery
     ) {
         let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-        fa_text!(&mut builder, text: "Test Text", id: "#test-text");
+        inject_builder(&mut builder);
+        fa_text!(text: "Test Text", id: "#test-text");
     }
 
     #[test]

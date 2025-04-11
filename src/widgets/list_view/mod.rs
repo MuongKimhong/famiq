@@ -281,14 +281,15 @@ pub fn fa_listview_builder<'a>(builder: &'a mut FamiqBuilder) -> FaListViewBuild
 
 #[macro_export]
 macro_rules! fa_listview {
-    ( $builder:expr, $( $key:ident : $value:tt ),* $(,)? ) => {{
+    ( $( $key:ident : $value:tt ),* $(,)? ) => {{
+        let builder = builder_mut();
         #[allow(unused_mut)]
         let mut children_vec: Vec<Entity> = Vec::new();
         $(
-            $crate::extract_children!(children_vec, $builder, $key : $value);
+            $crate::extract_children!(children_vec, builder, $key : $value);
         )*
 
-        let mut listview = fa_listview_builder($builder);
+        let mut listview = fa_listview_builder(builder);
         $(
             $crate::fa_listview_attributes!(listview, $key : $value);
         )*

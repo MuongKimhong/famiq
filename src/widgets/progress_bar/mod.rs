@@ -292,61 +292,33 @@ pub fn fa_progress_bar_builder<'a>(builder: &'a mut FamiqBuilder) -> FaProgressB
 
 #[macro_export]
 macro_rules! fa_progress_bar {
-    (
-        $builder:expr
-        $(, $($rest:tt)+)?
-    ) => {{
-        let mut progress_bar = fa_progress_bar_builder($builder);
+    ( $( $key:ident : $value:tt ),* $(,)? ) => {{
+        let builder = builder_mut();
+        let mut progress_bar = fa_progress_bar_builder(builder);
         $(
-            $crate::fa_progress_bar_attributes!(progress_bar, $($rest)+);
-        )?
+            $crate::fa_progress_bar_attributes!(progress_bar, $key : $value);
+        )*
         progress_bar.build()
     }};
 }
 
 #[macro_export]
 macro_rules! fa_progress_bar_attributes {
-
-    ($progress_bar:ident, class: $class:expr $(, $($rest:tt)+)?) => {{
-        $progress_bar = $progress_bar.class($class);
-        $(
-            $crate::fa_progress_bar_attributes!($progress_bar, $($rest)+);
-        )?
-    }};
-
-    ($progress_bar:ident, id: $id:expr $(, $($rest:tt)+)?) => {{
-        $progress_bar = $progress_bar.id($id);
-        $(
-            $crate::fa_progress_bar_attributes!($progress_bar, $($rest)+);
-        )?
-    }};
-
-    ($progress_bar:ident, tooltip: $tooltip:expr $(, $($rest:tt)+)?) => {{
-        $progress_bar = $progress_bar.tooltip($tooltip);
-        $(
-            $crate::fa_progress_bar_attributes!($progress_bar, $($rest)+);
-        )?
-    }};
-
-    ($progress_bar:ident, color: $color:expr $(, $($rest:tt)+)?) => {{
+    ($progress_bar:ident, color: $color:expr) => {{
         $progress_bar = $progress_bar.color($color);
-        $(
-            $crate::fa_progress_bar_attributes!($progress_bar, $($rest)+);
-        )?
     }};
 
-    ($progress_bar:ident, display: $display:expr $(, $($rest:tt)+)?) => {{
-        $progress_bar = $progress_bar.display($display);
-        $(
-            $crate::fa_progress_bar_attributes!($progress_bar, $($rest)+);
-        )?
+    ($progress_bar:ident, tooltip: $tooltip:expr) => {{
+        $progress_bar = $progress_bar.tooltip($tooltip);
     }};
 
-    ($progress_bar:ident, model: $model:expr $(, $($rest:tt)+)?) => {{
+    ($progress_bar:ident, model: $model:expr) => {{
         $progress_bar = $progress_bar.model($model);
-        $(
-            $crate::fa_progress_bar_attributes!($progress_bar, $($rest)+);
-        )?
+    }};
+
+    // common attributes
+    ($progress_bar:ident, $key:ident : $value:expr) => {{
+        $crate::common_attributes!($progress_bar, $key : $value);
     }};
 }
 

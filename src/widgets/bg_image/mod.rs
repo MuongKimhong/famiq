@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::widgets::FamiqBuilder;
+use crate::widgets::*;
 
 #[derive(Resource, Default)]
 pub struct FaBgImageResource {
@@ -108,12 +108,10 @@ pub fn fa_bg_image_builder<'a>(builder: &'a mut FamiqBuilder, path: &str) -> FaB
 
 #[macro_export]
 macro_rules! fa_bg_image {
-    (
-        $builder:expr,
-        $path:expr
-    ) => {
+    ( $path:expr ) => {
         {
-            let mut bg_image = fa_bg_image_builder($builder, $path);
+            let builder = builder_mut();
+            let mut bg_image = fa_bg_image_builder(builder, $path);
             bg_image.build()
         }
     };

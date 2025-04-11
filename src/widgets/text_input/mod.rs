@@ -777,8 +777,10 @@ impl<'a> FaTextInputBuilder<'a> {
     }
 
     /// Method to set text_input type as password
-    pub fn is_password(mut self) -> Self {
-        self.input_type = TextInputType::Password;
+    pub fn password(mut self, is_password: bool) -> Self {
+        if is_password {
+            self.input_type = TextInputType::Password;
+        }
         self
     }
 
@@ -826,63 +828,37 @@ pub fn fa_text_input_builder<'a>(
 #[macro_export]
 macro_rules! fa_text_input {
     (
-        $builder:expr,
         placeholder: $placeholder:expr
-        $(, $($rest:tt)+)?
+        $(, $key:ident : $value:tt )* $(,)?
     ) => {{
-        let mut text_input = fa_text_input_builder($builder, $placeholder);
+        let builder = builder_mut();
+        let mut text_input = fa_text_input_builder(builder, $placeholder);
         $(
-            $crate::fa_text_input_attributes!(text_input, $($rest)+);
-        )?
+            $crate::fa_text_input_attributes!(text_input, $key : $value);
+        )*
         text_input.build()
     }};
 }
 
 #[macro_export]
 macro_rules! fa_text_input_attributes {
-    ($text_input:ident, id: $id:expr $(, $($rest:tt)+)?) => {{
-        $text_input = $text_input.id($id);
-        $(
-            $crate::fa_text_input_attributes!($text_input, $($rest)+);
-        )?
-    }};
-
-    ($text_input:ident, class: $class:expr $(, $($rest:tt)+)?) => {{
-        $text_input = $text_input.class($class);
-        $(
-            $crate::fa_text_input_attributes!($text_input, $($rest)+);
-        )?
-    }};
-
-    ($text_input:ident, tooltip: $tooltip:expr $(, $($rest:tt)+)?) => {{
-        $text_input = $text_input.tooltip($tooltip);
-        $(
-            $crate::fa_text_input_attributes!($text_input, $($rest)+);
-        )?
-    }};
-
-    ($text_input:ident, display: $display:expr $(, $($rest:tt)+)?) => {{
-        $text_input = $text_input.display($display);
-        $(
-            $crate::fa_text_input_attributes!($text_input, $($rest)+);
-        )?
-    }};
-
-    ($text_input:ident, model: $model:expr $(, $($rest:tt)+)?) => {{
-        $text_input = $text_input.model($model);
-        $(
-            $crate::fa_text_input_attributes!($text_input, $($rest)+);
-        )?
-    }};
-
-    ($text_input:ident, password: $password:expr $(, $($rest:tt)+)?) => {{
+    ($text_input:ident, password: $password:expr) => {{
         $text_input = $text_input.password($password);
-        $(
-            $crate::fa_text_input_attributes!($text_input, $($rest)+);
-        )?
+    }};
+
+    ($text_input:ident, tooltip: $tooltip:expr) => {{
+        $text_input = $text_input.tooltip($tooltip);
+    }};
+
+    ($text_input:ident, model: $model:expr) => {{
+        $text_input = $text_input.model($model);
+    }};
+
+    // common attributes
+    ($text_input:ident, $key:ident : $value:expr) => {{
+        $crate::common_attributes!($text_input, $key : $value);
     }};
 }
-
 
 /// Determines if text_input internal system(s) can run.
 ///

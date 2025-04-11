@@ -11,7 +11,8 @@ fn setup_test_default_modal(
     mut fa_query: FaQuery
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    fa_modal!(&mut builder, id: "#test-modal");
+    inject_builder(&mut builder);
+    fa_modal!(id: "#test-modal");
 }
 
 fn setup_test_modal_with_children(
@@ -19,10 +20,11 @@ fn setup_test_modal_with_children(
     mut fa_query: FaQuery
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    let txt_one = fa_text!(&mut builder, text: "Text one");
-    let txt_two = fa_text!(&mut builder, text: "Text two");
+    inject_builder(&mut builder);
+    let txt_one = fa_text!(text: "Text one");
+    let txt_two = fa_text!(text: "Text two");
 
-    fa_modal!(&mut builder, children: [txt_one, txt_two]);
+    fa_modal!(children: [txt_one, txt_two]);
 }
 
 #[test]

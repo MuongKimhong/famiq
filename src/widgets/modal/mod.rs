@@ -240,14 +240,15 @@ pub fn fa_modal_builder<'a>(builder: &'a mut FamiqBuilder) -> FaModalBuilder<'a>
 
 #[macro_export]
 macro_rules! fa_modal {
-    ( $builder:expr, $( $key:ident : $value:tt ),* $(,)? ) => {{
+    ( $( $key:ident : $value:tt ),* $(,)? ) => {{
+        let builder = builder_mut();
         #[allow(unused_mut)]
         let mut children_vec: Vec<Entity> = Vec::new();
         $(
-            $crate::extract_children!(children_vec, $builder, $key : $value);
+            $crate::extract_children!(children_vec, builder, $key : $value);
         )*
 
-        let mut modal = fa_modal_builder($builder);
+        let mut modal = fa_modal_builder(builder);
 
         $(
             $crate::fa_modal_attributes!(modal, $key : $value);

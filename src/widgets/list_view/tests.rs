@@ -2,7 +2,7 @@
 
 use crate::plugin::FamiqPlugin;
 use crate::fa_button;
-use crate::widgets::FamiqResource;
+use crate::widgets::{FamiqResource, inject_builder, builder_mut};
 use bevy::input::InputPlugin;
 use crate::fa_listview;
 use super::*;
@@ -13,7 +13,8 @@ fn setup_test_default_listview(
     mut fa_query: FaQuery
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    fa_listview!(&mut builder, id: "#test-listview");
+    inject_builder(&mut builder);
+    fa_listview!(id: "#test-listview");
 }
 
 fn setup_test_listview_with_children(
@@ -21,10 +22,11 @@ fn setup_test_listview_with_children(
     mut fa_query: FaQuery
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    let button_one = fa_button!(&mut builder, text: "Button 1");
-    let button_two = fa_button!(&mut builder, text: "Button 2");
+    inject_builder(&mut builder);
+    let button_one = fa_button!(text: "Button 1");
+    let button_two = fa_button!(text: "Button 2");
 
-    fa_listview!(&mut builder, children: [button_one, button_two]);
+    fa_listview!(children: [button_one, button_two]);
 }
 
 #[test]

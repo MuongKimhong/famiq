@@ -3,6 +3,7 @@ pub mod styling;
 pub mod systems;
 pub mod tests;
 
+use crate::fa_text;
 use crate::resources::*;
 use crate::utils::*;
 use crate::widgets::*;
@@ -24,55 +25,33 @@ impl<'a> FaSelection {
         placeholder: &str,
         root_node: &'a mut EntityCommands,
     ) -> Entity {
-        let use_color = get_text_color(&attributes.color);
-        let txt_font = TextFont {
-            font: attributes.font_handle.clone().unwrap(),
-            font_size: get_text_size(&attributes.size),
-            ..default()
-        };
-
-        let entity = root_node
-            .commands()
-            .spawn((
-                Text::new(placeholder),
-                txt_font.clone(),
-                TextColor(use_color),
-                TextLayout::new(JustifyText::Left, LineBreak::NoWrap),
-                SelectorPlaceHolder,
-                DefaultTextEntity::new(
-                    Text::new(placeholder),
-                    txt_font,
-                    TextColor(use_color),
-                    TextLayout::new(JustifyText::Left, LineBreak::NoWrap)
-                )
-            ))
-            .id();
-
-        insert_id_and_class(root_node, entity, &attributes.id, &attributes.class);
+        let class = &attributes.class.clone().unwrap_or("".into());
+        let id = &attributes.id.clone().unwrap_or("".into());
+        let layout = TextLayout::new(JustifyText::Left, LineBreak::NoWrap);
+        let entity = fa_text!(
+            text: placeholder,
+            id: id,
+            class: class,
+            has_node: false,
+            has_observer: false,
+            use_get_text_color: true,
+            text_layout: layout
+        );
+        root_node.commands().entity(entity).insert(SelectorPlaceHolder);
         entity
     }
 
-    fn _build_selector_arrow_icon(
-        attributes: &WidgetAttributes,
-        root_node: &'a mut EntityCommands,
-    ) -> Entity {
-        let use_color = get_text_color(&attributes.color);
-        let txt_font = TextFont {
-            font: attributes.font_handle.clone().unwrap(),
-            font_size: get_text_size(&attributes.size),
-            ..default()
-        };
-
-        root_node
-            .commands()
-            .spawn((
-                Text::new("▼"),
-                txt_font,
-                TextColor(use_color),
-                TextLayout::new_with_justify(JustifyText::Right),
-                ArrowIcon
-            ))
-            .id()
+    fn _build_selector_arrow_icon(root_node: &'a mut EntityCommands) -> Entity {
+        let layout = TextLayout::new_with_justify(JustifyText::Right);
+        let entity = fa_text!(
+            text: "▼",
+            has_node: false,
+            has_observer: false,
+            use_get_text_color: true,
+            text_layout: layout
+        );
+        root_node.commands().entity(entity).insert(ArrowIcon);
+        entity
     }
 
     fn _build_selector(
@@ -135,7 +114,7 @@ impl<'a> FaSelection {
         all_choices.extend_from_slice(choices);
 
         for choice in all_choices.iter() {
-            let txt = Self::_build_choice_text(attributes, choice, root_node);
+            let txt = Self::_build_choice_text(choice, root_node);
             let container = Self::_build_choice_container(root_node, txt, selector_entity);
             entity_add_child(root_node, txt, container);
             choice_entities.push(container);
@@ -182,27 +161,19 @@ impl<'a> FaSelection {
             .id()
     }
 
-    fn _build_choice_text(
-        attributes: &WidgetAttributes,
-        choice: &str,
-        root_node: &'a mut EntityCommands,
-    ) -> Entity {
-        let txt_font = TextFont {
-            font: attributes.font_handle.clone().unwrap(),
-            font_size: get_text_size(&attributes.size),
-            ..default()
-        };
-        let use_color = get_text_color(&attributes.color);
+    fn _build_choice_text(choice: &str, root_node: &'a mut EntityCommands) -> Entity {
+        let entity = fa_text!(
+            text: choice,
+            has_node: false,
+            has_observer: false,
+            use_get_text_color: true
+        );
         root_node
             .commands()
-            .spawn((
-                Text::new(choice),
-                txt_font,
-                TextColor(use_color),
-                TextLayout::new_with_justify(JustifyText::Center),
-                Visibility::Inherited,
-            ))
-            .id()
+            .entity(entity)
+            .insert(Visibility::Inherited)
+            .remove::<DefaultTextEntity>();
+        entity
     }
 
     // return Entity of selector
@@ -217,7 +188,7 @@ impl<'a> FaSelection {
             placeholder,
             root_node,
         );
-        let arrow_icon_entity = Self::_build_selector_arrow_icon(attributes, root_node);
+        let arrow_icon_entity = Self::_build_selector_arrow_icon(root_node);
         let selector = Self::_build_selector(
             attributes,
             root_node,
@@ -231,10 +202,8 @@ impl<'a> FaSelection {
             choices,
             selector
         );
-
         root_node.commands().entity(selector).insert(SelectionChoicesPanelEntity(choices_panel));
         entity_add_children(root_node, &vec![placeholder_entity, arrow_icon_entity, choices_panel], selector);
-
         selector
     }
 
@@ -404,61 +373,33 @@ pub fn fa_selection_builder<'a>(
 
 #[macro_export]
 macro_rules! fa_selection {
-    (
-        $builder:expr,
-        placeholder: $placeholder:expr
-        $(, $($rest:tt)+)?
-    ) => {{
-        let mut selection = fa_selection_builder($builder, $placeholder);
+    ( placeholder: $placeholder:expr $(, $key:ident : $value:tt )* $(,)? ) => {{
+        let builder = builder_mut();
+        let mut selection = fa_selection_builder(builder, $placeholder);
         $(
-            $crate::fa_selection_attributes!(selection, $($rest)+);
-        )?
+            $crate::fa_selection_attributes!(selection, $key : $value);
+        )*
         selection.build()
     }};
 }
 
 #[macro_export]
 macro_rules! fa_selection_attributes {
-    ($selection:ident, id: $id:expr $(, $($rest:tt)+)?) => {{
-        $selection = $selection.id($id);
-        $(
-            $crate::fa_selection_attributes!($selection, $($rest)+);
-        )?
+    ($selection:ident, choices: $choices:expr) => {{
+        $selection = $selection.choices($choices);
     }};
 
-    ($selection:ident, class: $class:expr $(, $($rest:tt)+)?) => {{
-        $selection = $selection.class($class);
-        $(
-            $crate::fa_selection_attributes!($selection, $($rest)+);
-        )?
-    }};
-
-    ($selection:ident, choices: $choices:expr $(, $($rest:tt)+)?) => {{
-        $selection = $selection.choices($choices.into_iter());
-        $(
-            $crate::fa_selection_attributes!($selection, $($rest)+);
-        )?
-    }};
-
-    ($selection:ident, display: $display:expr $(, $($rest:tt)+)?) => {{
-        $selection = $selection.display($display);
-        $(
-            $crate::fa_selection_attributes!($selection, $($rest)+);
-        )?
-    }};
-
-    ($selection:ident, model: $model:expr $(, $($rest:tt)+)?) => {{
-        $selection = $selection.model($model);
-        $(
-            $crate::fa_selection_attributes!($selection, $($rest)+);
-        )?
-    }};
-
-    ($selection:ident, tooltip: $tooltip:expr $(, $($rest:tt)+)?) => {{
+    ($selection:ident, tooltip: $tooltip:expr) => {{
         $selection = $selection.tooltip($tooltip);
-        $(
-            $crate::fa_selection_attributes!($selection, $($rest)+);
-        )?
+    }};
+
+    ($selection:ident, model: $model:expr) => {{
+        $selection = $selection.model($model);
+    }};
+
+    // common attributes
+    ($selection:ident, $key:ident : $value:expr) => {{
+        $crate::common_attributes!($selection, $key : $value);
     }};
 }
 

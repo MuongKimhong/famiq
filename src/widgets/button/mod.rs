@@ -9,58 +9,29 @@ use crate::plugin::{CursorIcons, CursorType};
 use crate::utils::*;
 use crate::widgets::*;
 use crate::event_writer::*;
+use crate::fa_text;
+use crate::fa_container;
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 
 pub struct FaButton;
 
 impl<'a> FaButton {
-    fn _build_text(
-        attributes: &WidgetAttributes,
-        text: &str,
-        root_node: &'a mut EntityCommands
-    ) -> Entity {
-        let txt = Text::new(text);
-        let txt_font = TextFont {
-            font: attributes.font_handle.clone().unwrap(),
-            font_size: get_text_size(&attributes.size),
-            ..default()
-        };
-        let txt_color = TextColor(get_text_color(&attributes.color));
-        let txt_layout = TextLayout::new_with_justify(JustifyText::Center);
-
-        let entity = root_node
-            .commands()
-            .spawn((
-                txt.clone(),
-                txt_font.clone(),
-                txt_color.clone(),
-                txt_layout.clone(),
-                DefaultTextEntity::new(txt, txt_font, txt_color, txt_layout),
-                IsFamiqButtonText,
-            ))
-            .id();
-
-        insert_id_and_class(root_node, entity, &attributes.id, &attributes.class);
-
-        if !attributes.bind_keys.is_empty() {
-            root_node
-                .commands()
-                .entity(entity)
-                .insert((
-                    ReactiveKeys(attributes.bind_keys.to_owned()),
-                    ReactiveText(text.to_string())
-                ));
-        }
-        entity
-    }
-
     pub fn new(
         attributes: WidgetAttributes,
         text: &str,
         root_node: &'a mut EntityCommands
     ) -> Entity {
-        let txt_entity = Self::_build_text(&attributes, text, root_node);
+        let class = &attributes.class.clone().unwrap_or("".into());
+        let id = &attributes.id.clone().unwrap_or("".into());
+        let txt_entity = fa_text!(
+            text: text,
+            id: id,
+            class: class,
+            has_node: false,
+            has_observer: false,
+            use_get_text_color: true
+        );
 
         let mut style_components = BaseStyleComponents::default();
         style_components.node = attributes.node.clone();
@@ -68,28 +39,26 @@ impl<'a> FaButton {
         style_components.background_color = get_color(&attributes.color).into();
         style_components.border_radius = BorderRadius::all(Val::Px(6.0));
 
-        let btn_entity = root_node
+        let button = fa_container!(has_observer: false, id: id, class: class, children: [txt_entity]);
+        root_node
             .commands()
-            .spawn((
+            .entity(button)
+            .insert((
                 style_components.clone(),
-                IsFamiqButton,
                 DefaultWidgetEntity::from(style_components),
+                IsFamiqButton,
                 ButtonTextEntity(txt_entity),
-                ButtonColorBeforePressed(None),
-                IsFamiqMainWidget
+                ButtonColorBeforePressed(None)
             ))
-            .observe(FaButton::handle_on_mouse_over)
-            .observe(FaButton::handle_on_mouse_down)
-            .observe(FaButton::handle_on_mouse_out)
             .observe(FaButton::handle_on_mouse_up)
-            .id();
+            .observe(FaButton::handle_on_mouse_down)
+            .observe(FaButton::handle_on_mouse_over)
+            .observe(FaButton::handle_on_mouse_out);
 
         if attributes.has_tooltip {
-            build_tooltip_node(&attributes, root_node, btn_entity);
+            build_tooltip_node(&attributes, root_node, button);
         }
-        insert_id_and_class(root_node, btn_entity, &attributes.id, &attributes.class);
-        entity_add_child(root_node, txt_entity, btn_entity);
-        btn_entity
+        button
     }
 
     fn handle_on_mouse_over(
@@ -192,13 +161,10 @@ pub struct FaButtonBuilder<'a> {
 impl<'a> FaButtonBuilder<'a> {
     pub fn new(
         text: String,
-        font_handle: Handle<Font>,
         root_node: EntityCommands<'a>,
     ) -> Self {
-        let mut attributes = WidgetAttributes::default();
-        attributes.font_handle = Some(font_handle);
         Self {
-            attributes,
+            attributes: WidgetAttributes::default(),
             text,
             root_node
         }
@@ -235,10 +201,8 @@ impl<'a> SetWidgetAttributes for FaButtonBuilder<'a> {
 
 /// API to create a `FaButtonBuilder`.
 pub fn fa_button_builder<'a>(builder: &'a mut FamiqBuilder, text: &str) -> FaButtonBuilder<'a> {
-    let font_handle = builder.asset_server.load(&builder.resource.font_path);
     FaButtonBuilder::new(
         text.to_string(),
-        font_handle,
         builder.ui_root_node.reborrow(),
     )
 }
@@ -246,16 +210,14 @@ pub fn fa_button_builder<'a>(builder: &'a mut FamiqBuilder, text: &str) -> FaBut
 #[macro_export]
 macro_rules! fa_button {
     (
-        $builder:expr,
         text: $text:expr
         $(, $key:ident : $value:tt )* $(,)?
     ) => {{
-        let mut button = fa_button_builder($builder, $text);
-
+        let builder = builder_mut();
+        let mut button = fa_button_builder(builder, $text);
         $(
             $crate::fa_button_attributes!(button, $key : $value);
         )*
-
         button.build()
     }};
 }

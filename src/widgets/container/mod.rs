@@ -6,6 +6,7 @@ use bevy::prelude::*;
 // use crate::extract_children;
 use crate::utils;
 use crate::widgets::*;
+use crate::event_writer::*;
 use super::BaseStyleComponents;
 
 /// Marker component for identifying a Famiq container.
@@ -33,27 +34,83 @@ impl<'a> FaContainer {
     pub fn new(
         attributes: &WidgetAttributes,
         root_node: &'a mut EntityCommands,
-        children: &Vec<Entity>
+        children: &Vec<Entity>,
+        has_observer: bool
     ) -> Entity {
         let mut style_components = BaseStyleComponents::default();
         style_components.node = attributes.node.clone();
         style_components.visibility = Visibility::Visible;
 
-        let container_entity = root_node
-            .commands()
+        let mut temp_cmd = root_node.commands();
+
+        let mut container = temp_cmd
             .spawn((
                 style_components.clone(),
-                IsFamiqContainer,
                 IsFamiqMainWidget,
-                IsFamiqContainableWidget,
                 DefaultWidgetEntity::from(style_components)
-            ))
-            .id();
+            ));
 
-        root_node.add_child(container_entity);
-        utils::insert_id_and_class(root_node, container_entity, &attributes.id, &attributes.class);
-        utils::entity_add_children(root_node, children, container_entity);
-        container_entity
+        if has_observer {
+            container
+                .insert((IsFamiqContainer, IsFamiqContainableWidget))
+                .observe(FaContainer::on_mouse_over)
+                .observe(FaContainer::on_mouse_out)
+                .observe(FaContainer::on_mouse_down)
+                .observe(FaContainer::on_mouse_up);
+        }
+        let entity = container.id();
+        root_node.add_child(entity);
+        utils::insert_id_and_class(root_node, entity, &attributes.id, &attributes.class);
+        utils::entity_add_children(root_node, children, entity);
+        entity
+    }
+
+    fn on_mouse_over(
+        mut trigger: Trigger<Pointer<Over>>,
+        mut writer: EventWriter<FaMouseEvent>,
+        q: Query<Option<&FamiqWidgetId>, With<IsFamiqMainWidget>>
+    ) {
+        if let Ok(id) = q.get(trigger.entity()) {
+            FaMouseEvent::send_event(&mut writer, EventType::Over, WidgetType::Container, trigger.entity(), id);
+        }
+        trigger.propagate(false);
+    }
+
+    fn on_mouse_out(
+        mut trigger: Trigger<Pointer<Out>>,
+        mut writer: EventWriter<FaMouseEvent>,
+        q: Query<Option<&FamiqWidgetId>, With<IsFamiqMainWidget>>
+    ) {
+        if let Ok(id) = q.get(trigger.entity()) {
+            FaMouseEvent::send_event(&mut writer, EventType::Out, WidgetType::Container, trigger.entity(), id);
+        }
+        trigger.propagate(false);
+    }
+
+    fn on_mouse_down(
+        mut trigger: Trigger<Pointer<Down>>,
+        mut writer: EventWriter<FaMouseEvent>,
+        q: Query<Option<&FamiqWidgetId>, With<IsFamiqMainWidget>>
+    ) {
+        if let Ok(id) = q.get(trigger.entity()) {
+            if trigger.event().button == PointerButton::Secondary {
+                FaMouseEvent::send_event(&mut writer, EventType::DownRight, WidgetType::Container, trigger.entity(), id);
+            } else {
+                FaMouseEvent::send_event(&mut writer, EventType::DownLeft, WidgetType::Container, trigger.entity(), id);
+            }
+        }
+        trigger.propagate(false);
+    }
+
+    fn on_mouse_up(
+        mut trigger: Trigger<Pointer<Up>>,
+        mut writer: EventWriter<FaMouseEvent>,
+        q: Query<Option<&FamiqWidgetId>, With<IsFamiqMainWidget>>
+    ) {
+        if let Ok(id) = q.get(trigger.entity()) {
+            FaMouseEvent::send_event(&mut writer, EventType::Up, WidgetType::Container, trigger.entity(), id);
+        }
+        trigger.propagate(false);
     }
 }
 
@@ -61,7 +118,8 @@ impl<'a> FaContainer {
 pub struct FaContainerBuilder<'a> {
     pub attributes: WidgetAttributes,
     pub children: Vec<Entity>,
-    pub root_note: EntityCommands<'a>
+    pub root_note: EntityCommands<'a>,
+    pub(crate) has_observer: bool,
 }
 
 impl<'a> FaContainerBuilder<'a> {
@@ -69,6 +127,7 @@ impl<'a> FaContainerBuilder<'a> {
         Self {
             attributes: WidgetAttributes::default(),
             children: Vec::new(),
+            has_observer: true,
             root_note
         }
     }
@@ -88,7 +147,8 @@ impl<'a> FaContainerBuilder<'a> {
         FaContainer::new(
             &self.attributes,
             &mut self.root_note.reborrow(),
-            &self.children
+            &self.children,
+            self.has_observer
         )
     }
 }
@@ -104,7 +164,6 @@ impl<'a> SetWidgetAttributes for FaContainerBuilder<'a> {
         if self.attributes.default_display_changed {
             self.attributes.node.display = self.attributes.default_display;
         }
-
         utils::process_spacing_built_in_class(&mut self.attributes.node, &self.attributes.class);
     }
 }
@@ -118,14 +177,17 @@ pub fn fa_container_builder<'a>(builder: &'a mut FamiqBuilder) -> FaContainerBui
 
 #[macro_export]
 macro_rules! fa_container {
-    ( $builder:expr, $( $key:ident : $value:tt ),* $(,)? ) => {{
+    ( $( $key:ident : $value:tt ),* $(,)? ) => {{
+
+        let builder = builder_mut();
+
         #[allow(unused_mut)]
         let mut children_vec: Vec<Entity> = Vec::new();
         $(
-            $crate::extract_children!(children_vec, $builder, $key : $value);
+            $crate::extract_children!(children_vec, builder, $key : $value);
         )*
 
-        let mut container = fa_container_builder($builder);
+        let mut container = fa_container_builder(builder);
 
         $(
             $crate::fa_container_attributes!(container, $key : $value);
@@ -138,6 +200,9 @@ macro_rules! fa_container {
 
 #[macro_export]
 macro_rules! fa_container_attributes {
+    ($container:ident, has_observer: $has_observer:expr) => {{
+        $container.has_observer = $has_observer;
+    }};
     // skip children
     ($container:ident, children: $children_vec:tt) => {{}};
 

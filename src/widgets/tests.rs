@@ -25,7 +25,8 @@ fn setup_test_fa_query(
     mut fa_query: FaQuery,
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    let btn = fa_button!(&mut builder, text: "Press me", id: "#test-btn");
+    inject_builder(&mut builder);
+    let btn = fa_button!(text: "Press me", id: "#test-btn");
     commands.insert_resource(TestResource(btn));
 }
 
@@ -35,7 +36,8 @@ fn setup_test_fa_query_for_text(
     mut fa_query: FaQuery,
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    let text = fa_text!(&mut builder, text: "Hello", id: "#test-text");
+    inject_builder(&mut builder);
+    let text = fa_text!(text: "Hello", id: "#test-text");
     commands.insert_resource(TestResource(text));
 }
 
@@ -44,7 +46,8 @@ fn setup_test_containable_for_container(
     mut fa_query: FaQuery
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    let container = fa_container!(&mut builder, id: "#test-container");
+    inject_builder(&mut builder);
+    let container = fa_container!(id: "#test-container");
     fa_query.commands.insert_resource(TestResource(container));
 }
 
@@ -54,8 +57,9 @@ fn run_add_children_for_container(
     test_res: Res<TestResource>
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    let text_one = fa_text!(&mut builder, text: "Hello");
-    let text_two = fa_text!(&mut builder, text: "Hello");
+    inject_builder(&mut builder);
+    let text_one = fa_text!(text: "Hello");
+    let text_two = fa_text!(text: "Hello");
     fa_query.add_children(WidgetSelector::ID("#test-container"), &[text_one]);
     fa_query.add_children(WidgetSelector::ENTITY(test_res.0), &[text_two]);
 }
@@ -66,8 +70,9 @@ fn run_insert_children_for_container(
     test_res: Res<TestResource>
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    let text_one = fa_text!(&mut builder, text: "Hello");
-    let text_two = fa_text!(&mut builder, text: "Hello");
+    inject_builder(&mut builder);
+    let text_one = fa_text!(text: "Hello");
+    let text_two = fa_text!(text: "Hello");
     fa_query.insert_children(WidgetSelector::ID("#test-container"), 0, &[text_one]);
     fa_query.insert_children(WidgetSelector::ENTITY(test_res.0), 0, &[text_two]);
 }
@@ -77,7 +82,8 @@ fn setup_test_containable_for_modal(
     mut fa_query: FaQuery
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    let modal = fa_modal!(&mut builder, id: "#test-modal");
+    inject_builder(&mut builder);
+    let modal = fa_modal!(id: "#test-modal");
     fa_query.commands.insert_resource(TestResource(modal));
 }
 
@@ -87,8 +93,9 @@ fn run_add_children_for_modal(
     test_res: Res<TestResource>
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    let text_one = fa_text!(&mut builder, text: "Hello");
-    let text_two = fa_text!(&mut builder, text: "Hello");
+    inject_builder(&mut builder);
+    let text_one = fa_text!(text: "Hello");
+    let text_two = fa_text!(text: "Hello");
     fa_query.add_children(WidgetSelector::ID("#test-modal"), &[text_one]);
     fa_query.add_children(WidgetSelector::ENTITY(test_res.0), &[text_two]);
 }
@@ -99,8 +106,9 @@ fn run_insert_children_for_modal(
     test_res: Res<TestResource>
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    let text_one = fa_text!(&mut builder, text: "Hello");
-    let text_two = fa_text!(&mut builder, text: "Hello");
+    inject_builder(&mut builder);
+    let text_one = fa_text!(text: "Hello");
+    let text_two = fa_text!(text: "Hello");
     fa_query.insert_children(WidgetSelector::ID("#test-modal"), 0, &[text_one]);
     fa_query.insert_children(WidgetSelector::ENTITY(test_res.0), 0, &[text_two]);
 }
@@ -110,7 +118,8 @@ fn setup_test_containable_for_listview(
     mut fa_query: FaQuery
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    let listview = fa_listview!(&mut builder, id: "#test-listview");
+    inject_builder(&mut builder);
+    let listview = fa_listview!(id: "#test-listview");
     fa_query.commands.insert_resource(TestResource(listview));
 }
 
@@ -120,8 +129,9 @@ fn run_add_children_for_listview(
     test_res: Res<TestResource>
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    let text_one = fa_text!(&mut builder, text: "Hello");
-    let text_two = fa_text!(&mut builder, text: "Hello");
+    inject_builder(&mut builder);
+    let text_one = fa_text!(text: "Hello");
+    let text_two = fa_text!(text: "Hello");
     fa_query.add_children(WidgetSelector::ID("#test-listview"), &[text_one]);
     fa_query.add_children(WidgetSelector::ENTITY(test_res.0), &[text_two]);
 }
@@ -132,8 +142,9 @@ fn run_insert_children_for_listview(
     test_res: Res<TestResource>
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    let text_one = fa_text!(&mut builder, text: "Hello");
-    let text_two = fa_text!(&mut builder, text: "Hello");
+    inject_builder(&mut builder);
+    let text_one = fa_text!(text: "Hello");
+    let text_two = fa_text!(text: "Hello");
     fa_query.insert_children(WidgetSelector::ID("#test-listview"), 0, &[text_one]);
     fa_query.insert_children(WidgetSelector::ENTITY(test_res.0), 0, &[text_two]);
 }
