@@ -45,14 +45,19 @@ pub mod event_writer;
 pub mod plugin;
 pub mod utils;
 pub mod widgets;
+pub mod reactivity;
 
 pub mod prelude {
     pub use crate::plugin::FamiqPlugin;
     pub use crate::resources::*;
+    pub use crate::reactivity::*;
+    pub use crate::utils::{extract_reactive_key, clean_stringify, replace_text_with_reactive_keys};
+    pub use crate::widgets::text::{FaTextFields, FaTextContext};
     pub use crate::widgets::{
-        FamiqBuilder, WidgetType, FamiqWidgetId,
-        DefaultTextEntity, DefaultWidgetEntity,
+        FamiqBuilder, WidgetType, WidgetId,
+        DefaultTextConfig, DefaultWidgetConfig,
         SetWidgetAttributes, FaQuery, WidgetSelector,
+        CommonMacroFields,
         builder_mut,
         inject_builder,
         fa_button_builder,
@@ -81,6 +86,7 @@ pub mod prelude {
     pub use crate::fa_progress_bar;
     pub use crate::fa_selection;
     pub use crate::fa_text;
+    pub use crate::test_text;
     pub use crate::fa_text_input;
     pub use crate::widgets::modal::{IsFamiqModalContainer, IsFamiqModalBackground};
     pub use crate::widgets::text_input::IsFamiqTextInput;
@@ -93,6 +99,7 @@ pub mod prelude {
     pub use crate::widgets::bg_image::{FaBgImageResource, IsFamiqBgImage};
     pub use crate::event_writer::{FaMouseEvent, FaValueChangeEvent};
     pub use bevy::utils::hashbrown::HashMap;
+    pub use serde_json;
 }
 
 pub use prelude::*;

@@ -2,6 +2,7 @@
 
 use crate::event_writer;
 use crate::resources::*;
+use crate::reactivity::*;
 use crate::widgets::{
     list_view::*,
     selection::*,
@@ -88,7 +89,7 @@ fn fa_selection_systems(app: &mut App) {
         Update,
         (
             handle_show_and_hide_choices_panel,
-            handle_selection_choice_interaction_system
+            // handle_selection_choice_interaction_system
         )
         .run_if(can_run_selection_systems)
     );
@@ -98,7 +99,7 @@ fn fa_text_input_systems(app: &mut App) {
     app.add_systems(
         Update,
         (
-            FaTextInput::handle_text_input_on_typing,
+            // FaTextInput::handle_text_input_on_typing,
             FaTextInput::detect_text_input_text_style_change.after(FaTextInput::detect_new_text_input_widget_system),
             FaTextInput::handle_text_input_on_focused,
             FaTextInput::handle_cursor_blink_system,
@@ -185,6 +186,7 @@ impl Plugin for FamiqPlugin {
         app.add_systems(Update, detect_new_widget_with_id);
         app.add_systems(Update, handle_window_resized_system);
         app.add_systems(Update, FaModal::hide_or_display_modal_system.run_if(can_run_modal_systems));
+        app.add_systems(PostUpdate, on_update_subscriber_event);
         app.add_systems(PostUpdate, detect_reactive_data_change);
 
         app.add_plugins(UiMaterialPlugin::<ProgressBarMaterial>::default());
@@ -197,14 +199,15 @@ impl Plugin for FamiqPlugin {
         app.insert_resource(CosmicFontSystem(FontSystem::new()));
         app.insert_resource(CosmicSwashCache(SwashCache::new()));
         app.insert_resource(FaBgImageResource::default());
+        app.insert_resource(RSubscriber::default());
         app.insert_resource(CanBeScrolledListView { entity: None });
         app.insert_resource(FaModalState::default());
         app.insert_resource(CursorIcons::default());
 
         app.add_event::<event_writer::FaValueChangeEvent>();
         app.add_event::<event_writer::FaMouseEvent>();
-
         app.add_event::<RequestRedrawBuffer>();
+        app.add_event::<UpdateReactiveSubscriberEvent>();
 
         external_styles_file_systems(app);
         fa_selection_systems(app);
@@ -218,7 +221,7 @@ impl Plugin for FamiqPlugin {
 }
 
 /// Detect when a widget with id is created
-fn detect_new_widget_with_id(widget_q: Query<&FamiqWidgetId, Added<IsFamiqMainWidget>>) {
+fn detect_new_widget_with_id(widget_q: Query<&WidgetId, Added<MainWidget>>) {
     let mut ids: Vec<&str> = Vec::new();
 
     for id in widget_q.iter() {

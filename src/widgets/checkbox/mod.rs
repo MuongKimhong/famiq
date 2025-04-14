@@ -43,7 +43,7 @@ impl<'a> FaCheckbox {
         let entity = fa_container!(has_observer: false, id: id, class: class);
         root_node.commands().entity(entity).insert((
             style_components.clone(),
-            DefaultWidgetEntity::from(style_components),
+            DefaultWidgetConfig::from(style_components),
             IsFamiqCheckbox
         ));
 

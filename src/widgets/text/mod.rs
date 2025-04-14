@@ -4,6 +4,8 @@ use crate::widgets::*;
 use crate::utils::*;
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
+use serde::{Serialize, Deserialize};
+use serde_json;
 
 /// Marker component for identifying Famiq text widgets.
 #[derive(Component)]
@@ -68,42 +70,18 @@ impl<'a> FaText {
             true => TextColor(get_text_color(&attributes.color)),
             false => TextColor(get_color(&attributes.color))
         };
-        // let txt_layout = TextLayout::new_with_justify(justify_text);
-
-        // let mut style_components = BaseStyleComponents::default();
-        // style_components.node = attributes.node.clone();
-
-        // let entity = root_node
-        //     .commands()
-        //     .spawn((
-        //         txt.clone(),
-        //         txt_font.clone(),
-        //         txt_color.clone(),
-        //         txt_layout.clone(),
-        //         DefaultTextEntity::new(txt, txt_font, txt_color, txt_layout),
-        //         IsFamiqText,
-        //         IsFamiqMainWidget,
-        //         style_components.clone(),
-        //         DefaultWidgetEntity::from(style_components),
-        //         ReactiveText(text.to_string())
-        //     ))
-        //     .observe(FaText::handle_on_mouse_over)
-        //     .observe(FaText::handle_on_mouse_out)
-        //     .observe(FaText::handle_on_mouse_down)
-        //     .observe(FaText::handle_on_mouse_up)
-        //     .id();
-
         let mut temp_cmd = root_node.commands();
-
         let mut entity_cmd = temp_cmd
             .spawn((
                 txt.clone(),
                 txt_font.clone(),
                 txt_color.clone(),
                 text_layout.clone(),
-                DefaultTextEntity::new(txt, txt_font, txt_color, text_layout),
+                DefaultTextConfig::new(txt, txt_font, txt_color, text_layout),
                 IsFamiqText,
-                ReactiveText(text.to_string())
+                ReactiveText(text.to_string()),
+                WidgetType::Text,
+                ReactiveWidget
             ));
 
         if has_observer {
@@ -145,9 +123,9 @@ impl<'a> FaText {
             let mut style_components = BaseStyleComponents::default();
             style_components.node = attributes.node.clone();
             root_node.commands().entity(text).insert((
-                IsFamiqMainWidget,
+                MainWidget,
                 style_components.clone(),
-                DefaultWidgetEntity::from(style_components),
+                DefaultWidgetConfig::from(style_components),
             ));
         }
         text
@@ -157,7 +135,7 @@ impl<'a> FaText {
         mut trigger: Trigger<Pointer<Over>>,
         mut commands: Commands,
         mut writer: EventWriter<FaMouseEvent>,
-        text_q: Query<Option<&FamiqWidgetId>,  With<IsFamiqText>>,
+        text_q: Query<Option<&WidgetId>,  With<IsFamiqText>>,
         window: Single<Entity, With<Window>>,
         cursor_icons: Res<CursorIcons>,
     ) {
@@ -172,7 +150,7 @@ impl<'a> FaText {
         mut trigger: Trigger<Pointer<Out>>,
         mut commands: Commands,
         mut writer: EventWriter<FaMouseEvent>,
-        text_q: Query<Option<&FamiqWidgetId>,  With<IsFamiqText>>,
+        text_q: Query<Option<&WidgetId>,  With<IsFamiqText>>,
         window: Single<Entity, With<Window>>,
         cursor_icons: Res<CursorIcons>,
     ) {
@@ -186,7 +164,7 @@ impl<'a> FaText {
     fn handle_on_mouse_down(
         mut trigger: Trigger<Pointer<Down>>,
         mut writer: EventWriter<FaMouseEvent>,
-        text_q: Query<Option<&FamiqWidgetId>,  With<IsFamiqText>>,
+        text_q: Query<Option<&WidgetId>,  With<IsFamiqText>>,
     ) {
         if let Ok(id) = text_q.get(trigger.entity()) {
             if trigger.event().button == PointerButton::Secondary {
@@ -201,7 +179,7 @@ impl<'a> FaText {
     fn handle_on_mouse_up(
         mut trigger: Trigger<Pointer<Up>>,
         mut writer: EventWriter<FaMouseEvent>,
-        text_q: Query<Option<&FamiqWidgetId>,  With<IsFamiqText>>,
+        text_q: Query<Option<&WidgetId>,  With<IsFamiqText>>,
     ) {
         if let Ok(id) = text_q.get(trigger.entity()) {
             if trigger.event().button == PointerButton::Secondary {
@@ -308,28 +286,19 @@ macro_rules! fa_text {
         $(, $key:ident : $value:tt )* $(,)?
     ) => {{
         let builder = builder_mut();
-        let mut text = fa_text_builder(builder, $text);
+        let all_reactive_keys: &mut Vec<&str> = &mut Vec::new();
+        all_reactive_keys.extend(extract_reactive_key($text));
+
+        let mut text_builder = fa_text_builder(builder, $text);
         $(
-            $crate::fa_text_attributes!(text, $key : $value);
+            $crate::fa_text_attributes!(text_builder, $key : $value);
         )*
-        text.build()
+        text_builder.build()
     }};
 }
 
 #[macro_export]
 macro_rules! fa_text_attributes {
-    ($text:ident, color: $color:expr) => {{
-        $text = $text.color($color);
-    }};
-
-    ($text:ident, tooltip: $tooltip:expr) => {{
-        $text = $text.tooltip($tooltip);
-    }};
-
-    ($text:ident, bind: $bind:expr) => {{
-        $text= $text.bind($bind);
-    }};
-
     ($text:ident, use_get_text_color: $use_get_text_color:expr) => {{
         $text.use_get_text_color = $use_get_text_color;
     }};
@@ -349,6 +318,88 @@ macro_rules! fa_text_attributes {
     // common attributes
     ($text:ident, $key:ident : $value:expr) => {{
         $crate::common_attributes!($text, $key : $value);
+    }};
+}
+
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+pub struct FaTextFields {
+    pub text: String,
+    pub common: CommonMacroFields
+}
+
+impl FaTextFields {
+    pub fn new_with_text(text: &str) -> Self {
+        Self {
+            text: text.to_string(),
+            common: CommonMacroFields::default()
+        }
+    }
+}
+
+pub struct FaTextContext<'a> {
+    pub builder: &'a mut FaTextBuilder<'a>,
+    pub fields: &'a mut FaTextFields,
+    pub reactive_data: &'a HashMap<String, RVal>,
+    pub all_reactive_keys: &'a mut Vec<&'a str>
+}
+
+#[macro_export]
+macro_rules! test_text {
+    ( text: $text:expr $(, $key:ident : $value:tt )* $(,)? ) => {{
+        let builder = builder_mut();
+        let reactive_data = builder.reactive_data.data.clone();
+        let mut fields = FaTextFields::new_with_text($text);
+
+        let reactive_keys = extract_reactive_key($text);
+
+        let mut all_r_keys: Vec<&str> = Vec::new();
+        all_r_keys.extend_from_slice(&reactive_keys);
+
+        let parsed_text = replace_text_with_reactive_keys(
+            $text,
+            &reactive_keys,
+            &reactive_data
+        );
+        let ctx = FaTextContext {
+            builder: &mut fa_text_builder(builder, &parsed_text),
+            fields: &mut fields,
+            reactive_data: &reactive_data,
+            all_reactive_keys: &mut all_r_keys,
+        };
+        $(
+            $crate::test_text_attributes!(ctx, $key : $value);
+        )*
+        ctx.all_reactive_keys.sort();
+        ctx.all_reactive_keys.dedup();
+
+        let entity = ctx.builder.build();
+        let serialized_fields = serde_json::to_string(&ctx.fields).unwrap();
+        let keys: Vec<String> = ctx.all_reactive_keys.iter().map(|k| k.to_string()).collect();
+
+        builder.ui_root_node.commands().queue(move |w: &mut World| {
+            w.send_event(UpdateReactiveSubscriberEvent::new(keys, entity, serialized_fields.clone()));
+        });
+        entity
+    }};
+}
+#[macro_export]
+macro_rules! test_text_attributes {
+    ($ctx:ident, use_get_text_color: $value:expr) => {{
+        $ctx.builder.use_get_text_color = $value;
+    }};
+    ($ctx:ident, has_observer: $value:expr) => {{
+        $ctx.builder.has_observer = $value;
+    }};
+    ($ctx:ident, has_node: $value:expr) => {{
+        $ctx.builder.has_node = $value;
+    }};
+    ($ctx:ident, text_layout: $value:expr) => {{
+        $ctx.builder.text_layout = $value;
+    }};
+
+    // common attributes
+    ($ctx:ident, $key:ident : $value:expr) => {{
+        $crate::test_common_attributes!($ctx, $key : $value);
     }};
 }
 
@@ -380,7 +431,7 @@ mod tests {
         app.update();
 
         let txt_q = app.world_mut()
-            .query::<(&FamiqWidgetId, &Text, &IsFamiqText)>()
+            .query::<(&WidgetId, &Text, &IsFamiqText)>()
             .get_single(app.world());
 
         let id = txt_q.as_ref().unwrap().0;

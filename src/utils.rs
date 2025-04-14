@@ -7,13 +7,15 @@ use cosmic_text::Color as CosmicColor;
 use std::path::Path;
 use std::fs::File;
 use std::io::Read;
+use regex::Regex;
 
 use crate::plugin::{CursorIcons, CursorType};
 use crate::widgets::style_parse::*;
-use crate::widgets::{WidgetStyle, DefaultWidgetEntity, WidgetColor, WidgetSize};
+use crate::widgets::{WidgetStyle, DefaultWidgetConfig, WidgetColor, WidgetSize};
 use crate::widgets::color::*;
+use crate::reactivity::RVal;
 use crate::errors::StylesFileError;
-use crate::widgets::{FamiqWidgetId, FamiqWidgetClasses, FamiqTooltipEntity, IsFamiqTooltip};
+use crate::widgets::{WidgetId, WidgetClasses, TooltipEntity, IsFamiqTooltip};
 
 pub(crate) fn read_styles_json_file(path: &str) -> Result<HashMap<String, WidgetStyle>, StylesFileError> {
     let mut file = match File::open(path) {
@@ -185,16 +187,16 @@ pub(crate) fn insert_id_and_class<'a>(
     class: &Option<String>
 ) {
     if let Some(id) = id {
-        root_node.commands().entity(entity).insert(FamiqWidgetId(id.to_owned()));
+        root_node.commands().entity(entity).insert(WidgetId(id.to_owned()));
     }
     if let Some(class) = class {
-        root_node.commands().entity(entity).insert(FamiqWidgetClasses(class.to_owned()));
+        root_node.commands().entity(entity).insert(WidgetClasses(class.to_owned()));
     }
 }
 
 pub(crate) fn _handle_apply_margin(
     widget_style: &WidgetStyle,
-    default_widget_entity: &DefaultWidgetEntity,
+    default_widget_entity: &DefaultWidgetConfig,
     node: &mut Node
 ) {
     if let Some(margin) = &widget_style.margin {
@@ -240,7 +242,7 @@ pub(crate) fn _handle_apply_margin(
 
 pub(crate) fn _handle_apply_padding(
     widget_style: &WidgetStyle,
-    default_widget_entity: &DefaultWidgetEntity,
+    default_widget_entity: &DefaultWidgetConfig,
     node: &mut Node
 ) {
     if let Some(padding) = &widget_style.padding {
@@ -286,7 +288,7 @@ pub(crate) fn _handle_apply_padding(
 
 pub(crate) fn _handle_apply_border(
     widget_style: &WidgetStyle,
-    default_widget_entity: &DefaultWidgetEntity,
+    default_widget_entity: &DefaultWidgetConfig,
     node: &mut Node
 ) {
     if let Some(border) = &widget_style.border {
@@ -332,7 +334,7 @@ pub(crate) fn _handle_apply_border(
 
 pub(crate) fn _handle_apply_box_shadow(
     widget_style: &WidgetStyle,
-    default_widget_entity: &DefaultWidgetEntity,
+    default_widget_entity: &DefaultWidgetConfig,
     box_shadow: &mut BoxShadow
 ) {
     if let Some(shadow_color_value) = &widget_style.shadow_color {
@@ -441,7 +443,7 @@ pub(crate) fn get_text_size(size: &WidgetSize) -> f32 {
 }
 
 pub(crate) fn show_tooltip(
-    entity: Option<&FamiqTooltipEntity>,
+    entity: Option<&TooltipEntity>,
     tooltip_q: &mut Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
     parent_translation: Vec3
 ) {
@@ -454,7 +456,7 @@ pub(crate) fn show_tooltip(
 }
 
 pub(crate) fn hide_tooltip(
-    entity: Option<&FamiqTooltipEntity>,
+    entity: Option<&TooltipEntity>,
     tooltip_q: &mut Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
 ) {
     if entity.is_some() {
@@ -513,6 +515,58 @@ pub fn bevy_color_to_cosmic_rgba(bevy_color: Color) -> Option<CosmicColor> {
         _ => {}
     }
     None
+}
+
+/// Extract reactive key(s) from string.
+/// Eg, "Hello $[some_thing]" -> "some_thing".
+pub fn extract_reactive_key(text: &str) -> Vec<&str> {
+    let re = Regex::new(r"\$\[(.*?)\]").unwrap();
+    let mut keys: Vec<&str> = Vec::new();
+
+    for capture in re.captures_iter(text) {
+        if let Some(matched) = capture.get(1) {
+            if !keys.contains(&matched.as_str()) {
+                keys.push(matched.as_str());
+            }
+        }
+    }
+    keys
+}
+
+/// Clean the result of stringify! if value being passed into
+/// stringify! is a string.
+/// Eg. stringify!("Hello") -> "\"Hello\"",
+/// clean_stringify(stringify!("Hello")) => "Hello".
+pub fn clean_stringify(stringified: &str) -> String {
+    if stringified.starts_with('"') && stringified.ends_with('"') {
+        stringified[1..stringified.len() - 1].to_string()
+    }
+    else {
+        stringified.to_string()
+    }
+}
+
+/// Example, key "color", value: "blue", text: "This is $[color]".
+/// result: "This is blue".
+pub fn replace_text_with_reactive_keys(
+    old_text: &str,
+    reactive_keys: &Vec<&str>,
+    reactive_data: &HashMap<String, RVal>
+) -> String {
+    let mut new_text = old_text.to_string();
+
+    for key in reactive_keys {
+        let placeholder = format!("$[{}]", key);
+        if let Some(value) = reactive_data.get(*key) {
+            match value {
+                RVal::Str(v) => {
+                    new_text = new_text.replace(&placeholder, v);
+                }
+                _ => {}
+            }
+        }
+    }
+    new_text
 }
 
 #[cfg(test)]

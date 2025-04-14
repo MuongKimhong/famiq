@@ -40,9 +40,9 @@ impl<'a> FaCircular {
             .commands()
             .spawn((
                 style_components.clone(),
-                DefaultWidgetEntity::from(style_components),
+                DefaultWidgetConfig::from(style_components),
                 IsFamiqCircular,
-                IsFamiqMainWidget,
+                MainWidget,
                 SpinnerColor(color)
             ))
             .observe(FaCircular::handle_on_mouse_up)
@@ -69,7 +69,7 @@ impl<'a> FaCircular {
 
     fn handle_on_mouse_over(
         mut over: Trigger<Pointer<Over>>,
-        circular_q: Query<(&GlobalTransform, Option<&FamiqTooltipEntity>, Option<&FamiqWidgetId>), With<IsFamiqCircular>>,
+        circular_q: Query<(&GlobalTransform, Option<&TooltipEntity>, Option<&WidgetId>), With<IsFamiqCircular>>,
         mut tooltip_q: Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
         mut writer: EventWriter<FaMouseEvent>
     ) {
@@ -82,7 +82,7 @@ impl<'a> FaCircular {
 
     fn handle_on_mouse_out(
         mut out: Trigger<Pointer<Out>>,
-        mut circular_q: Query<(Option<&FamiqTooltipEntity>, Option<&FamiqWidgetId>), With<IsFamiqCircular>>,
+        mut circular_q: Query<(Option<&TooltipEntity>, Option<&WidgetId>), With<IsFamiqCircular>>,
         mut tooltip_q: Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
         mut writer: EventWriter<FaMouseEvent>
     ) {
@@ -95,7 +95,7 @@ impl<'a> FaCircular {
 
     fn handle_on_mouse_down(
         mut down: Trigger<Pointer<Down>>,
-        mut circular_q: Query<Option<&FamiqWidgetId>, With<IsFamiqCircular>>,
+        mut circular_q: Query<Option<&WidgetId>, With<IsFamiqCircular>>,
         mut writer: EventWriter<FaMouseEvent>
     ) {
         if let Ok(id) = circular_q.get_mut(down.entity()) {
@@ -110,7 +110,7 @@ impl<'a> FaCircular {
 
     fn handle_on_mouse_up(
         mut up: Trigger<Pointer<Up>>,
-        mut circular_q: Query<Option<&FamiqWidgetId>, With<IsFamiqCircular>>,
+        mut circular_q: Query<Option<&WidgetId>, With<IsFamiqCircular>>,
         mut writer: EventWriter<FaMouseEvent>
     ) {
         if let Ok(id) = circular_q.get_mut(up.entity()) {

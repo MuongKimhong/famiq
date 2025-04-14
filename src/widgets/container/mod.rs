@@ -46,8 +46,8 @@ impl<'a> FaContainer {
         let mut container = temp_cmd
             .spawn((
                 style_components.clone(),
-                IsFamiqMainWidget,
-                DefaultWidgetEntity::from(style_components)
+                MainWidget,
+                DefaultWidgetConfig::from(style_components)
             ));
 
         if has_observer {
@@ -68,7 +68,7 @@ impl<'a> FaContainer {
     fn on_mouse_over(
         mut trigger: Trigger<Pointer<Over>>,
         mut writer: EventWriter<FaMouseEvent>,
-        q: Query<Option<&FamiqWidgetId>, With<IsFamiqMainWidget>>
+        q: Query<Option<&WidgetId>, With<MainWidget>>
     ) {
         if let Ok(id) = q.get(trigger.entity()) {
             FaMouseEvent::send_event(&mut writer, EventType::Over, WidgetType::Container, trigger.entity(), id);
@@ -79,7 +79,7 @@ impl<'a> FaContainer {
     fn on_mouse_out(
         mut trigger: Trigger<Pointer<Out>>,
         mut writer: EventWriter<FaMouseEvent>,
-        q: Query<Option<&FamiqWidgetId>, With<IsFamiqMainWidget>>
+        q: Query<Option<&WidgetId>, With<MainWidget>>
     ) {
         if let Ok(id) = q.get(trigger.entity()) {
             FaMouseEvent::send_event(&mut writer, EventType::Out, WidgetType::Container, trigger.entity(), id);
@@ -90,7 +90,7 @@ impl<'a> FaContainer {
     fn on_mouse_down(
         mut trigger: Trigger<Pointer<Down>>,
         mut writer: EventWriter<FaMouseEvent>,
-        q: Query<Option<&FamiqWidgetId>, With<IsFamiqMainWidget>>
+        q: Query<Option<&WidgetId>, With<MainWidget>>
     ) {
         if let Ok(id) = q.get(trigger.entity()) {
             if trigger.event().button == PointerButton::Secondary {
@@ -105,7 +105,7 @@ impl<'a> FaContainer {
     fn on_mouse_up(
         mut trigger: Trigger<Pointer<Up>>,
         mut writer: EventWriter<FaMouseEvent>,
-        q: Query<Option<&FamiqWidgetId>, With<IsFamiqMainWidget>>
+        q: Query<Option<&WidgetId>, With<MainWidget>>
     ) {
         if let Ok(id) = q.get(trigger.entity()) {
             FaMouseEvent::send_event(&mut writer, EventType::Up, WidgetType::Container, trigger.entity(), id);

@@ -1,7 +1,7 @@
 #![cfg(test)]
 
 use crate::plugin::FamiqPlugin;
-use crate::widgets::{FamiqResource, FamiqWidgetId, FamiqWidgetClasses, inject_builder, builder_mut};
+use crate::widgets::{FamiqResource, WidgetId, WidgetClasses, inject_builder, builder_mut};
 use crate::utils::{get_embedded_asset_path, create_test_app};
 use crate::fa_image;
 use super::*;
@@ -43,7 +43,7 @@ fn test_create_default_image() {
     app.add_systems(Startup, setup_test_default_image);
     app.update();
 
-    let img_q = app.world_mut().query::<(&FamiqWidgetId, &IsFamiqImage)>().get_single(app.world());
+    let img_q = app.world_mut().query::<(&WidgetId, &IsFamiqImage)>().get_single(app.world());
     assert!(img_q.is_ok(), "There should be only 1 Image");
 
     let img_id = img_q.unwrap().0;
@@ -57,7 +57,7 @@ fn test_create_image_with_class() {
     app.add_systems(Startup, setup_test_image_with_class);
     app.update();
 
-    let img_q = app.world_mut().query::<(&FamiqWidgetClasses, &IsFamiqImage)>().get_single(app.world());
+    let img_q = app.world_mut().query::<(&WidgetClasses, &IsFamiqImage)>().get_single(app.world());
     assert!(img_q.is_ok(), "There should be only 1 Image");
     assert_eq!("test-class-one".to_string(), img_q.unwrap().0.0);
 }

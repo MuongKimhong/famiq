@@ -55,17 +55,17 @@ impl<'a> FaFpsText {
                 label_txt_font.clone(),
                 TextColor(WHITE_COLOR),
                 TextLayout::new_with_justify(JustifyText::Center),
-                DefaultTextEntity::new(
+                DefaultTextConfig::new(
                     Text::new("FPS:"),
                     label_txt_font,
                     TextColor(WHITE_COLOR),
                     TextLayout::new_with_justify(JustifyText::Center),
                 ),
-                IsFamiqMainWidget,
+                MainWidget,
                 IsFamiqFPSTextLabel,
                 style_components.clone(),
                 GlobalZIndex(6),
-                DefaultWidgetEntity::from(style_components)
+                DefaultWidgetConfig::from(style_components)
             ))
             .observe(FaFpsText::handle_on_mouse_over)
             .observe(FaFpsText::handle_on_mouse_out)
@@ -104,7 +104,7 @@ impl<'a> FaFpsText {
     fn handle_on_mouse_over(
         mut trigger: Trigger<Pointer<Over>>,
         mut writer: EventWriter<FaMouseEvent>,
-        fps_q: Query<Option<&FamiqWidgetId>, With<IsFamiqFPSTextLabel>>
+        fps_q: Query<Option<&WidgetId>, With<IsFamiqFPSTextLabel>>
     ) {
         if let Ok(id) = fps_q.get(trigger.entity()) {
             FaMouseEvent::send_event(&mut writer, EventType::Over, WidgetType::FpsText, trigger.entity(), id);
@@ -115,7 +115,7 @@ impl<'a> FaFpsText {
     fn handle_on_mouse_out(
         mut trigger: Trigger<Pointer<Out>>,
         mut writer: EventWriter<FaMouseEvent>,
-        fps_q: Query<Option<&FamiqWidgetId>, With<IsFamiqFPSTextLabel>>
+        fps_q: Query<Option<&WidgetId>, With<IsFamiqFPSTextLabel>>
     ) {
         if let Ok(id) = fps_q.get(trigger.entity()) {
             FaMouseEvent::send_event(&mut writer, EventType::Out, WidgetType::FpsText, trigger.entity(), id);

@@ -25,8 +25,8 @@ impl<'a> FaImage {
                 ImageNode::new(attributes.image_handle.clone().unwrap()),
                 style_components.clone(),
                 IsFamiqImage,
-                IsFamiqMainWidget,
-                DefaultWidgetEntity::from(style_components)
+                MainWidget,
+                DefaultWidgetConfig::from(style_components)
             ))
             .observe(FaImage::handle_on_mouse_over)
             .observe(FaImage::handle_on_mouse_out)
@@ -45,7 +45,7 @@ impl<'a> FaImage {
         mut trigger: Trigger<Pointer<Over>>,
         mut writer: EventWriter<FaMouseEvent>,
         mut tooltip_q: Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
-        image_q: Query<(Option<&FamiqWidgetId>, &GlobalTransform, Option<&FamiqTooltipEntity>), With<IsFamiqImage>>
+        image_q: Query<(Option<&WidgetId>, &GlobalTransform, Option<&TooltipEntity>), With<IsFamiqImage>>
     ) {
         if let Ok((id, transform, tooltip_entity)) = image_q.get(trigger.entity()) {
             show_tooltip(tooltip_entity, &mut tooltip_q, transform.translation());
@@ -58,7 +58,7 @@ impl<'a> FaImage {
         mut trigger: Trigger<Pointer<Out>>,
         mut writer: EventWriter<FaMouseEvent>,
         mut tooltip_q: Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
-        image_q: Query<(Option<&FamiqWidgetId>, Option<&FamiqTooltipEntity>), With<IsFamiqImage>>
+        image_q: Query<(Option<&WidgetId>, Option<&TooltipEntity>), With<IsFamiqImage>>
     ) {
         if let Ok((id, tooltip_entity)) = image_q.get(trigger.entity()) {
             hide_tooltip(tooltip_entity, &mut tooltip_q);
@@ -70,7 +70,7 @@ impl<'a> FaImage {
     fn handle_on_mouse_down(
         mut trigger: Trigger<Pointer<Down>>,
         mut writer: EventWriter<FaMouseEvent>,
-        image_q: Query<Option<&FamiqWidgetId>, With<IsFamiqImage>>
+        image_q: Query<Option<&WidgetId>, With<IsFamiqImage>>
     ) {
         if let Ok(id) = image_q.get(trigger.entity()) {
             if trigger.event().button == PointerButton::Secondary {
@@ -85,7 +85,7 @@ impl<'a> FaImage {
     fn handle_on_mouse_up(
         mut trigger: Trigger<Pointer<Up>>,
         mut writer: EventWriter<FaMouseEvent>,
-        image_q: Query<Option<&FamiqWidgetId>, With<IsFamiqImage>>
+        image_q: Query<Option<&WidgetId>, With<IsFamiqImage>>
     ) {
         if let Ok(id) = image_q.get(trigger.entity()) {
             FaMouseEvent::send_event(&mut writer, EventType::Up, WidgetType::Image, trigger.entity(), id);

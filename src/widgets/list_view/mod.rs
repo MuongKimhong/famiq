@@ -64,7 +64,7 @@ impl<'a> FaListView {
             .spawn((
                 style_components.clone(),
                 IsFamiqListViewMovePanel,
-                DefaultWidgetEntity::from(style_components),
+                DefaultWidgetConfig::from(style_components),
                 ScrollList::new(scroll_height)
             ))
             .id();
@@ -100,9 +100,9 @@ impl<'a> FaListView {
             .spawn((
                 style_components.clone(),
                 IsFamiqListView,
-                IsFamiqMainWidget,
+                MainWidget,
                 IsFamiqContainableWidget,
-                DefaultWidgetEntity::from(style_components),
+                DefaultWidgetConfig::from(style_components),
                 ListViewMovePanelEntity(panel_entity)
             ))
             .id();
@@ -166,10 +166,10 @@ impl<'a> FaListView {
     pub fn on_scroll_system(
         mut mouse_wheel_events: EventReader<MouseWheel>,
         mut listview_q: Query<
-            (&mut Node, &ComputedNode, &ListViewMovePanelEntity, Option<&FamiqWidgetId>),
+            (&mut Node, &ComputedNode, &ListViewMovePanelEntity, Option<&WidgetId>),
             Without<ScrollList>
         >,
-        mut panel_q: Query<(&mut Node, &ComputedNode, &mut ScrollList, &mut DefaultWidgetEntity)>,
+        mut panel_q: Query<(&mut Node, &ComputedNode, &mut ScrollList, &mut DefaultWidgetConfig)>,
         mut mouse_event_writer: EventWriter<FaMouseEvent>,
         can_be_scrolled_listview: ResMut<CanBeScrolledListView>,
     ) {

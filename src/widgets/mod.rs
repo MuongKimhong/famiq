@@ -36,12 +36,14 @@ pub use checkbox::fa_checkbox_builder;
 pub use base_components::*;
 pub use style::*;
 use crate::resources::*;
-use crate::utils::get_text_size;
+use crate::reactivity::*;
+use crate::utils::*;
 use crate::widgets::style_parse::*;
 use bevy::ecs::system::{EntityCommands, SystemParam};
 use bevy::ecs::query::QueryData;
 use bevy::prelude::*;
 use std::cell::RefCell;
+use serde::{Serialize, Deserialize};
 
 #[derive(Clone, Default, PartialEq)]
 pub enum WidgetColor {
@@ -110,14 +112,26 @@ pub trait SetWidgetAttributes: Sized {
         self
     }
 
+    fn set_id(&mut self, id: &str) {
+        self.attributes().id = Some(id.to_string());
+    }
+
     fn class(mut self, class: &str) -> Self {
         self.attributes().class = Some(class.to_string());
         self
     }
 
+    fn set_class(&mut self, class: &str) {
+        self.attributes().class = Some(class.to_string());
+    }
+
     fn color(mut self, color: &str) -> Self {
         self.attributes().color = WidgetColor::Custom(color.to_string());
         self
+    }
+
+    fn set_color(&mut self, color: &str) {
+        self.attributes().color = WidgetColor::Custom(color.to_string());
     }
 
     fn size(mut self, size: f32) -> Self {
@@ -129,6 +143,11 @@ pub trait SetWidgetAttributes: Sized {
         self.attributes().has_tooltip = true;
         self.attributes().tooltip_text = text.to_string();
         self
+    }
+
+    fn set_tooltip(&mut self, text: &str) {
+        self.attributes().has_tooltip = true;
+        self.attributes().tooltip_text = text.to_string();
     }
 
     fn display(mut self, display: &str) -> Self {
@@ -191,7 +210,7 @@ pub trait SetWidgetAttributes: Sized {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Component)]
 pub enum WidgetType {
     Root, // globalzindex 1
     Button,
@@ -205,13 +224,15 @@ pub enum WidgetType {
     ProgressBar,
     ToolTip, // globalzindex 4
     Modal, // globalzindex 5
-    Image
+    Image,
+    BackgroudImage
 }
 
 pub struct FamiqBuilder<'a> {
     pub asset_server: &'a Res<'a, AssetServer>,
     pub ui_root_node: EntityCommands<'a>,
-    pub resource: Mut<'a, FamiqResource>
+    pub resource: Mut<'a, FamiqResource>,
+    pub reactive_data: Mut<'a, RData>
 }
 
 impl<'a> FamiqBuilder<'a> {
@@ -219,7 +240,8 @@ impl<'a> FamiqBuilder<'a> {
         Self {
             asset_server: &fa_query.asset_server,
             ui_root_node: fa_query.commands.entity(famiq_resource.root_node_entity.unwrap()),
-            resource: famiq_resource.reborrow()
+            resource: famiq_resource.reborrow(),
+            reactive_data: fa_query.reactive_data.reborrow()
         }
     }
 
@@ -359,7 +381,7 @@ pub(crate) fn build_tooltip_node<'a>(
         .commands()
         .entity(widget_entity)
         .add_child(tooltip_entity)
-        .insert(FamiqTooltipEntity(tooltip_entity));
+        .insert(TooltipEntity(tooltip_entity));
 
     tooltip_entity
 }
@@ -380,7 +402,9 @@ pub struct StyleQuery {
     visibility: &'static mut Visibility,
     box_shadow: &'static mut BoxShadow,
     node: &'static mut Node,
-    id: Option<&'static FamiqWidgetId>,
+    id: Option<&'static WidgetId>,
+    class: Option<&'static WidgetClasses>,
+    default_style: &'static DefaultWidgetConfig
 }
 
 /// Text query
@@ -389,7 +413,7 @@ pub struct StyleQuery {
 pub struct TextStyleQuery {
     text_color: &'static mut TextColor,
     text_font: &'static mut TextFont,
-    id: Option<&'static FamiqWidgetId>,
+    id: Option<&'static WidgetId>,
 }
 
 #[derive(QueryData)]
@@ -398,26 +422,27 @@ pub struct ContainableQuery {
     entity: Entity,
     listview_panel: Option<&'static ListViewMovePanelEntity>,
     modal_container: Option<&'static FaModalContainerEntity>,
-    id: Option<&'static FamiqWidgetId>
+    id: Option<&'static WidgetId>
 }
 
 #[derive(QueryData)]
 pub struct ModalQuery {
     entity: Entity,
-    id: Option<&'static FamiqWidgetId>
+    id: Option<&'static WidgetId>
 }
 
 /// Famiq query
 #[derive(SystemParam)]
 pub struct FaQuery<'w, 's> {
-    pub style_query: Query<'w, 's, StyleQuery, With<IsFamiqMainWidget>>,
-    pub text_style_query: Query<'w, 's, TextStyleQuery, With<IsFamiqMainWidget>>,
+    pub style_query: Query<'w, 's, StyleQuery>,
+    pub text_style_query: Query<'w, 's, TextStyleQuery>,
     pub containable_query: Query<'w, 's, ContainableQuery, With<IsFamiqContainableWidget>>,
     pub modal_query: Query<'w, 's, ModalQuery, With<IsFamiqModalBackground>>,
     pub modal_state: ResMut<'w, FaModalState>,
     pub reactive_data: ResMut<'w, RData>,
     pub commands: Commands<'w, 's>,
-    pub asset_server: Res<'w, AssetServer>
+    pub asset_server: Res<'w, AssetServer>,
+    pub reactive_subscriber: ResMut<'w, RSubscriber>
 }
 
 impl<'w, 's> FaQuery<'w, 's> {
@@ -598,6 +623,14 @@ impl<'w, 's> FaQuery<'w, 's> {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+pub struct CommonMacroFields {
+    pub id: Option<String>,
+    pub class: Option<String>,
+    pub color: Option<String>,
+    pub tooltip: Option<String>
+}
+
 #[macro_export]
 macro_rules! extract_children {
     // For children: [ item1, item2, item3 ]
@@ -637,6 +670,87 @@ macro_rules! common_attributes {
     }};
     ( $widget:ident, display : $value:expr ) => {{
         $widget = $widget.display($value);
+    }};
+    ( $widget:ident, color : $color:expr ) => {{
+        $widget = $widget.color($color);
+    }};
+    ( $widget:ident, tooltip : $tooltip:expr ) => {{
+        $widget = $widget.tooltip($tooltip);
+    }};
+}
+
+#[macro_export]
+macro_rules! test_common_attributes {
+    ( $ctx:ident, $key:ident : $value:expr ) => {{
+        match stringify!($key) {
+            "id" => {
+                $ctx.builder.set_id($value);
+                $ctx.fields.common.id = Some($value.to_string());
+            }
+            "class" => {
+                let class = {
+                    let reactive_keys = extract_reactive_key($value);
+                    $ctx.all_reactive_keys.extend_from_slice(&reactive_keys);
+                    replace_text_with_reactive_keys($value, &reactive_keys, $ctx.reactive_data)
+                };
+                println!("class in macro {:?}", class);
+                if let Some(value) = $ctx.reactive_data.get(&class) {
+                    match value {
+                        RVal::Str(v) => {
+                            $ctx.builder.set_class(v);
+                            $ctx.fields.common.class = Some($value.to_string());
+                        }
+                        _ => {}
+                    }
+                }
+                else {
+                    $ctx.builder.set_class(&class);
+                    $ctx.fields.common.class = Some($value.to_string());
+                }
+            }
+            "color" => {
+                let color = {
+                    let reactive_keys = extract_reactive_key($value);
+                    $ctx.all_reactive_keys.extend_from_slice(&reactive_keys);
+                    replace_text_with_reactive_keys($value, &reactive_keys, $ctx.reactive_data)
+                };
+                if let Some(value) = $ctx.reactive_data.get(&color) {
+                    match value {
+                        RVal::Str(v) => {
+                            $ctx.builder.set_color(v);
+                            $ctx.fields.common.color = Some(v.to_string());
+                        }
+                        _ => {}
+                    }
+                }
+                else {
+                    $ctx.builder.set_color(&color);
+                    $ctx.fields.common.color = Some(color);
+                }
+
+            }
+            "tooltip" => {
+                let tooltip = {
+                    let reactive_keys = extract_reactive_key($value);
+                    $ctx.all_reactive_keys.extend_from_slice(&reactive_keys);
+                    replace_text_with_reactive_keys($value, &reactive_keys, $ctx.reactive_data)
+                };
+                if let Some(value) = $ctx.reactive_data.get(&tooltip) {
+                    match value {
+                        RVal::Str(v) => {
+                            $ctx.builder.set_tooltip(v);
+                            $ctx.fields.common.tooltip = Some(v.to_string());
+                        }
+                        _ => {}
+                    }
+                }
+                else {
+                    $ctx.builder.set_tooltip(&tooltip);
+                    $ctx.fields.common.tooltip = Some(tooltip);
+                }
+            }
+            _ => {}
+        }
     }};
 }
 

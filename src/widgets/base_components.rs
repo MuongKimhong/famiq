@@ -5,26 +5,26 @@ use serde::{Deserialize, Serialize};
 
 use super::text_input::CosmicTextData;
 
-#[derive(Component)]
-pub struct FamiqToolTipText(pub String);
+#[derive(Component, Deref, Debug)]
+pub struct WidgetId(pub String);
 
 #[derive(Component, Deref, Debug)]
-pub struct FamiqWidgetId(pub String);
-
-#[derive(Component, Deref, Debug)]
-pub struct FamiqWidgetClasses(pub String);
+pub struct WidgetClasses(pub String);
 
 #[derive(Component)]
 pub(crate) struct IsFamiqTooltip;
 
 #[derive(Component)]
-pub(crate) struct FamiqTooltipEntity(pub Entity);
+pub(crate) struct TooltipEntity(pub Entity);
 
 #[derive(Component)]
-pub struct IsFamiqMainWidget;
+pub struct MainWidget;
 
 #[derive(Component)]
 pub struct IsFamiqContainableWidget;
+
+#[derive(Component)]
+pub struct ReactiveWidget;
 
 #[derive(Component, Debug)]
 pub struct ReactiveKeys(pub Vec<String>);
@@ -70,7 +70,7 @@ impl Default for BaseStyleComponents {
 }
 
 #[derive(Component)]
-pub struct DefaultWidgetEntity {
+pub struct DefaultWidgetConfig {
     pub node: Node,
     pub border_color: BorderColor,
     pub border_radius: BorderRadius,
@@ -80,9 +80,9 @@ pub struct DefaultWidgetEntity {
     pub box_shadow: BoxShadow
 }
 
-impl From<BaseStyleComponents> for DefaultWidgetEntity {
+impl From<BaseStyleComponents> for DefaultWidgetConfig {
     fn from(base: BaseStyleComponents) -> Self {
-        DefaultWidgetEntity {
+        DefaultWidgetConfig {
             node: base.node,
             border_color: base.border_color,
             border_radius: base.border_radius,
@@ -95,14 +95,14 @@ impl From<BaseStyleComponents> for DefaultWidgetEntity {
 }
 
 #[derive(Component)]
-pub struct DefaultTextEntity {
+pub struct DefaultTextConfig {
     pub text: Text,
     pub text_font: TextFont,
     pub text_color: TextColor,
     pub text_layout: TextLayout,
 }
 
-impl DefaultTextEntity {
+impl DefaultTextConfig {
     pub fn new(
         text: Text,
         text_font: TextFont,

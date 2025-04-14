@@ -88,8 +88,8 @@ impl<'a> FaTextInput {
             .spawn((
                 style_components.clone(),
                 IsFamiqTextInput,
-                IsFamiqMainWidget,
-                DefaultWidgetEntity::from(style_components),
+                MainWidget,
+                DefaultWidgetConfig::from(style_components),
                 FaTextEdit::new(placeholder),
                 CosmicDataColor::new(placeholder_color),
                 CosmicData::default(),
@@ -279,7 +279,7 @@ impl<'a> FaTextInput {
     fn handle_on_mouse_over(
         mut trigger: Trigger<Pointer<Over>>,
         mut input_q: Query<
-            (&mut BoxShadow, &BorderColor, Option<&FamiqWidgetId>, &GlobalTransform, Option<&FamiqTooltipEntity>),
+            (&mut BoxShadow, &BorderColor, Option<&WidgetId>, &GlobalTransform, Option<&TooltipEntity>),
             With<IsFamiqTextInput>
         >,
         mut param: InputPickingParam
@@ -302,7 +302,7 @@ impl<'a> FaTextInput {
     fn handle_on_mouse_out(
         mut trigger: Trigger<Pointer<Out>>,
         mut input_q: Query<
-            (&mut BoxShadow, Option<&FamiqWidgetId>, Option<&FamiqTooltipEntity>),
+            (&mut BoxShadow, Option<&WidgetId>, Option<&TooltipEntity>),
             With<IsFamiqTextInput>
         >,
         mut param: InputPickingParam
@@ -324,7 +324,7 @@ impl<'a> FaTextInput {
 
     fn handle_on_mouse_down(
         mut trigger: Trigger<Pointer<Down>>,
-        mut input_q: Query<(Option<&FamiqWidgetId>, &mut FaTextEdit, &mut CosmicData), With<IsFamiqTextInput>>,
+        mut input_q: Query<(Option<&WidgetId>, &mut FaTextEdit, &mut CosmicData), With<IsFamiqTextInput>>,
         mut famiq_res: ResMut<FamiqResource>,
         mut writer: EventWriter<FaMouseEvent>,
     ) {
@@ -347,7 +347,7 @@ impl<'a> FaTextInput {
 
     fn handle_on_mouse_up(
         mut trigger: Trigger<Pointer<Up>>,
-        mut input_q: Query<Option<&FamiqWidgetId>, With<IsFamiqTextInput>>,
+        mut input_q: Query<Option<&WidgetId>, With<IsFamiqTextInput>>,
         mut writer: EventWriter<FaMouseEvent>,
     ) {
         if let Ok(id) = input_q.get_mut(trigger.entity()) {

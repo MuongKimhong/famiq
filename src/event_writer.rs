@@ -71,7 +71,7 @@ impl FaMouseEvent {
         event_type: EventType,
         widget_type: WidgetType,
         entity: Entity,
-        id: Option<&FamiqWidgetId>
+        id: Option<&WidgetId>
     ) {
         writer.send(FaMouseEvent {
             event_type,

@@ -88,7 +88,7 @@ pub(crate) struct TypingParam<'w, 's> {
     >,
     pub texture_q: Query<
         'w, 's, &'static mut Node,
-        (With<IsFamiqTextInputBufferTexture>, Without<IsFamiqMainWidget>)
+        (With<IsFamiqTextInputBufferTexture>, Without<MainWidget>)
     >,
     pub fa_query: FaQuery<'w, 's>,
     pub evr_kbd: EventReader<'w, 's, KeyboardInput>,

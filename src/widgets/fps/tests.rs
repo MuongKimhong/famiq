@@ -2,7 +2,7 @@
 
 use crate::plugin::FamiqPlugin;
 use crate::utils::create_test_app;
-use crate::widgets::{FamiqResource, FamiqWidgetId, FamiqWidgetClasses, inject_builder, builder_mut};
+use crate::widgets::{FamiqResource, WidgetId, WidgetClasses, inject_builder, builder_mut};
 use crate::fa_fps;
 use super::*;
 
@@ -41,7 +41,7 @@ fn test_create_default_fps() {
     app.update();
 
     let fps_q = app.world_mut()
-        .query::<(&FamiqWidgetId, &FamiqWidgetClasses, &IsFamiqFPSTextLabel)>()
+        .query::<(&WidgetId, &WidgetClasses, &IsFamiqFPSTextLabel)>()
         .get_single(app.world());
 
     let fps_id = fps_q.as_ref().unwrap().0;

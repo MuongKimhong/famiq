@@ -39,7 +39,7 @@ fn test_create_default_listview() {
     app.update();
 
     let listview_q = app.world_mut()
-        .query::<(&FamiqWidgetId, &Children, &IsFamiqListView)>()
+        .query::<(&WidgetId, &Children, &IsFamiqListView)>()
         .get_single(app.world());
 
     assert!(listview_q.is_ok(), "There should be only 1 listview");

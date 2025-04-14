@@ -2,7 +2,6 @@
 
 use crate::plugin::FamiqPlugin;
 use crate::widgets::FamiqResource;
-use crate::fa_text;
 use crate::fa_modal;
 use super::*;
 
@@ -35,7 +34,7 @@ fn test_create_default_modal() {
     app.add_systems(Startup, setup_test_default_modal);
     app.update();
 
-    let modal_q = app.world_mut().query::<(&FamiqWidgetId, &IsFamiqModalBackground)>().get_single(app.world());
+    let modal_q = app.world_mut().query::<(&WidgetId, &IsFamiqModalBackground)>().get_single(app.world());
     assert!(modal_q.is_ok(), "There should be only 1 listview");
 
     let modal_id = modal_q.unwrap().0;

@@ -75,8 +75,8 @@ impl<'a> FaSelection {
             .spawn((
                 style_components.clone(),
                 IsFamiqSelectionSelector,
-                IsFamiqMainWidget,
-                DefaultWidgetEntity::from(style_components),
+                MainWidget,
+                DefaultWidgetConfig::from(style_components),
                 SelectionValue::default(),
                 Selection::new(placeholder.to_string()),
                 SelectorPlaceHolderEntity(placeholder_entity),
@@ -172,7 +172,7 @@ impl<'a> FaSelection {
             .commands()
             .entity(entity)
             .insert(Visibility::Inherited)
-            .remove::<DefaultTextEntity>();
+            .remove::<DefaultTextConfig>();
         entity
     }
 
@@ -222,7 +222,7 @@ impl<'a> FaSelection {
     fn handle_on_mouse_over(
         mut trigger: Trigger<Pointer<Over>>,
         mut selector_q: Query<
-            (&mut BoxShadow, &BorderColor, Option<&FamiqWidgetId>, &GlobalTransform, Option<&FamiqTooltipEntity>),
+            (&mut BoxShadow, &BorderColor, Option<&WidgetId>, &GlobalTransform, Option<&TooltipEntity>),
             With<IsFamiqSelectionSelector>
         >,
         mut commands: Commands,
@@ -243,7 +243,7 @@ impl<'a> FaSelection {
     fn handle_on_mouse_out(
         mut trigger: Trigger<Pointer<Out>>,
         mut selector_q: Query<
-            (&mut BoxShadow, Option<&FamiqWidgetId>, Option<&FamiqTooltipEntity>),
+            (&mut BoxShadow, Option<&WidgetId>, Option<&TooltipEntity>),
             With<IsFamiqSelectionSelector>
         >,
         mut commands: Commands,
@@ -263,7 +263,7 @@ impl<'a> FaSelection {
 
     fn handle_on_mouse_down(
         mut trigger: Trigger<Pointer<Down>>,
-        mut selector_q: Query<Option<&FamiqWidgetId>, With<IsFamiqSelectionSelector>>,
+        mut selector_q: Query<Option<&WidgetId>, With<IsFamiqSelectionSelector>>,
         mut writer: EventWriter<FaMouseEvent>,
         mut famiq_res: ResMut<FamiqResource>
     ) {
@@ -290,7 +290,7 @@ impl<'a> FaSelection {
 
     fn handle_on_mouse_up(
         mut trigger: Trigger<Pointer<Up>>,
-        mut selector_q: Query<Option<&FamiqWidgetId>, With<IsFamiqSelectionSelector>>,
+        mut selector_q: Query<Option<&WidgetId>, With<IsFamiqSelectionSelector>>,
         mut writer: EventWriter<FaMouseEvent>,
     ) {
         if let Ok(id) = selector_q.get_mut(trigger.entity()) {

@@ -2,7 +2,7 @@
 
 use crate::utils::create_test_app;
 use crate::plugin::FamiqPlugin;
-use crate::widgets::{FamiqWidgetId, FamiqWidgetClasses, FamiqResource, inject_builder, builder_mut};
+use crate::widgets::{WidgetId, WidgetClasses, FamiqResource, inject_builder, builder_mut};
 use crate::fa_progress_bar;
 use super::*;
 
@@ -32,7 +32,7 @@ fn test_create_default_bar() {
     app.update();
 
     let bar_q = app.world_mut()
-        .query::<(&FamiqWidgetId, &IsFamiqProgressBar)>()
+        .query::<(&WidgetId, &IsFamiqProgressBar)>()
         .get_single(app.world());
 
     let bar_id = bar_q.unwrap().0;
@@ -47,7 +47,7 @@ fn test_create_bar_with_built_in_class() {
     app.update();
 
     let bar_q = app.world_mut()
-        .query::<(&FamiqWidgetClasses, &IsFamiqProgressBar)>()
+        .query::<(&WidgetClasses, &IsFamiqProgressBar)>()
         .get_single(app.world());
 
     assert_eq!("is-primary is-large".to_string(), bar_q.unwrap().0.0);

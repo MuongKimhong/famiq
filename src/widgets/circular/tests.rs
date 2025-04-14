@@ -40,7 +40,7 @@ fn test_create_default_circular() {
     app.add_systems(Startup, setup_test_default_circular);
     app.update();
 
-    let circular_q = app.world_mut().query::<(&FamiqWidgetId, &Node, &IsFamiqCircular)>().get_single(app.world());
+    let circular_q = app.world_mut().query::<(&WidgetId, &Node, &IsFamiqCircular)>().get_single(app.world());
     assert!(circular_q.is_ok(), "There should be only 1 circular");
 
     let circular_id = circular_q.as_ref().unwrap().0;
@@ -70,7 +70,7 @@ fn test_create_circular_with_built_in_class() {
     app.add_systems(Startup, setup_test_circular_with_built_in_class);
     app.update();
 
-    let circular_q = app.world_mut().query::<(&FamiqWidgetClasses, &Node, &IsFamiqCircular)>().get_single(app.world());
+    let circular_q = app.world_mut().query::<(&WidgetClasses, &Node, &IsFamiqCircular)>().get_single(app.world());
 
     let circular_class = circular_q.as_ref().unwrap().0;
     assert_eq!(

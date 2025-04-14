@@ -2,7 +2,7 @@
 
 use crate::plugin::FamiqPlugin;
 use crate::fa_button;
-use crate::widgets::{FamiqWidgetId, FamiqWidgetClasses, FaQuery, inject_builder, builder_mut};
+use crate::widgets::{WidgetId, WidgetClasses, FaQuery, inject_builder, builder_mut};
 use super::*;
 
 fn setup_test_default_button(
@@ -34,7 +34,7 @@ fn test_create_default_button() {
     app.add_systems(Startup, setup_test_default_button);
     app.update();
 
-    let btn_q = app.world_mut().query::<(&FamiqWidgetId, &IsFamiqButton)>().get_single(app.world());
+    let btn_q = app.world_mut().query::<(&WidgetId, &IsFamiqButton)>().get_single(app.world());
     assert!(btn_q.is_ok(), "There should be only 1 button");
 
     let btn_id = btn_q.unwrap().0;
@@ -59,7 +59,7 @@ fn test_create_button_with_built_in_class() {
     app.add_systems(Startup, setup_test_button_with_built_in_class);
     app.update();
 
-    let btn_q = app.world_mut().query::<(&FamiqWidgetClasses, &IsFamiqButton)>().get_single(app.world());
+    let btn_q = app.world_mut().query::<(&WidgetClasses, &IsFamiqButton)>().get_single(app.world());
     assert_eq!(
         "is-primary is-large is-round".to_string(),
         btn_q.unwrap().0.0

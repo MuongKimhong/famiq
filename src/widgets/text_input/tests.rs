@@ -2,7 +2,7 @@
 
 use crate::plugin::FamiqPlugin;
 use crate::widgets::color::PRIMARY_COLOR;
-use crate::widgets::FamiqWidgetClasses;
+use crate::widgets::WidgetClasses;
 use crate::utils;
 use crate::fa_text_input;
 use bevy::input::InputPlugin;
@@ -35,7 +35,7 @@ fn test_create_default_input() {
     app.update();
 
     let input_q = app.world_mut()
-        .query::<(&FamiqWidgetId, &IsFamiqTextInput)>()
+        .query::<(&WidgetId, &IsFamiqTextInput)>()
         .get_single(app.world());
 
     let input_id = input_q.unwrap().0;
@@ -51,7 +51,7 @@ fn test_create_input_with_built_in_class() {
     app.update();
 
     let input_q = app.world_mut()
-        .query::<(&FamiqWidgetClasses, &BackgroundColor, &IsFamiqTextInput)>()
+        .query::<(&WidgetClasses, &BackgroundColor, &IsFamiqTextInput)>()
         .get_single(app.world());
 
     let input_class = input_q.as_ref().unwrap().0;

@@ -95,291 +95,220 @@ impl FamiqResource {
     }
 }
 
-#[derive(Debug, Default, Clone)]
-pub enum RVal {
-    #[default]
-    None,
-    Num(i32),
-    FNum(f32),
-    Str(String),
-    List(Vec<String>),
-    Bool(bool)
-}
+// pub(crate) fn detect_reactive_data_change(
+//     mut r_data: ResMut<RData>,
+//     mut r_text_q: Query<
+//         (&mut Text, &ReactiveText, &ReactiveKeys),
+//         Or<(With<IsFamiqText>, With<IsFamiqButtonText>)>
+//     >,
 
-impl RVal {
-    /// Get inner value of Num as i32.
-    pub fn as_num(&self) -> i32 {
-        match self {
-            RVal::Num(v) => *v,
-            _ => panic!("\n[FamiqError]: calling as_num() on none RVal::Num\n")
-        }
-    }
+//     mut progress_bar_value_q: Query<
+//         (Entity, &ReactiveModelKey, Option<&FamiqWidgetId>, &mut Node, &mut FaProgressValuePercentage),
+//         With<IsFamiqProgressValue>
+//     >,
 
-    /// Get inner value of FNum as f32.
-    pub fn as_f_num(&self) -> f32 {
-        match self {
-            RVal::FNum(v) => *v,
-            _ => panic!("\n[FamiqError]: calling as_f_num() on none RVal::FNum\n"),
-        }
-    }
+//     checkbox_q: Query<
+//         (Entity, &ReactiveModelKey, Option<&FamiqWidgetId>),
+//         With<IsFamiqCheckbox>
+//     >,
+//     checkbox_item_q: Query<(&CheckBoxItemBoxEntity, &CheckBoxItemText)>,
+//     mut checkbox_item_box_q: Query<(&mut CheckBoxChoiceTicked, &mut BackgroundColor)>,
 
-    /// Get inner value of Str as &str.
-    pub fn as_str(&self) -> &str {
-        match self {
-            RVal::Str(v) => v.as_str(),
-            _ => panic!("\n[FamiqError]: calling as_str() on none RVal::Str\n"),
-        }
-    }
+//     modal_bg_q: Query<(Entity, &ReactiveModelKey), With<IsFamiqModalBackground>>,
+//     mut modal_res: ResMut<FaModalState>,
 
-    /// Get inner value of List as Vec<String>
-    pub fn as_vec(&self) -> &Vec<String> {
-        match self {
-            RVal::List(v) => v,
-            _ => panic!("\n[FamiqError]: calling as_vec() on none RVal::List\n")
-        }
-    }
+//     selector_q: Query<
+//         (Entity, &Selection, &ReactiveModelKey, Option<&FamiqWidgetId>, &SelectorPlaceHolderEntity),
+//         With<IsFamiqSelectionSelector>
+//     >,
+//     mut selector_placeholder_q: Query<
+//         &mut Text,
+//         (With<SelectorPlaceHolder>, Without<IsFamiqText>, Without<IsFamiqButtonText>)
+//     >,
 
-    /// Get inner value of Bool as bool
-    pub fn as_bool(&self) -> bool {
-        match self {
-            RVal::Bool(v) => *v,
-            _ => panic!("\n[FamiqError]: calling as_bool() on none RVal::Bool\n")
-        }
-    }
-}
+//     mut text_input_q: Query<
+//         (
+//             Entity,
+//             &mut FaTextEdit,
+//             &ReactiveModelKey,
+//             &mut CosmicData,
+//             Option<&FamiqWidgetId>,
+//             &FaTextInputBufferTextureEntity
+//         ),
+//         With<IsFamiqTextInput>
+//     >,
+//     texture_q: Query<
+//         &Node,
+//         (With<IsFamiqTextInputBufferTexture>, Without<IsFamiqMainWidget>, Without<IsFamiqProgressValue>)
+//     >,
+//     mut font_system: ResMut<CosmicFontSystem>,
 
-/// Reactive data
-#[derive(Resource, Debug, Default)]
-pub struct RData {
-    pub data: HashMap<String, RVal>,
-    pub changed_keys: Vec<String>,
-}
+//     mut change_writer: EventWriter<FaValueChangeEvent>,
+//     mut request_redraw: EventWriter<RequestRedrawBuffer>
+// ) {
+//     if !r_data.is_changed() && !r_data.is_added() {
+//         return;
+//     }
+//     // reactive text
+//     for (mut text, r_text, r_keys) in r_text_q.iter_mut() {
+//         let mut temp_r_text = r_text.0.clone();
 
-impl RData {
-    pub fn type_match(old_val: &RVal, new_val: &RVal) -> bool {
-        match (old_val, new_val) {
-            (RVal::Num(_), RVal::Num(_)) => true,
-            (RVal::FNum(_), RVal::FNum(_)) => true,
-            (RVal::Str(_), RVal::Str(_)) => true,
-            _ => false
-        }
-    }
-}
+//         for (i, key) in r_keys.0.iter().enumerate() {
+//             if let Some(value) = r_data.data.get(key) {
+//                 let placeholder = format!("$[{}]", i);
 
-pub(crate) fn detect_reactive_data_change(
-    mut r_data: ResMut<RData>,
-    mut r_text_q: Query<
-        (&mut Text, &ReactiveText, &ReactiveKeys),
-        Or<(With<IsFamiqText>, With<IsFamiqButtonText>)>
-    >,
+//                 match value {
+//                     RVal::Num(v) => temp_r_text = temp_r_text.replace(&placeholder, &v.to_string()),
+//                     RVal::FNum(v) => temp_r_text = temp_r_text.replace(&placeholder, &v.to_string()),
+//                     RVal::Str(v) => temp_r_text = temp_r_text.replace(&placeholder, v),
+//                     _ => {}
+//                 }
+//             }
+//         }
+//         text.0 = temp_r_text;
+//     }
 
-    mut progress_bar_value_q: Query<
-        (Entity, &ReactiveModelKey, Option<&FamiqWidgetId>, &mut Node, &mut FaProgressValuePercentage),
-        With<IsFamiqProgressValue>
-    >,
+//     // progress bar
+//     for (entity, model_key, id, mut bar_value_node, mut percentage) in progress_bar_value_q.iter_mut() {
+//         if let Some(value) = r_data.data.get(&model_key.0) {
+//             let mut value_changed = false;
+//             match value {
+//                 RVal::FNum(v) => {
+//                     percentage.0 = Some(v.to_owned());
+//                     bar_value_node.width = Val::Percent(v.to_owned());
+//                     value_changed = true;
+//                 }
+//                 RVal::None => {
+//                     percentage.0 = None;
+//                     bar_value_node.width = Val::Percent(100.0);
+//                     value_changed = true;
+//                 }
+//                 _ => {}
+//             }
+//             if value_changed {
+//                 change_writer.send(FaValueChangeEvent::new(
+//                     entity,
+//                     id.map(|_id| _id.0.clone()),
+//                     model_key.0.clone()
+//                 ));
+//             }
+//         }
+//     }
 
-    checkbox_q: Query<
-        (Entity, &ReactiveModelKey, Option<&FamiqWidgetId>),
-        With<IsFamiqCheckbox>
-    >,
-    checkbox_item_q: Query<(&CheckBoxItemBoxEntity, &CheckBoxItemText)>,
-    mut checkbox_item_box_q: Query<(&mut CheckBoxChoiceTicked, &mut BackgroundColor)>,
+//     // checkbox
+//     for (entity, model_key, id) in checkbox_q.iter() {
+//         if let Some(value) = r_data.data.get(&model_key.0) {
+//             match value {
+//                 RVal::List(items) => {
+//                     for (box_entity, item_text) in checkbox_item_q.iter() {
+//                         if let Ok((mut box_ticked, mut bg_color)) = checkbox_item_box_q.get_mut(box_entity.0) {
+//                             box_ticked.0 = items.contains(&item_text.0);
 
-    modal_bg_q: Query<(Entity, &ReactiveModelKey), With<IsFamiqModalBackground>>,
-    mut modal_res: ResMut<FaModalState>,
+//                             if box_ticked.0 {
+//                                 bg_color.0 = PRIMARY_DARK_COLOR;
+//                             } else {
+//                                 bg_color.0 = Color::NONE;
+//                             }
+//                         }
+//                     }
+//                     change_writer.send(FaValueChangeEvent::new(
+//                         entity,
+//                         id.map(|_id| _id.0.clone()),
+//                         model_key.0.clone()
+//                     ));
+//                 }
+//                 _ => {}
+//             }
+//         }
+//     }
 
-    selector_q: Query<
-        (Entity, &Selection, &ReactiveModelKey, Option<&FamiqWidgetId>, &SelectorPlaceHolderEntity),
-        With<IsFamiqSelectionSelector>
-    >,
-    mut selector_placeholder_q: Query<
-        &mut Text,
-        (With<SelectorPlaceHolder>, Without<IsFamiqText>, Without<IsFamiqButtonText>)
-    >,
+//     // modal
+//     for (entity, model_key) in modal_bg_q.iter() {
+//         if let Some(value) = r_data.data.get(&model_key.0) {
+//             let mut current_state = false;
 
-    mut text_input_q: Query<
-        (
-            Entity,
-            &mut FaTextEdit,
-            &ReactiveModelKey,
-            &mut CosmicData,
-            Option<&FamiqWidgetId>,
-            &FaTextInputBufferTextureEntity
-        ),
-        With<IsFamiqTextInput>
-    >,
-    texture_q: Query<
-        &Node,
-        (With<IsFamiqTextInputBufferTexture>, Without<IsFamiqMainWidget>, Without<IsFamiqProgressValue>)
-    >,
-    mut font_system: ResMut<CosmicFontSystem>,
+//             match value {
+//                 RVal::Bool(state) => current_state = *state,
+//                 _ => {}
+//             }
+//             let is_visible = modal_res
+//                 .get_state_by_entity(entity)
+//                 .copied()
+//                 .unwrap_or(false);
 
-    mut change_writer: EventWriter<FaValueChangeEvent>,
-    mut request_redraw: EventWriter<RequestRedrawBuffer>
-) {
-    if !r_data.is_changed() && !r_data.is_added() {
-        return;
-    }
-    // reactive text
-    for (mut text, r_text, r_keys) in r_text_q.iter_mut() {
-        let mut temp_r_text = r_text.0.clone();
+//             if current_state != is_visible {
+//                 if current_state {
+//                     modal_res.show_by_entity(entity);
+//                 } else {
+//                     modal_res.hide_by_entity(entity);
+//                 }
+//             }
+//         }
+//     }
 
-        for (i, key) in r_keys.0.iter().enumerate() {
-            if let Some(value) = r_data.data.get(key) {
-                let placeholder = format!("$[{}]", i);
+//     // selection
+//     for (entity, selection, model_key, id, pl_entity) in selector_q.iter() {
+//         if let Some(value) = r_data.data.get(&model_key.0) {
+//             if let Ok(mut pl_text) = selector_placeholder_q.get_mut(pl_entity.0) {
+//                 match value {
+//                     RVal::Str(v) => {
+//                         if !v.is_empty() {
+//                             pl_text.0 = v.to_owned();
+//                         } else {
+//                             pl_text.0 = selection.placeholder.to_owned();
+//                         }
+//                         change_writer.send(FaValueChangeEvent::new(
+//                             entity,
+//                             id.map(|_id| _id.0.clone()),
+//                             model_key.0.clone()
+//                         ));
+//                     },
+//                     _ => {}
+//                 }
+//             }
+//         }
+//     }
 
-                match value {
-                    RVal::Num(v) => temp_r_text = temp_r_text.replace(&placeholder, &v.to_string()),
-                    RVal::FNum(v) => temp_r_text = temp_r_text.replace(&placeholder, &v.to_string()),
-                    RVal::Str(v) => temp_r_text = temp_r_text.replace(&placeholder, v),
-                    _ => {}
-                }
-            }
-        }
-        text.0 = temp_r_text;
-    }
+//     // text input
+//     for (entity, mut text_edit, model_key, mut cosmic_data, id, buf_entity) in text_input_q.iter_mut() {
+//         if let Ok(texture_node) = texture_q.get(buf_entity.0) {
+//             if let Some(value) = r_data.data.get(&model_key.0) {
+//                 match value {
+//                     RVal::Str(v) => {
+//                         if text_edit.value != *v {
+//                             text_edit.value = v.to_owned();
 
-    // progress bar
-    for (entity, model_key, id, mut bar_value_node, mut percentage) in progress_bar_value_q.iter_mut() {
-        if let Some(value) = r_data.data.get(&model_key.0) {
-            let mut value_changed = false;
-            match value {
-                RVal::FNum(v) => {
-                    percentage.0 = Some(v.to_owned());
-                    bar_value_node.width = Val::Percent(v.to_owned());
-                    value_changed = true;
-                }
-                RVal::None => {
-                    percentage.0 = None;
-                    bar_value_node.width = Val::Percent(100.0);
-                    value_changed = true;
-                }
-                _ => {}
-            }
-            if value_changed {
-                change_writer.send(FaValueChangeEvent::new(
-                    entity,
-                    id.map(|_id| _id.0.clone()),
-                    model_key.0.clone()
-                ));
-            }
-        }
-    }
+//                             let CosmicData { buffer_dim, attrs, editor, .. } = &mut *cosmic_data;
 
-    // checkbox
-    for (entity, model_key, id) in checkbox_q.iter() {
-        if let Some(value) = r_data.data.get(&model_key.0) {
-            match value {
-                RVal::List(items) => {
-                    for (box_entity, item_text) in checkbox_item_q.iter() {
-                        if let Ok((mut box_ticked, mut bg_color)) = checkbox_item_box_q.get_mut(box_entity.0) {
-                            box_ticked.0 = items.contains(&item_text.0);
+//                             if let Some(editor) = editor.as_mut() {
+//                                 editor.with_buffer_mut(|buffer| {
+//                                     buffer.set_size(&mut font_system.0, None, None);
+//                                     buffer.set_text(&mut font_system.0, &text_edit.value, attrs.unwrap(), Shaping::Advanced);
+//                                     helper::update_buffer_text_layout(
+//                                         &mut font_system.0,
+//                                         &mut text_edit,
+//                                         buffer_dim,
+//                                         buffer,
+//                                         texture_node
+//                                     );
+//                                 });
+//                                 editor.set_cursor(Cursor::new(0, text_edit.cursor_index));
+//                             }
+//                         }
+//                         else {
+//                             change_writer.send(FaValueChangeEvent::new(
+//                                 entity,
+//                                 id.map(|_id| _id.0.clone()),
+//                                 model_key.0.clone()
+//                             ));
+//                         }
+//                         request_redraw.send(RequestRedrawBuffer::new(entity));
+//                     }
+//                     _ => {}
+//                 }
+//             }
+//         }
+//     }
 
-                            if box_ticked.0 {
-                                bg_color.0 = PRIMARY_DARK_COLOR;
-                            } else {
-                                bg_color.0 = Color::NONE;
-                            }
-                        }
-                    }
-                    change_writer.send(FaValueChangeEvent::new(
-                        entity,
-                        id.map(|_id| _id.0.clone()),
-                        model_key.0.clone()
-                    ));
-                }
-                _ => {}
-            }
-        }
-    }
-
-    // modal
-    for (entity, model_key) in modal_bg_q.iter() {
-        if let Some(value) = r_data.data.get(&model_key.0) {
-            let mut current_state = false;
-
-            match value {
-                RVal::Bool(state) => current_state = *state,
-                _ => {}
-            }
-            let is_visible = modal_res
-                .get_state_by_entity(entity)
-                .copied()
-                .unwrap_or(false);
-
-            if current_state != is_visible {
-                if current_state {
-                    modal_res.show_by_entity(entity);
-                } else {
-                    modal_res.hide_by_entity(entity);
-                }
-            }
-        }
-    }
-
-    // selection
-    for (entity, selection, model_key, id, pl_entity) in selector_q.iter() {
-        if let Some(value) = r_data.data.get(&model_key.0) {
-            if let Ok(mut pl_text) = selector_placeholder_q.get_mut(pl_entity.0) {
-                match value {
-                    RVal::Str(v) => {
-                        if !v.is_empty() {
-                            pl_text.0 = v.to_owned();
-                        } else {
-                            pl_text.0 = selection.placeholder.to_owned();
-                        }
-                        change_writer.send(FaValueChangeEvent::new(
-                            entity,
-                            id.map(|_id| _id.0.clone()),
-                            model_key.0.clone()
-                        ));
-                    },
-                    _ => {}
-                }
-            }
-        }
-    }
-
-    // text input
-    for (entity, mut text_edit, model_key, mut cosmic_data, id, buf_entity) in text_input_q.iter_mut() {
-        if let Ok(texture_node) = texture_q.get(buf_entity.0) {
-            if let Some(value) = r_data.data.get(&model_key.0) {
-                match value {
-                    RVal::Str(v) => {
-                        if text_edit.value != *v {
-                            text_edit.value = v.to_owned();
-
-                            let CosmicData { buffer_dim, attrs, editor, .. } = &mut *cosmic_data;
-
-                            if let Some(editor) = editor.as_mut() {
-                                editor.with_buffer_mut(|buffer| {
-                                    buffer.set_size(&mut font_system.0, None, None);
-                                    buffer.set_text(&mut font_system.0, &text_edit.value, attrs.unwrap(), Shaping::Advanced);
-                                    helper::update_buffer_text_layout(
-                                        &mut font_system.0,
-                                        &mut text_edit,
-                                        buffer_dim,
-                                        buffer,
-                                        texture_node
-                                    );
-                                });
-                                editor.set_cursor(Cursor::new(0, text_edit.cursor_index));
-                            }
-                        }
-                        else {
-                            change_writer.send(FaValueChangeEvent::new(
-                                entity,
-                                id.map(|_id| _id.0.clone()),
-                                model_key.0.clone()
-                            ));
-                        }
-                        request_redraw.send(RequestRedrawBuffer::new(entity));
-                    }
-                    _ => {}
-                }
-            }
-        }
-    }
-
-    r_data.changed_keys.clear();
-}
+//     r_data.changed_keys.clear();
+// }

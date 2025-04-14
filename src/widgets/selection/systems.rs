@@ -47,7 +47,7 @@ pub fn handle_selection_choice_interaction_system(
             &SelectionChoiceTextEntity,
             &SelectorEntity
         ),
-        (With<IsFamiqSelectionChoice>, Without<IsFamiqMainWidget>, Changed<Interaction>)
+        (With<IsFamiqSelectionChoice>, Without<MainWidget>, Changed<Interaction>)
     >,
     mut selection_q: Query<(Entity, &ReactiveModelKey), With<IsFamiqSelectionSelector>>,
     mut fa_query: FaQuery,

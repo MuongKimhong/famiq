@@ -3,7 +3,7 @@
 use crate::plugin::FamiqPlugin;
 use crate::fa_container;
 use crate::fa_button;
-use crate::widgets::{FamiqResource, FamiqWidgetId, FamiqWidgetClasses, inject_builder, builder_mut};
+use crate::widgets::{FamiqResource, WidgetId, WidgetClasses, inject_builder, builder_mut};
 use super::*;
 
 fn setup_test_default_container(
@@ -49,7 +49,7 @@ fn test_create_default_container() {
     app.add_systems(Startup, setup_test_default_container);
     app.update();
 
-    let container_q = app.world_mut().query::<(&FamiqWidgetId, &IsFamiqContainer)>().get_single(app.world());
+    let container_q = app.world_mut().query::<(&WidgetId, &IsFamiqContainer)>().get_single(app.world());
     assert!(container_q.is_ok(), "There should be only 1 container");
 
     let container_id = container_q.unwrap().0;
@@ -63,7 +63,7 @@ fn test_create_container_with_class() {
     app.add_systems(Startup, setup_test_container_with_class);
     app.update();
 
-    let container_q = app.world_mut().query::<(&FamiqWidgetClasses, &IsFamiqContainer)>().get_single(app.world());
+    let container_q = app.world_mut().query::<(&WidgetClasses, &IsFamiqContainer)>().get_single(app.world());
     assert!(container_q.is_ok(), "There should be only 1 container");
 
     let container_class = container_q.unwrap().0;

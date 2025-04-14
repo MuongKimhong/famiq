@@ -74,7 +74,7 @@ impl<'a> FaModal {
             .commands()
             .spawn((
                 style_components.clone(),
-                DefaultWidgetEntity::from(style_components),
+                DefaultWidgetConfig::from(style_components),
                 IsFamiqModalContainer,
                 FocusPolicy::Block,
                 AnimationProgress(0.0),
@@ -106,7 +106,7 @@ impl<'a> FaModal {
             .spawn((
                 style_components,
                 IsFamiqModalBackground,
-                IsFamiqMainWidget,
+                MainWidget,
                 IsFamiqContainableWidget,
                 FocusPolicy::Block,
                 FaModalContainerEntity(container_entity),

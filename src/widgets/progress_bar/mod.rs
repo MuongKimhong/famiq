@@ -76,9 +76,9 @@ impl<'a> FaProgressBar {
             .commands()
             .spawn((
                 style_components.clone(),
-                DefaultWidgetEntity::from(style_components),
+                DefaultWidgetConfig::from(style_components),
                 IsFamiqProgressBar,
-                IsFamiqMainWidget
+                MainWidget
             ))
             .observe(FaProgressBar::handle_on_mouse_over)
             .observe(FaProgressBar::handle_on_mouse_out)
@@ -138,7 +138,7 @@ impl<'a> FaProgressBar {
         mut trigger: Trigger<Pointer<Over>>,
         mut writer: EventWriter<FaMouseEvent>,
         mut tooltip_q: Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
-        bar_q: Query<(&GlobalTransform, Option<&FamiqWidgetId>, Option<&FamiqTooltipEntity>), With<IsFamiqProgressBar>>
+        bar_q: Query<(&GlobalTransform, Option<&WidgetId>, Option<&TooltipEntity>), With<IsFamiqProgressBar>>
     ) {
         if let Ok((transform, id, tooltip_entity)) = bar_q.get(trigger.entity()) {
             show_tooltip(tooltip_entity, &mut tooltip_q, transform.translation());
@@ -151,7 +151,7 @@ impl<'a> FaProgressBar {
         mut trigger: Trigger<Pointer<Out>>,
         mut writer: EventWriter<FaMouseEvent>,
         mut tooltip_q: Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
-        bar_q: Query<(Option<&FamiqWidgetId>, Option<&FamiqTooltipEntity>), With<IsFamiqProgressBar>>
+        bar_q: Query<(Option<&WidgetId>, Option<&TooltipEntity>), With<IsFamiqProgressBar>>
     ) {
         if let Ok((id, tooltip_entity)) = bar_q.get(trigger.entity()) {
             hide_tooltip(tooltip_entity, &mut tooltip_q);
@@ -163,7 +163,7 @@ impl<'a> FaProgressBar {
     fn handle_on_mouse_down(
         mut trigger: Trigger<Pointer<Down>>,
         mut writer: EventWriter<FaMouseEvent>,
-        bar_q: Query<Option<&FamiqWidgetId>, With<IsFamiqProgressBar>>
+        bar_q: Query<Option<&WidgetId>, With<IsFamiqProgressBar>>
     ) {
         if let Ok(id) = bar_q.get(trigger.entity()) {
             if trigger.event().button == PointerButton::Secondary {
@@ -178,7 +178,7 @@ impl<'a> FaProgressBar {
     fn handle_on_mouse_up(
         mut trigger: Trigger<Pointer<Up>>,
         mut writer: EventWriter<FaMouseEvent>,
-        bar_q: Query<Option<&FamiqWidgetId>, With<IsFamiqProgressBar>>
+        bar_q: Query<Option<&WidgetId>, With<IsFamiqProgressBar>>
     ) {
         if let Ok(id) = bar_q.get(trigger.entity()) {
             FaMouseEvent::send_event(&mut writer, EventType::Up, WidgetType::ProgressBar, trigger.entity(), id);

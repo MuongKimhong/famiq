@@ -45,7 +45,7 @@ fn test_create_default_selection() {
     app.update();
 
     let selection_q = app.world_mut()
-        .query::<(&FamiqWidgetId, &IsFamiqSelectionSelector)>()
+        .query::<(&WidgetId, &IsFamiqSelectionSelector)>()
         .get_single(app.world());
 
     assert!(selection_q.is_ok(), "There should be only 1 selection");

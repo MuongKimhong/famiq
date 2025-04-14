@@ -45,7 +45,7 @@ impl<'a> FaButton {
             .entity(button)
             .insert((
                 style_components.clone(),
-                DefaultWidgetEntity::from(style_components),
+                DefaultWidgetConfig::from(style_components),
                 IsFamiqButton,
                 ButtonTextEntity(txt_entity),
                 ButtonColorBeforePressed(None)
@@ -67,7 +67,7 @@ impl<'a> FaButton {
         mut commands: Commands,
         mut writer: EventWriter<FaMouseEvent>,
         button_q: Query<
-            (&GlobalTransform, Option<&FamiqTooltipEntity>, Option<&FamiqWidgetId>),
+            (&GlobalTransform, Option<&TooltipEntity>, Option<&WidgetId>),
             With<IsFamiqButton>
         >,
         window: Single<Entity, With<Window>>,
@@ -90,7 +90,7 @@ impl<'a> FaButton {
         mut down: Trigger<Pointer<Down>>,
         mut famiq_res: ResMut<FamiqResource>,
         mut button_q: Query<
-            (&mut BackgroundColor, &mut ButtonColorBeforePressed, Option<&FamiqWidgetId>),
+            (&mut BackgroundColor, &mut ButtonColorBeforePressed, Option<&WidgetId>),
             With<IsFamiqButton>
         >,
         mut writer: EventWriter<FaMouseEvent>
@@ -114,7 +114,7 @@ impl<'a> FaButton {
 
     fn handle_on_mouse_up(
         mut up: Trigger<Pointer<Up>>,
-        mut button_q: Query<(&mut BackgroundColor, &ButtonColorBeforePressed, Option<&FamiqWidgetId>), With<IsFamiqButton>>,
+        mut button_q: Query<(&mut BackgroundColor, &ButtonColorBeforePressed, Option<&WidgetId>), With<IsFamiqButton>>,
         mut writer: EventWriter<FaMouseEvent>
     ) {
         if let Ok((mut bg_color, before_pressed_color, id)) = button_q.get_mut(up.entity()) {
@@ -130,7 +130,7 @@ impl<'a> FaButton {
         mut out: Trigger<Pointer<Out>>,
         mut tooltip_q: Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
         mut button_q: Query<
-            (Option<&FamiqTooltipEntity>, Option<&FamiqWidgetId>, &mut BackgroundColor, &ButtonColorBeforePressed),
+            (Option<&TooltipEntity>, Option<&WidgetId>, &mut BackgroundColor, &ButtonColorBeforePressed),
             With<IsFamiqButton>
         >,
         mut commands: Commands,

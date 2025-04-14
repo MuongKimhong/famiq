@@ -10,8 +10,8 @@ pub type WidgetStyleQuery<'a, 'w, 's> = Query<
     'w,
     's,
     (
-        Option<&'a FamiqWidgetId>,
-        Option<&'a FamiqWidgetClasses>,
+        Option<&'a WidgetId>,
+        Option<&'a WidgetClasses>,
         &'a mut Node,
         &'a mut BackgroundColor,
         &'a mut BorderColor,
@@ -19,7 +19,7 @@ pub type WidgetStyleQuery<'a, 'w, 's> = Query<
         &'a mut ZIndex,
         &'a mut Visibility,
         &'a mut BoxShadow,
-        &'a DefaultWidgetEntity,
+        &'a DefaultWidgetConfig,
     ),
 >;
 
@@ -72,6 +72,8 @@ pub(crate) fn detect_widget_external_styles_change(
     mut widget_query: WidgetStyleQuery
 ) {
     if styles.is_changed() {
+        use std::time::Instant;
+        let now = Instant::now();
         for (
             id,
             class,
@@ -132,6 +134,7 @@ pub(crate) fn detect_widget_external_styles_change(
             }
 
             if changed {
+                println!("apply");
                 apply_styles_from_external_json(
                     &mut bg_color,
                     &mut bd_color,
@@ -145,6 +148,8 @@ pub(crate) fn detect_widget_external_styles_change(
                 );
             }
         }
+        let elapsed = now.elapsed();
+        println!("apply style in : {:.2?}", elapsed);
     }
 }
 
@@ -154,9 +159,9 @@ pub(crate) fn detect_text_external_styles_change(
         Option<&mut TextFont>,
         Option<&mut TextColor>,
         Option<&mut CosmicTextData>,
-        Option<&FamiqWidgetId>,
-        Option<&FamiqWidgetClasses>,
-        Option<&DefaultTextEntity>,
+        Option<&WidgetId>,
+        Option<&WidgetClasses>,
+        Option<&DefaultTextConfig>,
         Option<&DefaultTextSpanEntity>,
         Option<&DefaultCosmicTextEntity>
     )>
@@ -278,7 +283,7 @@ pub(crate) fn apply_text_styles_for_cosmic_text(
 
 pub(crate) fn apply_text_styles_from_external_json(
     local_style: &WidgetStyle,
-    default_text_entity: Option<&DefaultTextEntity>,
+    default_text_entity: Option<&DefaultTextConfig>,
     default_text_span_entity: Option<&DefaultTextSpanEntity>,
     text_font: Option<Mut<'_, TextFont>>,
     text_color: Option<Mut<'_, TextColor>>,
@@ -331,7 +336,7 @@ pub(crate) fn apply_styles_from_external_json(
     node: &mut Node,
     box_shadow: &mut BoxShadow,
     widget_style: &WidgetStyle,
-    default_widget_entity: &DefaultWidgetEntity
+    default_widget_entity: &DefaultWidgetConfig
 ) {
     utils::_handle_apply_padding(widget_style, default_widget_entity, node);
     utils::_handle_apply_margin(widget_style, default_widget_entity, node);
