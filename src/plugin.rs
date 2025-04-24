@@ -11,7 +11,6 @@ use crate::widgets::{
     circular::*,
     modal::*,
     progress_bar::*,
-    checkbox::*,
     *
 };
 
@@ -114,18 +113,9 @@ fn fa_text_input_systems(app: &mut App) {
 fn fa_scroll_systems(app: &mut App) {
     app.add_systems(
         Update,
-        (
-            ScrollBuilder::on_hover_system,
-            ScrollBuilder::on_scroll_system,
-        )
-        .chain()
-        .run_if(can_run_scroll_systems)
-
+        (on_hover_system, on_scroll_system).chain().run_if(can_run_scroll_systems)
     );
-    app.add_systems(
-        Update,
-        ScrollBuilder::detect_new_scroll_system.run_if(can_run_scroll_systems)
-    );
+    app.add_systems(Update, detect_new_scroll_system.run_if(can_run_scroll_systems));
 }
 
 fn fa_fps_text_systems(app: &mut App) {
@@ -141,11 +131,7 @@ fn fa_fps_text_systems(app: &mut App) {
 fn fa_circular_systems(app: &mut App) {
     app.add_systems(
         Update,
-        (
-            CircularBuilder::detect_new_circular,
-            CircularBuilder::update_circular_material_u_time
-        )
-        .run_if(can_run_circular_systems)
+        (detect_new_circular, update_circular_material_u_time).run_if(can_run_circular_systems)
     );
 }
 
@@ -179,8 +165,8 @@ impl Plugin for FamiqPlugin {
         app.add_systems(
             Update,
             (
-                ModalBuilder::hide_or_display_modal_system,
-                ModalBuilder::detect_reactive_model_change
+                hide_or_display_modal_system,
+                detect_modal_reactive_model_change
             )
             .run_if(can_run_modal_systems)
 

@@ -8,7 +8,6 @@ use crate::button;
 use crate::modal;
 use crate::container;
 use bevy::input::InputPlugin;
-use crate::prelude::IsFamiqModalContainer;
 use crate::utils::*;
 use crate::widgets::scroll::*;
 use super::button::*;
@@ -204,7 +203,7 @@ fn test_add_children_for_modal() {
     app.add_systems(Update, run_add_children_for_modal);
     app.update();
 
-    let query = app.world_mut().query::<(&Children, &IsFamiqModalContainer)>().get_single(app.world());
+    let query = app.world_mut().query::<(&Children, &IsFamiqModal)>().get_single(app.world());
     assert_eq!(query.unwrap().0.iter().count(), 2);
 }
 
@@ -217,7 +216,7 @@ fn test_insert_children_for_modal() {
     app.add_systems(Update, run_insert_children_for_modal);
     app.update();
 
-    let query = app.world_mut().query::<(&Children, &IsFamiqModalContainer)>().get_single(app.world());
+    let query = app.world_mut().query::<(&Children, &IsFamiqModal)>().get_single(app.world());
     assert_eq!(query.unwrap().0.iter().count(), 2);
 }
 

@@ -1,5 +1,7 @@
 pub mod base_text;
+pub mod systems;
 pub use base_text::*;
+use systems::*;
 
 use crate::event_writer::*;
 use crate::plugin::{CursorType, CursorIcons};
@@ -40,7 +42,8 @@ fn default_text_container_node() -> Node {
 #[set_widget_attributes]
 #[derive(Clone, Debug)]
 pub struct TextBuilder {
-    pub value: String
+    pub value: String,
+    pub all_reactive_keys: Vec<String>
 }
 
 impl TextBuilder {
@@ -50,66 +53,18 @@ impl TextBuilder {
         Self {
             value,
             attributes,
-            cloned_attrs: WidgetAttributes::default()
+            cloned_attrs: WidgetAttributes::default(),
+            all_reactive_keys: Vec::new()
         }
     }
 
-    fn on_mouse_over(
-        mut trigger: Trigger<Pointer<Over>>,
-        mut commands: Commands,
-        mut writer: EventWriter<FaMouseEvent>,
-        text_q: Query<Option<&WidgetId>,  With<IsFamiqText>>,
-        window: Single<Entity, With<Window>>,
-        cursor_icons: Res<CursorIcons>,
-    ) {
-        if let Ok(id) = text_q.get(trigger.entity()) {
-            _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Text);
-            FaMouseEvent::send_event(&mut writer, EventType::Over, WidgetType::Text, trigger.entity(), id);
-        }
-        trigger.propagate(false);
-    }
-
-    fn on_mouse_out(
-        mut trigger: Trigger<Pointer<Out>>,
-        mut commands: Commands,
-        mut writer: EventWriter<FaMouseEvent>,
-        text_q: Query<Option<&WidgetId>,  With<IsFamiqText>>,
-        window: Single<Entity, With<Window>>,
-        cursor_icons: Res<CursorIcons>,
-    ) {
-        if let Ok(id) = text_q.get(trigger.entity()) {
-            _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Default);
-            FaMouseEvent::send_event(&mut writer, EventType::Out, WidgetType::Text, trigger.entity(), id);
-        }
-        trigger.propagate(false);
-    }
-
-    fn on_mouse_down(
-        mut trigger: Trigger<Pointer<Down>>,
-        mut writer: EventWriter<FaMouseEvent>,
-        text_q: Query<Option<&WidgetId>,  With<IsFamiqText>>,
-    ) {
-        if let Ok(id) = text_q.get(trigger.entity()) {
-            if trigger.event().button == PointerButton::Secondary {
-                FaMouseEvent::send_event(&mut writer, EventType::DownRight, WidgetType::Text, trigger.entity(), id);
-            } else {
-                FaMouseEvent::send_event(&mut writer, EventType::DownLeft, WidgetType::Text, trigger.entity(), id);
-            }
-        }
-        trigger.propagate(false);
-    }
-
-    fn on_mouse_up(
-        mut trigger: Trigger<Pointer<Up>>,
-        mut writer: EventWriter<FaMouseEvent>,
-        text_q: Query<Option<&WidgetId>,  With<IsFamiqText>>,
-    ) {
-        if let Ok(id) = text_q.get(trigger.entity()) {
-            if trigger.event().button == PointerButton::Secondary {
-                FaMouseEvent::send_event(&mut writer, EventType::Up, WidgetType::Text, trigger.entity(), id);
-            }
-        }
-        trigger.propagate(false);
+    pub(crate) fn prepare_attrs(&mut self, r_data: &HashMap<String, RVal>) -> String {
+        self.cloned_attrs = self.attributes.clone();
+        let reactive_keys = get_reactive_key(&self.value);
+        let parsed_text = replace_reactive_keys(&self.value, &reactive_keys, r_data);
+        self.all_reactive_keys.extend_from_slice(&reactive_keys);
+        replace_reactive_keys_common_attrs(&mut self.cloned_attrs, r_data, &mut self.all_reactive_keys);
+        parsed_text
     }
 }
 
@@ -132,45 +87,32 @@ impl SetupWidget for TextBuilder {
         r_data: &HashMap<String, RVal>,
         commands: &mut Commands
     ) -> Entity {
-        let mut all_reactive_keys: Vec<String> = Vec::new();
-        let reactive_keys = get_reactive_key(&self.value);
-        let parsed_text = replace_reactive_keys(&self.value, &reactive_keys, r_data);
-        all_reactive_keys.extend_from_slice(&reactive_keys);
-
-        self.cloned_attrs = self.attributes.clone();
-        replace_reactive_keys_common_attrs(
-            &mut self.cloned_attrs,
-            r_data,
-            &mut all_reactive_keys
-        );
-        let mut base_text = FaBaseText::new_with_attributes(
-            &parsed_text,
-            &self.cloned_attrs
-        );
+        let parsed_text = self.prepare_attrs(r_data);
+        let mut base_text = FaBaseText::new_with_attributes(&parsed_text, &self.cloned_attrs);
         base_text.use_get_color = true;
         let text_entity = base_text.build(r_data, commands);
-
         commands
             .entity(text_entity)
             .insert(self.components())
-            .observe(TextBuilder::on_mouse_up)
-            .observe(TextBuilder::on_mouse_down)
-            .observe(TextBuilder::on_mouse_over)
-            .observe(TextBuilder::on_mouse_out);
+            .observe(on_mouse_up)
+            .observe(on_mouse_down)
+            .observe(on_mouse_over)
+            .observe(on_mouse_out);
 
         insert_class_id(commands, text_entity, &self.cloned_attrs.id, &self.cloned_attrs.class);
 
-        // this block is cheap
         let cloned_builder = self.clone();
+        let ar_keys = self.all_reactive_keys.clone();
         commands.queue(move |w: &mut World| {
             w.send_event(UpdateReactiveSubscriberEvent::new(
-                all_reactive_keys,
+                ar_keys,
                 text_entity,
                 WidgetBuilder {
                     builder: BuilderType::Text(cloned_builder)
                 }
             ));
         });
+        self.all_reactive_keys.clear();
         text_entity
     }
 
@@ -179,43 +121,30 @@ impl SetupWidget for TextBuilder {
         r_data: &HashMap<String, RVal>,
         world: &mut World
     ) -> Option<Entity> {
-        let mut all_reactive_keys: Vec<String> = Vec::new();
-        let reactive_keys = get_reactive_key(&self.value);
-        let parsed_text = replace_reactive_keys(&self.value, &reactive_keys, r_data);
-        all_reactive_keys.extend_from_slice(&reactive_keys);
-
-        self.cloned_attrs = self.attributes.clone();
-        replace_reactive_keys_common_attrs(
-            &mut self.cloned_attrs,
-            r_data,
-            &mut all_reactive_keys
-        );
-        let mut base_text = FaBaseText::new_with_attributes(
-            &parsed_text,
-            &self.cloned_attrs
-        );
+        let parsed_text = self.prepare_attrs(r_data);
+        let mut base_text = FaBaseText::new_with_attributes(&parsed_text, &self.cloned_attrs);
         base_text.use_get_color = true;
         let text_entity = base_text.build_with_world(r_data, world);
-
         world
             .entity_mut(text_entity.unwrap())
             .insert(self.components())
-            .observe(TextBuilder::on_mouse_up)
-            .observe(TextBuilder::on_mouse_down)
-            .observe(TextBuilder::on_mouse_over)
-            .observe(TextBuilder::on_mouse_out);
+            .observe(on_mouse_up)
+            .observe(on_mouse_down)
+            .observe(on_mouse_over)
+            .observe(on_mouse_out);
 
         insert_class_id_world(world, text_entity.unwrap(), &self.cloned_attrs.id, &self.cloned_attrs.class);
 
-        // this block is cheap
         let cloned_builder = self.clone();
+        let ar_keys = self.all_reactive_keys.clone();
         world.send_event(UpdateReactiveSubscriberEvent::new(
-            all_reactive_keys,
+            ar_keys,
             text_entity.unwrap(),
             WidgetBuilder {
                 builder: BuilderType::Text(cloned_builder)
             }
         ));
+        self.all_reactive_keys.clear();
         text_entity
     }
 }

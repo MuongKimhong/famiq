@@ -7,23 +7,6 @@ use bevy::utils::hashbrown::HashSet;
 use super::text_input::CosmicTextData;
 use super::DefaultTextSpanConfig;
 
-pub type WidgetStyleQuery<'a, 'w, 's> = Query<
-    'w,
-    's,
-    (
-        Option<&'a WidgetId>,
-        Option<&'a WidgetClasses>,
-        &'a mut Node,
-        &'a mut BackgroundColor,
-        &'a mut BorderColor,
-        &'a mut BorderRadius,
-        &'a mut ZIndex,
-        &'a mut Visibility,
-        &'a mut BoxShadow,
-        &'a DefaultWidgetConfig,
-    ),
->;
-
 pub(crate) fn read_styles_from_file_system(
     mut styles: ResMut<StylesKeyValueResource>,
     famiq_res: ResMut<FamiqResource>,

@@ -1,7 +1,9 @@
 pub mod styling;
 pub mod components;
-pub use styling::*;
+pub mod systems;
 pub use components::*;
+pub use styling::*;
+use systems::*;
 
 use bevy::prelude::*;
 
@@ -18,6 +20,7 @@ use super::color::PRIMARY_DARK_COLOR;
 #[derive(Clone, Debug)]
 pub struct CheckboxBuilder {
     pub choices: Vec<String>,
+    pub all_reactive_keys: Vec<String>,
     pub vertical: RVal // align item vertically
 }
 
@@ -28,65 +31,13 @@ impl CheckboxBuilder {
         Self {
             attributes,
             cloned_attrs: WidgetAttributes::default(),
+            all_reactive_keys: Vec::new(),
             choices: Vec::new(),
             vertical: RVal::Bool(false)
         }
     }
 
-    fn on_mouse_over(
-        mut trigger: Trigger<Pointer<Over>>,
-        mut commands: Commands,
-        window: Single<Entity, With<Window>>,
-        cursor_icons: Res<CursorIcons>,
-    ) {
-        _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Pointer);
-        trigger.propagate(false);
-    }
-
-    fn on_mouse_out(
-        mut trigger: Trigger<Pointer<Out>>,
-        mut commands: Commands,
-        window: Single<Entity, With<Window>>,
-        cursor_icons: Res<CursorIcons>,
-    ) {
-        _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Default);
-        trigger.propagate(false);
-    }
-
-    fn on_mouse_down(
-        mut trigger: Trigger<Pointer<Down>>,
-        checkbox_q: Query<Option<&ReactiveModelKey>, With<IsFamiqCheckbox>>,
-        mut item_box_q: Query<(&mut CheckBoxChoiceTicked, &mut BackgroundColor)>,
-        item_wrapper_q: Query<(&CheckBoxItemBoxEntity, &CheckBoxItemText, &CheckBoxMainContainerEntity)>,
-        mut fa_query: FaQuery,
-    ) {
-        if let Ok((box_entity, item_text, main_entity)) = item_wrapper_q.get(trigger.entity()) {
-            if let Ok(model_key) = checkbox_q.get(main_entity.0) {
-                if let Some(key) = model_key {
-                    if let Some(value) = fa_query.get_data_mut(&key.0) {
-                        match value {
-                            RVal::List(v) => {
-                                if let Ok((mut box_ticked, mut bg_color)) = item_box_q.get_mut(box_entity.0) {
-                                    if v.contains(&item_text.0) {
-                                        v.retain(|value| *value != item_text.0);
-                                        bg_color.0 = Color::NONE;
-                                    } else {
-                                        v.push(item_text.0.clone());
-                                        bg_color.0 = PRIMARY_DARK_COLOR;
-                                    }
-                                    box_ticked.0 = !box_ticked.0;
-                                }
-                            }
-                            _ => {}
-                        }
-                    }
-                }
-            }
-        }
-        trigger.propagate(false);
-    }
-
-    pub fn choice_text(
+    pub(crate) fn choice_text(
         &self,
         text: &str,
         r_data: &HashMap<String, RVal>,
@@ -97,7 +48,7 @@ impl CheckboxBuilder {
         text.build(r_data, commands)
     }
 
-    pub fn choice_text_world(
+    pub(crate) fn choice_text_world(
         &self,
         text: &str,
         r_data: &HashMap<String, RVal>,
@@ -108,33 +59,36 @@ impl CheckboxBuilder {
         text.build_with_world(r_data, world).unwrap()
     }
 
-    pub fn choice_tick_box(&self, commands: &mut Commands) -> Entity {
-        commands
-            .spawn((
-                default_choice_box_node(),
-                CheckBoxChoiceTicked(false),
-                IsFamiqCheckboxItemBox,
-                BackgroundColor::default(),
-                BorderRadius::all(Val::Px(4.0)),
-                BorderColor(get_color(&self.cloned_attrs.color))
-            ))
-            .id()
+    fn tickbox_components(&self) -> impl Bundle {
+        (
+            default_choice_box_node(),
+            IsFamiqCheckboxItemBox,
+            CheckBoxChoiceTicked(false),
+            BackgroundColor::default(),
+            BorderRadius::all(Val::Px(4.0)),
+            BorderColor(get_color(&self.cloned_attrs.color))
+        )
     }
 
-    pub fn choice_tick_box_world(&self, world: &mut World) -> Entity {
-        world
-            .spawn((
-                default_choice_box_node(),
-                IsFamiqCheckboxItemBox,
-                CheckBoxChoiceTicked(false),
-                BackgroundColor::default(),
-                BorderRadius::all(Val::Px(4.0)),
-                BorderColor(get_color(&self.cloned_attrs.color))
-            ))
-            .id()
+    pub(crate) fn choice_tick_box(&self, commands: &mut Commands) -> Entity {
+        commands.spawn(self.tickbox_components()).id()
     }
 
-    pub fn choice_wrapper(
+    pub(crate) fn choice_tick_box_world(&self, world: &mut World) -> Entity {
+        world.spawn(self.tickbox_components()).id()
+    }
+
+    fn choice_wrapper_components(&self, text: String, checkbox_entity: Entity, box_entity: Entity) -> impl Bundle {
+        (
+            default_choice_container_node(),
+            CheckBoxItemText(text),
+            CheckBoxMainContainerEntity(checkbox_entity),
+            CheckBoxItemBoxEntity(box_entity),
+            IsFamiqCheckboxItem
+        )
+    }
+
+    pub(crate) fn choice_wrapper(
         &self,
         text: String,
         box_entity: Entity,
@@ -142,20 +96,14 @@ impl CheckboxBuilder {
         commands: &mut Commands,
     ) -> Entity {
         commands
-            .spawn((
-                default_choice_container_node(),
-                CheckBoxItemText(text),
-                CheckBoxMainContainerEntity(checkbox_entity),
-                CheckBoxItemBoxEntity(box_entity),
-                IsFamiqCheckboxItem
-            ))
-            .observe(CheckboxBuilder::on_mouse_out)
-            .observe(CheckboxBuilder::on_mouse_down)
-            .observe(CheckboxBuilder::on_mouse_over)
+            .spawn(self.choice_wrapper_components(text, checkbox_entity, box_entity))
+            .observe(on_mouse_out)
+            .observe(on_mouse_down)
+            .observe(on_mouse_over)
             .id()
     }
 
-    pub fn choice_wrapper_world(
+    pub(crate) fn choice_wrapper_world(
         &self,
         text: String,
         box_entity: Entity,
@@ -163,32 +111,24 @@ impl CheckboxBuilder {
         world: &mut World,
     ) -> Entity {
         world
-            .spawn((
-                default_choice_container_node(),
-                CheckBoxItemText(text),
-                CheckBoxMainContainerEntity(checkbox_entity),
-                CheckBoxItemBoxEntity(box_entity),
-                IsFamiqCheckboxItem
-            ))
-            .observe(CheckboxBuilder::on_mouse_out)
-            .observe(CheckboxBuilder::on_mouse_down)
-            .observe(CheckboxBuilder::on_mouse_over)
+            .spawn(self.choice_wrapper_components(text, checkbox_entity, box_entity))
+            .observe(on_mouse_out)
+            .observe(on_mouse_down)
+            .observe(on_mouse_over)
             .id()
     }
 
-    pub fn build_choices(
+    pub(crate) fn build_choices(
         &mut self,
         checkbox_entity: Entity,
         commands: &mut Commands,
         r_data: &HashMap<String, RVal>,
-        all_reactive_keys: &mut Vec<String>
     ) {
         let mut all_choices: Vec<Entity> = Vec::new();
-
         for choice in self.choices.iter() {
             let reactive_keys = get_reactive_key(choice);
             let parsed_choice = replace_reactive_keys(choice, &reactive_keys, r_data);
-            all_reactive_keys.extend_from_slice(&reactive_keys);
+            self.all_reactive_keys.extend_from_slice(&reactive_keys);
 
             let choice_box = self.choice_tick_box(commands);
             let choice_text = self.choice_text(&parsed_choice, r_data,  commands);
@@ -204,19 +144,18 @@ impl CheckboxBuilder {
         commands.entity(checkbox_entity).add_children(&all_choices);
     }
 
-    pub fn build_choices_world(
+    pub(crate) fn build_choices_world(
         &mut self,
         checkbox_entity: Entity,
         world: &mut World,
-        r_data: &HashMap<String, RVal>,
-        all_reactive_keys: &mut Vec<String>
+        r_data: &HashMap<String, RVal>
     ) {
         let mut all_choices: Vec<Entity> = Vec::new();
 
         for choice in self.choices.iter() {
             let reactive_keys = get_reactive_key(choice);
             let parsed_choice = replace_reactive_keys(choice, &reactive_keys, r_data);
-            all_reactive_keys.extend_from_slice(&reactive_keys);
+            self.all_reactive_keys.extend_from_slice(&reactive_keys);
 
             let choice_box = self.choice_tick_box_world(world);
             let choice_text = self.choice_text_world(&parsed_choice, r_data, world);
@@ -232,12 +171,41 @@ impl CheckboxBuilder {
         world.entity_mut(checkbox_entity).add_children(&all_choices);
     }
 
-    pub fn set_flex_direction(&mut self, vertical: bool) {
+    pub(crate) fn set_flex_direction(&mut self, vertical: bool) {
         if vertical {
             self.cloned_attrs.node.flex_direction = FlexDirection::Column;
         } else {
             self.cloned_attrs.node.flex_direction = FlexDirection::Row;
         }
+    }
+
+    pub(crate) fn handle_vertical_val(&mut self, r_data: &HashMap<String, RVal>) {
+        match self.vertical.to_owned() {
+            RVal::Bool(v) => self.set_flex_direction(v),
+            RVal::Str(v) => {
+                let reactive_keys = get_reactive_key(&v);
+
+                for key in reactive_keys.iter() {
+                    if let Some(r_v) = r_data.get(key) {
+                        match r_v {
+                            RVal::Bool(state) => self.set_flex_direction(*state),
+                            _ => {}
+                        }
+                    }
+                }
+                self.all_reactive_keys.extend_from_slice(&reactive_keys);
+            }
+            _ => {}
+        }
+    }
+
+    pub(crate) fn prepare_attrs(&mut self, r_data: &HashMap<String, RVal>) {
+        self.cloned_attrs = self.attributes.clone();
+        self.cloned_attrs.node = default_main_container_node();
+        self.handle_vertical_val(r_data);
+        self.cloned_attrs.overrided_border_color = Some(Color::NONE);
+        self.cloned_attrs.overrided_background_color = Some(Color::NONE);
+        replace_reactive_keys_common_attrs(&mut self.cloned_attrs, r_data, &mut self.all_reactive_keys);
     }
 }
 
@@ -247,36 +215,11 @@ impl SetupWidget for CheckboxBuilder {
     }
 
     fn build(&mut self, r_data: &HashMap<String, RVal>, commands: &mut Commands) -> Entity {
-        let mut all_reactive_keys: Vec<String> = Vec::new();
-
-        self.cloned_attrs = self.attributes.clone();
-        self.cloned_attrs.node = default_main_container_node();
-
-        match self.vertical.to_owned() {
-            RVal::Bool(v) => self.set_flex_direction(v),
-            RVal::Str(v) => {
-                let reactive_keys = get_reactive_key(&v);
-
-                for key in reactive_keys.iter() {
-                    if let Some(r_v) = r_data.get(key) {
-                        match r_v {
-                            RVal::Bool(state) => self.set_flex_direction(*state),
-                            _ => {}
-                        }
-                    }
-                }
-                all_reactive_keys.extend_from_slice(&reactive_keys);
-            }
-            _ => {}
-        }
-
-        self.cloned_attrs.overrided_border_color = Some(Color::NONE);
-        self.cloned_attrs.overrided_background_color = Some(Color::NONE);
-        replace_reactive_keys_common_attrs(&mut self.cloned_attrs, r_data, &mut all_reactive_keys);
+        self.prepare_attrs(r_data);
 
         let mut checkbox = FaBaseContainer::new_with_attributes(&self.cloned_attrs);
         let checkbox_entity = checkbox.build(r_data, commands);
-        self.build_choices(checkbox_entity, commands, r_data, &mut all_reactive_keys);
+        self.build_choices(checkbox_entity, commands, r_data);
         commands
             .entity(checkbox_entity)
             .insert(self.components());
@@ -285,15 +228,17 @@ impl SetupWidget for CheckboxBuilder {
         insert_class_id(commands, checkbox_entity, &self.cloned_attrs.id, &self.cloned_attrs.class);
 
         let cloned_builder = self.clone();
+        let ar_keys = self.all_reactive_keys.clone();
         commands.queue(move |w: &mut World| {
             w.send_event(UpdateReactiveSubscriberEvent::new(
-                all_reactive_keys,
+                ar_keys,
                 checkbox_entity,
                 WidgetBuilder {
                     builder: BuilderType::Checkbox(cloned_builder)
                 }
             ));
         });
+        self.all_reactive_keys.clear();
         checkbox_entity
     }
 
@@ -302,36 +247,11 @@ impl SetupWidget for CheckboxBuilder {
         r_data: &HashMap<String, RVal>,
         world: &mut World
     ) -> Option<Entity> {
-        let mut all_reactive_keys: Vec<String> = Vec::new();
-
-        self.cloned_attrs = self.attributes.clone();
-        self.cloned_attrs.node = default_main_container_node();
-
-        match self.vertical.to_owned() {
-            RVal::Bool(v) => self.set_flex_direction(v),
-            RVal::Str(v) => {
-                let reactive_keys = get_reactive_key(&v);
-
-                for key in reactive_keys.iter() {
-                    if let Some(r_v) = r_data.get(key) {
-                        match r_v {
-                            RVal::Bool(state) => self.set_flex_direction(*state),
-                            _ => {}
-                        }
-                    }
-                }
-                all_reactive_keys.extend_from_slice(&reactive_keys);
-            }
-            _ => {}
-        }
-
-        self.cloned_attrs.overrided_border_color = Some(Color::NONE);
-        self.cloned_attrs.overrided_background_color = Some(Color::NONE);
-        replace_reactive_keys_common_attrs(&mut self.cloned_attrs, r_data, &mut all_reactive_keys);
+        self.prepare_attrs(r_data);
 
         let mut checkbox = FaBaseContainer::new_with_attributes(&self.cloned_attrs);
         let checkbox_entity = checkbox.build_with_world(r_data, world);
-        self.build_choices_world(checkbox_entity.unwrap(), world, r_data, &mut all_reactive_keys);
+        self.build_choices_world(checkbox_entity.unwrap(), world, r_data);
         world
             .entity_mut(checkbox_entity.unwrap())
             .insert(self.components());
@@ -340,13 +260,15 @@ impl SetupWidget for CheckboxBuilder {
         insert_class_id_world(world, checkbox_entity.unwrap(), &self.cloned_attrs.id, &self.cloned_attrs.class);
 
         let cloned_builder = self.clone();
+        let ar_keys = self.all_reactive_keys.clone();
         world.send_event(UpdateReactiveSubscriberEvent::new(
-            all_reactive_keys,
+            ar_keys,
             checkbox_entity.unwrap(),
             WidgetBuilder {
                 builder: BuilderType::Checkbox(cloned_builder)
             }
         ));
+        self.all_reactive_keys.clear();
         checkbox_entity
     }
 }

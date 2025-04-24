@@ -1,5 +1,5 @@
-use crate::widgets::selection::*;
 use crate::widgets::FamiqResource;
+use super::*;
 use bevy::prelude::*;
 
 pub fn handle_show_and_hide_choices_panel(
@@ -131,4 +131,84 @@ pub fn detect_selection_reactive_model_change(
         let key = &model_key.unwrap().0;
         set_placeholder_with_model(&mut ph_q, &reactive_data.data, ph_entity.0, &ph_text.0, key);
     }
+}
+
+pub(crate) fn on_mouse_over(
+    mut trigger: Trigger<Pointer<Over>>,
+    mut selector_q: Query<
+        (&mut BoxShadow, &BorderColor, Option<&WidgetId>, &GlobalTransform, Option<&TooltipEntity>),
+        With<IsFamiqSelectionSelector>
+    >,
+    mut commands: Commands,
+    mut writer: EventWriter<FaMouseEvent>,
+    mut tooltip_q: Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
+    window: Single<Entity, With<Window>>,
+    cursor_icons: Res<CursorIcons>,
+) {
+    if let Ok((mut box_shadow, border_color, id, transform, tooltip_entity)) = selector_q.get_mut(trigger.entity()) {
+        box_shadow.color = border_color.0.clone();
+        show_tooltip(tooltip_entity, &mut tooltip_q, transform.translation());
+        _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Pointer);
+        FaMouseEvent::send_event(&mut writer, EventType::Over, WidgetType::Selection, trigger.entity(), id);
+    }
+    trigger.propagate(false);
+}
+
+pub(crate) fn on_mouse_out(
+    mut trigger: Trigger<Pointer<Out>>,
+    mut selector_q: Query<
+        (&mut BoxShadow, Option<&WidgetId>, Option<&TooltipEntity>),
+        With<IsFamiqSelectionSelector>
+    >,
+    mut commands: Commands,
+    mut writer: EventWriter<FaMouseEvent>,
+    mut tooltip_q: Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
+    window: Single<Entity, With<Window>>,
+    cursor_icons: Res<CursorIcons>,
+) {
+    if let Ok((mut box_shadow, id, tooltip_entity)) = selector_q.get_mut(trigger.entity()) {
+        box_shadow.color = Color::NONE;
+        hide_tooltip(tooltip_entity, &mut tooltip_q);
+        _change_cursor_icon(&mut commands, &cursor_icons, *window, CursorType::Default);
+        FaMouseEvent::send_event(&mut writer, EventType::Out, WidgetType::Selection, trigger.entity(), id);
+    }
+    trigger.propagate(false);
+}
+
+pub(crate) fn on_mouse_down(
+    mut trigger: Trigger<Pointer<Down>>,
+    mut selector_q: Query<Option<&WidgetId>, With<IsFamiqSelectionSelector>>,
+    mut writer: EventWriter<FaMouseEvent>,
+    mut famiq_res: ResMut<FamiqResource>
+) {
+    if let Ok(id) = selector_q.get_mut(trigger.entity()) {
+        // currently true, set back to false
+        if let Some(state) = famiq_res.get_widget_focus_state(&trigger.entity()) {
+            if state {
+                famiq_res.update_or_insert_focus_state(trigger.entity(), false);
+                return;
+            }
+        }
+        // currently false, set back to true
+        famiq_res.update_all_focus_states(false);
+        famiq_res.update_or_insert_focus_state(trigger.entity(), true);
+
+        if trigger.event().button == PointerButton::Secondary {
+            FaMouseEvent::send_event(&mut writer, EventType::DownRight, WidgetType::Selection, trigger.entity(), id);
+        } else {
+            FaMouseEvent::send_event(&mut writer, EventType::DownLeft, WidgetType::Selection, trigger.entity(), id);
+        }
+    }
+    trigger.propagate(false);
+}
+
+pub(crate) fn on_mouse_up(
+    mut trigger: Trigger<Pointer<Up>>,
+    mut selector_q: Query<Option<&WidgetId>, With<IsFamiqSelectionSelector>>,
+    mut writer: EventWriter<FaMouseEvent>,
+) {
+    if let Ok(id) = selector_q.get_mut(trigger.entity()) {
+        FaMouseEvent::send_event(&mut writer, EventType::Up, WidgetType::Selection, trigger.entity(), id);
+    }
+    trigger.propagate(false);
 }

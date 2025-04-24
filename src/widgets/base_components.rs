@@ -27,12 +27,6 @@ pub struct IsFamiqContainableWidget;
 pub struct ReactiveWidget;
 
 #[derive(Component, Debug)]
-pub struct ReactiveKeys(pub Vec<String>);
-
-#[derive(Component, Debug)]
-pub struct ReactiveText(pub String);
-
-#[derive(Component, Debug)]
 pub struct ReactiveModelKey(pub String);
 
 /// Base styles components required by all widgets

@@ -4,10 +4,6 @@ use bevy::prelude::*;
 #[derive(Component)]
 pub struct IsFamiqScroll;
 
-/// Marker component indentifying Famiq scroll's items.
-#[derive(Component)]
-pub struct IsFamiqScrollItem;
-
 /// Marker component identifying scroll move panel.
 #[derive(Component)]
 pub struct IsFamiqScrollMovePanel;

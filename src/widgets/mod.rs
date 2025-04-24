@@ -20,7 +20,7 @@ pub mod base_components;
 
 use bevy::utils::hashbrown::HashMap;
 pub use scroll::ScrollMovePanelEntity;
-pub use modal::{FaModalState, FaModalContainerEntity, IsFamiqModalBackground};
+pub use modal::{FaModalState, IsFamiqModal};
 pub use base_components::*;
 pub use style::*;
 use crate::resources::*;
@@ -464,7 +464,6 @@ impl<'w, 's> FaStyleQuery<'w, 's> {
 pub struct ContainableQuery {
     entity: Entity,
     listview_panel: Option<&'static ScrollMovePanelEntity>,
-    modal_container: Option<&'static FaModalContainerEntity>,
     id: Option<&'static WidgetId>
 }
 
@@ -478,7 +477,7 @@ pub struct ModalQuery {
 #[derive(SystemParam)]
 pub struct FaQuery<'w, 's> {
     pub containable_query: Query<'w, 's, ContainableQuery, With<IsFamiqContainableWidget>>,
-    pub modal_query: Query<'w, 's, ModalQuery, With<IsFamiqModalBackground>>,
+    pub modal_query: Query<'w, 's, ModalQuery, With<IsFamiqModal>>,
     pub modal_state: ResMut<'w, FaModalState>,
     pub reactive_data: ResMut<'w, RData>,
     pub commands: Commands<'w, 's>,
@@ -513,14 +512,6 @@ impl<'w, 's> FaQuery<'w, 's> {
                     .add_children(children);
                 return;
             }
-
-            if let Some(modal_container_entity) = item.modal_container {
-                self.commands
-                    .entity(modal_container_entity.0)
-                    .add_children(children);
-                return;
-            }
-
             self.commands.entity(item.entity).add_children(children);
         }
     }
@@ -534,14 +525,6 @@ impl<'w, 's> FaQuery<'w, 's> {
                     .insert_children(index, children);
                 return;
             }
-
-            if let Some(modal_container_entity) = item.modal_container {
-                self.commands
-                    .entity(modal_container_entity.0)
-                    .insert_children(index, children);
-                return;
-            }
-
             self.commands.entity(item.entity).insert_children(index, children);
         }
     }
