@@ -2,9 +2,10 @@ use crate::utils;
 use crate::resources::*;
 use crate::widgets::{style_parse::*, *};
 use bevy::prelude::*;
+use bevy::utils::hashbrown::HashSet;
 
 use super::text_input::CosmicTextData;
-use super::DefaultTextSpanEntity;
+use super::DefaultTextSpanConfig;
 
 pub type WidgetStyleQuery<'a, 'w, 's> = Query<
     'w,
@@ -69,130 +70,123 @@ pub(crate) fn read_styles_from_file_system(
 
 pub(crate) fn detect_widget_external_styles_change(
     styles: Res<StylesKeyValueResource>,
-    mut widget_query: WidgetStyleQuery
+    mut style_q: Query<StyleQuery>,
 ) {
     if styles.is_changed() {
         use std::time::Instant;
         let now = Instant::now();
-        for (
-            id,
-            class,
-            mut node,
-            mut bg_color,
-            mut bd_color,
-            mut bd_radius,
-            mut z_index,
-            mut visibility,
-            mut box_shadow,
-            default_widget,
-        ) in widget_query.iter_mut() {
-            let mut _id = String::new();
-            let mut _class_split: Vec<&str> = Vec::new();
+
+        let changed_keys = &styles.changed_keys;
+
+        style_q.par_iter_mut().for_each(|mut style| {
+            let mut formatted = String::with_capacity(64);
+
+            // quick exit if there's no id or class
+            if style.id.is_none() && style.class.is_none() {
+                return;
+            }
+
+            let mut _class_split: HashSet<&str> = HashSet::new();
             let mut changed = false;
             let mut empty_style = WidgetStyle::default();
 
-            // true if id or one of the classes is inside styles.changed_key
-            let mut has_external_change = false;
+            // Check id
+            let id_match = style.id.as_ref().map_or(false, |id| changed_keys.contains(&id.0));
 
-            if let Some(id) = id {
-                _id = id.0.clone();
-
-                if styles.changed_keys.contains(&_id) {
-                    has_external_change = true;
-                }
-            }
-            if let Some(classes) = class {
+            // Check class match
+            let class_match = if let Some(classes) = style.class {
                 _class_split = classes.0.split_whitespace().collect();
+                _class_split.iter().any(|&class_name| {
+                    formatted.clear();
+                    formatted.push('.');
+                    formatted.push_str(class_name);
+                    changed_keys.contains(&formatted)
+                })
+            } else {
+                false
+            };
 
-                for class_name in &_class_split {
-                    let formatted = format!(".{class_name}");
-                    if styles.changed_keys.contains(&formatted) {
-                        has_external_change = true;
-                    }
-                }
+            if !(id_match || class_match) {
+                return;
             }
 
-            if has_external_change {
-                if let Some(external_style) = styles.get_style_by_id(&_id) {
-                    changed = empty_style.update_from(external_style);
-                }
-                else {
-                    // Style was removed from json, Reset to default
+            // Apply updated styles
+            if let Some(id) = style.id {
+                if let Some(ext) = styles.get_style_by_id(&id.0) {
+                    changed |= empty_style.update_from(ext);
+                } else {
                     changed = true;
                 }
+            }
 
-                for class_name in _class_split {
-                    let formatted = format!(".{class_name}");
-                    if let Some(external_style) = styles.get_style_by_class_name(&formatted) {
-                        changed = empty_style.merge_external(external_style);
-                    }
-                    else {
-                        // Style was removed from json, Reset to default
-                        changed = true;
-                    }
+            for class_name in _class_split {
+                formatted.clear();
+                formatted.push('.');
+                formatted.push_str(class_name);
+
+                if let Some(ext) = styles.get_style_by_class_name(&formatted) {
+                    changed |= empty_style.merge_external(ext);
+                } else {
+                    changed = true;
                 }
             }
 
             if changed {
-                println!("apply");
                 apply_styles_from_external_json(
-                    &mut bg_color,
-                    &mut bd_color,
-                    &mut bd_radius,
-                    &mut visibility,
-                    &mut z_index,
-                    &mut node,
-                    &mut box_shadow,
+                    &mut style.background_color,
+                    &mut style.border_color,
+                    &mut style.border_radius,
+                    &mut style.visibility,
+                    &mut style.z_index,
+                    &mut style.node,
+                    &mut style.box_shadow,
                     &empty_style,
-                    default_widget
+                    &style.default_style,
                 );
             }
-        }
+        });
+
         let elapsed = now.elapsed();
         println!("apply style in : {:.2?}", elapsed);
     }
 }
 
+#[derive(QueryData)]
+#[query_data(mutable)]
+pub struct ExternalTextStyleQuery {
+    pub text_font: Option<&'static mut TextFont>,
+    pub text_color: Option<&'static mut TextColor>,
+    pub cosmic_text_data: Option<&'static mut CosmicTextData>,
+    pub id: Option<&'static WidgetId>,
+    pub class: Option<&'static WidgetClasses>,
+    pub default_text_config: Option<&'static DefaultTextConfig>,
+    pub default_text_span_config: Option<&'static DefaultTextSpanConfig>,
+    pub default_cosmic_entity: Option<&'static DefaultCosmicTextEntity>
+}
+
 pub(crate) fn detect_text_external_styles_change(
     mut styles: ResMut<StylesKeyValueResource>,
-    mut text_query: Query<(
-        Option<&mut TextFont>,
-        Option<&mut TextColor>,
-        Option<&mut CosmicTextData>,
-        Option<&WidgetId>,
-        Option<&WidgetClasses>,
-        Option<&DefaultTextConfig>,
-        Option<&DefaultTextSpanEntity>,
-        Option<&DefaultCosmicTextEntity>
-    )>
+    mut text_query: Query<ExternalTextStyleQuery>
 ) {
     if styles.is_changed() {
-        for (
-            text_font,
-            text_color,
-            cosmic_text_data,
-            id,
-            class,
-            default_text_entity,
-            default_text_span_entity,
-            default_cosmic_text_entity,
-        ) in text_query.iter_mut() {
+
+        text_query.par_iter_mut().for_each(|style| {
             let mut _id = String::new();
-            let mut _class_split: Vec<&str> = Vec::new();
+            let mut _class_split: HashSet<&str> = HashSet::new();
             let mut changed = false;
             let mut empty_style = WidgetStyle::default();
 
             // true if id or one of the classes is inside styles.changed_key
             let mut has_external_change = false;
 
-            if let Some(id) = id {
+            if let Some(id) = style.id {
                 _id = id.0.clone();
 
                 if styles.changed_keys.contains(&_id) {
                     has_external_change = true;
                 }
             }
-            if let Some(classes) = class {
+            if let Some(classes) = style.class {
                 _class_split = classes.0.split_whitespace().collect();
 
                 for class_name in &_class_split {
@@ -227,18 +221,18 @@ pub(crate) fn detect_text_external_styles_change(
             if changed {
                 apply_text_styles_from_external_json(
                     &empty_style,
-                    default_text_entity,
-                    default_text_span_entity,
-                    text_font,
-                    text_color,
+                    style.default_text_config,
+                    style.default_text_span_config,
+                    style.text_font,
+                    style.text_color,
                 );
                 apply_text_styles_for_cosmic_text(
                     &empty_style,
-                    default_cosmic_text_entity,
-                    cosmic_text_data
+                    style.default_cosmic_entity,
+                    style.cosmic_text_data
                 );
             }
-        }
+        });
         styles.changed_keys.clear();
     }
 }
@@ -284,7 +278,7 @@ pub(crate) fn apply_text_styles_for_cosmic_text(
 pub(crate) fn apply_text_styles_from_external_json(
     local_style: &WidgetStyle,
     default_text_entity: Option<&DefaultTextConfig>,
-    default_text_span_entity: Option<&DefaultTextSpanEntity>,
+    default_text_span_entity: Option<&DefaultTextSpanConfig>,
     text_font: Option<Mut<'_, TextFont>>,
     text_color: Option<Mut<'_, TextColor>>,
 ) {
@@ -565,29 +559,5 @@ pub(crate) fn apply_styles_from_external_json(
         }
     } else {
         node.flex_basis = default_widget_entity.node.flex_basis.clone();
-    }
-
-    if let Some(row_gap) = &widget_style.row_gap {
-        if let Some(v) = parse_val(row_gap) {
-            node.row_gap = v;
-        }
-    } else {
-        node.row_gap = default_widget_entity.node.row_gap.clone();
-    }
-
-    if let Some(column_gap) = &widget_style.column_gap {
-        if let Some(v) = parse_val(column_gap) {
-            node.column_gap = v;
-        }
-    } else {
-        node.column_gap = default_widget_entity.node.column_gap.clone();
-    }
-
-    if let Some(grid_auto_flow) = &widget_style.grid_auto_flow {
-        if let Some(v) = parse_grid_auto_flow(grid_auto_flow) {
-            node.grid_auto_flow = v;
-        }
-    } else {
-        node.grid_auto_flow = default_widget_entity.node.grid_auto_flow.clone();
     }
 }

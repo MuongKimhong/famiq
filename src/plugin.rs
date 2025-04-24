@@ -4,14 +4,14 @@ use crate::event_writer;
 use crate::resources::*;
 use crate::reactivity::*;
 use crate::widgets::{
-    list_view::*,
     selection::*,
     text_input::*,
+    scroll::*,
     fps::*,
     circular::*,
     modal::*,
     progress_bar::*,
-    bg_image::*,
+    checkbox::*,
     *
 };
 
@@ -21,7 +21,7 @@ use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::prelude::*;
 use bevy::asset::embedded_asset;
 use bevy::winit::cursor::CursorIcon;
-use bevy::window::{SystemCursorIcon, WindowResized};
+use bevy::window::SystemCursorIcon;
 use cosmic_text::{FontSystem, SwashCache};
 
 pub enum CursorType {
@@ -47,16 +47,16 @@ impl Default for CursorIcons {
     }
 }
 
-fn handle_window_resized_system(
-    mut resize_events: EventReader<WindowResized>,
-    mut fa_bg_q: Query<&mut Sprite, With<IsFamiqBgImage>>
-) {
-    for resize_event in resize_events.read() {
-        if let Ok(mut sprite) = fa_bg_q.get_single_mut() {
-            sprite.custom_size = Some(Vec2::new(resize_event.width, resize_event.height));
-        }
-    }
-}
+// fn handle_window_resized_system(
+//     mut resize_events: EventReader<WindowResized>,
+//     mut fa_bg_q: Query<&mut Sprite, With<IsFamiqBgImage>>
+// ) {
+//     for resize_event in resize_events.read() {
+//         if let Ok(mut sprite) = fa_bg_q.get_single_mut() {
+//             sprite.custom_size = Some(Vec2::new(resize_event.width, resize_event.height));
+//         }
+//     }
+// }
 
 fn external_styles_file_systems(app: &mut App) {
     app.add_systems(
@@ -89,7 +89,8 @@ fn fa_selection_systems(app: &mut App) {
         Update,
         (
             handle_show_and_hide_choices_panel,
-            // handle_selection_choice_interaction_system
+            handle_selection_choice_interaction_system,
+            detect_selection_reactive_model_change
         )
         .run_if(can_run_selection_systems)
     );
@@ -99,31 +100,31 @@ fn fa_text_input_systems(app: &mut App) {
     app.add_systems(
         Update,
         (
-            // FaTextInput::handle_text_input_on_typing,
-            FaTextInput::detect_text_input_text_style_change.after(FaTextInput::detect_new_text_input_widget_system),
-            FaTextInput::handle_text_input_on_focused,
-            FaTextInput::handle_cursor_blink_system,
-            FaTextInput::detect_new_text_input_widget_system,
+            TextInputBuilder::handle_text_input_on_typing,
+            TextInputBuilder::detect_text_input_text_style_change.after(TextInputBuilder::detect_new_text_input_widget_system),
+            TextInputBuilder::handle_text_input_on_focused,
+            TextInputBuilder::handle_cursor_blink_system,
+            TextInputBuilder::detect_new_text_input_widget_system,
         )
         .run_if(can_run_text_input_systems)
     );
-    app.add_systems(PostUpdate, FaTextInput::on_request_redraw_editor_buffer);
+    app.add_systems(PostUpdate, TextInputBuilder::on_request_redraw_editor_buffer);
 }
 
-fn fa_listview_systems(app: &mut App) {
+fn fa_scroll_systems(app: &mut App) {
     app.add_systems(
         Update,
         (
-            FaListView::on_hover_system,
-            FaListView::on_scroll_system,
+            ScrollBuilder::on_hover_system,
+            ScrollBuilder::on_scroll_system,
         )
         .chain()
-        .run_if(can_run_list_view_systems)
+        .run_if(can_run_scroll_systems)
 
     );
     app.add_systems(
         Update,
-        FaListView::detect_new_listview_system.run_if(can_run_list_view_systems)
+        ScrollBuilder::detect_new_scroll_system.run_if(can_run_scroll_systems)
     );
 }
 
@@ -131,7 +132,7 @@ fn fa_fps_text_systems(app: &mut App) {
     app.add_systems(
         Update,
         // update fps every 450 millisecond, default Update schedule is too fast
-        FaFpsText::update_fps_count_system.run_if(
+        FpsBuilder::update_fps_count_system.run_if(
             on_timer(Duration::from_millis(450)).and(can_run_fps_systems)
         )
     );
@@ -141,8 +142,8 @@ fn fa_circular_systems(app: &mut App) {
     app.add_systems(
         Update,
         (
-            FaCircular::detect_new_circular_widget_system,
-            FaCircular::_update_circular_material_u_time
+            CircularBuilder::detect_new_circular,
+            CircularBuilder::update_circular_material_u_time
         )
         .run_if(can_run_circular_systems)
     );
@@ -152,21 +153,11 @@ fn fa_progress_bar_systems(app: &mut App) {
     app.add_systems(
         Update,
         (
-            FaProgressBar::detect_new_progress_bar_widget_system,
-            FaProgressBar::_update_progress_bar_material_u_time
+            detect_new_progress_bar,
+            detect_reactive_model_change,
+            update_progress_bar_material_u_time
         )
         .run_if(can_run_fa_progress_bar_systems)
-    );
-}
-
-fn fa_bg_image_systems(app: &mut App) {
-    app.add_systems(
-        Update,
-        (
-            FaBgImage::detect_new_bg_image_system,
-            FaBgImage::handle_image_changed
-        )
-        .run_if(can_run_bg_image_systems)
     );
 }
 
@@ -184,8 +175,16 @@ impl Plugin for FamiqPlugin {
         app.add_systems(PreStartup, _spawn_root_node);
         app.add_systems(PostStartup, adjust_position_system);
         app.add_systems(Update, detect_new_widget_with_id);
-        app.add_systems(Update, handle_window_resized_system);
-        app.add_systems(Update, FaModal::hide_or_display_modal_system.run_if(can_run_modal_systems));
+        // app.add_systems(Update, handle_window_resized_system);
+        app.add_systems(
+            Update,
+            (
+                ModalBuilder::hide_or_display_modal_system,
+                ModalBuilder::detect_reactive_model_change
+            )
+            .run_if(can_run_modal_systems)
+
+        );
         app.add_systems(PostUpdate, on_update_subscriber_event);
         app.add_systems(PostUpdate, detect_reactive_data_change);
 
@@ -196,11 +195,11 @@ impl Plugin for FamiqPlugin {
         app.insert_resource(RData::default());
         app.insert_resource(StylesKeyValueResource::default());
         app.insert_resource(FamiqResource::new());
+        app.insert_resource(ContainableChildren::default());
         app.insert_resource(CosmicFontSystem(FontSystem::new()));
         app.insert_resource(CosmicSwashCache(SwashCache::new()));
-        app.insert_resource(FaBgImageResource::default());
         app.insert_resource(RSubscriber::default());
-        app.insert_resource(CanBeScrolledListView { entity: None });
+        app.insert_resource(CanBeScrolled { entity: None });
         app.insert_resource(FaModalState::default());
         app.insert_resource(CursorIcons::default());
 
@@ -211,12 +210,11 @@ impl Plugin for FamiqPlugin {
 
         external_styles_file_systems(app);
         fa_selection_systems(app);
-        fa_listview_systems(app);
+        fa_scroll_systems(app);
         fa_text_input_systems(app);
         fa_fps_text_systems(app);
         fa_circular_systems(app);
         fa_progress_bar_systems(app);
-        fa_bg_image_systems(app);
     }
 }
 

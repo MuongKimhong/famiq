@@ -116,6 +116,20 @@ impl DefaultTextConfig {
             text_layout,
         }
     }
+
+    pub fn new_with_refs(
+        text: &Text,
+        text_font: &TextFont,
+        text_color: &TextColor,
+        text_layout: &TextLayout,
+    ) -> Self {
+        Self {
+            text: text.clone(),
+            text_font: text_font.clone(),
+            text_color: text_color.clone(),
+            text_layout: text_layout.clone(),
+        }
+    }
 }
 
 #[derive(Component)]
@@ -132,13 +146,13 @@ impl DefaultCosmicTextEntity {
 }
 
 #[derive(Component)]
-pub struct DefaultTextSpanEntity {
+pub struct DefaultTextSpanConfig {
     pub text: TextSpan,
     pub text_font: TextFont,
     pub text_color: TextColor,
 }
 
-impl DefaultTextSpanEntity {
+impl DefaultTextSpanConfig {
     pub fn new(
         text: TextSpan,
         text_font: TextFont,
@@ -195,9 +209,6 @@ pub struct WidgetStyle {
     pub flex_grow: Option<String>,
     pub flex_shrink: Option<String>,
     pub flex_basis: Option<String>,
-    pub row_gap: Option<String>,
-    pub column_gap: Option<String>,
-    pub grid_auto_flow: Option<String>,
     pub margin_left: Option<String>,
     pub margin_right: Option<String>,
     pub margin_top: Option<String>,

@@ -18,12 +18,12 @@ pub fn default_main_container_node() -> Node {
 
 pub fn default_choice_box_node() -> Node {
     Node {
-        width: Val::Px(13.0),
-        height: Val::Px(13.0),
+        width: Val::Px(12.0),
+        height: Val::Px(12.0),
         border: UiRect::all(Val::Px(1.0)),
         margin: UiRect {
             right: Val::Px(4.0),
-            top: Val::Px(3.0),
+            top: Val::Px(-2.0),
             ..default()
         },
         ..default()
@@ -35,11 +35,12 @@ pub fn default_choice_container_node() -> Node {
         width: Val::Auto,
         height: Val::Auto,
         flex_direction: FlexDirection::Row,
+        align_items: AlignItems::Center,
         margin: UiRect {
-            top: Val::Px(0.0),
-            right: Val::Px(4.0),
-            left: Val::Px(4.0),
-            bottom: Val::Px(0.0),
+            top: Val::Px(2.5),
+            right: Val::Px(5.0),
+            left: Val::Px(5.0),
+            bottom: Val::Px(2.5),
         },
         ..default()
     }

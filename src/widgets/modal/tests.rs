@@ -2,7 +2,9 @@
 
 use crate::plugin::FamiqPlugin;
 use crate::widgets::FamiqResource;
-use crate::fa_modal;
+use crate::widgets::text::*;
+use crate::modal;
+use crate::text;
 use super::*;
 
 fn setup_test_default_modal(
@@ -11,7 +13,7 @@ fn setup_test_default_modal(
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     inject_builder(&mut builder);
-    fa_modal!(id: "#test-modal");
+    modal!(id: "#test-modal");
 }
 
 fn setup_test_modal_with_children(
@@ -21,15 +23,15 @@ fn setup_test_modal_with_children(
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     inject_builder(&mut builder);
 
-    fa_modal!(children: [
-        fa_text!(text: "Text one"),
-        fa_text!(text: "Text two")
+    modal!(children: [
+        text!(text: "Text one"),
+        text!(text: "Text two")
     ]);
 }
 
 #[test]
 fn test_create_default_modal() {
-    let mut app = utils::create_test_app();
+    let mut app = create_test_app();
     app.add_plugins(FamiqPlugin);
     app.add_systems(Startup, setup_test_default_modal);
     app.update();
@@ -43,7 +45,7 @@ fn test_create_default_modal() {
 
 #[test]
 fn test_create_modal_with_children() {
-    let mut app = utils::create_test_app();
+    let mut app = create_test_app();
     app.add_plugins(FamiqPlugin);
     app.add_systems(Startup, setup_test_modal_with_children);
     app.update();

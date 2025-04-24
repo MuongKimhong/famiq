@@ -10,16 +10,16 @@ pub struct IsFamiqProgressValue;
 
 /// Component storing the progress bar entity associated with its value.
 #[derive(Component)]
-pub struct FamiqProgressBarEntity(pub Entity);
+pub struct ProgressBarEntity(pub Entity);
 
 /// Component storing the progress value entity associated with its bar.
 #[derive(Component)]
-pub struct FamiqProgressValueEntity(pub Entity);
+pub struct ProgressValueEntity(pub Entity);
 
 /// Component storing percentage of a progress bar.
 /// None means indeterminate.
 #[derive(Component)]
-pub struct FaProgressValuePercentage(pub Option<f32>);
+pub struct ProgressValuePercentage(pub Option<f32>);
 
 #[derive(Component)]
 pub struct ProgressValueColor(pub Color);

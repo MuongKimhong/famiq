@@ -4,7 +4,7 @@ use crate::plugin::FamiqPlugin;
 use crate::widgets::color::PRIMARY_COLOR;
 use crate::widgets::WidgetClasses;
 use crate::utils;
-use crate::fa_text_input;
+use crate::text_input;
 use bevy::input::InputPlugin;
 use super::*;
 
@@ -14,7 +14,7 @@ fn setup_test_default_input(
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     inject_builder(&mut builder);
-    fa_text_input!(model: "", placeholder: "First name", id: "#test-input");
+    text_input!(placeholder: "First name", id: "#test-input");
 }
 
 fn setup_test_input_with_built_in_class(
@@ -23,7 +23,7 @@ fn setup_test_input_with_built_in_class(
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     inject_builder(&mut builder);
-    fa_text_input!(model: "", placeholder: "First name", class: "is-primary");
+    text_input!(placeholder: "First name", class: "primary");
 }
 
 #[test]
@@ -55,7 +55,7 @@ fn test_create_input_with_built_in_class() {
         .get_single(app.world());
 
     let input_class = input_q.as_ref().unwrap().0;
-    assert_eq!("is-primary".to_string(), input_class.0);
+    assert_eq!("primary".to_string(), input_class.0);
 
     let input_bg = input_q.as_ref().unwrap().1;
     assert_eq!(BackgroundColor(PRIMARY_COLOR), *input_bg);

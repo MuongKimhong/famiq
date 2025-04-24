@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 // top left corner
-pub fn default_fps_text_container_node() -> Node {
+pub fn default_fps_container_node() -> Node {
     Node {
         position_type: PositionType::Absolute,
         width: Val::Auto,

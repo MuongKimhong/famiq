@@ -26,15 +26,15 @@
 //!     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
 //!     inject_builder(&mut builder);
 //!
-//!     let txt = fa_text!(text: "Hello world");
-//!     let btn = fa_button!(text: "Press me");
-//!     fa_container!(children: [txt, btn]);
+//!     let txt = text!(text: "Hello world");
+//!     let btn = button!(text: "Press me");
+//!     container!(children: [txt, btn]);
 //!
 //!     // or
 //!
-//!     fa_container!(children: [
-//!         fa_text!(text: "Hello world"),
-//!         fa_button!(text: "Press me")
+//!     container!(children: [
+//!         text!(text: "Hello world"),
+//!         button!(text: "Press me")
 //!     ]);
 //! }
 //! ```
@@ -51,53 +51,43 @@ pub mod prelude {
     pub use crate::plugin::FamiqPlugin;
     pub use crate::resources::*;
     pub use crate::reactivity::*;
-    pub use crate::utils::{extract_reactive_key, clean_stringify, replace_text_with_reactive_keys};
-    pub use crate::widgets::text::{FaTextFields, FaTextContext};
+    pub use crate::utils::*;
     pub use crate::widgets::{
         FamiqBuilder, WidgetType, WidgetId,
         DefaultTextConfig, DefaultWidgetConfig,
         SetWidgetAttributes, FaQuery, WidgetSelector,
-        CommonMacroFields,
+        SetupWidget, WidgetBuilder, BuilderType,
         builder_mut,
         inject_builder,
-        fa_button_builder,
-        fa_circular_builder,
-        fa_container_builder,
-        fa_fps_builder,
-        fa_image_builder,
-        fa_listview_builder,
-        fa_modal_builder,
-        fa_text_builder,
-        fa_text_input_builder,
-        fa_selection_builder,
-        fa_bg_image_builder,
-        fa_progress_bar_builder,
-        fa_checkbox_builder,
+        text::*,
+        button::*,
+        container::*,
+        image::*,
+        checkbox::*,
+        circular::*,
+        text_input::*,
+        selection::*,
+        modal::*,
+        progress_bar::*,
+        scroll::*,
+        fps::*,
     };
-    pub use crate::fa_button;
-    pub use crate::fa_bg_image;
-    pub use crate::fa_checkbox;
-    pub use crate::fa_circular;
-    pub use crate::fa_container;
-    pub use crate::fa_fps;
-    pub use crate::fa_image;
-    pub use crate::fa_listview;
-    pub use crate::fa_modal;
-    pub use crate::fa_progress_bar;
-    pub use crate::fa_selection;
-    pub use crate::fa_text;
-    pub use crate::test_text;
-    pub use crate::fa_text_input;
-    pub use crate::widgets::modal::{IsFamiqModalContainer, IsFamiqModalBackground};
-    pub use crate::widgets::text_input::IsFamiqTextInput;
-    pub use crate::widgets::selection::IsFamiqSelectionSelector;
-    pub use crate::widgets::progress_bar::{IsFamiqProgressBar, IsFamiqProgressValue};
-    pub use crate::widgets::container::IsFamiqContainer;
-    pub use crate::widgets::fps::IsFamiqFPSTextCount;
-    pub use crate::widgets::text::IsFamiqText;
-    pub use crate::widgets::list_view::IsFamiqListView;
-    pub use crate::widgets::bg_image::{FaBgImageResource, IsFamiqBgImage};
+    pub use macros::*;
+    pub use args::prelude::*;
+    pub use crate::button;
+    pub use crate::checkbox;
+    pub use crate::circular;
+    pub use crate::container;
+    pub use crate::fps;
+    pub use crate::image;
+    pub use crate::scroll;
+    pub use crate::modal;
+    pub use crate::progress_bar;
+    pub use crate::selection;
+    pub use crate::text;
+    pub use crate::text_input;
     pub use crate::event_writer::{FaMouseEvent, FaValueChangeEvent};
+    pub use crate::errors::*;
     pub use bevy::utils::hashbrown::HashMap;
     pub use serde_json;
 }

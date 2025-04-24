@@ -1,8 +1,8 @@
 #![cfg(test)]
 
+use crate::utils;
+use crate::widgets::button::*;
 use crate::plugin::FamiqPlugin;
-use crate::fa_container;
-use crate::fa_button;
 use crate::widgets::{FamiqResource, WidgetId, WidgetClasses, inject_builder, builder_mut};
 use super::*;
 
@@ -12,7 +12,7 @@ fn setup_test_default_container(
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     inject_builder(&mut builder);
-    fa_container!(id: "#test-container");
+    crate::container!(id: "#test-container");
 }
 
 fn setup_test_container_with_class(
@@ -21,7 +21,7 @@ fn setup_test_container_with_class(
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     inject_builder(&mut builder);
-    fa_container!(
+    crate::container!(
         id: "#test-container",
         class: "test-class-one test-class-two"
     );
@@ -33,11 +33,11 @@ fn setup_test_container_with_children(
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     inject_builder(&mut builder);
-    fa_container!(
+    crate::container!(
         id: "#test-container",
         children: [
-            fa_button!(text: "Button 1"),
-            fa_button!(text: "Button 2")
+            crate::button!(text: "Button 1"),
+            crate::button!(text: "Button 2")
         ]
     );
 }

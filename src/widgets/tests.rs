@@ -2,18 +2,20 @@
 
 use bevy::prelude::*;
 use bevy::color::palettes::basic::*;
+use crate::widgets::container::*;
 use crate::plugin::FamiqPlugin;
-use crate::fa_button;
-use crate::fa_modal;
-use crate::fa_container;
+use crate::button;
+use crate::modal;
+use crate::container;
 use bevy::input::InputPlugin;
 use crate::prelude::IsFamiqModalContainer;
 use crate::utils::*;
-use crate::widgets::list_view::IsFamiqListViewMovePanel;
+use crate::widgets::scroll::*;
 use super::button::*;
 use super::text::*;
-use crate::fa_listview;
-use crate::fa_text;
+use super::modal::*;
+use crate::scroll;
+use crate::text;
 use super::*;
 
 #[derive(Resource)]
@@ -26,7 +28,7 @@ fn setup_test_fa_query(
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     inject_builder(&mut builder);
-    let btn = fa_button!(text: "Press me", id: "#test-btn");
+    let btn = button!(text: "Press me", id: "#test-btn");
     commands.insert_resource(TestResource(btn));
 }
 
@@ -37,7 +39,7 @@ fn setup_test_fa_query_for_text(
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     inject_builder(&mut builder);
-    let text = fa_text!(text: "Hello", id: "#test-text");
+    let text = text!(text: "Hello", id: "#test-text");
     commands.insert_resource(TestResource(text));
 }
 
@@ -47,7 +49,7 @@ fn setup_test_containable_for_container(
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     inject_builder(&mut builder);
-    let container = fa_container!(id: "#test-container");
+    let container = container!(id: "#test-container");
     fa_query.commands.insert_resource(TestResource(container));
 }
 
@@ -58,8 +60,8 @@ fn run_add_children_for_container(
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     inject_builder(&mut builder);
-    let text_one = fa_text!(text: "Hello");
-    let text_two = fa_text!(text: "Hello");
+    let text_one = text!(text: "Hello");
+    let text_two = text!(text: "Hello");
     fa_query.add_children(WidgetSelector::ID("#test-container"), &[text_one]);
     fa_query.add_children(WidgetSelector::ENTITY(test_res.0), &[text_two]);
 }
@@ -71,8 +73,8 @@ fn run_insert_children_for_container(
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     inject_builder(&mut builder);
-    let text_one = fa_text!(text: "Hello");
-    let text_two = fa_text!(text: "Hello");
+    let text_one = text!(text: "Hello");
+    let text_two = text!(text: "Hello");
     fa_query.insert_children(WidgetSelector::ID("#test-container"), 0, &[text_one]);
     fa_query.insert_children(WidgetSelector::ENTITY(test_res.0), 0, &[text_two]);
 }
@@ -83,7 +85,7 @@ fn setup_test_containable_for_modal(
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     inject_builder(&mut builder);
-    let modal = fa_modal!(id: "#test-modal");
+    let modal = modal!(id: "#test-modal");
     fa_query.commands.insert_resource(TestResource(modal));
 }
 
@@ -94,8 +96,8 @@ fn run_add_children_for_modal(
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     inject_builder(&mut builder);
-    let text_one = fa_text!(text: "Hello");
-    let text_two = fa_text!(text: "Hello");
+    let text_one = text!(text: "Hello");
+    let text_two = text!(text: "Hello");
     fa_query.add_children(WidgetSelector::ID("#test-modal"), &[text_one]);
     fa_query.add_children(WidgetSelector::ENTITY(test_res.0), &[text_two]);
 }
@@ -107,8 +109,8 @@ fn run_insert_children_for_modal(
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     inject_builder(&mut builder);
-    let text_one = fa_text!(text: "Hello");
-    let text_two = fa_text!(text: "Hello");
+    let text_one = text!(text: "Hello");
+    let text_two = text!(text: "Hello");
     fa_query.insert_children(WidgetSelector::ID("#test-modal"), 0, &[text_one]);
     fa_query.insert_children(WidgetSelector::ENTITY(test_res.0), 0, &[text_two]);
 }
@@ -119,7 +121,7 @@ fn setup_test_containable_for_listview(
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     inject_builder(&mut builder);
-    let listview = fa_listview!(id: "#test-listview");
+    let listview = scroll!(id: "#test-listview");
     fa_query.commands.insert_resource(TestResource(listview));
 }
 
@@ -130,8 +132,8 @@ fn run_add_children_for_listview(
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     inject_builder(&mut builder);
-    let text_one = fa_text!(text: "Hello");
-    let text_two = fa_text!(text: "Hello");
+    let text_one = text!(text: "Hello");
+    let text_two = text!(text: "Hello");
     fa_query.add_children(WidgetSelector::ID("#test-listview"), &[text_one]);
     fa_query.add_children(WidgetSelector::ENTITY(test_res.0), &[text_two]);
 }
@@ -143,26 +145,26 @@ fn run_insert_children_for_listview(
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     inject_builder(&mut builder);
-    let text_one = fa_text!(text: "Hello");
-    let text_two = fa_text!(text: "Hello");
+    let text_one = text!(text: "Hello");
+    let text_two = text!(text: "Hello");
     fa_query.insert_children(WidgetSelector::ID("#test-listview"), 0, &[text_one]);
     fa_query.insert_children(WidgetSelector::ENTITY(test_res.0), 0, &[text_two]);
 }
 
-fn run_update_by_id_for_get_style_mut(mut fa_query: FaQuery) {
-    if let Some(mut style) = fa_query.get_style_mut(WidgetSelector::ID("#test-btn")) {
+fn run_update_by_id_for_get_style_mut(mut fa_style_q: FaStyleQuery) {
+    if let Some(mut style) = fa_style_q.get_style_mut(WidgetSelector::ID("#test-btn")) {
         style.background_color.0 = Color::from(BLUE);
     }
 }
 
-fn run_update_by_entity_for_get_style_mut(mut fa_query: FaQuery, test_res: Res<TestResource>) {
-    if let Some(mut style) = fa_query.get_style_mut(WidgetSelector::ENTITY(test_res.0)) {
+fn run_update_by_entity_for_get_style_mut(mut fa_style_q: FaStyleQuery, test_res: Res<TestResource>) {
+    if let Some(mut style) = fa_style_q.get_style_mut(WidgetSelector::ENTITY(test_res.0)) {
         style.background_color.0 = Color::from(GREEN);
     }
 }
 
-fn run_set_text_color_entity(mut fa_query: FaQuery, test_res: Res<TestResource>) {
-    if let Some(mut style) = fa_query.get_text_style_mut(WidgetSelector::ENTITY(test_res.0)) {
+fn run_set_text_color_entity(mut fa_style_q: FaStyleQuery, test_res: Res<TestResource>) {
+    if let Some(mut style) = fa_style_q.get_text_style_mut(WidgetSelector::ENTITY(test_res.0)) {
         style.text_color.0 = Color::from(GREEN);
     }
 }
@@ -229,7 +231,7 @@ fn test_add_children_for_listview() {
     app.add_systems(Update, run_add_children_for_listview);
     app.update();
 
-    let query = app.world_mut().query::<(&Children, &IsFamiqListViewMovePanel)>().get_single(app.world());
+    let query = app.world_mut().query::<(&Children, &IsFamiqScrollMovePanel)>().get_single(app.world());
     assert_eq!(query.unwrap().0.iter().count(), 2);
 }
 
@@ -243,7 +245,7 @@ fn test_insert_children_for_listview() {
     app.add_systems(Update, run_insert_children_for_listview);
     app.update();
 
-    let query = app.world_mut().query::<(&Children, &IsFamiqListViewMovePanel)>().get_single(app.world());
+    let query = app.world_mut().query::<(&Children, &IsFamiqScrollMovePanel)>().get_single(app.world());
     assert_eq!(query.unwrap().0.iter().count(), 2);
 }
 

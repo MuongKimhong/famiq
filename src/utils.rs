@@ -1,5 +1,5 @@
-use bevy::ecs::system::EntityCommands;
 use bevy::utils::HashMap;
+use bevy::utils::hashbrown::HashSet;
 use bevy::window::WindowResized;
 use bevy::asset::{io::AssetSourceId, AssetPath, AssetPlugin};
 use bevy::prelude::*;
@@ -8,13 +8,15 @@ use std::path::Path;
 use std::fs::File;
 use std::io::Read;
 use regex::Regex;
+use once_cell::sync::Lazy;
+use std::any::Any;
 
 use crate::plugin::{CursorIcons, CursorType};
-use crate::widgets::style_parse::*;
+use crate::widgets::{style_parse::*, ReactiveModelKey, WidgetAttributes};
 use crate::widgets::{WidgetStyle, DefaultWidgetConfig, WidgetColor, WidgetSize};
 use crate::widgets::color::*;
 use crate::reactivity::RVal;
-use crate::errors::StylesFileError;
+use crate::errors::*;
 use crate::widgets::{WidgetId, WidgetClasses, TooltipEntity, IsFamiqTooltip};
 
 pub(crate) fn read_styles_json_file(path: &str) -> Result<HashMap<String, WidgetStyle>, StylesFileError> {
@@ -46,20 +48,6 @@ pub(crate) fn extract_val(val: Val) -> Option<f32> {
         Val::Vh(value) => Some(value),
         _ => None,
     }
-}
-
-/// add an entity as child to another entity
-pub(crate) fn entity_add_child<'a>(root_node: &'a mut EntityCommands, child: Entity, parent: Entity) {
-    root_node.commands().entity(parent).add_child(child);
-}
-
-/// add multiple entities as children to another entity
-pub(crate) fn entity_add_children<'a>(
-    root_node: &'a mut EntityCommands,
-    children: &Vec<Entity>,
-    parent: Entity,
-) {
-    root_node.commands().entity(parent).add_children(children);
 }
 
 pub fn adjust_color(percentage: f32, color: &Color, darken: bool) -> Option<Color> {
@@ -180,17 +168,51 @@ pub fn mask_string(input: &str) -> String {
     "*".repeat(input.len())
 }
 
-pub(crate) fn insert_id_and_class<'a>(
-    root_node: &'a mut EntityCommands,
+pub(crate) fn insert_class_id(
+    commands: &mut Commands,
     entity: Entity,
     id: &Option<String>,
     class: &Option<String>
 ) {
     if let Some(id) = id {
-        root_node.commands().entity(entity).insert(WidgetId(id.to_owned()));
+        commands.entity(entity).insert(WidgetId(id.to_owned()));
     }
     if let Some(class) = class {
-        root_node.commands().entity(entity).insert(WidgetClasses(class.to_owned()));
+        commands.entity(entity).insert(WidgetClasses(class.to_owned()));
+    }
+}
+
+pub(crate) fn insert_class_id_world(
+    world: &mut World,
+    entity: Entity,
+    id: &Option<String>,
+    class: &Option<String>
+) {
+    if let Some(id) = id {
+        world.entity_mut(entity).insert(WidgetId(id.to_owned()));
+    }
+    if let Some(class) = class {
+        world.entity_mut(entity).insert(WidgetClasses(class.to_owned()));
+    }
+}
+
+pub(crate) fn insert_model(
+    commands: &mut Commands,
+    entity: Entity,
+    model: &Option<String>
+) {
+    if let Some(model) = model {
+        commands.entity(entity).insert(ReactiveModelKey(model.to_owned()));
+    }
+}
+
+pub(crate) fn insert_model_world(
+    world: &mut World,
+    entity: Entity,
+    model: &Option<String>
+) {
+    if let Some(model) = model {
+        world.entity_mut(entity).insert(ReactiveModelKey(model.to_owned()));
     }
 }
 
@@ -406,12 +428,16 @@ pub(crate) fn get_color(color: &WidgetColor) -> Color {
         WidgetColor::WarningDark => WARNING_DARK_COLOR,
         WidgetColor::Info => INFO_COLOR,
         WidgetColor::InfoDark => INFO_DARK_COLOR,
+        WidgetColor::Transparent => TRANSPARENT_COLOR,
         WidgetColor::Custom(color) => {
             if let Some(parsed_color) = built_in_color_parser(color) {
                 parsed_color
             } else {
                 DEFAULT_COLOR
             }
+        },
+        WidgetColor::CustomSrgba(srgba) => {
+            Color::srgba(srgba.0, srgba.1, srgba.2, srgba.3)
         },
         _ => WHITE_COLOR
     }
@@ -517,56 +543,115 @@ pub fn bevy_color_to_cosmic_rgba(bevy_color: Color) -> Option<CosmicColor> {
     None
 }
 
+pub static REACTIVE_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new(r"\$\[(.*?)\]").unwrap());
+
 /// Extract reactive key(s) from string.
 /// Eg, "Hello $[some_thing]" -> "some_thing".
-pub fn extract_reactive_key(text: &str) -> Vec<&str> {
-    let re = Regex::new(r"\$\[(.*?)\]").unwrap();
-    let mut keys: Vec<&str> = Vec::new();
-
-    for capture in re.captures_iter(text) {
+pub fn get_reactive_key(text: &str) -> Vec<String> {
+    let mut keys = HashSet::new();
+    for capture in REACTIVE_REGEX.captures_iter(text) {
         if let Some(matched) = capture.get(1) {
-            if !keys.contains(&matched.as_str()) {
-                keys.push(matched.as_str());
-            }
+            keys.insert(matched.as_str().to_string());
         }
     }
-    keys
-}
-
-/// Clean the result of stringify! if value being passed into
-/// stringify! is a string.
-/// Eg. stringify!("Hello") -> "\"Hello\"",
-/// clean_stringify(stringify!("Hello")) => "Hello".
-pub fn clean_stringify(stringified: &str) -> String {
-    if stringified.starts_with('"') && stringified.ends_with('"') {
-        stringified[1..stringified.len() - 1].to_string()
-    }
-    else {
-        stringified.to_string()
-    }
+    keys.into_iter().collect()
 }
 
 /// Example, key "color", value: "blue", text: "This is $[color]".
 /// result: "This is blue".
-pub fn replace_text_with_reactive_keys(
+pub fn replace_reactive_keys(
     old_text: &str,
-    reactive_keys: &Vec<&str>,
+    reactive_keys: &Vec<String>,
     reactive_data: &HashMap<String, RVal>
 ) -> String {
     let mut new_text = old_text.to_string();
 
     for key in reactive_keys {
         let placeholder = format!("$[{}]", key);
-        if let Some(value) = reactive_data.get(*key) {
-            match value {
-                RVal::Str(v) => {
-                    new_text = new_text.replace(&placeholder, v);
-                }
-                _ => {}
-            }
+        if let Some(value) = reactive_data.get(key) {
+            new_text = new_text.replace(&placeholder, &value.to_string());
         }
     }
     new_text
+}
+
+pub fn replace_reactive_keys_common_attrs(
+    attr: &mut WidgetAttributes,
+    reactive_data: &HashMap<String, RVal>,
+    all_reactive_keys: &mut Vec<String>
+) {
+    if let Some(class) = attr.class.as_mut() {
+        let class_r_keys = get_reactive_key(class);
+        *class = replace_reactive_keys(class, &class_r_keys, reactive_data);
+        all_reactive_keys.extend(class_r_keys);
+    }
+
+    if let Some(id) = attr.id.as_mut() {
+        let id_r_keys = get_reactive_key(id);
+        *id = replace_reactive_keys(id, &id_r_keys, reactive_data);
+        all_reactive_keys.extend(id_r_keys);
+    }
+
+    if let WidgetColor::Custom(ref mut c) = attr.color {
+        let color_r_keys = get_reactive_key(c);
+        *c = replace_reactive_keys(c, &color_r_keys, reactive_data);
+        all_reactive_keys.extend(color_r_keys);
+    }
+
+    if attr.has_tooltip {
+        let tooltip_r_keys = get_reactive_key(&attr.tooltip_text);
+        attr.tooltip_text = replace_reactive_keys(&attr.tooltip_text, &tooltip_r_keys, reactive_data);
+        all_reactive_keys.extend(tooltip_r_keys);
+    }
+}
+
+pub trait TypeName {
+    fn type_name() -> &'static str;
+}
+
+impl TypeName for f32 {
+    fn type_name() -> &'static str { "f32" }
+}
+
+impl TypeName for bool {
+    fn type_name() -> &'static str { "boolean" }
+}
+
+impl TypeName for &str {
+    fn type_name() -> &'static str { "&str" }
+}
+
+impl TypeName for Vec<String> {
+    fn type_name() -> &'static str { "Vec<String>" }
+}
+
+impl TypeName for [&str] {
+    fn type_name() -> &'static str { "[&str]" }
+}
+
+pub fn check_val_type<T: TypeName>(_val: &T) -> &'static str {
+    T::type_name()
+}
+
+pub fn to_rval<T: Any + ToString + TypeName>(value: T) -> Result<RVal, ToRValErr> {
+    match check_val_type(&value) {
+        "boolean" => {
+            let any = &value as &dyn Any;
+            match any.downcast_ref::<bool>() {
+                Some(val) => Ok(RVal::Bool(*val)),
+                None => Err(ToRValErr::ConvertToRValFail)
+            }
+        }
+        "f32" => {
+            let any = &value as &dyn Any;
+            match any.downcast_ref::<f32>() {
+                Some(val) => Ok(RVal::FNum(*val)),
+                None => Err(ToRValErr::ConvertToRValFail)
+            }
+        }
+        "&str" => Ok(RVal::Str(value.to_string())),
+        _ => Err(ToRValErr::UnsupportedType)
+    }
 }
 
 #[cfg(test)]

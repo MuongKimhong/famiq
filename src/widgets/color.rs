@@ -24,6 +24,7 @@ pub const INFO_DARK_COLOR: Color = Color::srgba(0.0, 0.541, 0.541, 1.0);
 pub const BLACK_COLOR: Color = Color::srgba(0.0, 0.0, 0.0, 1.0);
 pub const WHITE_COLOR: Color = Color::srgba(1.0, 1.0, 1.0, 1.0);
 pub const DEFAULT_COLOR: Color = Color::srgba(0.95, 0.95, 0.95, 1.0);
+pub const TRANSPARENT_COLOR: Color = Color::NONE;
 
 /// Convert Hex color to bevy srgba
 pub fn hex_color_parser(hex: &str) -> Option<Color> {

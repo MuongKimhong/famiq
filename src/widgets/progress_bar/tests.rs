@@ -2,8 +2,8 @@
 
 use crate::utils::create_test_app;
 use crate::plugin::FamiqPlugin;
-use crate::widgets::{WidgetId, WidgetClasses, FamiqResource, inject_builder, builder_mut};
-use crate::fa_progress_bar;
+use crate::widgets::{WidgetId, WidgetClasses, FamiqResource, inject_builder};
+use crate::progress_bar;
 use super::*;
 
 fn setup_test_default_bar(
@@ -12,7 +12,7 @@ fn setup_test_default_bar(
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     inject_builder(&mut builder);
-    fa_progress_bar!(id: "#test-bar");
+    progress_bar!(id: "#test-bar");
 }
 
 fn setup_test_bar_with_built_in_class(
@@ -21,7 +21,7 @@ fn setup_test_bar_with_built_in_class(
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     inject_builder(&mut builder);
-    fa_progress_bar!(class: "is-primary is-large");
+    progress_bar!(class: "is-primary is-large");
 }
 
 #[test]

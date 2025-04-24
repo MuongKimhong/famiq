@@ -21,16 +21,16 @@ use crate::FaValueChangeEvent;
 /// Resource for detecting style changes in json file
 #[derive(Resource, Default)]
 pub(crate) struct StylesKeyValueResource {
-    pub(crate) values: HashMap<String, WidgetStyle>, // key-value of "#widget-id"/".class-name" and all its styles in styles.json
-    pub(crate) changed_keys: Vec<String>
+    pub values: HashMap<String, WidgetStyle>, // key-value of "#widget-id"/".class-name" and all its styles in styles.json
+    pub changed_keys: Vec<String>
 }
 
 impl StylesKeyValueResource {
-    pub(crate) fn get_style_by_id(&self, widget_id: &str) -> Option<&WidgetStyle> {
+    pub fn get_style_by_id(&self, widget_id: &str) -> Option<&WidgetStyle> {
         self.values.get(widget_id)
     }
 
-    pub(crate) fn get_style_by_class_name(&self, class_name: &str) -> Option<&WidgetStyle> {
+    pub fn get_style_by_class_name(&self, class_name: &str) -> Option<&WidgetStyle> {
         self.values.get(class_name)
     }
 }
@@ -48,10 +48,10 @@ pub struct FamiqResource {
 
     /// copied text from text input
     pub copied_text: String,
+    pub root_node_entity: Option<Entity>,
 
     pub(crate) widget_focus_state: HashMap<Entity, bool>,
     pub(crate) external_style_applied: bool,
-    pub(crate) root_node_entity: Option<Entity>,
 }
 
 #[derive(Resource)]
@@ -92,6 +92,45 @@ impl FamiqResource {
             root_node_entity: None,
             copied_text: String::new()
         }
+    }
+}
+
+/// Store children entity for containable widgets
+#[derive(Resource, Debug, Default)]
+pub struct ContainableChildren {
+    pub data: HashMap<Entity, Vec<Entity>>
+}
+
+impl ContainableChildren {
+    /// Insert or update data
+    pub fn insert(&mut self, entity: Entity, children: Vec<Entity>) {
+        self.data.insert(entity, children);
+    }
+
+    /// Replace child entity with provided one
+    pub fn update_child(&mut self, parent: Entity, new_child: Entity, old_child: Entity) {
+        if let Some(children_list) = self.data.get_mut(&parent) {
+            for child in children_list.iter_mut() {
+                if *child == old_child {
+                    *child = new_child;
+                    return;
+                }
+            }
+        }
+    }
+
+    /// Insert new containable, remove old one.
+    pub fn update_containable(&mut self, old: Entity, new: Entity) {
+        if let Some(children_list) = self.data.remove(&old) {
+            self.data.insert(new, children_list);
+        }
+    }
+
+    pub fn get_children(&self, containable: Entity) -> Option<Vec<Entity>> {
+        if let Some(children_list) = self.data.get(&containable) {
+            return Some(children_list.to_owned());
+        }
+        None
     }
 }
 

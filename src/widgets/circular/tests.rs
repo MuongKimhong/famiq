@@ -2,7 +2,7 @@
 
 use crate::plugin::FamiqPlugin;
 use crate::widgets::*;
-use crate::fa_circular;
+use crate::circular;
 use crate::utils::create_test_app;
 use super::*;
 
@@ -12,7 +12,7 @@ fn setup_test_default_circular(
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     inject_builder(&mut builder);
-    fa_circular!(id: "#test-circular");
+    circular!(id: "#test-circular");
 }
 
 fn setup_test_circular_with_built_in_class(
@@ -21,7 +21,7 @@ fn setup_test_circular_with_built_in_class(
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     inject_builder(&mut builder);
-    fa_circular!(id: "#test-circular", class: "is-primary is-large");
+    circular!(id: "#test-circular", class: "primary large");
 }
 
 fn set_up_circular_with_custom_size(
@@ -30,7 +30,7 @@ fn set_up_circular_with_custom_size(
 ) {
     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
     inject_builder(&mut builder);
-    fa_circular!(size: 90.0);
+    circular!(size: 90.0);
 }
 
 #[test]
@@ -74,7 +74,7 @@ fn test_create_circular_with_built_in_class() {
 
     let circular_class = circular_q.as_ref().unwrap().0;
     assert_eq!(
-        "is-primary is-large".to_string(),
+        "primary large".to_string(),
         circular_class.0
     );
 
@@ -83,12 +83,12 @@ fn test_create_circular_with_built_in_class() {
     assert_eq!(
         Val::Px(65.0),
         circular_node.width,
-        "Circular with class is-large has width of 65px"
+        "Circular with class large has width of 65px"
     );
     assert_eq!(
         Val::Px(65.0),
         circular_node.height,
-        "Circular with class is-large has height of 65px"
+        "Circular with class    large has height of 65px"
     );
 }
 

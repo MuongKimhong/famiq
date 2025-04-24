@@ -1,10 +1,10 @@
 //! Famiq's built-in widgets.
 
+pub mod scroll;
 pub mod button;
 pub mod color;
 pub mod container;
 pub mod fps;
-pub mod list_view;
 pub mod selection;
 pub mod style;
 pub mod style_parse;
@@ -13,26 +13,14 @@ pub mod text_input;
 pub mod circular;
 pub mod modal;
 pub mod image;
-pub mod bg_image;
 pub mod progress_bar;
 pub mod checkbox;
 pub mod tests;
 pub mod base_components;
 
 use bevy::utils::hashbrown::HashMap;
-pub use button::fa_button_builder;
-pub use circular::fa_circular_builder;
-pub use container::*;
-pub use fps::fa_fps_builder;
-pub use image::fa_image_builder;
-pub use list_view::{fa_listview_builder, ListViewMovePanelEntity};
-pub use modal::{fa_modal_builder, FaModalState, FaModalContainerEntity, IsFamiqModalBackground};
-pub use text::fa_text_builder;
-pub use text_input::fa_text_input_builder;
-pub use selection::fa_selection_builder;
-pub use bg_image::fa_bg_image_builder;
-pub use progress_bar::fa_progress_bar_builder;
-pub use checkbox::fa_checkbox_builder;
+pub use scroll::ScrollMovePanelEntity;
+pub use modal::{FaModalState, FaModalContainerEntity, IsFamiqModalBackground};
 pub use base_components::*;
 pub use style::*;
 use crate::resources::*;
@@ -43,9 +31,27 @@ use bevy::ecs::system::{EntityCommands, SystemParam};
 use bevy::ecs::query::QueryData;
 use bevy::prelude::*;
 use std::cell::RefCell;
-use serde::{Serialize, Deserialize};
 
-#[derive(Clone, Default, PartialEq)]
+pub trait SetupWidget {
+    /// get components required for widget.
+    fn components(&mut self) -> impl Bundle;
+
+    /// build/spawn the widget into UI world.
+    fn build(
+        &mut self,
+        reactive_data: &HashMap<String, RVal>,
+        commands: &mut Commands
+    ) -> Entity;
+
+    /// build/spawn the widget into UI world using world instead of commands.
+    fn build_with_world(
+        &mut self,
+        reactive_data: &HashMap<String, RVal>,
+        world: &mut World
+    ) -> Option<Entity>;
+}
+
+#[derive(Clone, Default, PartialEq, Debug)]
 pub enum WidgetColor {
     #[default]
     Default, // White or Light
@@ -61,10 +67,12 @@ pub enum WidgetColor {
     WarningDark,
     Info,
     InfoDark,
-    Custom(String)
+    Transparent,
+    Custom(String),
+    CustomSrgba((f32, f32, f32, f32))
 }
 
-#[derive(Clone, Copy, Default, PartialEq)]
+#[derive(Clone, Copy, Default, PartialEq, Debug)]
 pub enum WidgetSize {
     #[default]
     Default,
@@ -73,7 +81,7 @@ pub enum WidgetSize {
     Custom(f32)
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug)]
 pub struct WidgetAttributes {
     pub id: Option<String>,
     pub class: Option<String>,
@@ -86,12 +94,19 @@ pub struct WidgetAttributes {
     pub tooltip_text: String,
     pub bind_keys: Vec<String>,
     pub model_key: Option<String>,
-    default_display_changed: bool,
-    default_display: Display
+    pub(crate) default_display_changed: bool,
+    pub(crate) default_display: Display,
+    pub(crate) default_visibility: Visibility,
+    pub(crate) default_z_index: ZIndex,
+    pub(crate) overrided_background_color: Option<Color>,
+    pub(crate) overrided_border_color: Option<Color>,
+    pub(crate) override_text_size: Option<f32>
 }
 
 pub trait SetWidgetAttributes: Sized {
     fn attributes(&mut self) -> &mut WidgetAttributes;
+
+    fn cloned_attrs(&mut self) -> &mut WidgetAttributes;
 
     fn bind<I, S>(mut self, values: I) -> Self
     where
@@ -102,47 +117,24 @@ pub trait SetWidgetAttributes: Sized {
         self
     }
 
-    fn model(mut self, model_key: &str) -> Self {
+    fn set_model(&mut self, model_key: &str) {
         self.attributes().model_key = Some(model_key.to_string());
-        self
-    }
-
-    fn id(mut self, id: &str) -> Self {
-        self.attributes().id = Some(id.to_string());
-        self
     }
 
     fn set_id(&mut self, id: &str) {
         self.attributes().id = Some(id.to_string());
     }
 
-    fn class(mut self, class: &str) -> Self {
-        self.attributes().class = Some(class.to_string());
-        self
-    }
-
     fn set_class(&mut self, class: &str) {
         self.attributes().class = Some(class.to_string());
-    }
-
-    fn color(mut self, color: &str) -> Self {
-        self.attributes().color = WidgetColor::Custom(color.to_string());
-        self
     }
 
     fn set_color(&mut self, color: &str) {
         self.attributes().color = WidgetColor::Custom(color.to_string());
     }
 
-    fn size(mut self, size: f32) -> Self {
+    fn set_size(&mut self, size: f32) {
         self.attributes().size = WidgetSize::Custom(size);
-        self
-    }
-
-    fn tooltip(mut self, text: &str) -> Self {
-        self.attributes().has_tooltip = true;
-        self.attributes().tooltip_text = text.to_string();
-        self
     }
 
     fn set_tooltip(&mut self, text: &str) {
@@ -159,10 +151,8 @@ pub trait SetWidgetAttributes: Sized {
         self
     }
 
-    fn _node(&mut self);
-
     fn _process_built_in_color_class(&mut self) {
-        if self.attributes().color != WidgetColor::Default {
+        if self.cloned_attrs().color != WidgetColor::Default {
             return;
         }
         let mut use_color = WidgetColor::Default;
@@ -171,27 +161,27 @@ pub trait SetWidgetAttributes: Sized {
 
             for class_name in class_split {
                 match class_name {
-                    "is-dark" => use_color = WidgetColor::Dark,
-                    "is-primary" => use_color = WidgetColor::Primary,
-                    "is-primary-dark" => use_color = WidgetColor::PrimaryDark,
-                    "is-secondary" => use_color = WidgetColor::Secondary,
-                    "is-danger" => use_color = WidgetColor::Danger,
-                    "is-danger-dark" => use_color = WidgetColor::DangerDark,
-                    "is-success" => use_color = WidgetColor::Success,
-                    "is-success-dark" => use_color= WidgetColor::SuccessDark,
-                    "is-warning" => use_color = WidgetColor::Warning,
-                    "is-warning-dark" => use_color = WidgetColor::WarningDark,
-                    "is-info" => use_color = WidgetColor::Info,
-                    "is-info-dark" => use_color = WidgetColor::InfoDark,
+                    "dark" => use_color = WidgetColor::Dark,
+                    "primary" => use_color = WidgetColor::Primary,
+                    "primary-dark" => use_color = WidgetColor::PrimaryDark,
+                    "secondary" => use_color = WidgetColor::Secondary,
+                    "danger" => use_color = WidgetColor::Danger,
+                    "danger-dark" => use_color = WidgetColor::DangerDark,
+                    "success" => use_color = WidgetColor::Success,
+                    "success-dark" => use_color= WidgetColor::SuccessDark,
+                    "warning" => use_color = WidgetColor::Warning,
+                    "warning-dark" => use_color = WidgetColor::WarningDark,
+                    "info" => use_color = WidgetColor::Info,
+                    "info-dark" => use_color = WidgetColor::InfoDark,
                     _ => {}
                 }
             }
         }
-        self.attributes().color = use_color;
+        self.cloned_attrs().color = use_color;
     }
 
     fn _process_built_in_size_class(&mut self) {
-        if self.attributes().size != WidgetSize::Default {
+        if self.cloned_attrs().size != WidgetSize::Default {
             return;
         }
         let mut use_size = WidgetSize::Default;
@@ -200,13 +190,13 @@ pub trait SetWidgetAttributes: Sized {
 
             for class_name in class_split {
                 match class_name {
-                    "is-small" => use_size = WidgetSize::Small,
-                    "is-large" => use_size = WidgetSize::Large,
+                    "small" => use_size = WidgetSize::Small,
+                    "large" => use_size = WidgetSize::Large,
                     _ => {}
                 }
             }
         }
-        self.attributes().size = use_size;
+        self.cloned_attrs().size = use_size;
     }
 }
 
@@ -218,7 +208,7 @@ pub enum WidgetType {
     Text,
     FpsText, // globalzindex 6
     TextInput,
-    ListView,
+    Scroll,
     Selection,
     Circular,
     ProgressBar,
@@ -232,7 +222,8 @@ pub struct FamiqBuilder<'a> {
     pub asset_server: &'a Res<'a, AssetServer>,
     pub ui_root_node: EntityCommands<'a>,
     pub resource: Mut<'a, FamiqResource>,
-    pub reactive_data: Mut<'a, RData>
+    pub reactive_data: Mut<'a, RData>,
+    pub containable_children: Mut<'a, ContainableChildren>
 }
 
 impl<'a> FamiqBuilder<'a> {
@@ -241,8 +232,13 @@ impl<'a> FamiqBuilder<'a> {
             asset_server: &fa_query.asset_server,
             ui_root_node: fa_query.commands.entity(famiq_resource.root_node_entity.unwrap()),
             resource: famiq_resource.reborrow(),
-            reactive_data: fa_query.reactive_data.reborrow()
+            reactive_data: fa_query.reactive_data.reborrow(),
+            containable_children: fa_query.containable_children.reborrow()
         }
+    }
+
+    pub fn inject(&'a mut self) {
+        inject_builder(self);
     }
 
     /// Method to use custom font
@@ -307,6 +303,11 @@ impl<'a> FamiqBuilder<'a> {
         self
     }
 
+    /// Method to get font handle from provided font_path.
+    pub fn get_font_handle(&self) -> Handle<Font> {
+        self.asset_server.load(&self.resource.font_path)
+    }
+
     pub fn insert_component<T: Bundle>(&mut self, entity: Entity, components: T) {
         self.ui_root_node.commands().entity(entity).insert(components);
     }
@@ -333,9 +334,9 @@ pub fn hot_reload_is_disabled(famiq_res: Res<FamiqResource>) -> bool {
     !famiq_res.hot_reload_styles && !famiq_res.external_style_applied
 }
 
-pub(crate) fn build_tooltip_node<'a>(
+pub(crate) fn build_tooltip_node(
     attributes: &WidgetAttributes,
-    root_node: &'a mut EntityCommands,
+    commands: &mut Commands,
     widget_entity: Entity
 ) -> Entity {
     let txt_font = TextFont {
@@ -343,8 +344,7 @@ pub(crate) fn build_tooltip_node<'a>(
         font_size: get_text_size(&attributes.size),
         ..default()
     };
-    let tooltip_entity = root_node
-        .commands()
+    let tooltip_entity = commands
         .spawn((
             Node {
                 position_type: PositionType::Absolute,
@@ -377,8 +377,7 @@ pub(crate) fn build_tooltip_node<'a>(
         ))
         .id();
 
-    root_node
-        .commands()
+    commands
         .entity(widget_entity)
         .add_child(tooltip_entity)
         .insert(TooltipEntity(tooltip_entity));
@@ -395,57 +394,38 @@ pub enum WidgetSelector<'a> {
 #[derive(QueryData)]
 #[query_data(mutable)]
 pub struct StyleQuery {
-    background_color: &'static mut BackgroundColor,
-    border_color: &'static mut BorderColor,
-    border_radius: &'static mut BorderRadius,
-    z_index: &'static mut ZIndex,
-    visibility: &'static mut Visibility,
-    box_shadow: &'static mut BoxShadow,
-    node: &'static mut Node,
-    id: Option<&'static WidgetId>,
-    class: Option<&'static WidgetClasses>,
-    default_style: &'static DefaultWidgetConfig
+    pub background_color: &'static mut BackgroundColor,
+    pub border_color: &'static mut BorderColor,
+    pub border_radius: &'static mut BorderRadius,
+    pub z_index: &'static mut ZIndex,
+    pub visibility: &'static mut Visibility,
+    pub box_shadow: &'static mut BoxShadow,
+    pub node: &'static mut Node,
+    pub id: Option<&'static WidgetId>,
+    pub class: Option<&'static WidgetClasses>,
+    pub default_style: &'static DefaultWidgetConfig
 }
 
 /// Text query
 #[derive(QueryData)]
 #[query_data(mutable)]
 pub struct TextStyleQuery {
-    text_color: &'static mut TextColor,
-    text_font: &'static mut TextFont,
-    id: Option<&'static WidgetId>,
+    pub text_color: &'static mut TextColor,
+    pub text_font: &'static mut TextFont,
+    pub id: Option<&'static WidgetId>,
+    pub class: Option<&'static WidgetClasses>,
+    pub default_text_style: Option<&'static DefaultTextConfig>,
+    pub default_text_span_style: Option<&'static DefaultTextSpanConfig>,
 }
 
-#[derive(QueryData)]
-#[query_data(mutable)]
-pub struct ContainableQuery {
-    entity: Entity,
-    listview_panel: Option<&'static ListViewMovePanelEntity>,
-    modal_container: Option<&'static FaModalContainerEntity>,
-    id: Option<&'static WidgetId>
-}
-
-#[derive(QueryData)]
-pub struct ModalQuery {
-    entity: Entity,
-    id: Option<&'static WidgetId>
-}
-
-/// Famiq query
+/// Query for getting/updating style and text style.
 #[derive(SystemParam)]
-pub struct FaQuery<'w, 's> {
+pub struct FaStyleQuery<'w, 's> {
     pub style_query: Query<'w, 's, StyleQuery>,
     pub text_style_query: Query<'w, 's, TextStyleQuery>,
-    pub containable_query: Query<'w, 's, ContainableQuery, With<IsFamiqContainableWidget>>,
-    pub modal_query: Query<'w, 's, ModalQuery, With<IsFamiqModalBackground>>,
-    pub modal_state: ResMut<'w, FaModalState>,
-    pub reactive_data: ResMut<'w, RData>,
-    pub commands: Commands<'w, 's>,
-    pub asset_server: Res<'w, AssetServer>,
-    pub reactive_subscriber: ResMut<'w, RSubscriber>
 }
 
-impl<'w, 's> FaQuery<'w, 's> {
+impl<'w, 's> FaStyleQuery<'w, 's> {
     /// Get `StyleQueryItem` based on `WidgetSelector`
     pub fn get_style_mut(&mut self, selector: WidgetSelector) -> Option<StyleQueryItem<'_>> {
         match selector {
@@ -477,7 +457,37 @@ impl<'w, 's> FaQuery<'w, 's> {
             WidgetSelector::ENTITY(entity) => self.text_style_query.get_mut(entity).ok(),
         }
     }
+}
 
+#[derive(QueryData)]
+#[query_data(mutable)]
+pub struct ContainableQuery {
+    entity: Entity,
+    listview_panel: Option<&'static ScrollMovePanelEntity>,
+    modal_container: Option<&'static FaModalContainerEntity>,
+    id: Option<&'static WidgetId>
+}
+
+#[derive(QueryData)]
+pub struct ModalQuery {
+    entity: Entity,
+    id: Option<&'static WidgetId>
+}
+
+/// Famiq query
+#[derive(SystemParam)]
+pub struct FaQuery<'w, 's> {
+    pub containable_query: Query<'w, 's, ContainableQuery, With<IsFamiqContainableWidget>>,
+    pub modal_query: Query<'w, 's, ModalQuery, With<IsFamiqModalBackground>>,
+    pub modal_state: ResMut<'w, FaModalState>,
+    pub reactive_data: ResMut<'w, RData>,
+    pub commands: Commands<'w, 's>,
+    pub asset_server: Res<'w, AssetServer>,
+    pub reactive_subscriber: ResMut<'w, RSubscriber>,
+    pub containable_children: ResMut<'w, ContainableChildren>
+}
+
+impl<'w, 's> FaQuery<'w, 's> {
     /// Finds a `ContainableQueryReadOnlyItem` based on `WidgetSelector`
     pub fn get_containable_item(&self, selector: WidgetSelector) -> Option<ContainableQueryReadOnlyItem<'_>> {
         match selector {
@@ -491,22 +501,6 @@ impl<'w, 's> FaQuery<'w, 's> {
                 }),
 
             WidgetSelector::ENTITY(entity) => self.containable_query.get(entity).ok(),
-        }
-    }
-
-    /// Finds a `ModalQueryItem` based on `WidgetSelector`
-    pub fn get_modal_item(&self, selector: WidgetSelector) -> Option<ModalQueryItem<'_>> {
-        match selector {
-            WidgetSelector::ID(id) => self
-                .modal_query
-                .iter()
-                .find_map(|result| {
-                    result.id
-                        .filter(|w_id| w_id.0 == id)
-                        .map(|_| result)
-                }),
-
-            WidgetSelector::ENTITY(entity) => self.modal_query.get(entity).ok(),
         }
     }
 
@@ -559,36 +553,34 @@ impl<'w, 's> FaQuery<'w, 's> {
         }
     }
 
-    /// Show modal
-    pub fn show_modal(&mut self, selector: WidgetSelector) {
-        let mut entity: Option<Entity> = None;
-        if let Some(item) = self.get_modal_item(selector) {
-            entity = Some(item.entity);
-        }
-        if let Some(entity) = entity {
-            self.modal_state.show_by_entity(entity);
-        }
-    }
-
-    /// Hide modal
-    pub fn hide_modal(&mut self, selector: WidgetSelector) {
-        let mut entity: Option<Entity> = None;
-        if let Some(item) = self.get_modal_item(selector) {
-            entity = Some(item.entity);
-        }
-        if let Some(entity) = entity {
-            self.modal_state.hide_by_entity(entity);
-        }
-    }
-
-    /// Overwrite existing reactive data with new data.
-    pub fn bind_new_data(&mut self, new_data: HashMap<String, RVal>) {
-        self.reactive_data.data = new_data;
-    }
-
     /// Insert new key-value into reactive data.
     pub fn insert_data(&mut self, key: &str, value: RVal) {
         self.reactive_data.data.insert(key.to_string(), value);
+    }
+
+    /// Insert into reactive data as RVal::Str
+    pub fn insert_str(&mut self, key: &str, value: impl Into<String>) {
+        self.insert_data(key, RVal::Str(value.into()));
+    }
+
+    /// Insert into reactive data as Rval::Num
+    pub fn insert_num(&mut self, key: &str, value: i32) {
+        self.insert_data(key, RVal::Num(value));
+    }
+
+    /// Insert into reactive data as Rval::Bool
+    pub fn insert_bool(&mut self, key: &str, value: bool) {
+        self.insert_data(key, RVal::Bool(value));
+    }
+
+    /// Insert into reactive data as Rval::FNum
+    pub fn insert_fnum(&mut self, key: &str, value: f32) {
+        self.insert_data(key, RVal::FNum(value));
+    }
+
+    /// Insert into reactive data as Rval::List<String>
+    pub fn insert_list(&mut self, key: &str, value: Vec<String>) {
+        self.insert_data(key, RVal::List(value));
     }
 
     /// Explicitly mutates specific key.
@@ -623,135 +615,65 @@ impl<'w, 's> FaQuery<'w, 's> {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
-pub struct CommonMacroFields {
-    pub id: Option<String>,
-    pub class: Option<String>,
-    pub color: Option<String>,
-    pub tooltip: Option<String>
-}
-
 #[macro_export]
 macro_rules! extract_children {
     // For children: [ item1, item2, item3 ]
-    ($vec:ident, $builder:expr, children: [ $( $child:expr ),* $(,)? ] $(, $($rest:tt)*)?) => {{
+    ($vec:ident, children: [ $( $child:expr ),* $(,)? ] $(, $($rest:tt)*)?) => {{
         $(
             $vec.push($child);
         )*
         $(
-            $crate::extract_children!($vec, $builder, $($rest)*);
+            $crate::extract_children!($vec, $($rest)*);
         )?
     }};
 
-    // For children: some_vec
-    ($vec:ident, $builder:expr, children: $children_vec:expr $(, $($rest:tt)*)?) => {{
+    // For children: vec!
+    ($vec:ident, children: $children_vec:expr $(, $($rest:tt)*)?) => {{
         $vec.extend($children_vec);
         $(
-            $crate::extract_children!($vec, $builder, $($rest)*);
+            $crate::extract_children!($vec, $($rest)*);
         )?
     }};
 
     // other keys
-    ($vec:ident, $builder:expr, $key:ident : $val:expr $(, $($rest:tt)*)?) => {{
+    ($vec:ident, $key:ident : $val:expr $(, $($rest:tt)*)?) => {{
         $(
             $crate::extract_children!($vec, $builder, $($rest)*);
         )?
     }};
-    ($vec:ident, $builder:expr,) => {{}};
+    ($vec:ident,) => {{}};
 }
 
 #[macro_export]
 macro_rules! common_attributes {
-    ( $widget:ident, id : $value:expr ) => {{
-        $widget = $widget.id($value);
-    }};
-    ( $widget:ident, class : $value:expr ) => {{
-        $widget = $widget.class($value);
-    }};
-    ( $widget:ident, display : $value:expr ) => {{
-        $widget = $widget.display($value);
-    }};
-    ( $widget:ident, color : $color:expr ) => {{
-        $widget = $widget.color($color);
-    }};
-    ( $widget:ident, tooltip : $tooltip:expr ) => {{
-        $widget = $widget.tooltip($tooltip);
-    }};
-}
-
-#[macro_export]
-macro_rules! test_common_attributes {
-    ( $ctx:ident, $key:ident : $value:expr ) => {{
+    ( $builder:ident, $key:ident : $value:expr ) => {{
         match stringify!($key) {
-            "id" => {
-                $ctx.builder.set_id($value);
-                $ctx.fields.common.id = Some($value.to_string());
-            }
-            "class" => {
-                let class = {
-                    let reactive_keys = extract_reactive_key($value);
-                    $ctx.all_reactive_keys.extend_from_slice(&reactive_keys);
-                    replace_text_with_reactive_keys($value, &reactive_keys, $ctx.reactive_data)
-                };
-                println!("class in macro {:?}", class);
-                if let Some(value) = $ctx.reactive_data.get(&class) {
-                    match value {
-                        RVal::Str(v) => {
-                            $ctx.builder.set_class(v);
-                            $ctx.fields.common.class = Some($value.to_string());
-                        }
-                        _ => {}
-                    }
-                }
-                else {
-                    $ctx.builder.set_class(&class);
-                    $ctx.fields.common.class = Some($value.to_string());
-                }
-            }
-            "color" => {
-                let color = {
-                    let reactive_keys = extract_reactive_key($value);
-                    $ctx.all_reactive_keys.extend_from_slice(&reactive_keys);
-                    replace_text_with_reactive_keys($value, &reactive_keys, $ctx.reactive_data)
-                };
-                if let Some(value) = $ctx.reactive_data.get(&color) {
-                    match value {
-                        RVal::Str(v) => {
-                            $ctx.builder.set_color(v);
-                            $ctx.fields.common.color = Some(v.to_string());
-                        }
-                        _ => {}
-                    }
-                }
-                else {
-                    $ctx.builder.set_color(&color);
-                    $ctx.fields.common.color = Some(color);
-                }
-
-            }
-            "tooltip" => {
-                let tooltip = {
-                    let reactive_keys = extract_reactive_key($value);
-                    $ctx.all_reactive_keys.extend_from_slice(&reactive_keys);
-                    replace_text_with_reactive_keys($value, &reactive_keys, $ctx.reactive_data)
-                };
-                if let Some(value) = $ctx.reactive_data.get(&tooltip) {
-                    match value {
-                        RVal::Str(v) => {
-                            $ctx.builder.set_tooltip(v);
-                            $ctx.fields.common.tooltip = Some(v.to_string());
-                        }
-                        _ => {}
-                    }
-                }
-                else {
-                    $ctx.builder.set_tooltip(&tooltip);
-                    $ctx.fields.common.tooltip = Some(tooltip);
-                }
-            }
+            "id" => $builder.set_id($value),
+            "class" => $builder.set_class($value),
+            "color" => $builder.set_color($value),
+            "tooltip" => $builder.set_tooltip($value),
             _ => {}
         }
     }};
+}
+
+#[derive(Clone, Debug)]
+pub enum BuilderType {
+    Text(text::TextBuilder),
+    Button(button::ButtonBuilder),
+    Checkbox(checkbox::CheckboxBuilder),
+    Circular(circular::CircularBuilder),
+    Container(container::ContainerBuilder),
+    Fps(fps::FpsBuilder),
+    Image(image::ImageBuilder),
+    Modal(modal::ModalBuilder),
+    ProgressBar(progress_bar::ProgressBarBuilder),
+    Selection(selection::SelectionBuilder)
+}
+
+#[derive(Clone, Debug)]
+pub struct WidgetBuilder {
+    pub builder: BuilderType
 }
 
 thread_local! {
