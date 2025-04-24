@@ -8,8 +8,8 @@ use crate::widgets::text::base_text::*;
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::*;
 
-pub use components::*;
-use helper::*;
+pub(crate) use components::*;
+pub(crate) use helper::*;
 use macros::set_widget_attributes;
 
 use super::color::{GREEN_COLOR, WHITE_COLOR, WARNING_COLOR, DANGER_COLOR};

@@ -3,12 +3,14 @@ pub mod components;
 pub mod systems;
 pub mod tests;
 
-pub use components::*;
-pub use systems::*;
+pub(crate) use components::*;
+pub(crate) use systems::*;
+
 use macros::set_widget_attributes;
 use crate::widgets::container::base_container::*;
 use crate::widgets::*;
 use crate::utils::*;
+
 use bevy::prelude::*;
 use bevy::ui::FocusPolicy;
 use bevy::utils::HashMap;

@@ -1,13 +1,14 @@
 pub mod components;
 pub mod systems;
 pub mod tests;
-pub use components::*;
-pub use systems::*;
+pub(crate) use components::*;
+pub(crate) use systems::*;
 
 use crate::widgets::container::base_container::*;
 use crate::event_writer::*;
 use crate::widgets::*;
 use crate::utils::*;
+
 use bevy::prelude::*;
 use bevy::input::mouse::{MouseScrollUnit, MouseWheel};
 use macros::set_widget_attributes;

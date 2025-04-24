@@ -7,13 +7,14 @@ use bevy::prelude::*;
 use bevy::reflect::TypePath;
 use bevy::render::render_resource::*;
 use macros::set_widget_attributes;
+
 use crate::widgets::container::base_container::*;
 use crate::utils::*;
 use crate::widgets::*;
 use crate::event_writer::*;
 
-pub use components::*;
-pub use systems::*;
+pub(crate) use components::*;
+pub(crate) use systems::*;
 use helper::*;
 
 #[derive(AsBindGroup, Asset, TypePath, Debug, Clone)]

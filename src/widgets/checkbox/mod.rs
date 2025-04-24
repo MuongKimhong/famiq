@@ -1,8 +1,9 @@
 pub mod styling;
 pub mod components;
 pub mod systems;
-pub use components::*;
-pub use styling::*;
+
+pub(crate) use components::*;
+pub(crate) use styling::*;
 use systems::*;
 
 use bevy::prelude::*;

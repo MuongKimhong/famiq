@@ -13,8 +13,8 @@ use crate::widgets::container::base_container::*;
 use crate::event_writer::*;
 use crate::utils::*;
 
-pub use components::*;
-pub use systems::*;
+pub(crate) use components::*;
+pub(crate) use systems::*;
 use helper::*;
 
 #[derive(AsBindGroup, Asset, TypePath, Debug, Clone)]

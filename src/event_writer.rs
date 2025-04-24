@@ -66,6 +66,16 @@ impl FaMouseEvent {
         self.id.as_ref().unwrap().as_str() == id
     }
 
+    pub fn button_press(&self) -> Option<&String> {
+        if self.widget_type == WidgetType::Button &&
+            self.event_type == EventType::DownLeft &&
+            self.id.is_some()
+        {
+            return self.id.as_ref();
+        }
+        None
+    }
+
     pub(crate) fn send_event(
         writer: &mut EventWriter<FaMouseEvent>,
         event_type: EventType,

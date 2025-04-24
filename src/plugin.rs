@@ -99,15 +99,15 @@ fn fa_text_input_systems(app: &mut App) {
     app.add_systems(
         Update,
         (
-            TextInputBuilder::handle_text_input_on_typing,
-            TextInputBuilder::detect_text_input_text_style_change.after(TextInputBuilder::detect_new_text_input_widget_system),
-            TextInputBuilder::handle_text_input_on_focused,
-            TextInputBuilder::handle_cursor_blink_system,
-            TextInputBuilder::detect_new_text_input_widget_system,
+            handle_text_input_on_typing,
+            detect_text_input_text_style_change.after(detect_new_text_input_widget_system),
+            handle_text_input_on_focused,
+            handle_cursor_blink_system,
+            detect_new_text_input_widget_system,
         )
         .run_if(can_run_text_input_systems)
     );
-    app.add_systems(PostUpdate, TextInputBuilder::on_request_redraw_editor_buffer);
+    app.add_systems(PostUpdate, on_request_redraw_editor_buffer);
 }
 
 fn fa_scroll_systems(app: &mut App) {

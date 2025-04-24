@@ -1,6 +1,6 @@
 pub mod base_text;
 pub mod systems;
-pub use base_text::*;
+pub(crate) use base_text::*;
 use systems::*;
 
 use crate::event_writer::*;

@@ -1,13 +1,13 @@
 pub mod tests;
 pub mod base_container;
 pub mod systems;
-pub use base_container::*;
+
+pub(crate) use base_container::*;
 use systems::*;
 
 use bevy::prelude::*;
 use macros::set_widget_attributes;
 
-// use crate::extract_children;
 use crate::widgets::*;
 use crate::event_writer::*;
 

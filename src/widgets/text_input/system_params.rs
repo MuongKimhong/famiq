@@ -30,7 +30,6 @@ pub(crate) struct InputPickingParam<'w, 's> {
 
 #[derive(SystemParam)]
 pub(crate) struct RequestRedrawBufferParam<'w, 's> {
-    pub request_redraw: EventReader<'w, 's, RequestRedrawBuffer>,
     pub input_q: Query<'w, 's,
         (
             &'static mut CosmicData,
@@ -68,7 +67,7 @@ pub(crate) struct DetectTextStyleChangeParam<'w, 's> {
     pub request_redraw: EventWriter<'w, RequestRedrawBuffer>,
     pub font_system: ResMut<'w, CosmicFontSystem>,
     pub famiq_res: Res<'w, FamiqResource>,
-    pub window: Single<'w, &'static Window>
+    pub window: Option<Single<'w, &'static Window>>
 }
 
 #[derive(SystemParam)]

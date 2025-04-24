@@ -13,9 +13,9 @@ use crate::plugin::{CursorType, CursorIcons};
 use bevy::ui::FocusPolicy;
 use bevy::prelude::*;
 
-pub use components::*;
-pub use styling::*;
-pub use systems::*;
+pub(crate) use components::*;
+pub(crate) use styling::*;
+pub(crate) use systems::*;
 
 #[set_widget_attributes]
 #[derive(Clone, Debug)]

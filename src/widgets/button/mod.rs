@@ -3,7 +3,7 @@ pub mod styling;
 pub mod tests;
 pub mod systems;
 
-pub use components::*;
+pub(crate) use components::*;
 use systems::*;
 use styling::*;
 

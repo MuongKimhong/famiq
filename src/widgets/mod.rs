@@ -18,19 +18,20 @@ pub mod checkbox;
 pub mod tests;
 pub mod base_components;
 
-use bevy::utils::hashbrown::HashMap;
-pub use scroll::ScrollMovePanelEntity;
-pub use modal::{FaModalState, IsFamiqModal};
+pub(crate) use style_parse::parse_display;
+pub(crate) use modal::{FaModalState, IsFamiqModal};
+pub(crate) use scroll::ScrollMovePanelEntity;
 pub use base_components::*;
-pub use style::*;
+
 use crate::resources::*;
 use crate::reactivity::*;
 use crate::utils::*;
-use crate::widgets::style_parse::*;
+
 use bevy::ecs::system::{EntityCommands, SystemParam};
+use bevy::utils::hashbrown::HashMap;
 use bevy::ecs::query::QueryData;
-use bevy::prelude::*;
 use std::cell::RefCell;
+use bevy::prelude::*;
 
 pub trait SetupWidget {
     /// get components required for widget.

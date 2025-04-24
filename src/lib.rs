@@ -23,8 +23,7 @@
 //!     mut fa_query: FaQuery, // required
 //!     mut famiq_res: ResMut<FamiqResource>, // required
 //! ) {
-//!     let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-//!     inject_builder(&mut builder);
+//!     FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
 //!
 //!     let txt = text!(text: "Hello world");
 //!     let btn = button!(text: "Press me");
@@ -39,6 +38,7 @@
 //! }
 //! ```
 
+#![deny(ambiguous_glob_reexports)]
 pub mod errors;
 pub mod resources;
 pub mod event_writer;
@@ -58,22 +58,20 @@ pub mod prelude {
         SetWidgetAttributes, FaQuery, WidgetSelector,
         SetupWidget, WidgetBuilder, BuilderType,
         builder_mut,
-        inject_builder,
-        text::*,
-        button::*,
-        container::*,
-        image::*,
-        checkbox::*,
-        circular::*,
-        text_input::*,
-        selection::*,
-        modal::*,
-        progress_bar::*,
-        scroll::*,
-        fps::*,
+        text::TextBuilder,
+        button::ButtonBuilder,
+        container::ContainerBuilder,
+        image::ImageBuilder,
+        checkbox::CheckboxBuilder,
+        circular::CircularBuilder,
+        text_input::TextInputBuilder,
+        selection::SelectionBuilder,
+        modal::ModalBuilder,
+        progress_bar::ProgressBarBuilder,
+        scroll::ScrollBuilder,
+        fps::FpsBuilder,
     };
     pub use macros::*;
-    pub use args::prelude::*;
     pub use crate::button;
     pub use crate::checkbox;
     pub use crate::circular;
