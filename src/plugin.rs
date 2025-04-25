@@ -67,20 +67,27 @@ fn external_styles_file_systems(app: &mut App) {
         .chain()
     );
 
-    app.add_systems(
-        PreUpdate,
-        style::read_styles_from_file_system.run_if(hot_reload_is_enabled)
-    );
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        app.add_systems(
+            PreUpdate,
+            style::read_styles_from_file_system.run_if(hot_reload_is_enabled)
+        );
+        app.add_systems(
+            PreUpdate,
+            (
+                style::read_styles_from_file_system,
+                style::finish_style_applying_system
+            )
+            .chain()
+            .run_if(hot_reload_is_disabled)
+        );
+    }
 
-    app.add_systems(
-        PreUpdate,
-        (
-            style::read_styles_from_file_system,
-            style::finish_style_applying_system
-        )
-        .chain()
-        .run_if(hot_reload_is_disabled)
-    );
+    #[cfg(target_arch = "wasm32")]
+    {
+        app.add_systems(PreUpdate, style::load_json_style_asset_wasm);
+    }
 }
 
 fn fa_selection_systems(app: &mut App) {
@@ -178,7 +185,6 @@ impl Plugin for FamiqPlugin {
         app.add_plugins(UiMaterialPlugin::<CircularMaterial>::default());
         app.add_plugins(UiMaterialPlugin::<TextInputMaterial>::default());
         app.add_plugins(FrameTimeDiagnosticsPlugin::default());
-        // app.add_plugins(UiPickingPlugin);
         app.insert_resource(RData::default());
         app.insert_resource(StylesKeyValueResource::default());
         app.insert_resource(FamiqResource::new());
@@ -189,6 +195,10 @@ impl Plugin for FamiqPlugin {
         app.insert_resource(CanBeScrolled { entity: None });
         app.insert_resource(FaModalState::default());
         app.insert_resource(CursorIcons::default());
+
+        app.init_resource::<JsonStyleAssetState>();
+        app.init_asset::<JsonStyleAsset>();
+        app.init_asset_loader::<JsonStyleAssetLoader>();
 
         app.add_event::<event_writer::FaValueChangeEvent>();
         app.add_event::<event_writer::FaMouseEvent>();

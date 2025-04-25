@@ -23,6 +23,7 @@ pub struct SelectionBuilder {
     pub all_reactive_keys: Vec<String>,
     pub placeholder: String,
     pub choices: Vec<String>,
+    pub panel_entity: Option<Entity>
 }
 
 impl SelectionBuilder {
@@ -34,7 +35,8 @@ impl SelectionBuilder {
             cloned_attrs: WidgetAttributes::default(),
             all_reactive_keys: Vec::new(),
             placeholder,
-            choices: Vec::new()
+            choices: Vec::new(),
+            panel_entity: None
         }
     }
 
@@ -57,17 +59,6 @@ impl SelectionBuilder {
         (ph_entity, parsed_text)
     }
 
-    pub fn build_placeholder_world(&mut self, world: &mut World, r_data: &HashMap<String, RVal>) -> (Entity, String) {
-        let parsed_text = self.handle_placeholder_val(r_data);
-        let mut ph = FaBaseText::new_with_attributes(&parsed_text, &self.cloned_attrs);
-        ph.layout = TextLayout::new(JustifyText::Left, LineBreak::NoWrap);
-
-        let ph_entity = ph.build_with_world(r_data, world).unwrap();
-        world.entity_mut(ph_entity).insert(SelectorPlaceHolder);
-        insert_class_id_world(world, ph_entity, &self.cloned_attrs.id, &self.cloned_attrs.class);
-        (ph_entity, parsed_text)
-    }
-
     pub fn build_arrow(&self, commands: &mut Commands, r_data: &HashMap<String, RVal>) -> Entity {
         let mut arrow = FaBaseText::new_with_attributes("▼", &self.cloned_attrs);
         arrow.layout = TextLayout::new_with_justify(JustifyText::Right);
@@ -78,24 +69,9 @@ impl SelectionBuilder {
         arrow_entity
     }
 
-    pub fn build_arrow_world(&self, world: &mut World, r_data: &HashMap<String, RVal>) -> Entity {
-        let mut arrow = FaBaseText::new_with_attributes("▼", &self.cloned_attrs);
-        arrow.layout = TextLayout::new_with_justify(JustifyText::Right);
-
-        let arrow_entity = arrow.build_with_world(r_data, world).unwrap();
-        world.entity_mut(arrow_entity).insert(ArrowIcon);
-        insert_class_id_world(world, arrow_entity, &self.cloned_attrs.id, &self.cloned_attrs.class);
-        arrow_entity
-    }
-
     pub fn build_choice_text(&self, text: &str, commands: &mut Commands, r_data: &HashMap<String, RVal>) -> Entity {
         let mut choice_text = FaBaseText::new_with_attributes(text, &self.cloned_attrs);
         choice_text.build(r_data, commands)
-    }
-
-    pub fn build_choice_text_world(&self, text: &str, world: &mut World, r_data: &HashMap<String, RVal>) -> Entity {
-        let mut choice_text = FaBaseText::new_with_attributes(text, &self.cloned_attrs);
-        choice_text.build_with_world(r_data, world).unwrap()
     }
 
     fn choice_wrapper_components(&self, text: Entity, selector: Entity) -> impl Bundle {
@@ -115,24 +91,6 @@ impl SelectionBuilder {
         let wrapper_entity = wrapper.build(r_data, commands);
         commands
             .entity(wrapper_entity)
-            .add_child(text_entity)
-            .insert(self.choice_wrapper_components(text_entity, selector_entity));
-        wrapper_entity
-    }
-
-    pub fn build_choice_wrapper_world(
-        &self,
-        text_entity: Entity,
-        selector_entity: Entity,
-        world: &mut World,
-        r_data: &HashMap<String, RVal>
-    ) -> Entity {
-        let mut wrapper = FaBaseContainer::new();
-        wrapper.cloned_attrs.node = default_choice_container_node();
-
-        let wrapper_entity = wrapper.build_with_world(r_data, world).unwrap();
-        world
-            .entity_mut(wrapper_entity)
             .add_child(text_entity)
             .insert(self.choice_wrapper_components(text_entity, selector_entity));
         wrapper_entity
@@ -174,39 +132,22 @@ impl SelectionBuilder {
             .add_children(&choice_entities)
             .remove::<DefaultWidgetConfig>()
             .insert(self.choice_panel_components());
+
+        self.panel_entity = Some(panel_entity);
         panel_entity
     }
 
-    pub fn build_choices_panel_world(
+    pub fn rebuild_choices_panel(
         &mut self,
-        selector_entity: Entity,
-        world: &mut World,
         r_data: &HashMap<String, RVal>,
-    ) -> Entity {
-        let mut choice_entities: Vec<Entity> = Vec::new();
-        if !self.choices.contains(&"-/-".to_owned()) {
-            self.choices.insert(0, "-/-".into());
-        }
-
-        self.choices.iter().for_each(|choice| {
-            let choice_text = self.build_choice_text_world(choice, world, r_data);
-            let choice_wrapper = self.build_choice_wrapper_world(choice_text, selector_entity, world, r_data);
-            choice_entities.push(choice_wrapper);
-        });
-
+        world: &mut World
+    ) {
         let mut panel = FaBaseContainer::new();
         panel.cloned_attrs.node = default_selection_choices_panel_node();
         panel.cloned_attrs.color = self.cloned_attrs.color.clone();
         panel.cloned_attrs.id = self.cloned_attrs.id.clone();
         panel.cloned_attrs.class = self.cloned_attrs.class.clone();
-
-        let panel_entity = panel.build_with_world(r_data, world).unwrap();
-        world
-            .entity_mut(panel_entity)
-            .add_children(&choice_entities)
-            .remove::<DefaultWidgetConfig>()
-            .insert(self.choice_panel_components());
-        panel_entity
+        panel.rebuild(r_data, self.panel_entity.unwrap(), world);
     }
 
     pub(crate) fn prepare_attrs(&mut self, r_data: &HashMap<String, RVal>) {
@@ -285,52 +226,24 @@ impl SetupWidget for SelectionBuilder {
         selector_entity
     }
 
-    fn build_with_world(
-        &mut self,
-        r_data: &HashMap<String, RVal>,
-        world: &mut World
-    ) -> Option<Entity> {
+    fn rebuild(&mut self, r_data: &HashMap<String, RVal>, old_entity: Entity, world: &mut World) {
         self.prepare_attrs(r_data);
         let mut selector = FaBaseContainer::new_with_attributes(&self.cloned_attrs);
-        let selector_entity = selector.build_with_world(r_data, world).unwrap();
-        let (ph_entity, ph_text)= self.build_placeholder_world(world, r_data);
-        let arrow_entity = self.build_arrow_world(world, r_data);
-        let panel_entity = self.build_choices_panel_world(selector_entity, world, r_data);
+        selector.rebuild(r_data, old_entity, world);
+        self.rebuild_choices_panel(r_data, world);
 
-        world.entity_mut(ph_entity).insert(SelectorEntity(selector_entity));
-
-        world
-            .entity_mut(selector_entity)
-            .add_children(&[ph_entity, arrow_entity, panel_entity])
-            .insert((
-                self.components(),
-                SelectionChoicesPanelEntity(panel_entity),
-                SelectorPlaceHolderEntity(ph_entity),
-                SelectorArrowIconEntity(arrow_entity),
-                SelectorPlaceholderText(ph_text)
-            ))
-            .observe(on_mouse_up)
-            .observe(on_mouse_down)
-            .observe(on_mouse_over)
-            .observe(on_mouse_out);
-
-        if self.attributes.has_tooltip {
-            build_tooltip_node(&self.cloned_attrs, &mut world.commands(), selector_entity);
-        }
-        insert_class_id_world(world, selector_entity, &self.cloned_attrs.id, &self.cloned_attrs.class);
-        insert_model_world(world, selector_entity, &self.cloned_attrs.model_key);
+        insert_class_id_world(world, old_entity, &self.cloned_attrs.id, &self.cloned_attrs.class);
 
         let cloned_builder = self.clone();
         let ar_keys = self.all_reactive_keys.clone();
         world.send_event(UpdateReactiveSubscriberEvent::new(
             ar_keys,
-            selector_entity,
+            old_entity,
             WidgetBuilder {
                 builder: BuilderType::Selection(cloned_builder)
             }
         ));
         self.all_reactive_keys.clear();
-        Some(selector_entity)
     }
 }
 

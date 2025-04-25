@@ -96,35 +96,23 @@ impl SetupWidget for ContainerBuilder {
         container_entity
     }
 
-    fn build_with_world(&mut self, r_data: &HashMap<String, RVal>, world: &mut World) -> Option<Entity> {
+    fn rebuild(&mut self, r_data: &HashMap<String, RVal>, old_entity: Entity, world: &mut World) {
         self.prepare_atts(r_data);
         let mut base_container = FaBaseContainer::new_with_attributes(&self.cloned_attrs);
-        let container_entity = base_container.build_with_world(r_data, world);
+        base_container.rebuild(r_data, old_entity, world);
 
-        world
-            .entity_mut(container_entity.unwrap())
-            .insert(self.components())
-            .add_children(&self.children)
-            .observe(on_mouse_up)
-            .observe(on_mouse_down)
-            .observe(on_mouse_over)
-            .observe(on_mouse_out);
-
-        world.entity_mut(self.root_node).add_child(container_entity.unwrap());
-
-        insert_class_id_world(world, container_entity.unwrap(), &self.cloned_attrs.id, &self.cloned_attrs.class);
+        insert_class_id_world(world, old_entity, &self.cloned_attrs.id, &self.cloned_attrs.class);
 
         let cloned_builder = self.clone();
         let ar_keys = self.all_reactive_keys.clone();
         world.send_event(UpdateReactiveSubscriberEvent::new(
             ar_keys,
-            container_entity.unwrap(),
+            old_entity,
             WidgetBuilder {
                 builder: BuilderType::Container(cloned_builder)
             }
         ));
         self.all_reactive_keys.clear();
-        container_entity
     }
 }
 

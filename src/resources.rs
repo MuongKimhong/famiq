@@ -1,7 +1,11 @@
 //! Famiq's global resources, used by all modules.
 
 use bevy::platform::collections::HashMap;
+use bevy::reflect::TypePath;
+use bevy::asset::{io::Reader, AssetLoader, LoadContext};
 use bevy::prelude::*;
+use serde::Deserialize;
+use thiserror::Error;
 use cosmic_text::{FontSystem, SwashCache};
 use crate::widgets::*;
 use crate::utils::*;
@@ -120,4 +124,47 @@ impl ContainableChildren {
         }
         None
     }
+}
+
+// reference: https://bevyengine.org/examples/assets/custom-asset/
+#[derive(Asset, TypePath, Debug, Deserialize)]
+pub struct JsonStyleAsset(pub HashMap<String, WidgetStyle>);
+
+#[derive(Default)]
+pub struct JsonStyleAssetLoader;
+
+#[non_exhaustive]
+#[derive(Debug, Error)]
+pub enum JsonStyleAssetLoaderError {
+    #[error("Could not load asset: {0}")]
+    Io(#[from] std::io::Error),
+}
+
+impl AssetLoader for JsonStyleAssetLoader {
+    type Asset = JsonStyleAsset;
+    type Settings = ();
+    type Error = JsonStyleAssetLoaderError;
+    async fn load(
+        &self,
+        reader: &mut dyn Reader,
+        _settings: &(),
+        _load_context: &mut LoadContext<'_>,
+    ) -> Result<Self::Asset, Self::Error> {
+        let mut bytes = Vec::new();
+        reader.read_to_end(&mut bytes).await?;
+
+        let json_asset = serde_json::from_slice::<JsonStyleAsset>(&bytes).unwrap();
+        Ok(json_asset)
+    }
+
+    fn extensions(&self) -> &[&str] {
+        &["json"]
+    }
+}
+
+#[derive(Resource, Debug, Default)]
+pub struct JsonStyleAssetState {
+    pub initial_loaded: bool,
+    pub fully_loaded: bool,
+    pub handle: Handle<JsonStyleAsset>
 }

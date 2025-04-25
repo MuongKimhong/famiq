@@ -100,44 +100,30 @@ impl SetupWidget for ImageBuilder {
                 }
             ));
         });
+        self.all_reactive_keys.clear();
         image_entity
     }
 
-    fn build_with_world(
-        &mut self,
-        r_data: &HashMap<String, RVal>,
-        world: &mut World
-    ) -> Option<Entity> {
+    fn rebuild(&mut self, r_data: &HashMap<String, RVal>, old_entity: Entity, world: &mut World) {
         let parsed_path = self.prepare_attrs(r_data);
         let mut image = FaBaseContainer::new_with_attributes(&self.cloned_attrs);
-        let image_entity = image.build_with_world(r_data, world);
+        image.rebuild(r_data, old_entity, world);
 
-        world
-            .entity_mut(image_entity.unwrap())
-            .insert(self.components())
-            .observe(on_mouse_up)
-            .observe(on_mouse_down)
-            .observe(on_mouse_over)
-            .observe(on_mouse_out);
-
-        if self.attributes.has_tooltip {
-            build_tooltip_node(&self.cloned_attrs, &mut world.commands(), image_entity.unwrap());
-        }
-        insert_class_id_world(world, image_entity.unwrap(), &self.cloned_attrs.id, &self.cloned_attrs.class);
+        insert_class_id_world(world, old_entity, &self.cloned_attrs.id, &self.cloned_attrs.class);
 
         let image_handle: Handle<Image> = world.resource::<AssetServer>().load(parsed_path);
-        world.entity_mut(image_entity.unwrap()).insert(ImageNode::new(image_handle));
+        world.entity_mut(old_entity).insert(ImageNode::new(image_handle));
 
         let cloned_builder = self.clone();
         let ar_keys = self.all_reactive_keys.clone();
         world.send_event(UpdateReactiveSubscriberEvent::new(
             ar_keys,
-            image_entity.unwrap(),
+            old_entity,
             WidgetBuilder {
                 builder: BuilderType::Image(cloned_builder)
             }
         ));
-        image_entity
+        self.all_reactive_keys.clear();
     }
 }
 

@@ -149,37 +149,22 @@ impl SetupWidget for ModalBuilder {
         modal_bg_entity
     }
 
-    fn build_with_world(
-        &mut self,
-        r_data: &HashMap<String, RVal>,
-        world: &mut World
-    ) -> Option<Entity> {
+    fn rebuild(&mut self, r_data: &HashMap<String, RVal>, old_entity: Entity, world: &mut World) {
         self.prepare_attrs(r_data);
-        let mut modal_bg = FaBaseContainer::new_with_attributes(&self.cloned_attrs);
-        let modal_bg_entity = modal_bg.build_with_world(r_data, world);
+        let mut modal = FaBaseContainer::new_with_attributes(&self.cloned_attrs);
+        modal.rebuild(r_data, old_entity, world);
 
-        world.entity_mut(modal_bg_entity.unwrap()).add_children(&self.children).insert(self.components());
-        world.entity_mut(self.root_node).add_child(modal_bg_entity.unwrap());
-
-        insert_class_id_world(
-            world,
-            modal_bg_entity.unwrap(),
-            &self.cloned_attrs.id,
-            &self.cloned_attrs.class
-        );
-        insert_model_world(world, modal_bg_entity.unwrap(), &self.cloned_attrs.model_key);
-
+        insert_class_id_world(world, old_entity, &self.cloned_attrs.id, &self.cloned_attrs.class);
         let cloned_builder = self.clone();
         let ar_keys = self.all_reactive_keys.clone();
         world.send_event(UpdateReactiveSubscriberEvent::new(
             ar_keys,
-            modal_bg_entity.unwrap(),
+            old_entity,
             WidgetBuilder {
                 builder: BuilderType::Modal(cloned_builder)
             }
         ));
         self.all_reactive_keys.clear();
-        modal_bg_entity
     }
 }
 

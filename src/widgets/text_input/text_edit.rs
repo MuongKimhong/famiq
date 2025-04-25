@@ -4,12 +4,14 @@ use cosmic_text::{
     FontSystem
 };
 use smol_str::SmolStr;
-use arboard::Clipboard;
-use super::*;
 
-#[cfg(target_os = "linux")]
+#[cfg(not(target_arch = "wasm32"))]
+use arboard::Clipboard;
+
+#[cfg(all(not(target_arch = "wasm32"), target_os = "linux"))]
 use arboard::{SetExtLinux, LinuxClipboardKind};
 
+use super::*;
 use crate::utils::*;
 
 pub const DEFAULT_CURSOR_COLOR: CosmicColor = CosmicColor::rgb(0, 0, 0); // black
@@ -292,15 +294,18 @@ impl FaTextEdit {
     /// Copy text in `fa_text_input`.
     /// - return None if text is empty.
     pub fn copy_text(&mut self) -> Option<String> {
-        if !self.selected_text.trim().is_empty() {
-            let mut ctx = Clipboard::new().unwrap();
-            #[cfg(target_os = "linux")]
-            ctx.set().clipboard(LinuxClipboardKind::Clipboard).text(self.selected_text.clone()).unwrap();
-            #[cfg(not(target_os = "linux"))]
-            ctx.set_text(self.selected_text.clone()).unwrap();
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            if !self.selected_text.trim().is_empty() {
+                let mut ctx = Clipboard::new().unwrap();
+                #[cfg(target_os = "linux")]
+                ctx.set().clipboard(LinuxClipboardKind::Clipboard).text(self.selected_text.clone()).unwrap();
+                #[cfg(not(target_os = "linux"))]
+                ctx.set_text(self.selected_text.clone()).unwrap();
 
-            if let Ok(copied_text) = ctx.get_text() {
-                return Some(copied_text);
+                if let Ok(copied_text) = ctx.get_text() {
+                    return Some(copied_text);
+                }
             }
         }
         None

@@ -9,7 +9,7 @@ use super::DefaultTextSpanConfig;
 
 pub(crate) fn read_styles_from_file_system(
     mut styles: ResMut<StylesKeyValueResource>,
-    famiq_res: ResMut<FamiqResource>,
+    famiq_res: Res<FamiqResource>,
 ) {
     if let Ok(json_styles) = utils::read_styles_json_file(&famiq_res.style_path) {
         let mut changed_keys: Vec<String> = Vec::new();
@@ -51,13 +51,53 @@ pub(crate) fn read_styles_from_file_system(
     }
 }
 
+pub(crate) fn load_json_style_asset_wasm(
+    mut styles: ResMut<StylesKeyValueResource>,
+    mut asset_state: ResMut<JsonStyleAssetState>,
+    json_asset: Res<Assets<JsonStyleAsset>>,
+    famiq_res: Res<FamiqResource>,
+    asset_server: Res<AssetServer>
+) {
+    if !asset_state.initial_loaded {
+        asset_state.handle = asset_server.load(&famiq_res.style_path);
+        asset_state.initial_loaded = true;
+        return;
+    }
+
+    if !asset_state.fully_loaded {
+        let asset = json_asset.get(&asset_state.handle);
+
+        if asset.is_none() {
+            return;
+        }
+        asset_state.fully_loaded = true;
+
+        let json_styles = asset.unwrap();
+        let mut changed_keys: Vec<String> = Vec::new();
+
+        for (external_key, external_value) in json_styles.0.iter() {
+            if styles.values.get(external_key).is_none() {
+                styles.values.insert(external_key.to_owned(), external_value.to_owned());
+                changed_keys.push(external_key.to_owned());
+                continue;
+            }
+        }
+
+        if !changed_keys.is_empty() {
+            styles.changed_keys = changed_keys;
+        }
+    }
+}
+
+// pub(crate) fn json_style_asset_loaded(state: Res<JsonStyleAssetState>) -> bool {
+//     sta
+// }
+
 pub(crate) fn detect_widget_external_styles_change(
     styles: Res<StylesKeyValueResource>,
     mut style_q: Query<StyleQuery>,
 ) {
     if styles.is_changed() {
-        use std::time::Instant;
-        let now = Instant::now();
 
         let changed_keys = &styles.changed_keys;
 
@@ -129,8 +169,6 @@ pub(crate) fn detect_widget_external_styles_change(
             }
         });
 
-        let elapsed = now.elapsed();
-        println!("apply style in : {:.2?}", elapsed);
     }
 }
 

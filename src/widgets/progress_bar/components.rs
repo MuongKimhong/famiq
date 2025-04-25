@@ -1,8 +1,9 @@
 use bevy::prelude::*;
 
 /// Marker component for identifying an entity as a Famiq Progress bar.
+/// field 0 is for triggering Changed filter.
 #[derive(Component)]
-pub struct IsFamiqProgressBar;
+pub struct IsFamiqProgressBar(pub usize);
 
 /// Marker component for identifying an entity as a Famiq Progress bar's value.
 #[derive(Component)]

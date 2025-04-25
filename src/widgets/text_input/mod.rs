@@ -32,10 +32,16 @@ use bevy::prelude::*;
 use cosmic_text::{
     Attrs, Metrics, Buffer, Editor, Family, Edit, Shaping, Weight, Cursor, Selection, Action
 };
-use arboard::Clipboard;
 use std::sync::Arc;
 
-// TODO: make text input reactive
+#[cfg(not(target_arch = "wasm32"))]
+use arboard::Clipboard;
+
+
+// TODO:
+// 1. make text input reactive
+// 2. clipboard support on wasm
+// 3. on macos, use commands + c or v, instead of ctrls
 
 #[derive(Event, Debug)]
 pub struct RequestRedrawBuffer {
@@ -135,13 +141,12 @@ impl SetupWidget for TextInputBuilder {
         input_entity
     }
 
-    fn build_with_world(
+    fn rebuild(
         &mut self,
         _reactive_data: &HashMap<String, RVal>,
+        _old_entity: Entity,
         _world: &mut World
-    ) -> Option<Entity> {
-        None
-    }
+    ) {}
 }
 
 #[macro_export]

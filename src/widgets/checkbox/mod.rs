@@ -22,7 +22,10 @@ use super::color::PRIMARY_DARK_COLOR;
 pub struct CheckboxBuilder {
     pub choices: Vec<String>,
     pub all_reactive_keys: Vec<String>,
-    pub vertical: RVal // align item vertically
+    pub vertical: RVal, // align item vertically,
+    pub choice_text_entities: Vec<Entity>,
+    pub choice_tick_box_entities: Vec<Entity>,
+    pub choice_wrapper_entities: Vec<Entity>
 }
 
 impl CheckboxBuilder {
@@ -34,30 +37,36 @@ impl CheckboxBuilder {
             cloned_attrs: WidgetAttributes::default(),
             all_reactive_keys: Vec::new(),
             choices: Vec::new(),
-            vertical: RVal::Bool(false)
+            vertical: RVal::Bool(false),
+            choice_text_entities: Vec::new(),
+            choice_tick_box_entities: Vec::new(),
+            choice_wrapper_entities: Vec::new()
         }
     }
 
     pub(crate) fn choice_text(
-        &self,
+        &mut self,
         text: &str,
         r_data: &HashMap<String, RVal>,
         commands: &mut Commands
     ) -> Entity {
         let mut text = FaBaseText::new_with_attributes(text, &self.cloned_attrs);
         text.use_get_color = true;
-        text.build(r_data, commands)
+        let entity = text.build(r_data, commands);
+        self.choice_text_entities.push(entity);
+        entity
     }
 
-    pub(crate) fn choice_text_world(
-        &self,
+    pub(crate) fn rebuild_choice_text(
+        &mut self,
         text: &str,
+        old_entity: Entity,
         r_data: &HashMap<String, RVal>,
         world: &mut World
-    ) -> Entity {
+    ) {
         let mut text = FaBaseText::new_with_attributes(text, &self.cloned_attrs);
         text.use_get_color = true;
-        text.build_with_world(r_data, world).unwrap()
+        text.rebuild(r_data, old_entity, world);
     }
 
     fn tickbox_components(&self) -> impl Bundle {
@@ -71,12 +80,14 @@ impl CheckboxBuilder {
         )
     }
 
-    pub(crate) fn choice_tick_box(&self, commands: &mut Commands) -> Entity {
-        commands.spawn(self.tickbox_components()).id()
+    pub(crate) fn choice_tick_box(&mut self, commands: &mut Commands) -> Entity {
+        let entity = commands.spawn(self.tickbox_components()).id();
+        self.choice_tick_box_entities.push(entity);
+        entity
     }
 
-    pub(crate) fn choice_tick_box_world(&self, world: &mut World) -> Entity {
-        world.spawn(self.tickbox_components()).id()
+    pub(crate) fn rebuild_choice_tick_box(&mut self, old_entity: Entity, world: &mut World) {
+        world.entity_mut(old_entity).insert(self.tickbox_components());
     }
 
     fn choice_wrapper_components(&self, text: String, checkbox_entity: Entity, box_entity: Entity) -> impl Bundle {
@@ -90,33 +101,29 @@ impl CheckboxBuilder {
     }
 
     pub(crate) fn choice_wrapper(
-        &self,
+        &mut self,
         text: String,
         box_entity: Entity,
         checkbox_entity: Entity,
         commands: &mut Commands,
     ) -> Entity {
-        commands
+        let entity = commands
             .spawn(self.choice_wrapper_components(text, checkbox_entity, box_entity))
             .observe(on_mouse_out)
             .observe(on_mouse_down)
             .observe(on_mouse_over)
-            .id()
+            .id();
+        self.choice_wrapper_entities.push(entity);
+        entity
     }
 
-    pub(crate) fn choice_wrapper_world(
-        &self,
+    pub(crate) fn rebuild_choice_wrapper(
+        &mut self,
         text: String,
-        box_entity: Entity,
-        checkbox_entity: Entity,
-        world: &mut World,
-    ) -> Entity {
-        world
-            .spawn(self.choice_wrapper_components(text, checkbox_entity, box_entity))
-            .observe(on_mouse_out)
-            .observe(on_mouse_down)
-            .observe(on_mouse_over)
-            .id()
+        old_entity: Entity,
+        world: &mut World
+    ) {
+        world.entity_mut(old_entity).insert(CheckBoxItemText(text));
     }
 
     pub(crate) fn build_choices(
@@ -126,9 +133,10 @@ impl CheckboxBuilder {
         r_data: &HashMap<String, RVal>,
     ) {
         let mut all_choices: Vec<Entity> = Vec::new();
-        for choice in self.choices.iter() {
-            let reactive_keys = get_reactive_key(choice);
-            let parsed_choice = replace_reactive_keys(choice, &reactive_keys, r_data);
+        let choices = self.choices.clone();
+        for choice in choices.into_iter() {
+            let reactive_keys = get_reactive_key(&choice);
+            let parsed_choice = replace_reactive_keys(&choice, &reactive_keys, r_data);
             self.all_reactive_keys.extend_from_slice(&reactive_keys);
 
             let choice_box = self.choice_tick_box(commands);
@@ -145,31 +153,27 @@ impl CheckboxBuilder {
         commands.entity(checkbox_entity).add_children(&all_choices);
     }
 
-    pub(crate) fn build_choices_world(
-        &mut self,
-        checkbox_entity: Entity,
-        world: &mut World,
-        r_data: &HashMap<String, RVal>
-    ) {
-        let mut all_choices: Vec<Entity> = Vec::new();
+    pub(crate) fn rebuild_choices(&mut self, r_data: &HashMap<String, RVal>, world: &mut World) {
+        let choices = self.choices.clone();
 
-        for choice in self.choices.iter() {
-            let reactive_keys = get_reactive_key(choice);
-            let parsed_choice = replace_reactive_keys(choice, &reactive_keys, r_data);
+        for (index, choice) in choices.into_iter().enumerate() {
+            let reactive_keys = get_reactive_key(&choice);
+            let parsed_choice = replace_reactive_keys(&choice, &reactive_keys, r_data);
             self.all_reactive_keys.extend_from_slice(&reactive_keys);
 
-            let choice_box = self.choice_tick_box_world(world);
-            let choice_text = self.choice_text_world(&parsed_choice, r_data, world);
-            let choice_wrapper = self.choice_wrapper_world(
-                parsed_choice,
-                choice_box,
-                checkbox_entity,
+            self.rebuild_choice_tick_box(self.choice_tick_box_entities[index], world);
+            self.rebuild_choice_text(
+                &parsed_choice,
+                self.choice_text_entities[index],
+                r_data,
                 world
             );
-            world.entity_mut(choice_wrapper).add_children(&[choice_box, choice_text]);
-            all_choices.push(choice_wrapper);
+            self.rebuild_choice_wrapper(
+                parsed_choice,
+                self.choice_wrapper_entities[index],
+                world
+            );
         }
-        world.entity_mut(checkbox_entity).add_children(&all_choices);
     }
 
     pub(crate) fn set_flex_direction(&mut self, vertical: bool) {
@@ -243,34 +247,25 @@ impl SetupWidget for CheckboxBuilder {
         checkbox_entity
     }
 
-    fn build_with_world(
-        &mut self,
-        r_data: &HashMap<String, RVal>,
-        world: &mut World
-    ) -> Option<Entity> {
+    fn rebuild(&mut self, r_data: &HashMap<String, RVal>, old_entity: Entity, world: &mut World) {
         self.prepare_attrs(r_data);
 
         let mut checkbox = FaBaseContainer::new_with_attributes(&self.cloned_attrs);
-        let checkbox_entity = checkbox.build_with_world(r_data, world);
-        self.build_choices_world(checkbox_entity.unwrap(), world, r_data);
-        world
-            .entity_mut(checkbox_entity.unwrap())
-            .insert(self.components());
+        checkbox.rebuild(r_data, old_entity, world);
+        self.rebuild_choices(r_data, world);
 
-        insert_model_world(world, checkbox_entity.unwrap(), &self.cloned_attrs.model_key);
-        insert_class_id_world(world, checkbox_entity.unwrap(), &self.cloned_attrs.id, &self.cloned_attrs.class);
+        insert_class_id_world(world, old_entity, &self.cloned_attrs.id, &self.cloned_attrs.class);
 
         let cloned_builder = self.clone();
         let ar_keys = self.all_reactive_keys.clone();
         world.send_event(UpdateReactiveSubscriberEvent::new(
             ar_keys,
-            checkbox_entity.unwrap(),
+            old_entity,
             WidgetBuilder {
                 builder: BuilderType::Checkbox(cloned_builder)
             }
         ));
         self.all_reactive_keys.clear();
-        checkbox_entity
     }
 }
 

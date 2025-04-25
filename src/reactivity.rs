@@ -3,7 +3,6 @@ use bevy::platform::collections::HashMap;
 
 use crate::resources::*;
 use crate::widgets::style::*;
-use crate::widgets::selection::*;
 use crate::widgets::*;
 
 pub type Subscriber = HashMap<Entity, WidgetBuilder>; // String is serialized fields
@@ -138,17 +137,13 @@ pub(crate) fn detect_reactive_data_change(
     mut commands: Commands,
     mut fa_query: FaQuery,
     mut famiq_res: ResMut<FamiqResource>,
-    styles: Res<StylesKeyValueResource>,
-    r_widgets_q: Query<&ChildOf, With<ReactiveWidget>>,
-    children_q: Query<&Children>,
+    styles: Res<StylesKeyValueResource>
 ) {
     if fa_query.reactive_data.is_changed() && !fa_query.reactive_data.is_added() {
         FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
 
         // Entity - (index withtin its parent, builder)
-        let mut to_remove_subscribers: HashMap<Entity, (usize, WidgetBuilder)> = HashMap::new();
-        // Entity - parent's Entity
-        let mut parent_map: HashMap<Entity, Entity> = HashMap::new();
+        let mut to_remove_subscribers: HashMap<Entity, WidgetBuilder> = HashMap::new();
 
         for key in fa_query.reactive_data.changed_keys.iter() {
             let subscribers = fa_query.reactive_subscriber.data.get_mut(key);
@@ -161,22 +156,10 @@ pub(crate) fn detect_reactive_data_change(
                 if to_remove_subscribers.contains_key(entity) {
                     continue;
                 }
-                if let Ok(child_of) = r_widgets_q.get(*entity) {
-                    let mut child_index = 0 as usize;
-                    if let Ok(children) = children_q.get(child_of.parent()) {
-                        for (i, child) in children.iter().enumerate() {
-                            if child == *entity {
-                                child_index = i;
-                                continue;
-                            }
-                        }
-                    }
-                    to_remove_subscribers.insert(
-                        *entity,
-                        (child_index, widget_builder.to_owned())
-                    );
-                    parent_map.insert(*entity, child_of.parent());
-                }
+                to_remove_subscribers.insert(
+                    *entity,
+                    widget_builder.to_owned()
+                );
             }
             subscribers.retain(|k, _| !to_remove_subscribers.contains_key(k));
         }
@@ -185,64 +168,40 @@ pub(crate) fn detect_reactive_data_change(
         let style_res = styles.values.clone();
 
         commands.queue(move |world: &mut World| {
-            to_remove_subscribers.into_iter().for_each(|(entity, (child_index, widget_builder))| {
+            to_remove_subscribers.into_iter().for_each(|(entity, widget_builder)| {
                 match widget_builder.builder {
                     BuilderType::Button(mut builder) => {
-                        let new = builder.build_with_world(&r_data, world).unwrap();
-                        rebuild_none_containable(world, &parent_map, entity, new, child_index);
+                        builder.rebuild(&r_data, entity, world);
                     }
                     BuilderType::Text(mut builder) => {
-                        let new = builder.build_with_world(&r_data, world).unwrap();
-                        rebuild_none_containable(world, &parent_map, entity, new, child_index);
+                        builder.rebuild(&r_data, entity, world);
                     }
                     BuilderType::Checkbox(mut builder) => {
-                        let new = builder.build_with_world(&r_data, world).unwrap();
-                        rebuild_none_containable(world, &parent_map, entity, new, child_index);
+                        builder.rebuild(&r_data, entity, world);
                     }
                     BuilderType::Circular(mut builder) => {
-                        let new = builder.build_with_world(&r_data, world);
-                        rebuild_none_containable(world, &parent_map, entity, new.unwrap(), child_index);
+                        builder.rebuild(&r_data, entity, world);
                     }
                     BuilderType::ProgressBar(mut builder) => {
-                        let new = builder.build_with_world(&r_data, world);
-                        rebuild_none_containable(world, &parent_map, entity, new.unwrap(), child_index);
+                        builder.rebuild(&r_data, entity, world);
                     }
                     BuilderType::Fps(mut builder) => {
-                        let new = builder.build_with_world(&r_data, world);
-                        rebuild_none_containable(world, &parent_map, entity, new.unwrap(), child_index);
+                        builder.rebuild(&r_data, entity, world);
                     }
                     BuilderType::Image(mut builder) => {
-                        let new = builder.build_with_world(&r_data, world);
-                        rebuild_none_containable(world, &parent_map, entity, new.unwrap(), child_index);
+                        builder.rebuild(&r_data, entity, world);
                     }
+                    BuilderType::Scroll(mut builder) => {
+                        builder.rebuild(&r_data, entity, world);
+                    },
                     BuilderType::Selection(mut builder) => {
-                        let new = builder.build_with_world(&r_data, world).unwrap();
-
-                        let mut ph_q = world.query::<(&mut Text, &SelectorEntity)>();
-                        for (mut text, selector_entity) in ph_q.iter_mut(world) {
-                            if selector_entity.0 == new {
-                                if let Some(key) = builder.cloned_attrs.model_key.to_owned() {
-                                    if let Some(r_value) = r_data.get(&key) {
-                                        match r_value {
-                                            RVal::Str(v) => text.0 = v.to_owned(),
-                                            _ => {}
-                                        }
-                                    }
-                                }
-                                break;
-                            }
-                        }
-                        rebuild_none_containable(world, &parent_map, entity, new, child_index);
+                        builder.rebuild(&r_data, entity, world);
                     }
                     BuilderType::Container(mut builder) => {
-                        builder.children = world.resource::<ContainableChildren>().get_children(entity).unwrap();
-                        let new = builder.build_with_world(&r_data, world);
-                        rebuild_containable(world, &mut parent_map, entity, new.unwrap(), child_index);
+                        builder.rebuild(&r_data, entity, world);
                     },
                     BuilderType::Modal(mut builder) => {
-                        builder.children = world.resource::<ContainableChildren>().get_children(entity).unwrap();
-                        let new = builder.build_with_world(&r_data, world);
-                        rebuild_containable(world, &mut parent_map, entity, new.unwrap(), child_index);
+                        builder.rebuild(&r_data, entity, world);
                     }
                 }
             });
@@ -251,51 +210,6 @@ pub(crate) fn detect_reactive_data_change(
         });
         fa_query.reactive_data.changed_keys.clear();
     }
-}
-
-pub(crate) fn rebuild_none_containable(
-    world: &mut World,
-    parent_map: &HashMap<Entity, Entity>,
-    old_entity: Entity,
-    new_entity: Entity,
-    index: usize
-) {
-    world
-        .resource_mut::<ContainableChildren>()
-        .update_child(*parent_map.get(&old_entity).unwrap(), new_entity, old_entity);
-
-    world
-        .entity_mut(*parent_map.get(&old_entity).unwrap())
-        .insert_children(index, &[new_entity]);
-
-    world.entity_mut(old_entity).despawn();
-}
-
-pub(crate) fn rebuild_containable(
-    world: &mut World,
-    parent_map: &mut HashMap<Entity, Entity>,
-    old_entity: Entity,
-    new_entity: Entity,
-    index: usize
-) {
-    world.entity_mut(old_entity).despawn();
-    world
-        .resource_mut::<ContainableChildren>()
-        .update_containable(old_entity, new_entity);
-
-    world
-        .resource_mut::<ContainableChildren>()
-        .update_child(*parent_map.get(&old_entity).unwrap(), new_entity, old_entity);
-
-    world
-        .entity_mut(*parent_map.get(&old_entity).unwrap())
-        .insert_children(index, &[new_entity]);
-
-    parent_map.iter_mut().for_each(|(_, value)| {
-        if *value == old_entity {
-            *value = new_entity;
-        }
-    });
 }
 
 pub(crate) fn reset_external_style(

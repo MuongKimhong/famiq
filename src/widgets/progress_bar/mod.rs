@@ -39,7 +39,8 @@ impl UiMaterial for ProgressBarMaterial {
 #[derive(Clone, Debug)]
 pub struct ProgressBarBuilder {
     pub size: RVal,
-    pub all_reactive_keys: Vec<String>
+    pub all_reactive_keys: Vec<String>,
+    pub old_value_entity: Option<Entity>
 }
 
 impl ProgressBarBuilder {
@@ -48,12 +49,13 @@ impl ProgressBarBuilder {
             size: RVal::FNum(0.0),
             all_reactive_keys: Vec::new(),
             attributes: WidgetAttributes::default(),
-            cloned_attrs: WidgetAttributes::default()
+            cloned_attrs: WidgetAttributes::default(),
+            old_value_entity: None
         }
     }
 
     pub fn build_progress_value(
-        &self,
+        &mut self,
         bar_entity: Entity,
         commands: &mut Commands,
         r_data: &HashMap<String, RVal>
@@ -72,31 +74,24 @@ impl ProgressBarBuilder {
                 ProgressBarEntity(bar_entity),
                 ProgressValuePercentage(None)
             ));
+        self.old_value_entity = Some(value_entity);
         value_entity
     }
 
-    pub fn build_progress_value_world(
-        &self,
-        bar_entity: Entity,
-        world: &mut World,
-        r_data: &HashMap<String, RVal>
-    ) -> Entity {
+    pub fn rebuild_progress_value(
+        &mut self,
+        r_data: &HashMap<String, RVal>,
+        world: &mut World
+    ) {
         let mut value = FaBaseContainer::new();
         value.cloned_attrs.node = default_progress_value_node(None);
-        value.cloned_attrs.default_z_index = ZIndex(2);
         value.cloned_attrs.overrided_background_color = Some(Color::NONE);
         value.cloned_attrs.overrided_border_color = Some(Color::NONE);
+        value.rebuild(r_data, self.old_value_entity.unwrap(), world);
 
-        let value_entity = value.build_with_world(r_data, world);
         world
-            .entity_mut(value_entity.unwrap())
-            .insert((
-                IsFamiqProgressValue,
-                ProgressValueColor(get_color(&self.cloned_attrs.color)),
-                ProgressBarEntity(bar_entity),
-                ProgressValuePercentage(None)
-            ));
-        value_entity.unwrap()
+            .entity_mut(self.old_value_entity.unwrap())
+            .insert(ProgressValueColor(get_color(&self.cloned_attrs.color)));
     }
 
     pub(crate) fn prepare_attrs(&mut self, r_data: &HashMap<String, RVal>) {
@@ -132,7 +127,7 @@ impl ProgressBarBuilder {
 
 impl SetupWidget for ProgressBarBuilder {
     fn components(&mut self) -> impl Bundle {
-        (IsFamiqProgressBar, MainWidget, ReactiveWidget)
+        (MainWidget, ReactiveWidget)
     }
 
     fn build(&mut self, r_data: &HashMap<String, RVal>, commands: &mut Commands) -> Entity {
@@ -143,7 +138,7 @@ impl SetupWidget for ProgressBarBuilder {
 
         commands
             .entity(bar_entity)
-            .insert((self.components(), ProgressValueEntity(value_entity)))
+            .insert((self.components(), ProgressValueEntity(value_entity), IsFamiqProgressBar(0)))
             .add_child(value_entity)
             .observe(on_mouse_up)
             .observe(on_mouse_down)
@@ -171,42 +166,28 @@ impl SetupWidget for ProgressBarBuilder {
         bar_entity
     }
 
-    fn build_with_world(
-        &mut self,
-        r_data: &HashMap<String, RVal>,
-        world: &mut World
-    ) -> Option<Entity> {
+    fn rebuild(&mut self, r_data: &HashMap<String, RVal>, old_entity: Entity, world: &mut World) {
         self.prepare_attrs(r_data);
         let mut bar = FaBaseContainer::new_with_attributes(&self.cloned_attrs);
-        let bar_entity = bar.build_with_world(r_data, world);
-        let value_entity = self.build_progress_value_world(bar_entity.unwrap(), world, r_data);
+        bar.rebuild(r_data, old_entity, world);
+        self.rebuild_progress_value(r_data, world);
 
-        world
-            .entity_mut(bar_entity.unwrap())
-            .insert((self.components(), ProgressValueEntity(value_entity)))
-            .add_child(value_entity)
-            .observe(on_mouse_up)
-            .observe(on_mouse_down)
-            .observe(on_mouse_over)
-            .observe(on_mouse_out);
-
-        if self.attributes.has_tooltip {
-            build_tooltip_node(&self.cloned_attrs, &mut world.commands(), bar_entity.unwrap());
+        let mut query = world.query::<&mut IsFamiqProgressBar>();
+        if let Ok(mut c) = query.get_mut(world, old_entity) {
+            c.0 += 1;
         }
-        insert_class_id_world(world, bar_entity.unwrap(), &self.cloned_attrs.id, &self.cloned_attrs.class);
-        insert_model_world(world, bar_entity.unwrap(), &self.cloned_attrs.model_key);
+        insert_class_id_world(world, old_entity, &self.cloned_attrs.id, &self.cloned_attrs.class);
 
         let cloned_builder = self.clone();
         let ar_keys = self.all_reactive_keys.clone();
         world.send_event(UpdateReactiveSubscriberEvent::new(
             ar_keys,
-            bar_entity.unwrap(),
+            old_entity,
             WidgetBuilder {
                 builder: BuilderType::ProgressBar(cloned_builder)
             }
         ));
         self.all_reactive_keys.clear();
-        bar_entity
     }
 }
 

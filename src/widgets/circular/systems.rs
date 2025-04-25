@@ -57,18 +57,17 @@ pub(crate) fn on_mouse_up(
 pub fn detect_new_circular(
     mut commands: Commands,
     mut circular_material: ResMut<Assets<CircularMaterial>>,
-    circular_q: Query<(Entity, &SpinnerColor), Added<IsFamiqCircular>>,
+    circular_q: Query<(Entity, &SpinnerColor), Or<(Added<IsFamiqCircular>, Changed<IsFamiqCircular>)>>,
 ) {
     circular_q.iter().for_each(|(entity, color)| {
         if let Color::Srgba(value) = color.0 {
+            let new_handle = circular_material.add(CircularMaterial {
+                u_time: 0.0,
+                u_color: Vec3::new(value.red, value.green, value.blue)
+            });
             commands
                 .entity(entity)
-                .insert(
-                    MaterialNode(circular_material.add(CircularMaterial {
-                        u_time: 0.0,
-                        u_color: Vec3::new(value.red, value.green, value.blue)
-                    }))
-                );
+                .insert(MaterialNode(new_handle));
         }
     });
 }

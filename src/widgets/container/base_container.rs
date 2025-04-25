@@ -20,14 +20,6 @@ impl FaBaseContainer {
             cloned_attrs: attr.clone()
         }
     }
-
-    pub fn build_with_world(
-        &mut self,
-        _r_data: &HashMap<String, RVal>,
-        world: &mut World
-    ) -> Option<Entity> {
-        Some(world.spawn(self.components()).id())
-    }
 }
 
 impl SetWidgetAttributes for FaBaseContainer {
@@ -70,11 +62,7 @@ impl SetupWidget for FaBaseContainer {
         commands.spawn(self.components()).id()
     }
 
-    fn build_with_world(
-        &mut self,
-        _reactive_data: &HashMap<String, RVal>,
-        _world: &mut World
-    ) -> Option<Entity> {
-        None
+    fn rebuild(&mut self, _r_data: &HashMap<String, RVal>, old_entity: Entity, world: &mut World) {
+        world.entity_mut(old_entity).insert(self.components());
     }
 }

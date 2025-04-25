@@ -20,7 +20,8 @@ use macros::*;
 #[derive(Clone, Debug)]
 pub struct ButtonBuilder {
     pub value: String,
-    pub all_reactive_keys: Vec<String>
+    pub all_reactive_keys: Vec<String>,
+    pub old_text_entity: Option<Entity>
 }
 
 impl ButtonBuilder {
@@ -31,7 +32,8 @@ impl ButtonBuilder {
             value,
             attributes,
             all_reactive_keys: Vec::new(),
-            cloned_attrs: WidgetAttributes::default()
+            cloned_attrs: WidgetAttributes::default(),
+            old_text_entity: None
         }
     }
 
@@ -60,6 +62,7 @@ impl SetupWidget for ButtonBuilder {
         let parsed_text = self.prepare_attrs(r_data);
         let mut text = FaBaseText::new_with_attributes(&parsed_text,  &self.cloned_attrs);
         let text_entity = text.build(r_data, commands);
+        self.old_text_entity = Some(text_entity);
 
         let mut button = FaBaseContainer::new_with_attributes(&self.cloned_attrs);
         let button_entity = button.build(r_data, commands);
@@ -96,42 +99,32 @@ impl SetupWidget for ButtonBuilder {
         button_entity
     }
 
-    fn build_with_world(&mut self, r_data: &HashMap<String, RVal>, world: &mut World) -> Option<Entity> {
+    fn rebuild(&mut self, r_data: &HashMap<String, RVal>, old_entity: Entity, world: &mut World) {
         let parsed_text = self.prepare_attrs(r_data);
         let mut text = FaBaseText::new_with_attributes(&parsed_text,  &self.cloned_attrs);
-        let text_entity = text.build_with_world(r_data, world);
+        text.rebuild(r_data, self.old_text_entity.unwrap(), world);
 
         let mut button = FaBaseContainer::new_with_attributes(&self.cloned_attrs);
-        let button_entity = button.build_with_world(r_data, world);
+        button.rebuild(r_data, old_entity, world);
 
-        world.entity_mut(text_entity.unwrap()).insert(IsFamiqButtonText);
-        world
-            .entity_mut(button_entity.unwrap())
-            .insert(self.components())
-            .add_child(text_entity.unwrap())
-            .insert(ButtonTextEntity(text_entity.unwrap()))
-            .observe(on_mouse_up)
-            .observe(on_mouse_down)
-            .observe(on_mouse_over)
-            .observe(on_mouse_out);
-
-        if self.attributes.has_tooltip {
-            build_tooltip_node(&self.cloned_attrs, &mut world.commands(), button_entity.unwrap());
+        let mut query = world.query::<(&BackgroundColor, &mut ButtonColorBeforePressed)>();
+        if let Ok((bg, mut bf_pressed)) = query.get_mut(world, old_entity) {
+            bf_pressed.0 = Some(bg.0.clone());
         }
-        insert_class_id_world(world, text_entity.unwrap(), &self.cloned_attrs.id, &self.cloned_attrs.class);
-        insert_class_id_world(world, button_entity.unwrap(), &self.cloned_attrs.id, &self.cloned_attrs.class);
+
+        insert_class_id_world(world, self.old_text_entity.unwrap(), &self.cloned_attrs.id, &self.cloned_attrs.class);
+        insert_class_id_world(world, old_entity, &self.cloned_attrs.id, &self.cloned_attrs.class);
 
         let cloned_builder = self.clone();
         let ar_keys = self.all_reactive_keys.clone();
         world.send_event(UpdateReactiveSubscriberEvent::new(
             ar_keys,
-            button_entity.unwrap(),
+            old_entity,
             WidgetBuilder {
                 builder: BuilderType::Button(cloned_builder)
             }
         ));
         self.all_reactive_keys.clear();
-        button_entity
     }
 }
 

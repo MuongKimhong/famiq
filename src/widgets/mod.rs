@@ -45,11 +45,12 @@ pub trait SetupWidget {
     ) -> Entity;
 
     /// build/spawn the widget into UI world using world instead of commands.
-    fn build_with_world(
+    fn rebuild(
         &mut self,
         reactive_data: &HashMap<String, RVal>,
+        old_entity: Entity,
         world: &mut World
-    ) -> Option<Entity>;
+    );
 }
 
 #[derive(Clone, Default, PartialEq, Debug)]
@@ -550,6 +551,11 @@ impl<'w, 's> FaQuery<'w, 's> {
         self.insert_data(key, RVal::Str(value.into()));
     }
 
+    /// Insert into reactive data as RVal::None
+    pub fn insert_none(&mut self, key: &str) {
+        self.insert_data(key, RVal::None);
+    }
+
     /// Insert into reactive data as Rval::Num
     pub fn insert_num(&mut self, key: &str, value: i32) {
         self.insert_data(key, RVal::Num(value));
@@ -655,33 +661,14 @@ pub enum BuilderType {
     Image(image::ImageBuilder),
     Modal(modal::ModalBuilder),
     ProgressBar(progress_bar::ProgressBarBuilder),
-    Selection(selection::SelectionBuilder)
+    Selection(selection::SelectionBuilder),
+    Scroll(scroll::ScrollBuilder)
 }
 
 #[derive(Clone, Debug)]
 pub struct WidgetBuilder {
     pub builder: BuilderType
 }
-
-// thread_local! {
-//     static GLOBAL_BUILDER: RefCell<Option<*mut ()>> = RefCell::new(None);
-// }
-
-// /// Initialize the global builder before spawning UI widgets
-// pub fn inject_builder<'a>(builder: &'a mut FamiqBuilder<'a>) {
-//     let raw = builder as *mut FamiqBuilder as *mut (); // get the raw pointer
-//     GLOBAL_BUILDER.with(|cell| {
-//         *cell.borrow_mut() = Some(raw);
-//     });
-// }
-
-// /// Access the builder inside widget macros
-// pub fn builder_mut<'a>() -> &'a mut FamiqBuilder<'a> {
-//     GLOBAL_BUILDER.with(|cell| {
-//         let ptr = cell.borrow().expect("Can't access global widget builder!");
-//         unsafe { &mut *(ptr as *mut FamiqBuilder) }
-//     })
-// }
 
 thread_local! {
     static GLOBAL_BUILDER: RefCell<Option<*mut ()>> = RefCell::new(None);

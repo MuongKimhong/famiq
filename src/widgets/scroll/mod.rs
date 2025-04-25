@@ -18,7 +18,7 @@ use macros::set_widget_attributes;
 /// only entity inside this resource can be scrolled
 #[derive(Resource)]
 pub struct CanBeScrolled {
-    pub entity: Option<Entity>,
+    pub entity: Option<Entity>
 }
 
 pub fn default_move_panel_node() -> Node {
@@ -56,11 +56,13 @@ pub fn default_scroll_node() -> Node {
 
 
 #[set_widget_attributes]
+#[derive(Clone, Debug)]
 pub struct ScrollBuilder {
     pub all_reactive_keys: Vec<String>,
     pub children: Vec<Entity>,
     pub root_node: Entity,
-    pub scroll_height: f32
+    pub scroll_height: f32,
+    pub panel_entity: Option<Entity>
 }
 
 impl ScrollBuilder {
@@ -71,11 +73,12 @@ impl ScrollBuilder {
             cloned_attrs: WidgetAttributes::default(),
             children: Vec::new(),
             scroll_height: 15.0,
+            panel_entity: None,
             root_node
         }
     }
 
-    pub(crate) fn build_move_panel(&self, commands: &mut Commands, r_data: &HashMap<String, RVal>) -> Entity {
+    pub(crate) fn build_move_panel(&mut self, commands: &mut Commands, r_data: &HashMap<String, RVal>) -> Entity {
         let mut panel = FaBaseContainer::new();
         panel.cloned_attrs.overrided_border_color = Some(Color::NONE);
         panel.cloned_attrs.overrided_background_color = Some(Color::NONE);
@@ -87,7 +90,19 @@ impl ScrollBuilder {
             .insert((IsFamiqScrollMovePanel, ScrollList::new(self.scroll_height)));
 
         commands.entity(panel_entity).add_children(&self.children);
+        self.panel_entity = Some(panel_entity);
         panel_entity
+    }
+
+    pub fn rebuild_panel(&mut self, r_data: &HashMap<String, RVal>, world: &mut World) {
+        let mut panel = FaBaseContainer::new();
+        panel.cloned_attrs.overrided_border_color = Some(Color::NONE);
+        panel.cloned_attrs.overrided_background_color = Some(Color::NONE);
+        panel.cloned_attrs.node = default_move_panel_node();
+        panel.rebuild(r_data, self.panel_entity.unwrap(), world);
+        world
+            .entity_mut(self.panel_entity.unwrap())
+            .insert(ScrollList::new(self.scroll_height));
     }
 
     pub(crate) fn calculate_max_scroll(
@@ -104,7 +119,7 @@ impl ScrollBuilder {
 
 impl SetupWidget for ScrollBuilder {
     fn components(&mut self) -> impl Bundle {
-        (IsFamiqScroll, MainWidget, IsFamiqContainableWidget)
+        (IsFamiqScroll, MainWidget, IsFamiqContainableWidget, ReactiveWidget)
     }
 
     fn build(&mut self, r_data: &HashMap<String, RVal>, commands: &mut Commands) -> Entity {
@@ -130,15 +145,47 @@ impl SetupWidget for ScrollBuilder {
         commands.entity(self.root_node).add_child(scroll_entity);
 
         insert_class_id(commands, scroll_entity, &self.cloned_attrs.id, &self.cloned_attrs.class);
+
+        let cloned_builder = self.clone();
+        let ar_keys = self.all_reactive_keys.clone();
+        commands.queue(move |w: &mut World| {
+            w.send_event(UpdateReactiveSubscriberEvent::new(
+                ar_keys,
+                scroll_entity,
+                WidgetBuilder {
+                    builder: BuilderType::Scroll(cloned_builder)
+                }
+            ));
+        });
+        self.all_reactive_keys.clear();
         scroll_entity
     }
 
-    fn build_with_world(
-        &mut self,
-        _reactive_data: &HashMap<String, RVal>,
-        _world: &mut World
-    ) -> Option<Entity> {
-        None
+    fn rebuild(&mut self, r_data: &HashMap<String, RVal>, old_entity: Entity, world: &mut World) {
+        self.cloned_attrs = self.attributes.clone();
+        self.cloned_attrs.node = default_scroll_node();
+        self.cloned_attrs.default_visibility = Visibility::Visible;
+
+        if self.cloned_attrs.color == WidgetColor::Default {
+            self.cloned_attrs.color = WidgetColor::Transparent;
+        }
+        replace_reactive_keys_common_attrs(&mut self.cloned_attrs, r_data, &mut self.all_reactive_keys);
+
+        let mut scroll = FaBaseContainer::new_with_attributes(&self.cloned_attrs);
+        scroll.rebuild(r_data, old_entity, world);
+        self.rebuild_panel(r_data, world);
+
+        insert_class_id_world(world, old_entity, &self.cloned_attrs.id, &self.cloned_attrs.class);
+        let cloned_builder = self.clone();
+        let ar_keys = self.all_reactive_keys.clone();
+        world.send_event(UpdateReactiveSubscriberEvent::new(
+            ar_keys,
+            old_entity,
+            WidgetBuilder {
+                builder: BuilderType::Scroll(cloned_builder)
+            }
+        ));
+        self.all_reactive_keys.clear();
     }
 }
 

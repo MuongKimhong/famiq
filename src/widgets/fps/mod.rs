@@ -22,7 +22,8 @@ pub struct FpsBuilder {
     pub change_color: RVal,
     pub right_side: RVal,
     pub all_reactive_keys: Vec<String>,
-    pub root_node: Entity
+    pub root_node: Entity,
+    pub count_text_entity: Option<Entity>
 }
 
 impl FpsBuilder {
@@ -35,11 +36,12 @@ impl FpsBuilder {
             all_reactive_keys: Vec::new(),
             cloned_attrs: WidgetAttributes::default(),
             change_color: RVal::Bool(true),
-            right_side: RVal::Bool(false)
+            right_side: RVal::Bool(false),
+            count_text_entity: None
         }
     }
 
-    pub fn build_fps_count_text(&self, commands: &mut Commands) -> Entity {
+    pub fn build_fps_count_text(&mut self, commands: &mut Commands) -> Entity {
         let text_font = TextFont {
             font: self.cloned_attrs.font_handle.clone().unwrap(),
             font_size: DEFAULT_FPS_TEXT_SIZE,
@@ -59,30 +61,17 @@ impl FpsBuilder {
             ))
             .id();
         insert_class_id(commands, entity, &self.cloned_attrs.id, &self.cloned_attrs.class);
+        self.count_text_entity = Some(entity);
         entity
     }
 
-    pub fn build_fps_count_text_world(&self, world: &mut World) -> Entity {
-        let text_font = TextFont {
-            font: self.cloned_attrs.font_handle.clone().unwrap(),
-            font_size: DEFAULT_FPS_TEXT_SIZE,
-            ..default()
-        };
-        let entity = world
-            .spawn((
-                TextSpan::default(),
-                text_font.clone(),
-                TextColor(WHITE_COLOR),
-                IsFPSTextCount,
-                DefaultTextSpanConfig::new(
-                    TextSpan::default(),
-                    text_font,
-                    TextColor(WHITE_COLOR)
-                )
-            ))
-            .id();
-        insert_class_id_world(world, entity, &self.cloned_attrs.id, &self.cloned_attrs.class);
-        entity
+    pub fn rebuild_count_text(&mut self, world: &mut World) {
+        insert_class_id_world(
+            world,
+            self.count_text_entity.unwrap(),
+            &self.cloned_attrs.id,
+            &self.cloned_attrs.class
+        );
     }
 
     /// Internal system to update the FPS count and optionally change its color based on the value.
@@ -214,17 +203,16 @@ impl SetupWidget for FpsBuilder {
         label_entity
     }
 
-    fn build_with_world(&mut self, r_data: &HashMap<String, RVal>, world: &mut World) -> Option<Entity> {
+    fn rebuild(&mut self, r_data: &HashMap<String, RVal>, old_entity: Entity, world: &mut World) {
         self.prepar_attrs(r_data);
         let mut label = FaBaseText::new_with_attributes("FPS:", &self.cloned_attrs);
         label.use_get_color = true;
-
-        let label_entity = label.build_with_world(r_data, world);
-        let count_entity = self.build_fps_count_text_world(world);
+        label.rebuild(r_data, old_entity, world);
+        self.rebuild_count_text(world);
 
         match self.change_color.to_owned() {
             RVal::Bool(v) => {
-                world.entity_mut(count_entity).insert(CanChangeColor(v));
+                world.entity_mut(self.count_text_entity.unwrap()).insert(CanChangeColor(v));
             }
             RVal::Str(v) => {
                 let reactive_keys = get_reactive_key(&v);
@@ -232,7 +220,7 @@ impl SetupWidget for FpsBuilder {
                     if let Some(r_v) = r_data.get(key) {
                         match r_v {
                             RVal::Bool(state) => {
-                                world.entity_mut(count_entity).insert(CanChangeColor(*state));
+                                world.entity_mut(self.count_text_entity.unwrap()).insert(CanChangeColor(*state));
                             }
                             _ => {}
                         }
@@ -242,21 +230,19 @@ impl SetupWidget for FpsBuilder {
             }
             _ => {}
         }
-        world.entity_mut(label_entity.unwrap()).add_child(count_entity).insert(self.components());
-        world.entity_mut(self.root_node).add_child(label_entity.unwrap());
-        insert_class_id_world(world, label_entity.unwrap(), &self.attributes.id, &self.attributes.class);
+        world.entity_mut(old_entity).insert(self.components());
+        insert_class_id_world(world, old_entity, &self.attributes.id, &self.attributes.class);
 
         let cloned_builder = self.clone();
         let ar_keys = self.all_reactive_keys.clone();
         world.send_event(UpdateReactiveSubscriberEvent::new(
             ar_keys,
-            label_entity.unwrap(),
+            old_entity,
             WidgetBuilder {
                 builder: BuilderType::Fps(cloned_builder)
             }
         ));
         self.all_reactive_keys.clear();
-        label_entity
     }
 }
 

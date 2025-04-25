@@ -86,7 +86,7 @@ impl CircularBuilder {
 impl SetupWidget for CircularBuilder {
     fn components(&mut self) -> impl Bundle {
         let color = get_color(&self.cloned_attrs.color);
-        (IsFamiqCircular, MainWidget, SpinnerColor(color), ReactiveWidget)
+        (MainWidget, SpinnerColor(color), ReactiveWidget)
     }
 
     fn build(&mut self, r_data: &HashMap<String, RVal>, commands: &mut Commands) -> Entity {
@@ -98,6 +98,7 @@ impl SetupWidget for CircularBuilder {
         commands
             .entity(circular_entity)
             .insert(self.components())
+            .insert(IsFamiqCircular(0))
             .observe(on_mouse_up)
             .observe(on_mouse_down)
             .observe(on_mouse_over)
@@ -123,36 +124,29 @@ impl SetupWidget for CircularBuilder {
         circular_entity
     }
 
-    fn build_with_world(&mut self, r_data: &HashMap<String, RVal>, world: &mut World) -> Option<Entity> {
+    fn rebuild(&mut self, r_data: &HashMap<String, RVal>, old_entity: Entity, world: &mut World) {
         self.prepare_attrs(r_data);
 
         let mut circular = FaBaseContainer::new_with_attributes(&self.cloned_attrs);
-        let circular_entity = circular.build_with_world(r_data, world);
+        circular.rebuild(r_data, old_entity, world);
 
-        world
-            .entity_mut(circular_entity.unwrap())
-            .insert(self.components())
-            .observe(on_mouse_up)
-            .observe(on_mouse_down)
-            .observe(on_mouse_over)
-            .observe(on_mouse_out);
-
-        if self.attributes.has_tooltip {
-            build_tooltip_node(&self.cloned_attrs, &mut world.commands(), circular_entity.unwrap());
+        let mut query = world.query::<&mut IsFamiqCircular>();
+        if let Ok(mut c) = query.get_mut(world, old_entity) {
+            c.0 += 1;
         }
-        insert_class_id_world(world, circular_entity.unwrap(), &self.cloned_attrs.id, &self.cloned_attrs.class);
+        world.entity_mut(old_entity).insert(self.components());
+        insert_class_id_world(world, old_entity, &self.cloned_attrs.id, &self.cloned_attrs.class);
 
         let cloned_builder = self.clone();
         let ar_keys = self.all_reactive_keys.clone();
         world.send_event(UpdateReactiveSubscriberEvent::new(
             ar_keys,
-            circular_entity.unwrap(),
+            old_entity,
             WidgetBuilder {
                 builder: BuilderType::Circular(cloned_builder)
             }
         ));
         self.all_reactive_keys.clear();
-        circular_entity
     }
 }
 

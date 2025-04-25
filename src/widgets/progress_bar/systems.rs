@@ -7,15 +7,15 @@ pub fn detect_new_progress_bar(
     mut progress_materials: ResMut<Assets<ProgressBarMaterial>>,
     mut bar_q: Query<
         (&ComputedNode, &ProgressValueEntity, Option<&ReactiveModelKey>),
-        Or<(Added<IsFamiqProgressBar>, Changed<ComputedNode>)>
+        Or<(Added<IsFamiqProgressBar>, Changed<ComputedNode>, Changed<IsFamiqProgressBar>)>
     >,
     reactive_data: Res<RData>,
     mut value_q: Query<(&mut Node, &ProgressValueColor, &mut ProgressValuePercentage)>,
 ) {
     bar_q.iter_mut().for_each(|(computed_node, value_entity, model_key)| {
-        if let Some(key) = model_key {
-            if let Some(r_value) = reactive_data.data.get(&key.0) {
-                if let Ok((mut node, value_color, mut percent)) = value_q.get_mut(value_entity.0) {
+        if let Ok((mut node, value_color, mut percent)) = value_q.get_mut(value_entity.0) {
+            if let Some(key) = model_key {
+                if let Some(r_value) = reactive_data.data.get(&key.0) {
                     match r_value {
                         RVal::FNum(v) => {
                             percent.0 = Some(v.to_owned());
@@ -27,24 +27,24 @@ pub fn detect_new_progress_bar(
                         }
                         _ => {}
                     }
-                    if let Color::Srgba(value) = value_color.0 {
-                        let u_blend = if percent.0.is_some() {
-                            0.0
-                        } else {
-                            1.0
-                        };
-                        commands
-                            .entity(value_entity.0)
-                            .insert(
-                                MaterialNode(progress_materials.add(ProgressBarMaterial {
-                                    u_time: 0.0,
-                                    u_color: Vec3::new(value.red, value.green, value.blue),
-                                    u_blend,
-                                    u_size: computed_node.size()
-                                }))
-                            );
-                    }
                 }
+            }
+            if let Color::Srgba(value) = value_color.0 {
+                let u_blend = if percent.0.is_some() {
+                    0.0
+                } else {
+                    1.0
+                };
+                commands
+                    .entity(value_entity.0)
+                    .insert(
+                        MaterialNode(progress_materials.add(ProgressBarMaterial {
+                            u_time: 0.0,
+                            u_color: Vec3::new(value.red, value.green, value.blue),
+                            u_blend,
+                            u_size: computed_node.size()
+                        }))
+                    );
             }
         }
     });

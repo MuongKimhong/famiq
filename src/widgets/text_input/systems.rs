@@ -541,44 +541,48 @@ pub(crate) fn handle_text_input_on_typing(mut param: TypingParam) {
                         continue;
                     }
                 }
-                else if text_edit.is_ctrl_c_pressed(&param.keys, e.key_code) {
-                    if let Some(copied_text) = text_edit.copy_text() {
-                        param.famiq_res.copied_text = copied_text;
-                        continue;
-                    }
-                }
-                else if text_edit.is_ctrl_v_pressed(&param.keys, e.key_code) {
-                    // TODO: proper scroll after pasted long text
-                    let mut ctx = Clipboard::new().unwrap();
-                    let mut copied_text = ctx.get_text().ok();
 
-                    if copied_text.as_ref().map_or(true, |s| s.is_empty()) {
-                        if !param.famiq_res.copied_text.is_empty() {
-                            copied_text = Some(param.famiq_res.copied_text.clone());
-                        }
-                    }
-                    if let Some(text) = copied_text {
-                        if text.is_empty() {
+                #[cfg(not(target_arch = "wasm32"))]
+                {
+                    if text_edit.is_ctrl_c_pressed(&param.keys, e.key_code) {
+                        if let Some(copied_text) = text_edit.copy_text() {
+                            param.famiq_res.copied_text = copied_text;
                             continue;
                         }
-                        helper::clear_buffer_before_insert(&mut editor, &mut text_edit, font_system, attrs.unwrap());
+                    }
+                    else if text_edit.is_ctrl_v_pressed(&param.keys, e.key_code) {
+                        // TODO: proper scroll after pasted long text
+                        let mut ctx = Clipboard::new().unwrap();
+                        let mut copied_text = ctx.get_text().ok();
 
-                        let index = text_edit.cursor_index;
-                        text_edit.value.insert_str(index, &text);
-                        text_edit.cursor_index += text.len();
+                        if copied_text.as_ref().map_or(true, |s| s.is_empty()) {
+                            if !param.famiq_res.copied_text.is_empty() {
+                                copied_text = Some(param.famiq_res.copied_text.clone());
+                            }
+                        }
+                        if let Some(text) = copied_text {
+                            if text.is_empty() {
+                                continue;
+                            }
+                            helper::clear_buffer_before_insert(&mut editor, &mut text_edit, font_system, attrs.unwrap());
 
-                        editor.with_buffer_mut(|buffer| {
-                            buffer.set_size(font_system, None, None); // reset
-                            buffer.set_text(font_system, &text_edit.value, attrs.unwrap(), Shaping::Advanced);
-                            helper::update_buffer_text_layout(
-                                font_system,
-                                &mut text_edit,
-                                buffer_dim,
-                                buffer,
-                                &texture_node
-                            );
-                        });
-                        skip_typing = true;
+                            let index = text_edit.cursor_index;
+                            text_edit.value.insert_str(index, &text);
+                            text_edit.cursor_index += text.len();
+
+                            editor.with_buffer_mut(|buffer| {
+                                buffer.set_size(font_system, None, None); // reset
+                                buffer.set_text(font_system, &text_edit.value, attrs.unwrap(), Shaping::Advanced);
+                                helper::update_buffer_text_layout(
+                                    font_system,
+                                    &mut text_edit,
+                                    buffer_dim,
+                                    buffer,
+                                    &texture_node
+                                );
+                            });
+                            skip_typing = true;
+                        }
                     }
                 }
 

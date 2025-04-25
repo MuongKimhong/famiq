@@ -53,14 +53,6 @@ impl FaBaseText {
         }
         use_size
     }
-
-    pub fn build_with_world(
-        &mut self,
-        _r_data: &HashMap<String, RVal>,
-        world: &mut World
-    ) -> Option<Entity> {
-        Some(world.spawn(self.components()).id())
-    }
 }
 
 impl SetWidgetAttributes for FaBaseText {
@@ -113,7 +105,7 @@ impl SetupWidget for FaBaseText {
         commands.spawn(self.components()).id()
     }
 
-    fn build_with_world(&mut self, _r_data: &HashMap<String, RVal>, _world: &mut World) -> Option<Entity> {
-        None
+    fn rebuild(&mut self, _r_data: &HashMap<String, RVal>, old_entity: Entity, world: &mut World) {
+        world.entity_mut(old_entity).insert(self.components());
     }
 }

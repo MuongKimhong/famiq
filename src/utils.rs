@@ -210,16 +210,6 @@ pub(crate) fn insert_model(
     }
 }
 
-pub(crate) fn insert_model_world(
-    world: &mut World,
-    entity: Entity,
-    model: &Option<String>
-) {
-    if let Some(model) = model {
-        world.entity_mut(entity).insert(ReactiveModelKey(model.to_owned()));
-    }
-}
-
 pub(crate) fn _handle_apply_margin(
     widget_style: &WidgetStyle,
     default_widget_entity: &DefaultWidgetConfig,
