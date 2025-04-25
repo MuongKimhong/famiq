@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 use famiq::prelude::*;
 
+#[derive(Resource)]
+struct TestEntity(Entity);
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
@@ -11,58 +14,37 @@ fn main() {
 }
 
 fn setup(mut fa_query: FaQuery, mut famiq_res: ResMut<FamiqResource>) {
-    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
+    fa_query.insert_str("plan", "");
+    fa_query.insert_str("name", "");
+    fa_query.insert_str("test_class", "test-one");
 
-    let text = fa_text(&mut builder, "Press button to see a message!!")
-        .class("h2")
-        .build();
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).hot_reload().inject();
 
-    let name = fa_text_input(&mut builder, "Enter your name")
-        .id("#name")
-        .class("is-secondary mt-10")
-        .build();
+    scroll!(
+        id: "#scroll",
+        children: [
+            text!(text: "Test text $[plan]", class: "$[test_class]"),
+            text!(text: "Test name $[name]", class: "$[test_class]"),
+            text_input!(placeholder: "Enter", model: "plan", id: "#input"),
+            text_input!(placeholder: "Enter name", model: "name"),
+            button!(text: "Hello", id: "#press")
+        ]
+    );
 
-    let done_btn = fa_button(&mut builder, "Done").id("#btn").class("is-secondary").build();
-
-    fa_container(&mut builder)
-        .id("#container")
-        .children([text, name, done_btn])
-        .build();
-
-
-    let close_btn = fa_button(&mut builder, "Close").id("#close-btn").class("is-small").build();
-    // update text value when button is pressed
-    let welcome_txt = fa_text(&mut builder, "").id("#welcome-txt").build();
-    let modal_container = fa_container(&mut builder)
-        .id("#modal-container")
-        .children([welcome_txt, close_btn])
-        .build();
-
-    fa_modal(&mut builder).id("#modal").children([modal_container]).build();
 }
 
 fn handle_btn_press(
     mut fa_query: FaQuery,
     mut events: EventReader<FaMouseEvent>,
-    mut text_res: ResMut<FaTextResource>,
-    input_res: Res<FaTextInputResource>,
+    mut famiq_res: ResMut<FamiqResource>,
 ) {
     for e in events.read() {
-        if e.is_button_pressed() {
-            if let Some(id) = e.id.as_ref() {
-                match id.as_str() {
-                    "#btn" => {
-                        let name = input_res.get_value("#name");
-                        let new_txt = format!("Welcome {name}, this example is built with Famiq.");
-
-                        text_res.update_value("#welcome-txt", new_txt.as_str());
-                        fa_query.show_modal(WidgetSelector::ID("#modal"));
-                    },
-                    "#close-btn" => {
-                        fa_query.hide_modal(WidgetSelector::ID("#modal"));
-                    }
-                    _ => ()
+        if let Some(id) = e.button_press() {
+            match id.as_str() {
+                "#press" => {
+                    println!("pressed");
                 }
+                _ => {}
             }
         }
     }

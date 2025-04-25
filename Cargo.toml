@@ -22,7 +22,6 @@ accesskit = "0.17"
 regex = "1.11.1"
 syn = "2.0.100"
 macros = { path="./macros" }
-args = { path="./macros/args" }
 once_cell = "1.21.3"
 
 [lib]
