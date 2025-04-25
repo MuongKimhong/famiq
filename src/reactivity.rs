@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy::utils::hashbrown::HashMap;
+use bevy::platform::collections::HashMap;
 
 use crate::resources::*;
 use crate::widgets::style::*;
@@ -139,7 +139,7 @@ pub(crate) fn detect_reactive_data_change(
     mut fa_query: FaQuery,
     mut famiq_res: ResMut<FamiqResource>,
     styles: Res<StylesKeyValueResource>,
-    r_widgets_q: Query<&Parent, With<ReactiveWidget>>,
+    r_widgets_q: Query<&ChildOf, With<ReactiveWidget>>,
     children_q: Query<&Children>,
 ) {
     if fa_query.reactive_data.is_changed() && !fa_query.reactive_data.is_added() {
@@ -161,11 +161,11 @@ pub(crate) fn detect_reactive_data_change(
                 if to_remove_subscribers.contains_key(entity) {
                     continue;
                 }
-                if let Ok(parent) = r_widgets_q.get(*entity) {
+                if let Ok(child_of) = r_widgets_q.get(*entity) {
                     let mut child_index = 0 as usize;
-                    if let Ok(children) = children_q.get(parent.get()) {
+                    if let Ok(children) = children_q.get(child_of.parent()) {
                         for (i, child) in children.iter().enumerate() {
-                            if child == entity {
+                            if child == *entity {
                                 child_index = i;
                                 continue;
                             }
@@ -175,7 +175,7 @@ pub(crate) fn detect_reactive_data_change(
                         *entity,
                         (child_index, widget_builder.to_owned())
                     );
-                    parent_map.insert(*entity, parent.get());
+                    parent_map.insert(*entity, child_of.parent());
                 }
             }
             subscribers.retain(|k, _| !to_remove_subscribers.contains_key(k));
@@ -260,7 +260,6 @@ pub(crate) fn rebuild_none_containable(
     new_entity: Entity,
     index: usize
 ) {
-    world.entity_mut(old_entity).despawn_recursive();
     world
         .resource_mut::<ContainableChildren>()
         .update_child(*parent_map.get(&old_entity).unwrap(), new_entity, old_entity);
@@ -268,6 +267,8 @@ pub(crate) fn rebuild_none_containable(
     world
         .entity_mut(*parent_map.get(&old_entity).unwrap())
         .insert_children(index, &[new_entity]);
+
+    world.entity_mut(old_entity).despawn();
 }
 
 pub(crate) fn rebuild_containable(

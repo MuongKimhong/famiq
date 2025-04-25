@@ -1,8 +1,8 @@
 [package]
 name = "greeting"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
-bevy = "0.15.3"
+bevy = "0.16"
 famiq = { path = "../../../famiq" }

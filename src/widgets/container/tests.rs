@@ -3,15 +3,14 @@
 use crate::utils;
 use crate::widgets::button::*;
 use crate::plugin::FamiqPlugin;
-use crate::widgets::{FamiqResource, WidgetId, WidgetClasses, inject_builder, builder_mut};
+use crate::widgets::{FamiqResource, WidgetId, WidgetClasses, builder_mut};
 use super::*;
 
 fn setup_test_default_container(
     mut famiq_res: ResMut<FamiqResource>,
     mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    inject_builder(&mut builder);
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
     crate::container!(id: "#test-container");
 }
 
@@ -19,8 +18,7 @@ fn setup_test_container_with_class(
     mut famiq_res: ResMut<FamiqResource>,
     mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    inject_builder(&mut builder);
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
     crate::container!(
         id: "#test-container",
         class: "test-class-one test-class-two"
@@ -31,8 +29,7 @@ fn setup_test_container_with_children(
     mut famiq_res: ResMut<FamiqResource>,
     mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    inject_builder(&mut builder);
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
     crate::container!(
         id: "#test-container",
         children: [
@@ -49,7 +46,7 @@ fn test_create_default_container() {
     app.add_systems(Startup, setup_test_default_container);
     app.update();
 
-    let container_q = app.world_mut().query::<(&WidgetId, &IsFamiqContainer)>().get_single(app.world());
+    let container_q = app.world_mut().query::<(&WidgetId, &IsFamiqContainer)>().single(app.world());
     assert!(container_q.is_ok(), "There should be only 1 container");
 
     let container_id = container_q.unwrap().0;
@@ -63,7 +60,7 @@ fn test_create_container_with_class() {
     app.add_systems(Startup, setup_test_container_with_class);
     app.update();
 
-    let container_q = app.world_mut().query::<(&WidgetClasses, &IsFamiqContainer)>().get_single(app.world());
+    let container_q = app.world_mut().query::<(&WidgetClasses, &IsFamiqContainer)>().single(app.world());
     assert!(container_q.is_ok(), "There should be only 1 container");
 
     let container_class = container_q.unwrap().0;
@@ -79,7 +76,7 @@ fn test_create_container_with_children() {
 
     let container_q = app.world_mut()
         .query::<(&Children, &IsFamiqContainer)>()
-        .get_single(app.world());
+        .single(app.world());
 
     assert_eq!(2 as usize, container_q.unwrap().0.len());
 }

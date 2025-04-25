@@ -11,8 +11,7 @@ fn setup_test_default_modal(
     mut famiq_res: ResMut<FamiqResource>,
     mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    inject_builder(&mut builder);
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
     modal!(id: "#test-modal");
 }
 
@@ -20,9 +19,7 @@ fn setup_test_modal_with_children(
     mut famiq_res: ResMut<FamiqResource>,
     mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    inject_builder(&mut builder);
-
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
     modal!(children: [
         text!(text: "Text one"),
         text!(text: "Text two")
@@ -36,7 +33,7 @@ fn test_create_default_modal() {
     app.add_systems(Startup, setup_test_default_modal);
     app.update();
 
-    let modal_q = app.world_mut().query::<(&WidgetId, &IsFamiqModal)>().get_single(app.world());
+    let modal_q = app.world_mut().query::<(&WidgetId, &IsFamiqModal)>().single(app.world());
     assert!(modal_q.is_ok(), "There should be only 1 listview");
 
     let modal_id = modal_q.unwrap().0;
@@ -50,6 +47,6 @@ fn test_create_modal_with_children() {
     app.add_systems(Startup, setup_test_modal_with_children);
     app.update();
 
-    let modal_q = app.world_mut().query::<(&Children, &IsFamiqModal)>().get_single(app.world());
+    let modal_q = app.world_mut().query::<(&Children, &IsFamiqModal)>().single(app.world());
     assert_eq!(2 as usize, modal_q.unwrap().0.len());
 }

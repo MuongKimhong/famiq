@@ -52,13 +52,13 @@ impl Default for BaseStyleComponents {
             z_index: ZIndex::default(),
             visibility: Visibility::default(),
             interaction: Interaction::default(),
-            box_shadow: BoxShadow {
-                color: Color::NONE,
-                x_offset: Val::Px(0.0),
-                y_offset: Val::Px(0.0),
-                spread_radius: Val::Px(0.5),
-                blur_radius: Val::Px(1.0)
-            }
+            box_shadow: BoxShadow::new(
+                Color::NONE,
+                Val::Px(0.0),
+                Val::Px(0.0),
+                Val::Px(0.5),
+                Val::Px(1.0)
+            )
         }
     }
 }

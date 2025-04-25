@@ -25,8 +25,7 @@ fn setup_test_fa_query(
     mut famiq_res: ResMut<FamiqResource>,
     mut fa_query: FaQuery,
 ) {
-    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    inject_builder(&mut builder);
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
     let btn = button!(text: "Press me", id: "#test-btn");
     commands.insert_resource(TestResource(btn));
 }
@@ -36,8 +35,7 @@ fn setup_test_fa_query_for_text(
     mut famiq_res: ResMut<FamiqResource>,
     mut fa_query: FaQuery,
 ) {
-    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    inject_builder(&mut builder);
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
     let text = text!(text: "Hello", id: "#test-text");
     commands.insert_resource(TestResource(text));
 }
@@ -46,8 +44,7 @@ fn setup_test_containable_for_container(
     mut famiq_res: ResMut<FamiqResource>,
     mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    inject_builder(&mut builder);
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
     let container = container!(id: "#test-container");
     fa_query.commands.insert_resource(TestResource(container));
 }
@@ -57,8 +54,7 @@ fn run_add_children_for_container(
     mut famiq_res: ResMut<FamiqResource>,
     test_res: Res<TestResource>
 ) {
-    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    inject_builder(&mut builder);
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
     let text_one = text!(text: "Hello");
     let text_two = text!(text: "Hello");
     fa_query.add_children(WidgetSelector::ID("#test-container"), &[text_one]);
@@ -70,8 +66,7 @@ fn run_insert_children_for_container(
     mut famiq_res: ResMut<FamiqResource>,
     test_res: Res<TestResource>
 ) {
-    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    inject_builder(&mut builder);
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
     let text_one = text!(text: "Hello");
     let text_two = text!(text: "Hello");
     fa_query.insert_children(WidgetSelector::ID("#test-container"), 0, &[text_one]);
@@ -82,8 +77,7 @@ fn setup_test_containable_for_modal(
     mut famiq_res: ResMut<FamiqResource>,
     mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    inject_builder(&mut builder);
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
     let modal = modal!(id: "#test-modal");
     fa_query.commands.insert_resource(TestResource(modal));
 }
@@ -93,8 +87,7 @@ fn run_add_children_for_modal(
     mut famiq_res: ResMut<FamiqResource>,
     test_res: Res<TestResource>
 ) {
-    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    inject_builder(&mut builder);
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
     let text_one = text!(text: "Hello");
     let text_two = text!(text: "Hello");
     fa_query.add_children(WidgetSelector::ID("#test-modal"), &[text_one]);
@@ -106,8 +99,7 @@ fn run_insert_children_for_modal(
     mut famiq_res: ResMut<FamiqResource>,
     test_res: Res<TestResource>
 ) {
-    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    inject_builder(&mut builder);
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
     let text_one = text!(text: "Hello");
     let text_two = text!(text: "Hello");
     fa_query.insert_children(WidgetSelector::ID("#test-modal"), 0, &[text_one]);
@@ -118,8 +110,7 @@ fn setup_test_containable_for_listview(
     mut famiq_res: ResMut<FamiqResource>,
     mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    inject_builder(&mut builder);
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
     let listview = scroll!(id: "#test-listview");
     fa_query.commands.insert_resource(TestResource(listview));
 }
@@ -129,8 +120,7 @@ fn run_add_children_for_listview(
     mut famiq_res: ResMut<FamiqResource>,
     test_res: Res<TestResource>
 ) {
-    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    inject_builder(&mut builder);
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
     let text_one = text!(text: "Hello");
     let text_two = text!(text: "Hello");
     fa_query.add_children(WidgetSelector::ID("#test-listview"), &[text_one]);
@@ -142,8 +132,7 @@ fn run_insert_children_for_listview(
     mut famiq_res: ResMut<FamiqResource>,
     test_res: Res<TestResource>
 ) {
-    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    inject_builder(&mut builder);
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
     let text_one = text!(text: "Hello");
     let text_two = text!(text: "Hello");
     fa_query.insert_children(WidgetSelector::ID("#test-listview"), 0, &[text_one]);
@@ -177,7 +166,7 @@ fn test_add_children_for_container() {
     app.add_systems(Update, run_add_children_for_container);
     app.update();
 
-    let query = app.world_mut().query::<(&Children, &IsFamiqContainer)>().get_single(app.world());
+    let query = app.world_mut().query::<(&Children, &IsFamiqContainer)>().single(app.world());
     assert_eq!(query.unwrap().0.iter().count(), 2);
 }
 
@@ -190,7 +179,7 @@ fn test_insert_children_for_container() {
     app.add_systems(Update, run_insert_children_for_container);
     app.update();
 
-    let query = app.world_mut().query::<(&Children, &IsFamiqContainer)>().get_single(app.world());
+    let query = app.world_mut().query::<(&Children, &IsFamiqContainer)>().single(app.world());
     assert_eq!(query.unwrap().0.iter().count(), 2);
 }
 
@@ -203,7 +192,7 @@ fn test_add_children_for_modal() {
     app.add_systems(Update, run_add_children_for_modal);
     app.update();
 
-    let query = app.world_mut().query::<(&Children, &IsFamiqModal)>().get_single(app.world());
+    let query = app.world_mut().query::<(&Children, &IsFamiqModal)>().single(app.world());
     assert_eq!(query.unwrap().0.iter().count(), 2);
 }
 
@@ -216,7 +205,7 @@ fn test_insert_children_for_modal() {
     app.add_systems(Update, run_insert_children_for_modal);
     app.update();
 
-    let query = app.world_mut().query::<(&Children, &IsFamiqModal)>().get_single(app.world());
+    let query = app.world_mut().query::<(&Children, &IsFamiqModal)>().single(app.world());
     assert_eq!(query.unwrap().0.iter().count(), 2);
 }
 
@@ -230,7 +219,7 @@ fn test_add_children_for_listview() {
     app.add_systems(Update, run_add_children_for_listview);
     app.update();
 
-    let query = app.world_mut().query::<(&Children, &IsFamiqScrollMovePanel)>().get_single(app.world());
+    let query = app.world_mut().query::<(&Children, &IsFamiqScrollMovePanel)>().single(app.world());
     assert_eq!(query.unwrap().0.iter().count(), 2);
 }
 
@@ -244,7 +233,7 @@ fn test_insert_children_for_listview() {
     app.add_systems(Update, run_insert_children_for_listview);
     app.update();
 
-    let query = app.world_mut().query::<(&Children, &IsFamiqScrollMovePanel)>().get_single(app.world());
+    let query = app.world_mut().query::<(&Children, &IsFamiqScrollMovePanel)>().single(app.world());
     assert_eq!(query.unwrap().0.iter().count(), 2);
 }
 
@@ -256,7 +245,7 @@ fn test_set_text_color_entity() {
     app.update();
     app.add_systems(Update, run_set_text_color_entity);
     app.update();
-    let text_q = app.world_mut().query::<(&TextColor, &IsFamiqText)>().get_single(app.world());
+    let text_q = app.world_mut().query::<(&TextColor, &IsFamiqText)>().single(app.world());
     assert_eq!(Color::from(GREEN), text_q.unwrap().0.0);
 }
 
@@ -268,7 +257,7 @@ fn test_set_background_color_id() {
     app.update();
     app.add_systems(Update, run_update_by_id_for_get_style_mut);
     app.update();
-    let btn_q = app.world_mut().query::<(&BackgroundColor, &IsFamiqButton)>().get_single(app.world());
+    let btn_q = app.world_mut().query::<(&BackgroundColor, &IsFamiqButton)>().single(app.world());
     assert_eq!(Color::from(BLUE), btn_q.unwrap().0.0);
 }
 
@@ -280,7 +269,7 @@ fn test_set_background_color_entity() {
     app.update();
     app.add_systems(Update, run_update_by_entity_for_get_style_mut);
     app.update();
-    let btn_q = app.world_mut().query::<(&BackgroundColor, &IsFamiqButton)>().get_single(app.world());
+    let btn_q = app.world_mut().query::<(&BackgroundColor, &IsFamiqButton)>().single(app.world());
     assert_eq!(Color::from(GREEN), btn_q.unwrap().0.0);
 }
 

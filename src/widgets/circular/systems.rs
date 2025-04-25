@@ -7,9 +7,9 @@ pub(crate) fn on_mouse_over(
     mut tooltip_q: Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
     mut writer: EventWriter<FaMouseEvent>
 ) {
-    if let Ok((transform, tooltip_entity, id)) = circular_q.get(over.entity()) {
+    if let Ok((transform, tooltip_entity, id)) = circular_q.get(over.target()) {
         show_tooltip(tooltip_entity, &mut tooltip_q, transform.translation());
-        FaMouseEvent::send_event(&mut writer, EventType::Over, WidgetType::Circular, over.entity(), id);
+        FaMouseEvent::send_event(&mut writer, EventType::Over, WidgetType::Circular, over.target(), id);
     }
     over.propagate(false);
 }
@@ -20,35 +20,35 @@ pub(crate) fn on_mouse_out(
     mut tooltip_q: Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
     mut writer: EventWriter<FaMouseEvent>
 ) {
-    if let Ok((tooltip_entity, id)) = circular_q.get_mut(out.entity()) {
+    if let Ok((tooltip_entity, id)) = circular_q.get_mut(out.target()) {
         hide_tooltip(tooltip_entity, &mut tooltip_q);
-        FaMouseEvent::send_event(&mut writer, EventType::Out, WidgetType::Circular, out.entity(), id);
+        FaMouseEvent::send_event(&mut writer, EventType::Out, WidgetType::Circular, out.target(), id);
     }
     out.propagate(false);
 }
 
 pub(crate) fn on_mouse_down(
-    mut down: Trigger<Pointer<Down>>,
+    mut down: Trigger<Pointer<Pressed>>,
     mut circular_q: Query<Option<&WidgetId>, With<IsFamiqCircular>>,
     mut writer: EventWriter<FaMouseEvent>
 ) {
-    if let Ok(id) = circular_q.get_mut(down.entity()) {
+    if let Ok(id) = circular_q.get_mut(down.target()) {
         if down.event().button == PointerButton::Secondary {
-            FaMouseEvent::send_event(&mut writer, EventType::DownRight, WidgetType::Circular, down.entity(), id);
+            FaMouseEvent::send_event(&mut writer, EventType::DownRight, WidgetType::Circular, down.target(), id);
         } else {
-            FaMouseEvent::send_event(&mut writer, EventType::DownLeft, WidgetType::Circular, down.entity(), id);
+            FaMouseEvent::send_event(&mut writer, EventType::DownLeft, WidgetType::Circular, down.target(), id);
         }
     }
     down.propagate(false);
 }
 
 pub(crate) fn on_mouse_up(
-    mut up: Trigger<Pointer<Up>>,
+    mut up: Trigger<Pointer<Released>>,
     mut circular_q: Query<Option<&WidgetId>, With<IsFamiqCircular>>,
     mut writer: EventWriter<FaMouseEvent>
 ) {
-    if let Ok(id) = circular_q.get_mut(up.entity()) {
-        FaMouseEvent::send_event(&mut writer, EventType::Up, WidgetType::Circular, up.entity(), id);
+    if let Ok(id) = circular_q.get_mut(up.target()) {
+        FaMouseEvent::send_event(&mut writer, EventType::Up, WidgetType::Circular, up.target(), id);
     }
     up.propagate(false);
 }

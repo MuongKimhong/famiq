@@ -1,6 +1,6 @@
 //! Famiq's global resources, used by all modules.
 
-use bevy::utils::hashbrown::HashMap;
+use bevy::platform::collections::HashMap;
 use bevy::prelude::*;
 use cosmic_text::{FontSystem, SwashCache};
 use crate::widgets::*;

@@ -83,7 +83,7 @@ impl FaMouseEvent {
         entity: Entity,
         id: Option<&WidgetId>
     ) {
-        writer.send(FaMouseEvent {
+        writer.write(FaMouseEvent {
             event_type,
             widget_type,
             entity,

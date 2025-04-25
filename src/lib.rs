@@ -86,7 +86,7 @@ pub mod prelude {
     pub use crate::text_input;
     pub use crate::event_writer::{FaMouseEvent, FaValueChangeEvent};
     pub use crate::errors::*;
-    pub use bevy::utils::hashbrown::HashMap;
+    pub use bevy::platform::collections::HashMap;
     pub use serde_json;
 }
 

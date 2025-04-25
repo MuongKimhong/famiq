@@ -14,7 +14,7 @@ use crate::widgets::{
     *
 };
 
-use bevy::utils::Duration;
+use std::time::Duration;
 use bevy::time::common_conditions::on_timer;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::prelude::*;
@@ -178,6 +178,7 @@ impl Plugin for FamiqPlugin {
         app.add_plugins(UiMaterialPlugin::<CircularMaterial>::default());
         app.add_plugins(UiMaterialPlugin::<TextInputMaterial>::default());
         app.add_plugins(FrameTimeDiagnosticsPlugin::default());
+        // app.add_plugins(UiPickingPlugin);
         app.insert_resource(RData::default());
         app.insert_resource(StylesKeyValueResource::default());
         app.insert_resource(FamiqResource::new());

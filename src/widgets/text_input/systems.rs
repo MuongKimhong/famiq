@@ -9,15 +9,15 @@ pub(crate) fn on_mouse_over(
     >,
     mut param: InputPickingParam
 ) {
-    if let Ok((mut box_shadow, border_color, id, transform, tooltip_entity)) = input_q.get_mut(trigger.entity()) {
-        box_shadow.color = border_color.0.clone();
+    if let Ok((mut box_shadow, border_color, id, transform, tooltip_entity)) = input_q.get_mut(trigger.target()) {
+        box_shadow.0[0].color = border_color.0.clone();
         show_tooltip(tooltip_entity, &mut param.tooltip_q, transform.translation());
         _change_cursor_icon(&mut param.commands, &param.cursor_icons, *param.window, CursorType::Text);
         FaMouseEvent::send_event(
             &mut param.mouse_writer,
             EventType::Over,
             WidgetType::TextInput,
-            trigger.entity(),
+            trigger.target(),
             id
         );
     }
@@ -32,15 +32,15 @@ pub(crate) fn on_mouse_out(
     >,
     mut param: InputPickingParam
 ) {
-    if let Ok((mut box_shadow, id, tooltip_entity)) = input_q.get_mut(trigger.entity()) {
-        box_shadow.color = Color::NONE;
+    if let Ok((mut box_shadow, id, tooltip_entity)) = input_q.get_mut(trigger.target()) {
+        box_shadow.0[0].color = Color::NONE;
         hide_tooltip(tooltip_entity, &mut param.tooltip_q);
         _change_cursor_icon(&mut param.commands, &param.cursor_icons, *param.window, CursorType::Default);
         FaMouseEvent::send_event(
             &mut param.mouse_writer,
             EventType::Out,
             WidgetType::TextInput,
-            trigger.entity(),
+            trigger.target(),
             id
         );
     }
@@ -48,39 +48,39 @@ pub(crate) fn on_mouse_out(
 }
 
 pub(crate) fn on_mouse_down(
-    mut trigger: Trigger<Pointer<Down>>,
+    mut trigger: Trigger<Pointer<Pressed>>,
     mut input_q: Query<(Option<&WidgetId>, &mut FaTextEdit, &mut CosmicData), With<IsFamiqTextInput>>,
     mut famiq_res: ResMut<FamiqResource>,
     mut writer: EventWriter<FaMouseEvent>,
 ) {
-    if let Ok((id, mut text_edit, mut cosmic_data)) = input_q.get_mut(trigger.entity()) {
+    if let Ok((id, mut text_edit, mut cosmic_data)) = input_q.get_mut(trigger.target()) {
         famiq_res.update_all_focus_states(false);
-        famiq_res.update_or_insert_focus_state(trigger.entity(), true);
+        famiq_res.update_or_insert_focus_state(trigger.target(), true);
 
         if let Some(editor) = cosmic_data.editor.as_mut() {
             editor.set_selection(Selection::None);
             text_edit.clear_selection();
         }
         if trigger.event().button == PointerButton::Secondary {
-            FaMouseEvent::send_event(&mut writer, EventType::DownRight, WidgetType::TextInput, trigger.entity(), id);
+            FaMouseEvent::send_event(&mut writer, EventType::DownRight, WidgetType::TextInput, trigger.target(), id);
         } else {
-            FaMouseEvent::send_event(&mut writer, EventType::DownLeft, WidgetType::TextInput, trigger.entity(), id);
+            FaMouseEvent::send_event(&mut writer, EventType::DownLeft, WidgetType::TextInput, trigger.target(), id);
         }
     }
     trigger.propagate(false);
 }
 
 pub(crate) fn on_mouse_up(
-    mut trigger: Trigger<Pointer<Up>>,
+    mut trigger: Trigger<Pointer<Released>>,
     mut input_q: Query<Option<&WidgetId>, With<IsFamiqTextInput>>,
     mut writer: EventWriter<FaMouseEvent>,
 ) {
-    if let Ok(id) = input_q.get_mut(trigger.entity()) {
+    if let Ok(id) = input_q.get_mut(trigger.target()) {
         FaMouseEvent::send_event(
             &mut writer,
             EventType::Up,
             WidgetType::TextInput,
-            trigger.entity(),
+            trigger.target(),
             id
         );
     }
@@ -115,7 +115,7 @@ pub fn handle_cursor_blink_system(
             );
         }
         if need_redraw {
-            request_redraw_buffer.send(RequestRedrawBuffer::new(entity));
+            request_redraw_buffer.write(RequestRedrawBuffer::new(entity));
         }
         blink_timer.can_blink = true;
     });
@@ -171,7 +171,9 @@ pub(crate) fn on_request_redraw_editor_buffer(
                         if texture.texture_descriptor.size != new_size {
                             texture.resize(new_size);
                         }
-                        texture.data.copy_from_slice(&pixels);
+                        if let Some(data) = texture.data.as_mut() {
+                            data.copy_from_slice(&pixels);
+                        }
                     }
                 }
                 // resize ImageNode so that it can grow the Node size automatically.
@@ -250,7 +252,7 @@ pub(crate) fn detect_text_input_text_style_change(mut param: DetectTextStyleChan
                 });
             }
         }
-        param.request_redraw.send(RequestRedrawBuffer::new(entity));
+        param.request_redraw.write(RequestRedrawBuffer::new(entity));
     });
 }
 
@@ -370,10 +372,10 @@ pub(crate) fn detect_new_text_input_widget_system(
 }
 
 pub(crate) fn handle_buffer_texture_on_mouse_down(
-    mut trigger: Trigger<Pointer<Down>>,
+    mut trigger: Trigger<Pointer<Pressed>>,
     mut param: BufTexturePickingParam
 ) {
-    let (texture_node, input_entity) = param.texture_q.get(trigger.entity()).unwrap();
+    let (texture_node, input_entity) = param.texture_q.get(trigger.target()).unwrap();
     let (transform, computed, mut text_edit, mut cosmic_data) = param.input_q.get_mut(input_entity.0).unwrap();
 
     if text_edit.value.is_empty() {
@@ -402,7 +404,7 @@ pub(crate) fn handle_buffer_texture_on_mouse_down(
             text_edit.clear_selection();
             editor.set_cursor(Cursor::new(0, text_edit.cursor_index));
             editor.action(&mut param.font_system.0, Action::Escape);
-            param.request_redraw.send(RequestRedrawBuffer::new(input_entity.0));
+            param.request_redraw.write(RequestRedrawBuffer::new(input_entity.0));
             param.famiq_res.update_all_focus_states(false);
             param.famiq_res.update_or_insert_focus_state(input_entity.0, true);
             trigger.propagate(false);
@@ -414,7 +416,7 @@ pub(crate) fn handle_buffer_texture_on_start_selection(
     mut trigger: Trigger<Pointer<DragStart>>,
     mut param: BufTexturePickingParam
 ) {
-    let (texture_node, input_entity) = param.texture_q.get(trigger.entity()).unwrap();
+    let (texture_node, input_entity) = param.texture_q.get(trigger.target()).unwrap();
     let (transform, computed, mut text_edit, mut cosmic_data) = param.input_q.get_mut(input_entity.0).unwrap();
 
     if text_edit.value.is_empty() {
@@ -442,7 +444,7 @@ pub(crate) fn handle_buffer_texture_on_start_selection(
             text_edit.cursor_index = glyph_index;
             text_edit.selection_start_index = Some(glyph_index);
             editor.set_cursor(Cursor::new(0, text_edit.cursor_index));
-            param.request_redraw.send(RequestRedrawBuffer::new(input_entity.0));
+            param.request_redraw.write(RequestRedrawBuffer::new(input_entity.0));
             param.famiq_res.update_all_focus_states(false);
             param.famiq_res.update_or_insert_focus_state(input_entity.0, true);
             trigger.propagate(false);
@@ -454,7 +456,7 @@ pub(crate) fn handle_buffer_texture_on_selecting(
     mut trigger: Trigger<Pointer<Drag>>,
     mut param: BufTexturePickingParam
 ) {
-    let (texture_node, input_entity) = param.texture_q.get(trigger.entity()).unwrap();
+    let (texture_node, input_entity) = param.texture_q.get(trigger.target()).unwrap();
     let (transform, computed, mut text_edit, mut cosmic_data) = param.input_q.get_mut(input_entity.0).unwrap();
 
     if text_edit.value.is_empty() {
@@ -484,7 +486,7 @@ pub(crate) fn handle_buffer_texture_on_selecting(
                 text_edit.selection_end_index = Some(glyph_index);
                 editor.set_cursor(Cursor::new(0, text_edit.cursor_index));
                 editor.set_selection(Selection::Normal(Cursor::new(0, start_index)));
-                param.request_redraw.send(RequestRedrawBuffer::new(input_entity.0));
+                param.request_redraw.write(RequestRedrawBuffer::new(input_entity.0));
 
                 if start_index > glyph_index {
                     text_edit.selected_text = text_edit.value[glyph_index..start_index].to_owned();
@@ -535,7 +537,7 @@ pub(crate) fn handle_text_input_on_typing(mut param: TypingParam) {
                 if text_edit.is_ctrl_a_pressed(&param.keys, e.key_code) {
                     if text_edit.select_all(&mut editor) {
                         helper::scroll_left_end(&mut texture_node);
-                        param.request_redraw.send(RequestRedrawBuffer::new(entity));
+                        param.request_redraw.write(RequestRedrawBuffer::new(entity));
                         continue;
                     }
                 }
@@ -624,7 +626,7 @@ pub(crate) fn handle_text_input_on_typing(mut param: TypingParam) {
                         _ => {}
                     }
                 }
-                param.request_redraw.send(RequestRedrawBuffer::new(entity));
+                param.request_redraw.write(RequestRedrawBuffer::new(entity));
                 blink_timer.can_blink = false;
             }
         }

@@ -1,7 +1,7 @@
 [package]
 name = "famiq"
-version = "0.2.8"
-edition = "2021"
+version = "0.3.0"
+edition = "2024"
 authors = ["Kim Muong <muongkimhong086@gmail.com>"]
 description = "Create desktop GUI with Bevy engine"
 license = "MIT"
@@ -11,7 +11,7 @@ documentation = "https://docs.rs/famiq"
 keywords = ["bevy", "gui", "rust", "json", "ui"]
 
 [dependencies]
-bevy = {version="0.15.3", features=["jpeg", "png"]}
+bevy = {version="0.16", features=["jpeg", "png", "std"]}
 cosmic-text = "0.13.2"
 arboard = "3.4.1"
 serde = "1.0.219"

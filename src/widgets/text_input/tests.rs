@@ -12,8 +12,7 @@ fn setup_test_default_input(
     mut famiq_res: ResMut<FamiqResource>,
     mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    inject_builder(&mut builder);
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
     text_input!(placeholder: "First name", id: "#test-input");
 }
 
@@ -21,8 +20,7 @@ fn setup_test_input_with_built_in_class(
     mut famiq_res: ResMut<FamiqResource>,
     mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    inject_builder(&mut builder);
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
     text_input!(placeholder: "First name", class: "primary");
 }
 
@@ -36,7 +34,7 @@ fn test_create_default_input() {
 
     let input_q = app.world_mut()
         .query::<(&WidgetId, &IsFamiqTextInput)>()
-        .get_single(app.world());
+        .single(app.world());
 
     let input_id = input_q.unwrap().0;
     assert_eq!("#test-input".to_string(), input_id.0);
@@ -52,7 +50,7 @@ fn test_create_input_with_built_in_class() {
 
     let input_q = app.world_mut()
         .query::<(&WidgetClasses, &BackgroundColor, &IsFamiqTextInput)>()
-        .get_single(app.world());
+        .single(app.world());
 
     let input_class = input_q.as_ref().unwrap().0;
     assert_eq!("primary".to_string(), input_class.0);

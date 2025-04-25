@@ -13,7 +13,7 @@ use crate::utils::*;
 
 use bevy::prelude::*;
 use bevy::ui::FocusPolicy;
-use bevy::utils::HashMap;
+use bevy::platform::collections::HashMap;
 use helper::*;
 
 /// Use to define show/hide state for modal

@@ -103,9 +103,9 @@ pub(crate) fn on_mouse_over(
     mut tooltip_q: Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
     bar_q: Query<(&GlobalTransform, Option<&WidgetId>, Option<&TooltipEntity>), With<IsFamiqProgressBar>>
 ) {
-    if let Ok((transform, id, tooltip_entity)) = bar_q.get(trigger.entity()) {
+    if let Ok((transform, id, tooltip_entity)) = bar_q.get(trigger.target()) {
         show_tooltip(tooltip_entity, &mut tooltip_q, transform.translation());
-        FaMouseEvent::send_event(&mut writer, EventType::Over, WidgetType::ProgressBar, trigger.entity(), id);
+        FaMouseEvent::send_event(&mut writer, EventType::Over, WidgetType::ProgressBar, trigger.target(), id);
     }
     trigger.propagate(false);
 }
@@ -116,35 +116,35 @@ pub(crate) fn on_mouse_out(
     mut tooltip_q: Query<(&mut Node, &mut Transform), With<IsFamiqTooltip>>,
     bar_q: Query<(Option<&WidgetId>, Option<&TooltipEntity>), With<IsFamiqProgressBar>>
 ) {
-    if let Ok((id, tooltip_entity)) = bar_q.get(trigger.entity()) {
+    if let Ok((id, tooltip_entity)) = bar_q.get(trigger.target()) {
         hide_tooltip(tooltip_entity, &mut tooltip_q);
-        FaMouseEvent::send_event(&mut writer, EventType::Out, WidgetType::ProgressBar, trigger.entity(), id);
+        FaMouseEvent::send_event(&mut writer, EventType::Out, WidgetType::ProgressBar, trigger.target(), id);
     }
     trigger.propagate(false);
 }
 
 pub(crate) fn on_mouse_down(
-    mut trigger: Trigger<Pointer<Down>>,
+    mut trigger: Trigger<Pointer<Pressed>>,
     mut writer: EventWriter<FaMouseEvent>,
     bar_q: Query<Option<&WidgetId>, With<IsFamiqProgressBar>>
 ) {
-    if let Ok(id) = bar_q.get(trigger.entity()) {
+    if let Ok(id) = bar_q.get(trigger.target()) {
         if trigger.event().button == PointerButton::Secondary {
-            FaMouseEvent::send_event(&mut writer, EventType::DownRight, WidgetType::ProgressBar, trigger.entity(), id);
+            FaMouseEvent::send_event(&mut writer, EventType::DownRight, WidgetType::ProgressBar, trigger.target(), id);
         } else {
-            FaMouseEvent::send_event(&mut writer, EventType::DownLeft, WidgetType::ProgressBar, trigger.entity(), id);
+            FaMouseEvent::send_event(&mut writer, EventType::DownLeft, WidgetType::ProgressBar, trigger.target(), id);
         }
     }
     trigger.propagate(false);
 }
 
 pub(crate) fn on_mouse_up(
-    mut trigger: Trigger<Pointer<Up>>,
+    mut trigger: Trigger<Pointer<Released>>,
     mut writer: EventWriter<FaMouseEvent>,
     bar_q: Query<Option<&WidgetId>, With<IsFamiqProgressBar>>
 ) {
-    if let Ok(id) = bar_q.get(trigger.entity()) {
-        FaMouseEvent::send_event(&mut writer, EventType::Up, WidgetType::ProgressBar, trigger.entity(), id);
+    if let Ok(id) = bar_q.get(trigger.target()) {
+        FaMouseEvent::send_event(&mut writer, EventType::Up, WidgetType::ProgressBar, trigger.target(), id);
     }
     trigger.propagate(false);
 }

@@ -2,7 +2,7 @@ use crate::utils;
 use crate::resources::*;
 use crate::widgets::{style_parse::*, *};
 use bevy::prelude::*;
-use bevy::utils::hashbrown::HashSet;
+use bevy::platform::collections::HashSet;
 
 use super::text_input::CosmicTextData;
 use super::DefaultTextSpanConfig;

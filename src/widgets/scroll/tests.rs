@@ -3,7 +3,7 @@
 use crate::plugin::FamiqPlugin;
 use crate::button;
 use crate::widgets::button::*;
-use crate::widgets::{FamiqResource, inject_builder};
+use crate::widgets::FamiqResource;
 use bevy::input::InputPlugin;
 use crate::scroll;
 use super::*;
@@ -13,8 +13,7 @@ fn setup_test_default_scroll(
     mut famiq_res: ResMut<FamiqResource>,
     mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    inject_builder(&mut builder);
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
     scroll!(id: "#test-scroll");
 }
 
@@ -22,8 +21,7 @@ fn setup_test_scroll_with_children(
     mut famiq_res: ResMut<FamiqResource>,
     mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    inject_builder(&mut builder);
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
     let button_one = button!(text: "Button 1");
     let button_two = button!(text: "Button 2");
 
@@ -41,7 +39,7 @@ fn test_create_default_scroll() {
 
     let scroll_q = app.world_mut()
         .query::<(&WidgetId, &Children, &IsFamiqScroll)>()
-        .get_single(app.world());
+        .single(app.world());
 
     assert!(scroll_q.is_ok(), "There should be only 1 scroll");
 
@@ -63,7 +61,7 @@ fn test_create_scroll_with_children() {
 
     let move_panel_q = app.world_mut()
         .query::<(&Children, &IsFamiqScrollMovePanel)>()
-        .get_single(app.world());
+        .single(app.world());
 
     assert_eq!(2 as usize, move_panel_q.unwrap().0.len());
 }

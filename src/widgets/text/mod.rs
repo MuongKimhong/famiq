@@ -186,8 +186,7 @@ mod tests {
         mut famiq_res: ResMut<FamiqResource>,
         mut fa_query: FaQuery
     ) {
-        let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-        inject_builder(&mut builder);
+        FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
         text!(text: "Test Text", id: "#test-text");
     }
 
@@ -200,7 +199,7 @@ mod tests {
 
         let txt_q = app.world_mut()
             .query::<(&WidgetId, &Text, &IsFamiqText)>()
-            .get_single(app.world());
+            .single(app.world());
 
         let id = txt_q.as_ref().unwrap().0;
         let txt = txt_q.as_ref().unwrap().1;

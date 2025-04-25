@@ -1,5 +1,6 @@
-use bevy::utils::HashMap;
-use bevy::utils::hashbrown::HashSet;
+use bevy::picking::backend::PointerHits;
+use bevy::platform::collections::{HashMap, HashSet};
+use bevy::ui::UiStack;
 use bevy::window::WindowResized;
 use bevy::asset::{io::AssetSourceId, AssetPath, AssetPlugin};
 use bevy::prelude::*;
@@ -106,9 +107,12 @@ pub fn create_test_app() -> App {
     let mut app = App::new();
     // Note the use of `MinimalPlugins` instead of `DefaultPlugins`, as described above.
     app.add_plugins(MinimalPlugins);
+    app.add_plugins(UiPickingPlugin);
     app.add_plugins(AssetPlugin::default());
     app.init_resource::<Assets<Shader>>();
+    app.add_event::<PointerHits>();
     app.insert_resource(Events::<WindowResized>::default());
+    app.insert_resource(UiStack::default());
     app.init_asset::<Font>();
     app.init_asset::<Image>();
     // Spawning a fake window allows testing systems that require a window.
@@ -359,44 +363,46 @@ pub(crate) fn _handle_apply_box_shadow(
     default_widget_entity: &DefaultWidgetConfig,
     box_shadow: &mut BoxShadow
 ) {
+    let mut shadow_style = box_shadow.0[0];
+
     if let Some(shadow_color_value) = &widget_style.shadow_color {
         if let Some(v) = parse_color(&shadow_color_value) {
-            box_shadow.color = v;
+            shadow_style.color = v;
         }
     } else {
-        box_shadow.color = default_widget_entity.box_shadow.color;
+        shadow_style.color = default_widget_entity.box_shadow.0[0].color;
     }
 
     if let Some(shadow_spread_value) = &widget_style.shadow_spread {
         if let Some(v) = parse_val(&shadow_spread_value) {
-            box_shadow.spread_radius = v;
+            shadow_style.spread_radius = v;
         }
     } else {
-        box_shadow.spread_radius = default_widget_entity.box_shadow.spread_radius;
+        shadow_style.spread_radius = default_widget_entity.box_shadow.0[0].spread_radius;
     }
 
     if let Some(shadow_blur_value) = &widget_style.shadow_blur {
         if let Some(v) = parse_val(&shadow_blur_value) {
-            box_shadow.blur_radius = v;
+            shadow_style.blur_radius = v;
         }
     } else {
-        box_shadow.blur_radius = default_widget_entity.box_shadow.blur_radius;
+        shadow_style.blur_radius = default_widget_entity.box_shadow.0[0].blur_radius;
     }
 
     if let Some(shadow_x_value) = &widget_style.shadow_x_offset {
         if let Some(v) = parse_val(&shadow_x_value) {
-            box_shadow.x_offset = v;
+            shadow_style.x_offset = v;
         }
     } else {
-        box_shadow.x_offset = default_widget_entity.box_shadow.x_offset;
+        shadow_style.x_offset = default_widget_entity.box_shadow.0[0].x_offset;
     }
 
     if let Some(shadow_y_value) = &widget_style.shadow_y_offset {
         if let Some(v) = parse_val(&shadow_y_value) {
-            box_shadow.y_offset = v;
+            shadow_style.y_offset = v;
         }
     } else {
-        box_shadow.y_offset = default_widget_entity.box_shadow.y_offset;
+        shadow_style.y_offset = default_widget_entity.box_shadow.0[0].y_offset;
     }
 }
 

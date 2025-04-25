@@ -38,7 +38,7 @@ pub fn hide_or_display_modal_system(
 
         for (mut node, mut progress, children, entity) in modal_bg_q.iter_mut() {
             for child in children.iter() {
-                if let Ok(mut transform) = children_q.get_mut(*child) {
+                if let Ok(mut transform) = children_q.get_mut(child) {
                     let is_visible = modal_res
                         .get_state_by_entity(entity)
                         .copied()

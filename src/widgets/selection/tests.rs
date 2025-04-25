@@ -2,7 +2,7 @@
 
 use crate::plugin::FamiqPlugin;
 use crate::widgets::color::PRIMARY_COLOR;
-use crate::widgets::{FamiqResource, inject_builder};
+use crate::widgets::FamiqResource;
 use crate::selection;
 use super::*;
 
@@ -10,8 +10,7 @@ fn setup_test_default_selection(
     mut famiq_res: ResMut<FamiqResource>,
     mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    inject_builder(&mut builder);
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
     selection!(placeholder: "Test select choice", id: "#test-selection");
 }
 
@@ -19,8 +18,7 @@ fn setup_test_selection_with_built_in_class_color(
     mut famiq_res: ResMut<FamiqResource>,
     mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    inject_builder(&mut builder);
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
     selection!(placeholder: "Test select choice", class: "primary");
 }
 
@@ -28,8 +26,7 @@ fn setup_test_selection_with_choices(
     mut famiq_res: ResMut<FamiqResource>,
     mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    inject_builder(&mut builder);
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
     selection!(
         placeholder: "Test select choice",
         choices: ["Test one", "Test two"]
@@ -45,7 +42,7 @@ fn test_create_default_selection() {
 
     let selection_q = app.world_mut()
         .query::<(&WidgetId, &IsFamiqSelectionSelector)>()
-        .get_single(app.world());
+        .single(app.world());
 
     assert!(selection_q.is_ok(), "There should be only 1 selection");
 
@@ -62,7 +59,7 @@ fn test_create_selection_with_built_in_class_color() {
 
     let selector_q = app.world_mut()
         .query::<(&BackgroundColor, &IsFamiqSelectionSelector)>()
-        .get_single(app.world());
+        .single(app.world());
 
     let selector_bg = selector_q.unwrap().0;
     assert_eq!(
@@ -80,7 +77,7 @@ fn test_create_selection_with_choices() {
 
     let panel_q = app.world_mut()
         .query::<(&Children, &IsFamiqSelectionChoicesPanel)>()
-        .get_single(app.world());
+        .single(app.world());
 
     // 2 provided choices, 1 default "-/-"
     assert_eq!(3 as usize, panel_q.unwrap().0.len());

@@ -22,13 +22,13 @@ pub(crate) fn on_mouse_out(
 }
 
 pub(crate) fn on_mouse_down(
-    mut trigger: Trigger<Pointer<Down>>,
+    mut trigger: Trigger<Pointer<Pressed>>,
     checkbox_q: Query<Option<&ReactiveModelKey>, With<IsFamiqCheckbox>>,
     mut item_box_q: Query<(&mut CheckBoxChoiceTicked, &mut BackgroundColor)>,
     item_wrapper_q: Query<(&CheckBoxItemBoxEntity, &CheckBoxItemText, &CheckBoxMainContainerEntity)>,
     mut fa_query: FaQuery,
 ) {
-    if let Ok((box_entity, item_text, main_entity)) = item_wrapper_q.get(trigger.entity()) {
+    if let Ok((box_entity, item_text, main_entity)) = item_wrapper_q.get(trigger.target()) {
         if let Ok(model_key) = checkbox_q.get(main_entity.0) {
             if let Some(key) = model_key {
                 if let Some(value) = fa_query.get_data_mut(&key.0) {

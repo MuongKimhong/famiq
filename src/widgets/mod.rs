@@ -28,7 +28,7 @@ use crate::reactivity::*;
 use crate::utils::*;
 
 use bevy::ecs::system::{EntityCommands, SystemParam};
-use bevy::utils::hashbrown::HashMap;
+use bevy::platform::collections::HashMap;
 use bevy::ecs::query::QueryData;
 use std::cell::RefCell;
 use bevy::prelude::*;
@@ -157,7 +157,7 @@ pub trait SetWidgetAttributes: Sized {
             return;
         }
         let mut use_color = WidgetColor::Default;
-        if let Some(class) = self.attributes().class.as_ref() {
+        if let Some(class) = self.cloned_attrs().class.as_ref() {
             let class_split: Vec<&str> = class.split_whitespace().collect();
 
             for class_name in class_split {
@@ -186,7 +186,7 @@ pub trait SetWidgetAttributes: Sized {
             return;
         }
         let mut use_size = WidgetSize::Default;
-        if let Some(class) = self.attributes().class.as_ref() {
+        if let Some(class) = self.cloned_attrs().class.as_ref() {
             let class_split: Vec<&str> = class.split_whitespace().collect();
 
             for class_name in class_split {
@@ -238,8 +238,11 @@ impl<'a> FamiqBuilder<'a> {
         }
     }
 
-    pub fn inject(&'a mut self) {
-        inject_builder(self);
+    pub fn inject(self) {
+        // Box it to heap and store raw pointer
+        let boxed = Box::new(self);
+        let raw = Box::into_raw(boxed); // *mut FamiqBuilder<'a>
+        inject_builder(raw as *mut ());
     }
 
     /// Method to use custom font
@@ -323,7 +326,7 @@ impl<'a> FamiqBuilder<'a> {
 
     pub fn clean(&mut self) {
         let root_entity = self.get_entity();
-        self.ui_root_node.commands().entity(root_entity).despawn_recursive();
+        self.ui_root_node.commands().entity(root_entity).despawn();
     }
 }
 
@@ -660,22 +663,41 @@ pub struct WidgetBuilder {
     pub builder: BuilderType
 }
 
+// thread_local! {
+//     static GLOBAL_BUILDER: RefCell<Option<*mut ()>> = RefCell::new(None);
+// }
+
+// /// Initialize the global builder before spawning UI widgets
+// pub fn inject_builder<'a>(builder: &'a mut FamiqBuilder<'a>) {
+//     let raw = builder as *mut FamiqBuilder as *mut (); // get the raw pointer
+//     GLOBAL_BUILDER.with(|cell| {
+//         *cell.borrow_mut() = Some(raw);
+//     });
+// }
+
+// /// Access the builder inside widget macros
+// pub fn builder_mut<'a>() -> &'a mut FamiqBuilder<'a> {
+//     GLOBAL_BUILDER.with(|cell| {
+//         let ptr = cell.borrow().expect("Can't access global widget builder!");
+//         unsafe { &mut *(ptr as *mut FamiqBuilder) }
+//     })
+// }
+
 thread_local! {
     static GLOBAL_BUILDER: RefCell<Option<*mut ()>> = RefCell::new(None);
 }
 
-/// Initialize the global builder before spawning UI widgets
-pub fn inject_builder<'a>(builder: &'a mut FamiqBuilder<'a>) {
-    let raw = builder as *mut FamiqBuilder as *mut (); // get the raw pointer
+pub fn inject_builder(ptr: *mut ()) {
     GLOBAL_BUILDER.with(|cell| {
-        *cell.borrow_mut() = Some(raw);
+        *cell.borrow_mut() = Some(ptr);
     });
 }
 
-/// Access the builder inside widget macros
 pub fn builder_mut<'a>() -> &'a mut FamiqBuilder<'a> {
     GLOBAL_BUILDER.with(|cell| {
-        let ptr = cell.borrow().expect("Can't access global widget builder!");
-        unsafe { &mut *(ptr as *mut FamiqBuilder) }
+        let ptr = cell
+            .borrow()
+            .expect("Can't access global widget builder!") as *mut FamiqBuilder<'a>;
+        unsafe { &mut *ptr }
     })
 }

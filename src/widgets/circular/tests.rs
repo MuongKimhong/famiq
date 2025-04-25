@@ -10,8 +10,7 @@ fn setup_test_default_circular(
     mut famiq_res: ResMut<FamiqResource>,
     mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    inject_builder(&mut builder);
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
     circular!(id: "#test-circular");
 }
 
@@ -19,8 +18,7 @@ fn setup_test_circular_with_built_in_class(
     mut famiq_res: ResMut<FamiqResource>,
     mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    inject_builder(&mut builder);
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
     circular!(id: "#test-circular", class: "primary large");
 }
 
@@ -28,8 +26,7 @@ fn set_up_circular_with_custom_size(
     mut famiq_res: ResMut<FamiqResource>,
     mut fa_query: FaQuery
 ) {
-    let mut builder = FamiqBuilder::new(&mut fa_query, &mut famiq_res);
-    inject_builder(&mut builder);
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
     circular!(size: 90.0);
 }
 
@@ -40,7 +37,7 @@ fn test_create_default_circular() {
     app.add_systems(Startup, setup_test_default_circular);
     app.update();
 
-    let circular_q = app.world_mut().query::<(&WidgetId, &Node, &IsFamiqCircular)>().get_single(app.world());
+    let circular_q = app.world_mut().query::<(&WidgetId, &Node, &IsFamiqCircular)>().single(app.world());
     assert!(circular_q.is_ok(), "There should be only 1 circular");
 
     let circular_id = circular_q.as_ref().unwrap().0;
@@ -70,7 +67,7 @@ fn test_create_circular_with_built_in_class() {
     app.add_systems(Startup, setup_test_circular_with_built_in_class);
     app.update();
 
-    let circular_q = app.world_mut().query::<(&WidgetClasses, &Node, &IsFamiqCircular)>().get_single(app.world());
+    let circular_q = app.world_mut().query::<(&WidgetClasses, &Node, &IsFamiqCircular)>().single(app.world());
 
     let circular_class = circular_q.as_ref().unwrap().0;
     assert_eq!(
@@ -99,7 +96,7 @@ fn test_create_circular_with_custom_size() {
     app.add_systems(Startup, set_up_circular_with_custom_size);
     app.update();
 
-    let circular_q = app.world_mut().query::<(&Node, &IsFamiqCircular)>().get_single(app.world());
+    let circular_q = app.world_mut().query::<(&Node, &IsFamiqCircular)>().single(app.world());
 
     let circular_node = circular_q.unwrap().0;
     assert_eq!(
