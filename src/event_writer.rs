@@ -56,7 +56,7 @@ impl FaMouseEvent {
         self.widget_type == widget_type && self.event_type == EventType::Scroll
     }
 
-    pub fn button_pressed(&self, id: &str) -> bool {
+    pub fn is_button_pressed(&self, id: &str) -> bool {
         if self.id.is_none() {
             return false;
         }
