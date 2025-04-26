@@ -8,19 +8,24 @@ pub fn detect_modal_reactive_model_change(
 ) {
     if reactive_data.is_changed() && !reactive_data.is_added() {
         for (entity, model_key) in modal_q.iter() {
-            if let Some(key) = model_key {
-                if let Some(r_value) = reactive_data.data.get(&key.0) {
-                    match r_value {
-                        RVal::Bool(state) => {
-                            if *state {
-                                modal_state.show_by_entity(entity);
-                            } else {
-                                modal_state.hide_by_entity(entity);
-                            }
-                        }
-                        _ => {}
+            if model_key.is_none() {
+                continue;
+            }
+            let key = model_key.unwrap();
+            let r_value = reactive_data.data.get(&key.0);
+
+            if r_value.is_none() {
+                continue;
+            }
+            match r_value.unwrap() {
+                RVal::Bool(state) => {
+                    if *state {
+                        modal_state.show_by_entity(entity);
+                    } else {
+                        modal_state.hide_by_entity(entity);
                     }
                 }
+                _ => {}
             }
         }
     }

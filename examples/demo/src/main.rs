@@ -14,15 +14,13 @@ fn setup_ui(mut fa_query: FaQuery, mut famiq_res: ResMut<FamiqResource>) {
     fa_query.insert_str("last_name", "");
     fa_query.insert_str("select", "");
     fa_query.insert_num("counter", 0);
+    fa_query.insert_bool("show_modal", false);
 
     #[cfg(target_arch = "wasm32")]
-    {
-        FamiqBuilder::new(&mut fa_query, &mut famiq_res).use_style_path("styles.json").inject();
-    }
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).use_style_path("styles.json").inject();
+
     #[cfg(not(target_arch = "wasm32"))]
-    {
-        FamiqBuilder::new(&mut fa_query, &mut famiq_res).hot_reload().inject();
-    }
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).hot_reload().inject();
 
     let logo_container = container!(
         class: "sub-container",
@@ -75,15 +73,13 @@ fn handle_btn_press(
 ) {
     for e in events.read() {
         if let Some(counter) = fa_query.get_data_mut("counter") {
-            let mut counter = counter.as_num();
+            let counter = counter.as_num_mut();
 
             if e.is_button_pressed("#increase") {
-                counter += 1;
-                fa_query.mutate_num("counter", counter);
+                *counter += 1;
             }
             else if e.is_button_pressed("#decrease") {
-                counter -= 1;
-                fa_query.mutate_num("counter", counter);
+                *counter -= 1;
             }
         }
     }

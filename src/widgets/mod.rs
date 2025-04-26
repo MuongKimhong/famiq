@@ -19,7 +19,6 @@ pub mod tests;
 pub mod base_components;
 
 pub(crate) use style_parse::parse_display;
-pub(crate) use modal::{FaModalState, IsFamiqModal};
 pub(crate) use scroll::ScrollMovePanelEntity;
 pub use base_components::*;
 
@@ -471,13 +470,7 @@ impl<'w, 's> FaStyleQuery<'w, 's> {
 #[query_data(mutable)]
 pub struct ContainableQuery {
     entity: Entity,
-    listview_panel: Option<&'static ScrollMovePanelEntity>,
-    id: Option<&'static WidgetId>
-}
-
-#[derive(QueryData)]
-pub struct ModalQuery {
-    entity: Entity,
+    scroll_panel: Option<&'static ScrollMovePanelEntity>,
     id: Option<&'static WidgetId>
 }
 
@@ -485,8 +478,6 @@ pub struct ModalQuery {
 #[derive(SystemParam)]
 pub struct FaQuery<'w, 's> {
     pub containable_query: Query<'w, 's, ContainableQuery, With<IsFamiqContainableWidget>>,
-    pub modal_query: Query<'w, 's, ModalQuery, With<IsFamiqModal>>,
-    pub modal_state: ResMut<'w, FaModalState>,
     pub reactive_data: ResMut<'w, RData>,
     pub commands: Commands<'w, 's>,
     pub asset_server: Res<'w, AssetServer>,
@@ -514,9 +505,9 @@ impl<'w, 's> FaQuery<'w, 's> {
     /// Add child/children to containable widget
     pub fn add_children(&mut self, selector: WidgetSelector, children: &[Entity]) {
         if let Some(item) = self.get_containable_item(selector) {
-            if let Some(listview_panel_entity) = item.listview_panel {
+            if let Some(panel_entity) = item.scroll_panel {
                 self.commands
-                    .entity(listview_panel_entity.0)
+                    .entity(panel_entity.0)
                     .add_children(children);
                 return;
             }
@@ -527,9 +518,9 @@ impl<'w, 's> FaQuery<'w, 's> {
     /// Insert child/children to containable widget at given index
     pub fn insert_children(&mut self, selector: WidgetSelector, index: usize, children: &[Entity]) {
         if let Some(item) = self.get_containable_item(selector) {
-            if let Some(listview_panel_entity) = item.listview_panel {
+            if let Some(panel_entity) = item.scroll_panel {
                 self.commands
-                    .entity(listview_panel_entity.0)
+                    .entity(panel_entity.0)
                     .insert_children(index, children);
                 return;
             }

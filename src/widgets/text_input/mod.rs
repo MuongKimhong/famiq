@@ -132,9 +132,9 @@ impl SetupWidget for TextInputBuilder {
             .observe(on_mouse_over)
             .observe(on_mouse_out);
 
-            if self.attributes.has_tooltip {
-                build_tooltip_node(&self.cloned_attrs, commands, input_entity);
-            }
+        if self.attributes.has_tooltip {
+            build_tooltip_node(&self.cloned_attrs, commands, input_entity);
+        }
 
         insert_class_id(commands, input_entity, &self.cloned_attrs.id, &self.cloned_attrs.class);
         insert_model(commands, input_entity, &self.cloned_attrs.model_key);

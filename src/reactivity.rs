@@ -7,11 +7,13 @@ use crate::widgets::*;
 
 pub type Subscriber = HashMap<Entity, WidgetBuilder>;
 
+/// Reactive subscribers
 #[derive(Resource, Default, Debug)]
 pub struct RSubscriber {
     pub data: HashMap<String, Subscriber> // String is Reactivy data key
 }
 
+/// Reactive data type
 #[derive(Debug, Default, Clone)]
 pub enum RVal {
     #[default]
@@ -32,11 +34,27 @@ impl RVal {
         }
     }
 
+    /// Get inner value of Num as &mut i32
+    pub fn as_num_mut(&mut self) -> &mut i32 {
+        match self {
+            RVal::Num(v) => v,
+            _ => panic!("\n[FamiqError]: calling as_num_mut() on none RVal::Num\n")
+        }
+    }
+
     /// Get inner value of FNum as f32.
-    pub fn as_f_num(&self) -> f32 {
+    pub fn as_fnum(&self) -> f32 {
         match self {
             RVal::FNum(v) => *v,
             _ => panic!("\n[FamiqError]: calling as_f_num() on none RVal::FNum\n"),
+        }
+    }
+
+    /// Get inner value of FNum as &mut f32.
+    pub fn as_fnum_mut(&mut self) -> &mut f32 {
+        match self {
+            RVal::FNum(v) => v,
+            _ => panic!("\n[FamiqError]: calling as_fnum_mut() on none RVal::FNum\n"),
         }
     }
 
@@ -48,11 +66,27 @@ impl RVal {
         }
     }
 
+    /// Get inner value of Str as &mut String.
+    pub fn as_str_mut(&mut self) -> &mut String {
+        match self {
+            RVal::Str(v) => v,
+            _ => panic!("\n[FamiqError]: calling as_str_mut() on none RVal::Str\n"),
+        }
+    }
+
     /// Get inner value of List as Vec<String>
     pub fn as_vec(&self) -> &Vec<String> {
         match self {
             RVal::List(v) => v,
             _ => panic!("\n[FamiqError]: calling as_vec() on none RVal::List\n")
+        }
+    }
+
+    /// Get inner value of List as &mut Vec<String>
+    pub fn as_vec_mut(&mut self) -> &mut Vec<String> {
+        match self {
+            RVal::List(v) => v,
+            _ => panic!("\n[FamiqError]: calling as_vec_mut() on none RVal::List\n")
         }
     }
 
@@ -64,6 +98,15 @@ impl RVal {
         }
     }
 
+    /// Get inner value of Bool as bool
+    pub fn as_bool_mut(&mut self) -> &mut bool {
+        match self {
+            RVal::Bool(v) => v,
+            _ => panic!("\n[FamiqError]: calling as_bool_mut() on none RVal::Bool\n")
+        }
+    }
+
+    /// convert value to string.
     pub fn to_string(&self) -> String {
         match self {
             RVal::None => "None".to_string(),
@@ -81,17 +124,6 @@ impl RVal {
 pub struct RData {
     pub data: HashMap<String, RVal>,
     pub changed_keys: Vec<String>,
-}
-
-impl RData {
-    pub fn type_match(old_val: &RVal, new_val: &RVal) -> bool {
-        match (old_val, new_val) {
-            (RVal::Num(_), RVal::Num(_)) => true,
-            (RVal::FNum(_), RVal::FNum(_)) => true,
-            (RVal::Str(_), RVal::Str(_)) => true,
-            _ => false
-        }
-    }
 }
 
 #[derive(Event, Debug)]

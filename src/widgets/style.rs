@@ -266,7 +266,7 @@ pub(crate) fn detect_text_external_styles_change(
     }
 }
 
-pub fn finish_style_applying_system(mut builder_res: ResMut<FamiqResource>) {
+pub fn finish_style_apply_system(mut builder_res: ResMut<FamiqResource>) {
     builder_res.external_style_applied = true;
 }
 

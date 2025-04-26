@@ -77,7 +77,7 @@ fn external_styles_file_systems(app: &mut App) {
             PreUpdate,
             (
                 style::read_styles_from_file_system,
-                style::finish_style_applying_system
+                style::finish_style_apply_system
             )
             .chain()
             .run_if(hot_reload_is_disabled)
@@ -208,7 +208,6 @@ impl Plugin for FamiqPlugin {
         app.init_asset::<JsonStyleAsset>();
         app.init_asset_loader::<JsonStyleAssetLoader>();
 
-        app.add_event::<event_writer::FaValueChangeEvent>();
         app.add_event::<event_writer::FaMouseEvent>();
         app.add_event::<RequestRedrawBuffer>();
         app.add_event::<UpdateReactiveSubscriberEvent>();

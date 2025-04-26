@@ -1,9 +1,5 @@
 //! <p align="center">
-//!  <img src="https://i.imgur.com/C5GvBd2.png" width="250" alt="Widget Styles Logo">
-//! </p>
-//!
-//! <p align="center">
-//!  Build beatiful desktop GUI with pure rust, powered by Bevy game engine.
+//!  Experimental GUI library, powered by Bevy engine.
 //! </p>
 //!
 //! Example:
@@ -84,7 +80,7 @@ pub mod prelude {
     pub use crate::selection;
     pub use crate::text;
     pub use crate::text_input;
-    pub use crate::event_writer::{FaMouseEvent, FaValueChangeEvent};
+    pub use crate::event_writer::FaMouseEvent;
     pub use crate::errors::*;
     pub use bevy::platform::collections::HashMap;
     pub use serde_json;

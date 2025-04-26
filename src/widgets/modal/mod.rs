@@ -16,8 +16,7 @@ use bevy::ui::FocusPolicy;
 use bevy::platform::collections::HashMap;
 use helper::*;
 
-/// Use to define show/hide state for modal
-/// by id or entity.
+/// Use to define show/hide state for modal.
 #[derive(Resource, Default, Debug)]
 pub struct FaModalState {
     pub entity_states: HashMap<Entity, bool>,
@@ -34,14 +33,12 @@ impl FaModalState {
         self.entity_states.values_mut().for_each(|v| *v = false);
     }
 
-    /// Show modal by entity (Only one can be `true`)
     pub fn show_by_entity(&mut self, entity: Entity) {
         self._hide_all();
         self._update_or_insert_entity(entity, true);
         self.state_changed = true;
     }
 
-    /// Hide modal by entity
     pub fn hide_by_entity(&mut self, entity: Entity) {
         self._update_or_insert_entity(entity, false);
         self.state_changed = true;

@@ -91,26 +91,3 @@ impl FaMouseEvent {
         });
     }
 }
-
-/// Value change event for `fa_text_input`, `fa_selection`
-/// `fa_checkbox`.
-#[derive(Event, Debug)]
-pub struct FaValueChangeEvent {
-    /// widget entity.
-    pub entity: Entity,
-
-    /// widget id.
-    pub widget_id: Option<String>,
-
-    pub model_key: String
-}
-
-impl FaValueChangeEvent {
-    pub fn new(entity: Entity, widget_id: Option<String>, model_key: String) -> Self {
-        Self {
-            entity,
-            widget_id,
-            model_key
-        }
-    }
-}
