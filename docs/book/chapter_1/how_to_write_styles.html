@@ -350,18 +350,6 @@
 <p><code>flex_basis</code>: the initial length of a flexbox in the main axis, before flex growing/shrinking properties are applied.</p>
 <p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.flex_basis">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.flex_basis</a></p>
 </li>
-<li>
-<p><code>row_gap</code>: the size of the gutters between items in a vertical flexbox layout or between rows in a grid layout.</p>
-<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.row_gap">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.row_gap</a></p>
-</li>
-<li>
-<p><code>column_gap</code>: the size of the gutters between items in a horizontal flexbox layout or between column in a grid layout.</p>
-<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.column_gap">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.column_gap</a></p>
-</li>
-<li>
-<p><code>grid_auto_flow</code>: controls whether automatically placed grid items are placed row-wise or column-wise as well as whether the sparse or dense packing algorithm is used. Only affects Grid layouts.</p>
-<p><a href="https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.grid_auto_flow">https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.grid_auto_flow</a></p>
-</li>
 </ul>
 
                     </main>
@@ -393,6 +381,22 @@
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 

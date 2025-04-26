@@ -155,16 +155,11 @@
 
                 <div id="content" class="content">
                     <main>
-                        <p align="center">
-  <img width="200" src="logo.png">
-</p>
-<h4 align="center">
-  Build desktop GUI application with rust, based on ECS pattern, powered by Bevy game engine.
+                        <h4 align="center">
+    Experimental GUI library, based on ECS pattern, powered by Bevy engine.
 </h4>
-<h4 id="simple"><a class="header" href="#simple">Simple</a></h4>
-<p>Designed with Bevy’s philosophy — widgets are just <strong>Rust functions</strong>.</p>
 <h4 id="built-in-widgets"><a class="header" href="#built-in-widgets">Built-in Widgets</a></h4>
-<p>Includes useful widgets like <strong>buttons, modals, list views</strong> and more.</p>
+<p>Includes useful widgets like <strong>button, modal, text_input</strong> and more.</p>
 <h4 id="for-high-performance-apps"><a class="header" href="#for-high-performance-apps">For High-Performance Apps</a></h4>
 <p>Leverages Bevy’s <strong>massive parallelism</strong> for smooth and efficient rendering.</p>
 <h2 id="installation"><a class="header" href="#installation">Installation</a></h2>
@@ -172,9 +167,9 @@
 </code></pre>
 <p>or adding this to <code>Cargo.toml</code></p>
 <pre><code class="language-toml">[dependencies]
-famiq = "0.2.7"
+famiq = "0.3.0"
 </code></pre>
-<p>Famiq supports only bevy<code> 0.15.x</code> onward. Currently, the latest version of bevy is <code>0.15.3</code>.</p>
+<p>Famiq supports only bevy<code> 0.16.x</code> onward.</p>
 <p>see <a href="https://crates.io/crates/famiq">crateio</a> &amp; <a href="https://docs.rs/famiq/latest/famiq/">rustdoc</a>.</p>
 
                     </main>
@@ -200,6 +195,22 @@ famiq = "0.2.7"
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 

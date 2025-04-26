@@ -1,18 +1,27 @@
-# FaModal
+# Modal
 
 ### Usage
 ```rust
-fa_modal(&mut builder).build();
+modal!();
 ```
 
 ### Example
 ```rust
-let text = fa_text(&mut builder, "Hello from modal").build();
-let close_btn = fa_button(&mut builder, "Close").build();
-
-let container = fa_container(&mut builder)
-    .children([text, close_btn])
-    .build();
-
-fa_modal(&mut builder).children([container]).build();
+modal!(
+    model: "show_modal",
+    children: [
+        container!(children: [
+            text!(text: "Hello from modal"),
+            button!(text: "Close")
+        ])
+    ]
+);
 ```
+
+### Required attribute
+- **model**
+
+### Available attributes
+- **id**
+- **class**
+- **clear_bg**: if `true`, the background is fully transparent

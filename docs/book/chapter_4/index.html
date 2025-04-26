@@ -156,7 +156,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="widgets"><a class="header" href="#widgets">Widgets</a></h1>
-<p><strong>Famiq</strong> provides some default widgets that are likely required to build GUI application.</p>
+<p>These are default widgets that are likely required to build GUI application.</p>
 <ul>
 <li><a href="./container.html">Container</a></li>
 <li><a href="./button.html">Button</a></li>
@@ -166,9 +166,8 @@
 <li><a href="./selection.html">Selection</a></li>
 <li><a href="./circular.html">Circular</a></li>
 <li><a href="./modal.html">Modal</a></li>
-<li><a href="./list_view.html">ListView</a></li>
+<li><a href="./scroll.html">Scroll</a></li>
 <li><a href="./image.html">Image</a></li>
-<li><a href="./bg_image.html">Background Image</a></li>
 <li><a href="./progress_bar.html">Progress Bar</a></li>
 </ul>
 
@@ -201,6 +200,22 @@
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 

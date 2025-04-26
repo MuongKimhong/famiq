@@ -2,7 +2,7 @@
 #### ⚠️ IMPORTANT
 Famiq is built on top [Bevy](https://bevyengine.org/) and relies entirely on its **ECS architecture**. When you use **Famiq**,
 you're actually using the **Bevy engine**, with **Famiq** providing an abstraction for its UI system
-to help you build GUI applications, rather than Game UI.
+to help you build GUI applications, rather than Game.
 
 A solid understanding of **Bevy's ECS** is required. If you're new to **Bevy**,
 I recommend checking out [Bevy's quick start guide](https://bevyengine.org/learn/quick-start/introduction/).
@@ -20,22 +20,17 @@ fn main() {
         .run();
 }
 
-fn setup_ui(
-    mut commands: Commands,
-    mut famiq_res: ResMut<FamiqResource>,
-    asset_server: Res<AssetServer>
-) {
-    commands.spawn(Camera2d::default());
+fn setup_ui(mut fa_query: FaQuery, mut famiq_res: ResMut<FamiqResource>) {
+    // inject builder
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
 
-    // create a builder
-    let mut builder = FamiqBuilder::new(&mut commands, &mut famiq_res, &asset_server);
-
-    // simple text & button widgets
-    let text = fa_text(&mut builder, "Hello world").build();
-    let button = fa_button(&mut builder, "Press me").build();
-
-    // add widgets to a container
-    fa_container(&mut builder).children([text, button]).build();
+    // simple text & button
+    container!(
+        children: [
+            text!(text: "Hello world"),
+            button!(text: "Press me")
+        ]
+    );
 }
 ```
 run your project `cargo run`, you will see a text and a button.
@@ -49,7 +44,6 @@ In simple terms, `FamiqBuilder` is the root UI node that acts as a starting poin
 
 There are methods provided by `FamiqBuilder` including:
 - [use_font_path()](#-use_font_path)
-- [register_tooltip()](#-register_tooltip)
 - [use_style_path()](#-use_style_path)
 - [hot_reload()](#-hot_reload)
 
@@ -67,8 +61,9 @@ simply call `use_font_path()` method.
     ```
 
     ```rust
-    let mut builder = FamiqBuilder::new(&mut commands, &mut famiq_res, &asset_server)
-        .use_font_path("fonts/Some-font.ttf");
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res)
+        .use_font_path("fonts/Some-font.ttf")
+        .inject();
     ```
 - **For Multi-Crate/Workspace project structure**:
     In a multi-crate workspace, the custom font path is read from the subcrate/member's `assets/` folder:
@@ -86,21 +81,11 @@ simply call `use_font_path()` method.
     ```
 
     ```rust
-    let mut builder = FamiqBuilder::new(&mut commands, &mut famiq_res, &asset_server)
-        .use_font_path("fonts/Some-font.ttf");
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res)
+        .use_font_path("fonts/Some-font.ttf")
+        .inject();
     ```
 ⚠️ some fonts might cause rendering issue including positioning and styling.
-
-### 🔵 `register_tooltip()`
-This method enable tooltip option for some widgets. Currently only `fa_button` and `fa_circular` support tooltip option.
-#### Note
-If `use_font_path` is called, `register_tooltip` must be called **after** `use_font_path`
-to ensure that the custom font is applied to the tooltip.
-```rust
-let mut builder = FamiqBuilder::new(&mut commands, &mut famiq_res, &asset_server)
-    .use_font_path("fonts/Some-font.ttf") // if use_font_path is called
-    .register_tooltip();
-```
 
 ### 🔵 `use_style_path()`
 By default, Famiq will look for json file for styling at `assets/styles.json`, relative to root directory.
@@ -108,31 +93,40 @@ If you want to use another path or name, you can simply call `use_style_path()` 
 #### Note
 - **For Multi-Crate/Workspace project structure**: if you have json file inside sub-crate `assets` directory, you need to specify
 full path relative to root directory, not sub-crate.
+- **Wasm build**: if you target wasm, you need to explicitly call `use_style_path()`, where path is relative to assets directory.
 ```rust
 // normal project
-let mut builder = FamiqBuilder::new(&mut commands, &mut famiq_res, &asset_server)
-    .use_style_path("assets/my-styles.json");
+FamiqBuilder::new(&mut fa_query, &mut famiq_res)
+    .use_style_path("assets/my-styles.json")
+    .inject();
+
+// wasm build
+FamiqBuilder::new(&mut fa_query, &mut famiq_res)
+    .use_style_path("my-styles.json")
+    .inject();
 
 // multi crate/workspace
-let mut builder = FamiqBuilder::new(&mut commands, &mut famiq_res, &asset_server)
-    .use_style_path("path/to/sub-crate/assets/subcrate-style.json");
+FamiqBuilder::new(&mut fa_query, &mut famiq_res)
+    .use_style_path("path/to/sub-crate/assets/subcrate-style.json")
+    .inject();
 ```
 
 ### 🔵 `hot_reload()`
-This method will enable hot-reload. When it's enabled, every changes in json
+This method will enable hot-reload (exclude wasm). When it's enabled, every changes in json
 file will reflect the running app immediately without needing to re-compile the app.
 This should only be used during development.
 ```rust
-let mut builder = FamiqBuilder::new(&mut commands, &mut famiq_res, &asset_server)
-    .hot_reload();
+FamiqBuilder::new(&mut fa_query, &mut famiq_res)
+    .hot_reload()
+    .inject();
 ```
 
 ### Types of widgets
 There are 2 types of widgets provided by **Famiq** which are **Containable** widget and **Non-containable** widgets.
 
-- **Containable** widgets can have child widgets and can also be nested inside other containable widgets, including `fa_container`, `fa_listview` and `fa_modal`.
+- **Containable** widgets can have children and can also be nested inside other containable widgets, including `container`, `scroll` and `modal`.
 
-- **Non-containable** widgets cannot have children and must be placed inside a containable widget. including `fa_text`,
-  `fa_button`, `fa_text_input`, `fa_selection`, `fa_image`, `fa_circular` and `fa_progress_bar`.
+- **Non-containable** widgets cannot have children and must be placed inside a containable widget. including `text`,
+  `button`, `text_input`, `selection`, `image`, `circular` and `progress_bar`.
 
-As you can see in the code above, `fa_text` & `fa_button` were placed inside `fa_container`.
+As you can see in the code above, `text` & `button` were placed inside `container`.

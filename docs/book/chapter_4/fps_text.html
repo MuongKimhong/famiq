@@ -155,22 +155,22 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="fafpstext"><a class="header" href="#fafpstext">FaFpsText</a></h1>
+                        <h1 id="fpstext"><a class="header" href="#fpstext">FpsText</a></h1>
 <p>Show <strong>FPS</strong> value at top-left corner of the window.</p>
 <p>This widget doesn't need to be inside a containable widget.</p>
 <h3 id="usage"><a class="header" href="#usage">Usage</a></h3>
-<pre><code class="language-rust">fa_fps(&amp;mut builder).build();</code></pre>
+<pre><code class="language-rust">fps!();</code></pre>
 <p>return <code>Entity</code>.</p>
-<h3 id="available-methods"><a class="header" href="#available-methods">Available methods</a></h3>
-<ul>
-<li><code>id(&amp;str)</code></li>
-<li><code>class(&amp;str)</code></li>
-<li><code>display(&amp;str)</code></li>
-<li><code>change_color()</code>: change number color based on its value.</li>
-<li><code>right_side()</code>: make <strong>FPS</strong> text appears at the top right corner.</li>
-</ul>
 <h3 id="example"><a class="header" href="#example">Example</a></h3>
-<pre><code class="language-rust">fa_fps(&amp;mut builder).change_color().right_side().build();</code></pre>
+<pre><code class="language-rust">fps!(right_side: true, change_color: false);</code></pre>
+<h3 id="available-attributes"><a class="header" href="#available-attributes">Available attributes</a></h3>
+<ul>
+<li><strong>id</strong></li>
+<li><strong>class</strong></li>
+<li><strong>color</strong></li>
+<li><strong>right_side</strong>: show the fps at top-right corner</li>
+<li><strong>change_color</strong>: change_color based on its value</li>
+</ul>
 
                     </main>
 
@@ -201,6 +201,22 @@
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 

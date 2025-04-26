@@ -1,41 +1,40 @@
-# FaCircular
+# Circular
 
 A spinning circular.
 
 ### Usage
 ```rust
-let circular = fa_circular(&mut builder).build();
+let circular = circular!();
 ```
 Return `Entity` which must be used inside a containable widget.
-
-### Available methods
-- `id(&str)`
-- `class(&str)`
-- `size(f32)`: set custom size (width & height).
-- `color(&str)`: set custom color.
 
 ### Example
 ```rust
 // default
-let cir = fa_circular(&mut builder).build();
+let cir = circular!();
 
 // warning & small
-let warning_cir = fa_circular(&mut builder)
-    .class("is-warning is-small")
-    .build();
+let warning_cir = circular!(class: "warning small");
 
 // primary & custom size
-let primary_cir = fa_circular(&mut builder)
-    .class("is-primary")
-    .size(50.0)
-    .build();
+let primary_cir = circular!(class: "primary", size: 50.0);
 
 // custom color
-let custom_color_cir = fa_circular(&mut builder)
-    .color("cyan_500")
-    .build();
+let custom_color_cir = circular!(color: "cyan_500");
 
-fa_container(&mut builder)
-    .children([cir, warning_cir, primary_cir, custom_color_cir])
-    .build();
+container!(
+    children: [
+        cir,
+        warning_cir,
+        primary_cir,
+        custom_color_cir
+    ]
+);
 ```
+
+### Available attributes
+- **id**
+- **class**
+- **color**
+- **tooltip**
+- **size**

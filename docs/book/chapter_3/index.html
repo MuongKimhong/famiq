@@ -158,12 +158,11 @@
                         <h1 id="built-in-classes"><a class="header" href="#built-in-classes">Built-in classes</a></h1>
 <p><strong>Famiq</strong> provides built-in classes for <strong>color</strong>, <strong>size</strong> and <strong>spacing</strong>.</p>
 <h3 id="color"><a class="header" href="#color">Color</a></h3>
-<p><code>is-primary</code> | <code>is-secondary</code> | <code>is-success</code> | <code>is-danger</code> | <code>is-info</code> | <code>is-warning</code> |</p>
-<p><code>is-primary-dark</code> | <code>is-success-dark</code> | <code>is-danger-dark</code> | <code>is-info-dark</code> | <code>is-warning-dark</code> |</p>
-<p><code>is-dark</code>.</p>
-<p><img src="../images/color_class.png" alt="color classes" /></p>
+<p><code>primary</code> | <code>secondary</code> | <code>success</code> | <code>danger</code> | <code>info</code> | <code>warning</code> |</p>
+<p><code>primary-dark</code> | <code>success-dark</code> | <code>danger-dark</code> | <code>info-dark</code> | <code>warning-dark</code> |</p>
+<p><code>dark</code>.</p>
 <h3 id="size"><a class="header" href="#size">Size</a></h3>
-<p><code>is-small</code> | <code>is-large</code></p>
+<p><code>small</code> | <code>large</code></p>
 <h3 id="spacing"><a class="header" href="#spacing">Spacing</a></h3>
 <p>Margin</p>
 <p><strong>x</strong> is a number * 5px</p>
@@ -215,6 +214,22 @@
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 

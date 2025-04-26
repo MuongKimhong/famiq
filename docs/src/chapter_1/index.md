@@ -5,22 +5,20 @@ Each widget can have an **id** or **classes**, which are used to apply styles fr
 
 ```rust
 // by id
-let button = fa_button(&mut builder, "Press me").id("#button").build();
+let button = button!(text: "Press me", id: "#button");
 
 // by class or classes
-let text_1 = fa_text(&mut builder, "Hello world").class("text important").build();
-let text_2 = fa_text(&mut builder, "Hello mom").class("text").build();
+let text_1 = text!(text: "Hello world", class: "text important");
+let text_2 = text!(text: "Hello Mom", class: "text");
 ```
 ```json
 {
   "#button": {
     "background_color": "blue"
   },
-
   ".text": {
     "font_size": "40"
   },
-
   ".important": {
     "color": "red"
   }
@@ -29,5 +27,3 @@ let text_2 = fa_text(&mut builder, "Hello mom").class("text").build();
 **Notes**
 - **IDs (id)** must start with **`#`** and must match between the widget and the JSON file.
 - **Class names (class)** must start with **`.`** in the JSON file.
-
-Currently, **id** or **class** assigned to a widget is **immutable**.

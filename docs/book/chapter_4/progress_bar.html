@@ -155,43 +155,33 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="faprogressbar"><a class="header" href="#faprogressbar">FaProgressBar</a></h1>
+                        <h1 id="progressbar"><a class="header" href="#progressbar">ProgressBar</a></h1>
 <p>There are 2 types of progress bar, <strong>Normal</strong> &amp; <strong>Indeterminate</strong>. Default is <strong>Indeterminate</strong>.</p>
 <h3 id="usage"><a class="header" href="#usage">Usage</a></h3>
-<pre><code class="language-rust">let bar = fa_progress_bar(&amp;mut builder).build();</code></pre>
+<pre><code class="language-rust">let bar = progress_bar!();</code></pre>
 <p>Return <code>Entity</code> which must be used inside a containable widget.</p>
-<h3 id="available-methods"><a class="header" href="#available-methods">Available methods</a></h3>
-<ul>
-<li><code>id(&amp;str)</code></li>
-<li><code>class(&amp;str)</code></li>
-<li><code>display(&amp;str)</code></li>
-<li><code>color(&amp;str)</code>: set custom color.</li>
-<li><code>percentage(f32)</code>: set percentage value of the bar.</li>
-</ul>
 <h3 id="example"><a class="header" href="#example">Example</a></h3>
 <pre><code class="language-rust">// default
-let default_bar = fa_progress_bar(&amp;mut builder).build();
+let default_bar = progress_bar!();
 
 // info &amp; large
-let info_large_bar = fa_progress_bar(&amp;mut builder)
-    .class("is-info is-large")
-    .build();
+let info_large_bar = progress_bar!(class: "info large");
 
 // warning &amp; 50%
-let warning_bar = fa_progress_bar(&amp;mut builder)
-    .percentage(50.0)
-    .class("is-warning")
-    .build();
+fa_query.insert_fnum("percent", 50.0);
+let warning_bar = progress_bar!(class: "warning", model: "percent");
 
-fa_container(&amp;mut builder)
-    .children([default_bar, info_large_bar, warning_bar])
-    .build();</code></pre>
+container!(children: [
+    default_bar,
+    info_large_bar,
+    warning_bar
+]);</code></pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../chapter_4/bg_image.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../chapter_4/image.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
@@ -205,7 +195,7 @@ fa_container(&amp;mut builder)
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../chapter_4/bg_image.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../chapter_4/image.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
@@ -216,6 +206,22 @@ fa_container(&amp;mut builder)
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 

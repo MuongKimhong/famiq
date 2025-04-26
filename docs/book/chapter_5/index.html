@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Resources - Famiq documentation</title>
+        <title>Reactivity - Famiq documentation</title>
 
 
         <!-- Custom HTML head -->
@@ -155,18 +155,98 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="resources"><a class="header" href="#resources">Resources</a></h1>
-<p><strong>Resource</strong> is used to store global data that can be accessed from any systems within the app.</p>
-<p><strong>Famiq</strong> provides <strong>resources</strong> to interact with <strong>widgets</strong> in many ways.</p>
+                        <h1 id="reactivity"><a class="header" href="#reactivity">Reactivity</a></h1>
+<p><strong>Famiq</strong>'s reactivity is really simple, thus it's limited.</p>
+<pre><code>Data &lt;-&gt; Subscribers
+</code></pre>
+<p>When a <code>data</code> is changed, all the <code>subscribers</code> re-build themselve.</p>
+<h4 id="unsupported-features"><a class="header" href="#unsupported-features">Unsupported features</a></h4>
 <ul>
-<li><a href="./fa_containable_resource.html">FaContainableResource</a></li>
-<li><a href="./fa_text_input_resource.html">FaTextInputResource</a></li>
-<li><a href="./fa_selection_resource.html">FaSelectionResource</a></li>
-<li><a href="./fa_text_resource.html">FaTextResource</a></li>
-<li><a href="./fa_modal_state.html">FaModalState</a></li>
-<li><a href="./fa_style_resource.html">FaStyleResource</a></li>
-<li><a href="./fa_bg_image_resource.html">FaBgImageResource</a></li>
+<li>template iteration</li>
+<li>template condition</li>
 </ul>
+<h3 id="example"><a class="header" href="#example">Example</a></h3>
+<pre><code class="language-rust">fn setup_ui(mut fa_query: FaQuery, mut famiq_res: ResMut&lt;FamiqResource&gt;) {
+    fa_query.insert_num("count", 0);
+
+    container!(
+        children: [
+            text!(text: "Count: $[count]"),
+            button!(text: "Increase", id: "#btn")
+        ]
+    );
+}
+
+fn on_button_press(
+    mut events: EventReader&lt;FaMouseEvent&gt;,
+    mut fa_query: FaQuery
+) {
+    for e in events.read() {
+        if !e.is_button_pressed("#btn") {
+            continue;
+        }
+        if let Some(count) = fa_query.get_data_mut("count") {
+            let count = count.as_num_mut();
+            *count += 1;
+        }
+    }
+}</code></pre>
+<h3 id="inserting-data"><a class="header" href="#inserting-data">Inserting data</a></h3>
+<p>We start by inserting reactive data via <code>FaQuery</code> and the only supported data types are: <code>i32</code>, <code>f32</code>, <code>bool</code>, <code>Vec&lt;String&gt;</code>, and <code>String</code>.</p>
+<ul>
+<li><code>insert_num</code>: for inserting data as <strong>i32</strong>.</li>
+<li><code>insert_fnum</code>: for inserting data as <strong>f32</strong>.</li>
+<li><code>insert_str</code>: for inserting data as <strong>String</strong>.</li>
+<li><code>insert_bool</code>: for inserting data as <strong>boolean</strong>.</li>
+<li><code>insert_list</code>: for inserting data as <strong>Vector of String</strong>.</li>
+</ul>
+<pre><code class="language-rust">fa_query.insert_num("count", 0);</code></pre>
+<p><code>0</code> will be converted to <code>RVal::Num(0)</code>.</p>
+<h3 id="subscribing-to-data"><a class="header" href="#subscribing-to-data">Subscribing to data</a></h3>
+<p>We now can use the data in other widgets via reactive template <code>$[]</code>.</p>
+<pre><code class="language-rust">fa_query.insert_num("count", 0);
+fa_query.insert_str("name", "");
+fa_query.insert_str("text_color", "blue");
+fa_query.insert_bool("can_change_color", true);
+
+fps!(change_color: "$[can_change_color]");
+
+container!(children: [
+    text!(text: "Counter: $[count]", color: "$[text_color]"),
+    text!(text: "Name: $[name]"),
+    text_input!(placeholder: "Enter name", model: "name")
+]);</code></pre>
+<h3 id="getting--mutating-the-data"><a class="header" href="#getting--mutating-the-data">Getting &amp; Mutating the data</a></h3>
+<p><strong>getting data</strong></p>
+<pre><code class="language-rust">if let Some(count) = fa_query.get_data("count") {
+    println!("count is {:?}", count.as_num());
+}
+// or
+let count = fa_query.get_data("count").unwrap();
+println!("I'm sure count is available and it is {:?}", count.as_num());</code></pre>
+<p><strong>mutating data</strong></p>
+<p>There are 2 ways to mutate a data.</p>
+<ol>
+<li>using <code>get_data_mut</code></li>
+</ol>
+<pre><code class="language-rust">// in system
+
+if let Some(count) = fa_query.get_data_mut("count") {
+    let count = count.as_num_mut();
+    *count += 1;
+}
+
+if let Some(state) = fa_query.get_data_mut("can_change_color") {
+    let state = state.as_bool_mut();
+    *state = false;
+}</code></pre>
+<ol start="2">
+<li>explicitly calling <code>mutate</code> methods</li>
+</ol>
+<pre><code class="language-rust">// in system
+
+fa_query.mutate_num("count", 2);
+fa_query.mutate_bool("can_change_color", false);</code></pre>
 
                     </main>
 
@@ -176,9 +256,6 @@
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../chapter_5/fa_containable_resource.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
-                            </a>
 
                         <div style="clear: both"></div>
                     </nav>
@@ -190,13 +267,26 @@
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../chapter_5/fa_containable_resource.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
-                    </a>
             </nav>
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 

@@ -159,20 +159,18 @@
 <p><strong>Famiq</strong> uses a <strong>JSON-based styling system</strong>, similar to how <strong>HTML</strong> uses <strong>CSS</strong>.</p>
 <p>Each widget can have an <strong>id</strong> or <strong>classes</strong>, which are used to apply styles from the JSON file.</p>
 <pre><code class="language-rust">// by id
-let button = fa_button(&amp;mut builder, "Press me").id("#button").build();
+let button = button!(text: "Press me", id: "#button");
 
 // by class or classes
-let text_1 = fa_text(&amp;mut builder, "Hello world").class("text important").build();
-let text_2 = fa_text(&amp;mut builder, "Hello mom").class("text").build();</code></pre>
+let text_1 = text!(text: "Hello world", class: "text important");
+let text_2 = text!(text: "Hello Mom", class: "text");</code></pre>
 <pre><code class="language-json">{
   "#button": {
     "background_color": "blue"
   },
-
   ".text": {
     "font_size": "40"
   },
-
   ".important": {
     "color": "red"
   }
@@ -183,7 +181,6 @@ let text_2 = fa_text(&amp;mut builder, "Hello mom").class("text").build();</code
 <li><strong>IDs (id)</strong> must start with <strong><code>#</code></strong> and must match between the widget and the JSON file.</li>
 <li><strong>Class names (class)</strong> must start with <strong><code>.</code></strong> in the JSON file.</li>
 </ul>
-<p>Currently, <strong>id</strong> or <strong>class</strong> assigned to a widget is <strong>immutable</strong>.</p>
 
                     </main>
 
@@ -214,6 +211,22 @@ let text_2 = fa_text(&amp;mut builder, "Hello mom").class("text").build();</code
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 

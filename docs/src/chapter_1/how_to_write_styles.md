@@ -184,15 +184,3 @@
 - `flex_basis`: the initial length of a flexbox in the main axis, before flex growing/shrinking properties are applied.
 
   [https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.flex_basis](https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.flex_basis)
-
-- `row_gap`: the size of the gutters between items in a vertical flexbox layout or between rows in a grid layout.
-
-  [https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.row_gap](https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.row_gap)
-
-- `column_gap`: the size of the gutters between items in a horizontal flexbox layout or between column in a grid layout.
-
-  [https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.column_gap](https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.column_gap)
-
-- `grid_auto_flow`: controls whether automatically placed grid items are placed row-wise or column-wise as well as whether the sparse or dense packing algorithm is used. Only affects Grid layouts.
-
-  [https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.grid_auto_flow](https://docs.rs/bevy/latest/bevy/prelude/struct.Node.html#structfield.grid_auto_flow)

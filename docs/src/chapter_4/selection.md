@@ -1,64 +1,39 @@
-# FaSelection
+# Selection
+
+Single choice selection.
 
 ### Usage
 ```rust
-let selection = fa_selection(&mut builder, "Select choice")
-    .choices(["Choice 1", "Choice 2"])
-    .build();
+let selection = selection!(
+    placeholder: "Select choice",
+    model: "select",
+    choices: ["choice 1", "choice 2"]
+);
 ```
 Return `Entity` which must be used inside a containable widget.
 
-
-### Available methods
-- `id(&str)`
-- `class(&str)`
-- `display(&str)`
-- `choices([&str])`
-- `color(&str)`: set custom background color.
-
 ### Example
 ```rust
-let plans = fa_selection(&mut builder, "Select plan")
-    .choices(["Personal", "Team", "Enterprise"])
-    .build();
+let plans = selection!(
+    placeholder: "Select plan",
+    model: "plan",
+    choices: ["Personal", "Team", "Enterprise"]
 );
-
-let subscriptions = fa_selection(&mut builder, "Select subscription payment")
-    .choices(["Weekly", "Monthly", "Annually"])
-    .build();
+let subscriptions = selection!(
+    placeholder: "Select subscription payment",
+    model: "subscription",
+    choices: ["Weekly", "Monthly", "Annually"]
 );
-
-fa_container(&mut builder).children([plans, subscriptions]).build();
+container!(children: [plans, subscriptions]);
 ```
 
-### Change event
+### Required attributes
+- **placeholder**
+- **model**
 
-Whenever `fa_selection`'s value changes, it emits an event called `FaSelectionChangeEvent` that contains
-updated value.
-
-```rust
-pub struct FaSelectionChangeEvent {
-    pub entity: Entity,
-    pub widget_id: Option<String>,
-    pub new_value: String
-}
-```
-
-Example,
-```rust
-fn my_system(mut events: EventReader<FaSelectionChangeEvent>) {
-    for e in events.read() {
-        // make sure this works only with selection that have id provided
-        if let Some(id) = e.widget_id.as_ref() {
-            match id.as_str() {
-                "#selection-one" => {
-                    println!("{:?}", e.new_value);
-                }
-                "#selection-two" => {
-                    // do something with #selection-two new value
-                }
-            }
-        }
-    }
-}
-```
+### Available attributes
+- **id**
+- **class**
+- **color**
+- **tooltip**
+- **choices**

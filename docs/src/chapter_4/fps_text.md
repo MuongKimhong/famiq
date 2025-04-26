@@ -1,4 +1,4 @@
-# FaFpsText
+# FpsText
 
 Show **FPS** value at top-left corner of the window.
 
@@ -6,18 +6,18 @@ This widget doesn't need to be inside a containable widget.
 
 ### Usage
 ```rust
-fa_fps(&mut builder).build();
+fps!();
 ```
 return `Entity`.
 
-### Available methods
-- `id(&str)`
-- `class(&str)`
-- `display(&str)`
-- `change_color()`: change number color based on its value.
-- `right_side()`: make **FPS** text appears at the top right corner.
-
 ### Example
 ```rust
-fa_fps(&mut builder).change_color().right_side().build();
+fps!(right_side: true, change_color: false);
 ```
+
+### Available attributes
+- **id**
+- **class**
+- **color**
+- **right_side**: show the fps at top-right corner
+- **change_color**: change_color based on its value

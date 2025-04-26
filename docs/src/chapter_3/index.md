@@ -4,18 +4,15 @@
 
 ### Color
 
-`is-primary` | `is-secondary` | `is-success` | `is-danger` | `is-info` | `is-warning` |
+`primary` | `secondary` | `success` | `danger` | `info` | `warning` |
 
-`is-primary-dark` | `is-success-dark` | `is-danger-dark` | `is-info-dark` | `is-warning-dark` |
+`primary-dark` | `success-dark` | `danger-dark` | `info-dark` | `warning-dark` |
 
-`is-dark`.
-
-![color classes](../images/color_class.png)
+`dark`.
 
 ### Size
 
-`is-small` | `is-large`
-
+`small` | `large`
 
 ### Spacing
 

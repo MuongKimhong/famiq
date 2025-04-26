@@ -155,54 +155,40 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="fabutton"><a class="header" href="#fabutton">FaButton</a></h1>
+                        <h1 id="button"><a class="header" href="#button">Button</a></h1>
 <h3 id="usage"><a class="header" href="#usage">Usage</a></h3>
-<pre><code class="language-rust">let button = fa_button(&amp;mut builder, "Press me").build();</code></pre>
+<pre><code class="language-rust">let button = button!(text: "Press me");</code></pre>
 <p>Return <code>Entity</code> of the widget which must be used inside a containable widget.</p>
-<h3 id="available-methods"><a class="header" href="#available-methods">Available methods</a></h3>
-<ul>
-<li><code>id(&amp;str)</code></li>
-<li><code>class(&amp;str)</code></li>
-<li><code>display(&amp;str)</code></li>
-<li><code>color(&amp;str)</code>: set custom background color.</li>
-</ul>
 <h3 id="example"><a class="header" href="#example">Example</a></h3>
-<pre><code class="language-rust">let default_btn = fa_button(&amp;mut builder, "Default button")
-    .id("#default-btn")
-    .build();
+<pre><code class="language-rust">let default_btn = button!(text: "Default button", id: "#default-btn");
+let info_btn = button!(text: "Info button", id: "#info-btn", class: "info");
 
-let info_btn = fa_button(&amp;mut builder, "Info button")
-    .id("#info-btn")
-    .class("is-info")
-    .build();
-
-fa_container(&amp;mut builder)
-    .children([default_btn, info_btn])
-    .build();</code></pre>
+container!(children: [default_btn, info_btn]);</code></pre>
 <h3 id="handle-button-press"><a class="header" href="#handle-button-press">Handle button press</a></h3>
-<p>You can write a system that run in <code>Update</code> schedule to handle button events (hovered, pressed, none).</p>
-<pre><code class="language-rust">fn handle_button_press_system(mut events: EventReader&lt;FaInteractionEvent&gt;) {
+<pre><code class="language-rust">fn handle_button_press(mut events: EventReader&lt;FaMouseEvent&gt;) {
     for e in events.read() {
-
-        // it's not a button press event, return early.
-        if !e.is_pressed(WidgetType::Button) {
+        if e.button_press().is_none() {
             return;
         }
 
-        // make sure this works only with buttons that have id provided
-        if let Some(id) = e.widget_id.as_ref() {
-            match id.as_str() {
-                "#default-btn" =&gt; {
-                    // do something when default button is pressed
-                },
-                "#info-btn" =&gt; {
-                    // do something when info button is pressed
-                }
-                _ =&gt; ()
-            }
+        match e.button_press().unwrap().as_str() {
+            "#default-btn" =&gt; todo!(),
+            "#info-btn" =&gt; todo!(),
+            _ =&gt; {}
         }
     }
 }</code></pre>
+<h3 id="required-attribute"><a class="header" href="#required-attribute">Required attribute</a></h3>
+<ul>
+<li><strong>text</strong></li>
+</ul>
+<h3 id="available-attributes"><a class="header" href="#available-attributes">Available attributes</a></h3>
+<ul>
+<li><strong>id</strong></li>
+<li><strong>class</strong></li>
+<li><strong>color</strong></li>
+<li><strong>tooltip</strong></li>
+</ul>
 
                     </main>
 
@@ -233,6 +219,22 @@ fa_container(&amp;mut builder)
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 

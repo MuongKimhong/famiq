@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Interaction - Famiq documentation</title>
+        <title>Events - Famiq documentation</title>
 
 
         <!-- Custom HTML head -->
@@ -155,62 +155,41 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="interaction"><a class="header" href="#interaction">Interaction</a></h1>
-<p>There are 3 types of interaction</p>
+                        <h1 id="events"><a class="header" href="#events">Events</a></h1>
+<p>Event is a big part of GUI library. So far, only <strong>FaMouseEvent</strong> is emitted by <strong>Famiq</strong>.</p>
+<h3 id="what-is-famouseevent"><a class="header" href="#what-is-famouseevent">What is <strong>FaMouseEvent</strong>?</a></h3>
+<p>This <a href="https://github.com/MuongKimhong/famiq/blob/master/src/event_writer.rs">event</a> is emitted whenever one of the interaction is matched.</p>
 <ul>
-<li>Pressed</li>
-<li>Hovered</li>
-<li>None (leaving hovered)</li>
+<li>mouse-left down</li>
+<li>mouse-right down</li>
+<li>mouse up</li>
+<li>mouse over</li>
+<li>mouse out</li>
+<li>mouse scroll</li>
 </ul>
-<p><strong>Famiq</strong> emits an event with type of <code>FaInteractionEvent</code> whenever one of the iteraction is matched.
-The event then can be read from bevy's <code>EventReader</code>.</p>
-<p>Each event has a widget type flag.</p>
-<pre><code class="language-rust">pub struct FaInteractionEvent {
-    pub entity: Entity,
-    pub widget_id: Option&lt;String&gt;,
-    pub interaction: Interaction,
-    pub widget: WidgetType,
-}</code></pre>
-<p>Available widget types</p>
-<pre><code class="language-rust">pub enum WidgetType {
-    Button,
-    Container,
-    Text,
-    FpsText,
-    TextInput,
-    TextInputTogglePasswordIcon,
-    ListView,
-    ListViewItem,
-    Selection,
-    SelectionChoice,
-    Circular,
-    ProgressBar,
-    Image
-}</code></pre>
+<p>The event then can be read from bevy's <code>EventReader</code>.</p>
 <h2 id="handle-interaction"><a class="header" href="#handle-interaction">Handle interaction</a></h2>
-<p>You can write a bevy system that runs in <code>Update</code> schedule to handle Famiq’s widgets interaction.</p>
+<p>You can write a bevy system that runs in <code>Update</code> schedule to handle the events.</p>
 <p>Example,</p>
-<pre><code class="language-rust">fn handle_button_press_system(mut events: EventReader&lt;FaInteractionEvent&gt;) {
+<pre><code class="language-rust">fn on_mouse_over_text(mut events: EventReader&lt;FaMouseEvent&gt;) {
     for e in events.read() {
-        if !e.is_pressed(WidgetType::Button) {
+        // not mouse over text, early return
+        if !e.is_mouse_over(WidgetType::Text) {
             return;
         }
 
-        // make sure this works only with widgets that have id provided
-        if let Some(id) = e.widget_id.as_ref() {
+        // ok, now some text has mouse over it!
+
+        // let's check which text
+        if let Some(id) = e.id.as_ref() {
             match id.as_str() {
-                "#button-one" =&gt; {
-                    // do something when #button-one is pressed
-                },
-                "#button-two" =&gt; {
-                    // do something when #button-two is pressed
-                }
-                _ =&gt; ()
+                "#welcome-text" =&gt; todo!(),
+                "#other-text" =&gt; todo!(),
+                _ =&gt; {}
             }
         }
     }
 }</code></pre>
-<p>Beside <code>is_pressed</code>, there are also <code>is_hovered</code> and <code>is_left</code> (from hovered -&gt; none).</p>
 
                     </main>
 
@@ -241,6 +220,22 @@ The event then can be read from bevy's <code>EventReader</code>.</p>
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 

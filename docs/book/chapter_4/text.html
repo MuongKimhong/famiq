@@ -155,22 +155,25 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="fatext"><a class="header" href="#fatext">FaText</a></h1>
+                        <h1 id="text"><a class="header" href="#text">Text</a></h1>
 <h3 id="usage"><a class="header" href="#usage">Usage</a></h3>
-<pre><code class="language-rust">let text = fa_text(&amp;mut builder, "Some text").build();</code></pre>
+<pre><code class="language-rust">let text = text!(text: "Some text");</code></pre>
 <p>Return <code>Entity</code> of the widget which must be used inside a containable widget.</p>
-<h3 id="available-methods"><a class="header" href="#available-methods">Available methods</a></h3>
-<ul>
-<li><code>id(&amp;str)</code></li>
-<li><code>class(&amp;str)</code></li>
-<li><code>display(&amp;str)</code></li>
-<li><code>color(&amp;str)</code>: set custom color.</li>
-</ul>
 <h3 id="example"><a class="header" href="#example">Example</a></h3>
-<pre><code class="language-rust">let boss = fa_text(&amp;mut builder, "Hello Boss").build();
-let mom = fa_text(&amp;mut builder, "Hello Mom").build();
+<pre><code class="language-rust">let boss = text!(text: "Hello Boss");
+let world = text!(text: "Hello World");
 
-fa_container(&amp;mut builder).children([boss, mom]).build();</code></pre>
+container!(children: [boss, world]);</code></pre>
+<h3 id="required-attribute"><a class="header" href="#required-attribute">Required attribute</a></h3>
+<ul>
+<li><strong>text</strong></li>
+</ul>
+<h3 id="available-attributes"><a class="header" href="#available-attributes">Available attributes</a></h3>
+<ul>
+<li><strong>id</strong></li>
+<li><strong>class</strong></li>
+<li><strong>color</strong></li>
+</ul>
 
                     </main>
 
@@ -201,6 +204,22 @@ fa_container(&amp;mut builder).children([boss, mom]).build();</code></pre>
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 

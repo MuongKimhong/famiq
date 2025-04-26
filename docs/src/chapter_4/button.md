@@ -1,58 +1,41 @@
-# FaButton
+# Button
 
 ### Usage
 ```rust
-let button = fa_button(&mut builder, "Press me").build();
+let button = button!(text: "Press me");
 ```
 Return `Entity` of the widget which must be used inside a containable widget.
 
-### Available methods
-- `id(&str)`
-- `class(&str)`
-- `display(&str)`
-- `color(&str)`: set custom background color.
-
 ### Example
 ```rust
-let default_btn = fa_button(&mut builder, "Default button")
-    .id("#default-btn")
-    .build();
+let default_btn = button!(text: "Default button", id: "#default-btn");
+let info_btn = button!(text: "Info button", id: "#info-btn", class: "info");
 
-let info_btn = fa_button(&mut builder, "Info button")
-    .id("#info-btn")
-    .class("is-info")
-    .build();
-
-fa_container(&mut builder)
-    .children([default_btn, info_btn])
-    .build();
+container!(children: [default_btn, info_btn]);
 ```
 
 ### Handle button press
-
-You can write a system that run in `Update` schedule to handle button events (hovered, pressed, none).
-
 ```rust
-fn handle_button_press_system(mut events: EventReader<FaInteractionEvent>) {
+fn handle_button_press(mut events: EventReader<FaMouseEvent>) {
     for e in events.read() {
-
-        // it's not a button press event, return early.
-        if !e.is_pressed(WidgetType::Button) {
+        if e.button_press().is_none() {
             return;
         }
 
-        // make sure this works only with buttons that have id provided
-        if let Some(id) = e.widget_id.as_ref() {
-            match id.as_str() {
-                "#default-btn" => {
-                    // do something when default button is pressed
-                },
-                "#info-btn" => {
-                    // do something when info button is pressed
-                }
-                _ => ()
-            }
+        match e.button_press().unwrap().as_str() {
+            "#default-btn" => todo!(),
+            "#info-btn" => todo!(),
+            _ => {}
         }
     }
 }
 ```
+
+### Required attribute
+- **text**
+
+### Available attributes
+- **id**
+- **class**
+- **color**
+- **tooltip**

@@ -155,56 +155,40 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="faselection"><a class="header" href="#faselection">FaSelection</a></h1>
+                        <h1 id="selection"><a class="header" href="#selection">Selection</a></h1>
+<p>Single choice selection.</p>
 <h3 id="usage"><a class="header" href="#usage">Usage</a></h3>
-<pre><code class="language-rust">let selection = fa_selection(&amp;mut builder, "Select choice")
-    .choices(["Choice 1", "Choice 2"])
-    .build();</code></pre>
+<pre><code class="language-rust">let selection = selection!(
+    placeholder: "Select choice",
+    model: "select",
+    choices: ["choice 1", "choice 2"]
+);</code></pre>
 <p>Return <code>Entity</code> which must be used inside a containable widget.</p>
-<h3 id="available-methods"><a class="header" href="#available-methods">Available methods</a></h3>
-<ul>
-<li><code>id(&amp;str)</code></li>
-<li><code>class(&amp;str)</code></li>
-<li><code>display(&amp;str)</code></li>
-<li><code>choices([&amp;str])</code></li>
-<li><code>color(&amp;str)</code>: set custom background color.</li>
-</ul>
 <h3 id="example"><a class="header" href="#example">Example</a></h3>
-<pre><code class="language-rust">let plans = fa_selection(&amp;mut builder, "Select plan")
-    .choices(["Personal", "Team", "Enterprise"])
-    .build();
+<pre><code class="language-rust">let plans = selection!(
+    placeholder: "Select plan",
+    model: "plan",
+    choices: ["Personal", "Team", "Enterprise"]
 );
-
-let subscriptions = fa_selection(&amp;mut builder, "Select subscription payment")
-    .choices(["Weekly", "Monthly", "Annually"])
-    .build();
+let subscriptions = selection!(
+    placeholder: "Select subscription payment",
+    model: "subscription",
+    choices: ["Weekly", "Monthly", "Annually"]
 );
-
-fa_container(&amp;mut builder).children([plans, subscriptions]).build();</code></pre>
-<h3 id="change-event"><a class="header" href="#change-event">Change event</a></h3>
-<p>Whenever <code>fa_selection</code>'s value changes, it emits an event called <code>FaSelectionChangeEvent</code> that contains
-updated value.</p>
-<pre><code class="language-rust">pub struct FaSelectionChangeEvent {
-    pub entity: Entity,
-    pub widget_id: Option&lt;String&gt;,
-    pub new_value: String
-}</code></pre>
-<p>Example,</p>
-<pre><code class="language-rust">fn my_system(mut events: EventReader&lt;FaSelectionChangeEvent&gt;) {
-    for e in events.read() {
-        // make sure this works only with selection that have id provided
-        if let Some(id) = e.widget_id.as_ref() {
-            match id.as_str() {
-                "#selection-one" =&gt; {
-                    println!("{:?}", e.new_value);
-                }
-                "#selection-two" =&gt; {
-                    // do something with #selection-two new value
-                }
-            }
-        }
-    }
-}</code></pre>
+container!(children: [plans, subscriptions]);</code></pre>
+<h3 id="required-attributes"><a class="header" href="#required-attributes">Required attributes</a></h3>
+<ul>
+<li><strong>placeholder</strong></li>
+<li><strong>model</strong></li>
+</ul>
+<h3 id="available-attributes"><a class="header" href="#available-attributes">Available attributes</a></h3>
+<ul>
+<li><strong>id</strong></li>
+<li><strong>class</strong></li>
+<li><strong>color</strong></li>
+<li><strong>tooltip</strong></li>
+<li><strong>choices</strong></li>
+</ul>
 
                     </main>
 
@@ -235,6 +219,22 @@ updated value.</p>
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 
