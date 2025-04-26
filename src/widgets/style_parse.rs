@@ -1,14 +1,13 @@
 use bevy::prelude::*;
 use super::color::built_in_color_parser;
 
-// parse string of styles from json file to bevy ui style
-// example:
-// JSON value
-// "background_color": "srgba 0.357, 0.565, 0.941, 0.902"
-// to
-// Bevy ui style value
-// background_color: BackgroundColor(Color::srgba(0.357, 0.565, 0.941, 0.902))
-//
+/// parse string of styles from json file to bevy ui style
+/// example:
+/// JSON value
+/// "background_color": "srgba 0.357, 0.565, 0.941, 0.902"
+/// to
+/// Bevy ui style value
+/// background_color: BackgroundColor(Color::srgba(0.357, 0.565, 0.941, 0.902))
 
 fn parse_color_components(value: &str) -> Option<Vec<f32>> {
     let components: Vec<f32> = value

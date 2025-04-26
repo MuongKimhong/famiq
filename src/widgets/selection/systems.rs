@@ -76,7 +76,6 @@ pub fn handle_selection_choice_interaction_system(
                                 _ => {}
                             }
                         }
-                        println!("{:?}", fa_query.reactive_data.data);
                         // set selection to unfocus after choice is selected
                         builder_res.update_or_insert_focus_state(selection_entity, false);
                         *choice_bg_color = BackgroundColor(ITEM_NORMAL_BG_COLOR);

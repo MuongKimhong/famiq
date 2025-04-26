@@ -56,7 +56,7 @@ impl FaMouseEvent {
         self.widget_type == widget_type && self.event_type == EventType::Scroll
     }
 
-    pub fn is_button_pressed(&self, id: &str) -> bool {
+    pub fn button_pressed(&self, id: &str) -> bool {
         if self.id.is_none() {
             return false;
         }
@@ -114,13 +114,3 @@ impl FaValueChangeEvent {
         }
     }
 }
-
-// pub enum RVal<T> {
-//     List(Vec<T>),
-//     Custom(T),
-//     Num(f32),
-//     Str(String)
-// }
-// use bevy::utils::HashMap;
-// #[derive(Resource)]
-// pub struct MyResource<T>(pub HashMap<String, RVal<T>>);

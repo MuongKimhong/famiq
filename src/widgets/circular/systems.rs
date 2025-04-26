@@ -62,8 +62,8 @@ pub fn detect_new_circular(
     circular_q.iter().for_each(|(entity, color)| {
         if let Color::Srgba(value) = color.0 {
             let new_handle = circular_material.add(CircularMaterial {
-                u_time: 0.0,
-                u_color: Vec3::new(value.red, value.green, value.blue)
+                u_time: Vec4::ZERO,
+                u_color: Vec4::new(value.red, value.green, value.blue, 1.0)
             });
             commands
                 .entity(entity)
@@ -79,7 +79,7 @@ pub fn update_circular_material_u_time(
 ) {
     query.iter().for_each(|handle| {
         if let Some(material) = materials.get_mut(handle) {
-            material.u_time = -time.elapsed_secs();
+            material.u_time.x = -time.elapsed_secs();
         }
     });
 }

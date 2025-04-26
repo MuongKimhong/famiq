@@ -225,7 +225,7 @@ pub struct FamiqBuilder<'a> {
     pub ui_root_node: EntityCommands<'a>,
     pub resource: Mut<'a, FamiqResource>,
     pub reactive_data: Mut<'a, RData>,
-    pub containable_children: Mut<'a, ContainableChildren>
+    // pub containable_children: Mut<'a, ContainableChildren>
 }
 
 impl<'a> FamiqBuilder<'a> {
@@ -235,12 +235,11 @@ impl<'a> FamiqBuilder<'a> {
             ui_root_node: fa_query.commands.entity(famiq_resource.root_node_entity.unwrap()),
             resource: famiq_resource.reborrow(),
             reactive_data: fa_query.reactive_data.reborrow(),
-            containable_children: fa_query.containable_children.reborrow()
+            // containable_children: fa_query.containable_children.reborrow()
         }
     }
 
     pub fn inject(self) {
-        // Box it to heap and store raw pointer
         let boxed = Box::new(self);
         let raw = Box::into_raw(boxed); // *mut FamiqBuilder<'a>
         inject_builder(raw as *mut ());
@@ -295,14 +294,18 @@ impl<'a> FamiqBuilder<'a> {
 
     /// Method to use custom style file path.
     ///
-    /// # Argument
+    /// # Argument for native build
     /// * style_path: Full path to the json file, relative to root directory.
+    ///
+    /// # Argument for wasm build
+    /// * style_path: Full path to json file, relative to assets directory.
     pub fn use_style_path(mut self, style_path: &str) -> Self {
         self.resource.style_path = style_path.to_string();
         self
     }
 
     /// Method to enable hot-reload.
+    /// Should be called only for native builds (exclude wasm).
     pub fn hot_reload(mut self) -> Self {
         self.resource.hot_reload_styles = true;
         self
@@ -488,7 +491,7 @@ pub struct FaQuery<'w, 's> {
     pub commands: Commands<'w, 's>,
     pub asset_server: Res<'w, AssetServer>,
     pub reactive_subscriber: ResMut<'w, RSubscriber>,
-    pub containable_children: ResMut<'w, ContainableChildren>
+    // pub containable_children: ResMut<'w, ContainableChildren>
 }
 
 impl<'w, 's> FaQuery<'w, 's> {
@@ -572,7 +575,7 @@ impl<'w, 's> FaQuery<'w, 's> {
     }
 
     /// Insert into reactive data as Rval::List<String>
-    pub fn insert_list(&mut self, key: &str, value: Vec<String>) {
+    pub fn insert_str_list(&mut self, key: &str, value: Vec<String>) {
         self.insert_data(key, RVal::List(value));
     }
 
@@ -586,6 +589,36 @@ impl<'w, 's> FaQuery<'w, 's> {
             self.reactive_data.changed_keys.push(key.to_string());
         }
         self.reactive_data.data.insert(key.to_string(), new_val);
+    }
+
+    /// Explicitly mutates specific key as RVal::Str
+    pub fn mutate_str(&mut self, key: &str, new_str: &str) {
+        self.mutate_data(key, RVal::Str(new_str.into()));
+    }
+
+    /// Explicitly mutates specific key as RVal::Num
+    pub fn mutate_num(&mut self, key: &str, new_num: i32) {
+        self.mutate_data(key, RVal::Num(new_num));
+    }
+
+    /// Explicitly mutates specific key as RVal::FNum
+    pub fn mutate_fnum(&mut self, key: &str, new_fnum: f32) {
+        self.mutate_data(key, RVal::FNum(new_fnum));
+    }
+
+    /// Explicitly mutates specific key as RVal::Bool
+    pub fn mutate_bool(&mut self, key: &str, new_bool: bool) {
+        self.mutate_data(key, RVal::Bool(new_bool));
+    }
+
+    /// Explicitly mutates specific key as RVal::None
+    pub fn mutate_none(&mut self, key: &str) {
+        self.mutate_data(key, RVal::None);
+    }
+
+    /// Explicitly mutates specific key as RVal::List<String>
+    pub fn mutate_str_list(&mut self, key: &str, new_list: Vec<String>) {
+        self.mutate_data(key, RVal::List(new_list));
     }
 
     /// Get value of provided key.

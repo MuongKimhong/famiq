@@ -37,7 +37,7 @@ impl FaBaseText {
     fn process_text_size_class(&self) -> TextSize {
         let mut use_size = TextSize::Default;
 
-        if let Some(class) = self.attributes.class.as_ref() {
+        if let Some(class) = self.cloned_attrs.class.as_ref() {
             let class_split: Vec<&str> = class.split_whitespace().collect();
 
             for class_name in class_split {

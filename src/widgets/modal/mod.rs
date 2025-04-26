@@ -190,7 +190,7 @@ macro_rules! modal {
             &famiq_builder.reactive_data.data,
             &mut famiq_builder.ui_root_node.commands()
         );
-        famiq_builder.containable_children.insert(bg_entity, children_vec);
+        // famiq_builder.containable_children.insert(bg_entity, children_vec);
         bg_entity
     }};
 }

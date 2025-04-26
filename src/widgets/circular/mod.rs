@@ -20,9 +20,9 @@ use helper::*;
 #[derive(AsBindGroup, Asset, TypePath, Debug, Clone)]
 pub struct CircularMaterial {
     #[uniform(0)]
-    u_color: Vec3,
+    u_color: Vec4,
     #[uniform(1)]
-    u_time: f32
+    u_time: Vec4
 }
 
 impl UiMaterial for CircularMaterial {

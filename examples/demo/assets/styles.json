@@ -1,18 +1,22 @@
 {
-  "#main-container": {
+  "#container": {
+    "width": "800px",
     "justify_content": "center",
-    "align_items": "center",
-    "height": "90%"
+    "align_items": "center"
   },
-  ".block": {
+  ".sub-container": {
+    "width": "100%",
     "flex_direction": "row",
-    "flex_wrap": "wrap",
+    "margin_top": "10px",
     "justify_content": "center",
     "align_items": "center"
   },
   ".input": {
-    "width": "40%",
-    "font_size": "30",
-    "color": "green"
+    "width": "45%",
+    "margin_left": "5px",
+    "margin_right": "5px"
+  },
+  "#select": {
+    "width": "90%"
   }
 }

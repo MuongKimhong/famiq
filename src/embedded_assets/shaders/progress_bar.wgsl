@@ -1,13 +1,13 @@
 #import bevy_ui::ui_vertex_output::UiVertexOutput
 
 @group(1) @binding(0)
-var<uniform> u_time: f32;
+var<uniform> u_time: vec4<f32>;
 @group(1) @binding(1)
-var<uniform> u_color: vec3<f32>;
+var<uniform> u_color: vec4<f32>;
 @group(1) @binding(2)
-var<uniform> u_blend: f32; // 0.0 = No Blend, 1.0 = Blend
+var<uniform> u_blend: vec4<f32>; // 0.0 = No Blend, 1.0 = Blend
 @group(1) @binding(3)
-var<uniform> u_size: vec2<f32>; // w & h
+var<uniform> u_size: vec4<f32>; // w & h
 
 // Signed Distance Function for Rounded Rectangle
 // Source: https://github.com/bevyengine/bevy/blob/main/crates/bevy_ui/src/render/ui.wgsl
@@ -26,7 +26,7 @@ fn fragment(in: UiVertexOutput) -> @location(0) vec4<f32> {
     let uv = in.uv;
 
     let speed = 1.6;
-    let shift = fract(uv.x + u_time * speed);
+    let shift = fract(uv.x + u_time.x * speed);
 
     let alpha_start = 1.0;
     let alpha_end   = 0.15;
@@ -35,12 +35,12 @@ fn fragment(in: UiVertexOutput) -> @location(0) vec4<f32> {
 
     let alpha = mix(alpha_start, alpha_end, alpha_blend1);
     let final_alpha = mix(alpha, alpha_start, alpha_blend2);
-    let local_pos = (uv - 0.5) * u_size;
+    let local_pos = (uv - 0.5) * u_size.xy;
 
     // Compute Signed Distance (Rounded Corners)
-    let dist = sd_rounded_box(local_pos, u_size, u_radius);
+    let dist = sd_rounded_box(local_pos, u_size.xy, u_radius);
     let inside_shape = smoothstep(0.0, -1.5, dist);
-    let blended_alpha = mix(1.0, final_alpha, u_blend);
+    let blended_alpha = mix(1.0, final_alpha, u_blend.x);
 
-    return vec4<f32>(u_color, blended_alpha * inside_shape);
+    return vec4<f32>(u_color.rgb, blended_alpha * inside_shape);
 }

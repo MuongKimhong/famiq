@@ -30,7 +30,7 @@ pub fn detect_new_progress_bar(
                 }
             }
             if let Color::Srgba(value) = value_color.0 {
-                let u_blend = if percent.0.is_some() {
+                let blend: f32 = if percent.0.is_some() {
                     0.0
                 } else {
                     1.0
@@ -39,10 +39,10 @@ pub fn detect_new_progress_bar(
                     .entity(value_entity.0)
                     .insert(
                         MaterialNode(progress_materials.add(ProgressBarMaterial {
-                            u_time: 0.0,
-                            u_color: Vec3::new(value.red, value.green, value.blue),
-                            u_blend,
-                            u_size: computed_node.size()
+                            u_time: Vec4::ZERO,
+                            u_color: Vec4::new(value.red, value.green, value.blue, 0.0),
+                            u_blend: Vec4::new(blend, 0.0, 0.0, 0.0),
+                            u_size: Vec4::new(computed_node.size().x, computed_node.size().y, 0.0, 0.0)
                         }))
                     );
             }
@@ -58,11 +58,11 @@ pub fn update_progress_bar_material_u_time(
     query.iter().for_each(|(handle, percentage)| {
         if let Some(material) = materials.get_mut(handle) {
             if percentage.0.is_none() {
-                material.u_time = -time.elapsed_secs();
-                material.u_blend = 1.0;
+                material.u_time.x = -time.elapsed_secs();
+                material.u_blend.x = 1.0;
             } else {
-                material.u_time = 0.0;
-                material.u_blend = 0.0;
+                material.u_time.x = 0.0;
+                material.u_blend.x = 0.0;
             }
         }
     });

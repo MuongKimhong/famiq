@@ -160,7 +160,7 @@ pub(crate) fn on_request_redraw_editor_buffer(
                 let (material_handle, image_node)= param.texture_q.get(texture_entity.0).unwrap();
                 if let Some(material) = param.materials.get_mut(material_handle) {
                     if let Color::Srgba(value) = cosmic_rgba_to_bevy_srgba(cosmic_color.text_color) {
-                        material.color = Vec3::new(value.red, value.green, value.blue);
+                        material.color = Vec4::new(value.red, value.green, value.blue, 0.0);
                     }
                     if let Some(texture) = param.image_asset.get_mut(material.texture.id()) {
                         let new_size = Extent3d {
@@ -343,7 +343,7 @@ pub(crate) fn detect_new_text_input_widget_system(
                 .spawn((
                     ImageNode::new(empty_texture_handle),
                     MaterialNode(materials.add(TextInputMaterial {
-                        color: Vec3::new(value.red, value.green, value.blue),
+                        color: Vec4::new(value.red, value.green, value.blue, 1.0),
                         texture: texture_handle
                     })),
                     Node {
@@ -635,4 +635,15 @@ pub(crate) fn handle_text_input_on_typing(mut param: TypingParam) {
             }
         }
     }
+}
+
+pub fn cosmic_font_system_exists(font_system: Option<Res<CosmicFontSystem>>) -> bool {
+    font_system.is_some()
+}
+
+/// Determines if text_input internal system(s) can run.
+///
+/// True only if there is a text_input widget created.
+pub fn can_run_text_input_systems(input_q: Query<&IsFamiqTextInput>) -> bool {
+    !input_q.is_empty()
 }

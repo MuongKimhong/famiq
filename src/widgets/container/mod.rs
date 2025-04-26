@@ -137,7 +137,7 @@ macro_rules! container {
             &famiq_builder.reactive_data.data,
             &mut famiq_builder.ui_root_node.commands()
         );
-        famiq_builder.containable_children.insert(entity, children_vec);
+        // famiq_builder.containable_children.insert(entity, children_vec);
         entity
     }};
 }

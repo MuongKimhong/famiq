@@ -3,6 +3,8 @@ use crate::resources::*;
 use crate::widgets::{style_parse::*, *};
 use bevy::prelude::*;
 use bevy::platform::collections::HashSet;
+use cosmic_text::FontSystem;
+use cosmic_text::fontdb::Source;
 
 use super::text_input::CosmicTextData;
 use super::DefaultTextSpanConfig;
@@ -51,26 +53,36 @@ pub(crate) fn read_styles_from_file_system(
     }
 }
 
+#[allow(dead_code)]
 pub(crate) fn load_json_style_asset_wasm(
+    mut commands: Commands,
     mut styles: ResMut<StylesKeyValueResource>,
     mut asset_state: ResMut<JsonStyleAssetState>,
     json_asset: Res<Assets<JsonStyleAsset>>,
+    font_asset: Res<Assets<Font>>,
     famiq_res: Res<FamiqResource>,
     asset_server: Res<AssetServer>
 ) {
     if !asset_state.initial_loaded {
-        asset_state.handle = asset_server.load(&famiq_res.style_path);
+        asset_state.style_handle = asset_server.load(&famiq_res.style_path);
+        asset_state.font_handle = asset_server.load(&famiq_res.font_path);
         asset_state.initial_loaded = true;
         return;
     }
 
     if !asset_state.fully_loaded {
-        let asset = json_asset.get(&asset_state.handle);
+        let asset = json_asset.get(&asset_state.style_handle);
+        let font = font_asset.get(&asset_state.font_handle);
 
-        if asset.is_none() {
+        if asset.is_none() || font.is_none() {
             return;
         }
         asset_state.fully_loaded = true;
+
+        let font_data = font.unwrap().data.clone();
+        commands.insert_resource(CosmicFontSystem(
+            FontSystem::new_with_fonts([Source::Binary(font_data)])
+        ));
 
         let json_styles = asset.unwrap();
         let mut changed_keys: Vec<String> = Vec::new();
@@ -88,10 +100,6 @@ pub(crate) fn load_json_style_asset_wasm(
         }
     }
 }
-
-// pub(crate) fn json_style_asset_loaded(state: Res<JsonStyleAssetState>) -> bool {
-//     sta
-// }
 
 pub(crate) fn detect_widget_external_styles_change(
     styles: Res<StylesKeyValueResource>,

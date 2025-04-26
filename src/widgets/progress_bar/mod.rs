@@ -20,13 +20,13 @@ use helper::*;
 #[derive(AsBindGroup, Asset, TypePath, Debug, Clone)]
 pub struct ProgressBarMaterial {
     #[uniform(0)]
-    u_time: f32,
+    u_time: Vec4,
     #[uniform(1)]
-    u_color: Vec3,
+    u_color: Vec4,
     #[uniform(2)]
-    u_blend: f32,
+    u_blend: Vec4,
     #[uniform(3)]
-    u_size: Vec2
+    u_size: Vec4
 }
 
 impl UiMaterial for ProgressBarMaterial {

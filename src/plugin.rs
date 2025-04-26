@@ -112,9 +112,14 @@ fn fa_text_input_systems(app: &mut App) {
             handle_cursor_blink_system,
             detect_new_text_input_widget_system,
         )
-        .run_if(can_run_text_input_systems)
+        .run_if(cosmic_font_system_exists.and(can_run_text_input_systems))
+        // .run_if( can_run_text_input_systems)
     );
-    app.add_systems(PostUpdate, on_request_redraw_editor_buffer);
+    app.add_systems(
+        PostUpdate,
+        on_request_redraw_editor_buffer
+            .run_if(cosmic_font_system_exists.and(can_run_text_input_systems))
+    );
 }
 
 fn fa_scroll_systems(app: &mut App) {
@@ -163,7 +168,6 @@ impl Plugin for FamiqPlugin {
         embedded_asset!(app, "embedded_assets/shaders/progress_bar.wgsl");
         embedded_asset!(app, "embedded_assets/shaders/circular.wgsl");
         embedded_asset!(app, "embedded_assets/shaders/text_input.wgsl");
-        embedded_asset!(app, "embedded_assets/logo.jpeg"); // for testing
 
         app.add_systems(PreStartup, _spawn_root_node);
         app.add_systems(PostStartup, adjust_position_system);
@@ -188,8 +192,12 @@ impl Plugin for FamiqPlugin {
         app.insert_resource(RData::default());
         app.insert_resource(StylesKeyValueResource::default());
         app.insert_resource(FamiqResource::new());
-        app.insert_resource(ContainableChildren::default());
-        app.insert_resource(CosmicFontSystem(FontSystem::new()));
+        // app.insert_resource(ContainableChildren::default());
+
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            app.insert_resource(CosmicFontSystem(FontSystem::new_with_fonts([])));
+        }
         app.insert_resource(CosmicSwashCache(SwashCache::new()));
         app.insert_resource(RSubscriber::default());
         app.insert_resource(CanBeScrolled { entity: None });

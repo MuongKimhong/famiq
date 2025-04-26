@@ -30,6 +30,7 @@ pub fn default_move_panel_node() -> Node {
         flex_direction: FlexDirection::Column,
         align_items: AlignItems::FlexStart,
         justify_content: JustifyContent::FlexStart,
+        height: Val::Auto,
         padding: UiRect {
             left: Val::Px(0.0),
             right: Val::Px(0.0),

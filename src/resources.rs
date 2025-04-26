@@ -87,44 +87,44 @@ impl FamiqResource {
     }
 }
 
-/// Store children entity for containable widgets
-#[derive(Resource, Debug, Default)]
-pub struct ContainableChildren {
-    pub data: HashMap<Entity, Vec<Entity>>
-}
+// /// Store children entity for containable widgets
+// #[derive(Resource, Debug, Default)]
+// pub struct ContainableChildren {
+//     pub data: HashMap<Entity, Vec<Entity>>
+// }
 
-impl ContainableChildren {
-    /// Insert or update data
-    pub fn insert(&mut self, entity: Entity, children: Vec<Entity>) {
-        self.data.insert(entity, children);
-    }
+// impl ContainableChildren {
+//     /// Insert or update data
+//     pub fn insert(&mut self, entity: Entity, children: Vec<Entity>) {
+//         self.data.insert(entity, children);
+//     }
 
-    /// Replace child entity with provided one
-    pub fn update_child(&mut self, parent: Entity, new_child: Entity, old_child: Entity) {
-        if let Some(children_list) = self.data.get_mut(&parent) {
-            for child in children_list.iter_mut() {
-                if *child == old_child {
-                    *child = new_child;
-                    return;
-                }
-            }
-        }
-    }
+//     /// Replace child entity with provided one
+//     pub fn update_child(&mut self, parent: Entity, new_child: Entity, old_child: Entity) {
+//         if let Some(children_list) = self.data.get_mut(&parent) {
+//             for child in children_list.iter_mut() {
+//                 if *child == old_child {
+//                     *child = new_child;
+//                     return;
+//                 }
+//             }
+//         }
+//     }
 
-    /// Insert new containable, remove old one.
-    pub fn update_containable(&mut self, old: Entity, new: Entity) {
-        if let Some(children_list) = self.data.remove(&old) {
-            self.data.insert(new, children_list);
-        }
-    }
+//     /// Insert new containable, remove old one.
+//     pub fn update_containable(&mut self, old: Entity, new: Entity) {
+//         if let Some(children_list) = self.data.remove(&old) {
+//             self.data.insert(new, children_list);
+//         }
+//     }
 
-    pub fn get_children(&self, containable: Entity) -> Option<Vec<Entity>> {
-        if let Some(children_list) = self.data.get(&containable) {
-            return Some(children_list.to_owned());
-        }
-        None
-    }
-}
+//     pub fn get_children(&self, containable: Entity) -> Option<Vec<Entity>> {
+//         if let Some(children_list) = self.data.get(&containable) {
+//             return Some(children_list.to_owned());
+//         }
+//         None
+//     }
+// }
 
 // reference: https://bevyengine.org/examples/assets/custom-asset/
 #[derive(Asset, TypePath, Debug, Deserialize)]
@@ -166,5 +166,6 @@ impl AssetLoader for JsonStyleAssetLoader {
 pub struct JsonStyleAssetState {
     pub initial_loaded: bool,
     pub fully_loaded: bool,
-    pub handle: Handle<JsonStyleAsset>
+    pub style_handle: Handle<JsonStyleAsset>,
+    pub font_handle: Handle<Font>
 }

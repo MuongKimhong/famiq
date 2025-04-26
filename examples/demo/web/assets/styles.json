@@ -1,0 +1,22 @@
+{
+  "#container": {
+    "width": "800px",
+    "justify_content": "center",
+    "align_items": "center"
+  },
+  ".sub-container": {
+    "width": "100%",
+    "flex_direction": "row",
+    "margin_top": "10px",
+    "justify_content": "center",
+    "align_items": "center"
+  },
+  ".input": {
+    "width": "45%",
+    "margin_left": "5px",
+    "margin_right": "5px"
+  },
+  "#select": {
+    "width": "90%"
+  }
+}

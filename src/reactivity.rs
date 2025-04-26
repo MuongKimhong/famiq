@@ -5,7 +5,7 @@ use crate::resources::*;
 use crate::widgets::style::*;
 use crate::widgets::*;
 
-pub type Subscriber = HashMap<Entity, WidgetBuilder>; // String is serialized fields
+pub type Subscriber = HashMap<Entity, WidgetBuilder>;
 
 #[derive(Resource, Default, Debug)]
 pub struct RSubscriber {
@@ -170,39 +170,17 @@ pub(crate) fn detect_reactive_data_change(
         commands.queue(move |world: &mut World| {
             to_remove_subscribers.into_iter().for_each(|(entity, widget_builder)| {
                 match widget_builder.builder {
-                    BuilderType::Button(mut builder) => {
-                        builder.rebuild(&r_data, entity, world);
-                    }
-                    BuilderType::Text(mut builder) => {
-                        builder.rebuild(&r_data, entity, world);
-                    }
-                    BuilderType::Checkbox(mut builder) => {
-                        builder.rebuild(&r_data, entity, world);
-                    }
-                    BuilderType::Circular(mut builder) => {
-                        builder.rebuild(&r_data, entity, world);
-                    }
-                    BuilderType::ProgressBar(mut builder) => {
-                        builder.rebuild(&r_data, entity, world);
-                    }
-                    BuilderType::Fps(mut builder) => {
-                        builder.rebuild(&r_data, entity, world);
-                    }
-                    BuilderType::Image(mut builder) => {
-                        builder.rebuild(&r_data, entity, world);
-                    }
-                    BuilderType::Scroll(mut builder) => {
-                        builder.rebuild(&r_data, entity, world);
-                    },
-                    BuilderType::Selection(mut builder) => {
-                        builder.rebuild(&r_data, entity, world);
-                    }
-                    BuilderType::Container(mut builder) => {
-                        builder.rebuild(&r_data, entity, world);
-                    },
-                    BuilderType::Modal(mut builder) => {
-                        builder.rebuild(&r_data, entity, world);
-                    }
+                    BuilderType::Button(mut builder) => builder.rebuild(&r_data, entity, world),
+                    BuilderType::Text(mut builder) => builder.rebuild(&r_data, entity, world),
+                    BuilderType::Checkbox(mut builder) => builder.rebuild(&r_data, entity, world),
+                    BuilderType::Circular(mut builder) => builder.rebuild(&r_data, entity, world),
+                    BuilderType::ProgressBar(mut builder) => builder.rebuild(&r_data, entity, world),
+                    BuilderType::Fps(mut builder) => builder.rebuild(&r_data, entity, world),
+                    BuilderType::Image(mut builder) => builder.rebuild(&r_data, entity, world),
+                    BuilderType::Scroll(mut builder) => builder.rebuild(&r_data, entity, world),
+                    BuilderType::Selection(mut builder) => builder.rebuild(&r_data, entity, world),
+                    BuilderType::Container(mut builder) => builder.rebuild(&r_data, entity, world),
+                    BuilderType::Modal(mut builder) => builder.rebuild(&r_data, entity, world),
                 }
             });
             reset_external_style(world, &style_res);
