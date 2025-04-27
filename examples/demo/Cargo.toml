@@ -5,4 +5,5 @@ edition = "2024"
 
 [dependencies]
 bevy = "0.16"
-famiq = { path = "../../../famiq" }
+# famiq = { git = "https://github.com/MuongKimhong/famiq", tag = "0.3.0" }
+famiq = { path = "../../famiq" }
