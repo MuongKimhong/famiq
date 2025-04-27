@@ -165,6 +165,7 @@ impl SetupWidget for ModalBuilder {
     }
 }
 
+/// Macro for creating a modal.
 #[macro_export]
 macro_rules! modal {
     ( $( $key:ident : $value:tt ),* $(,)? ) => {{

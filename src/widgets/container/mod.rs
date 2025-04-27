@@ -116,6 +116,7 @@ impl SetupWidget for ContainerBuilder {
     }
 }
 
+/// Macro for creating a container.
 #[macro_export]
 macro_rules! container {
     ( $( $key:ident : $value:tt ),* $(,)? ) => {{

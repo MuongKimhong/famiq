@@ -74,7 +74,7 @@ impl RVal {
         }
     }
 
-    /// Get inner value of List as Vec<String>
+    /// Get inner value of List as `Vec<String>`
     pub fn as_vec(&self) -> &Vec<String> {
         match self {
             RVal::List(v) => v,
@@ -82,7 +82,7 @@ impl RVal {
         }
     }
 
-    /// Get inner value of List as &mut Vec<String>
+    /// Get inner value of List as &mut `Vec<String>`
     pub fn as_vec_mut(&mut self) -> &mut Vec<String> {
         match self {
             RVal::List(v) => v,

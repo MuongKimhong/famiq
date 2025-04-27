@@ -128,6 +128,7 @@ impl SetupWidget for ButtonBuilder {
     }
 }
 
+/// Macro for creating a button.
 #[macro_export]
 macro_rules! button {
     ( text: $text:expr $(, $key:ident : $value:tt )* $(,)? ) => {{

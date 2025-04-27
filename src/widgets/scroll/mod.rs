@@ -15,6 +15,8 @@ use macros::set_widget_attributes;
 
 // TODO: make scroll widget reactive
 
+pub const DEFAULT_SCROLL_HEIGHT: f32 = 15.0;
+
 /// only entity inside this resource can be scrolled
 #[derive(Resource)]
 pub struct CanBeScrolled {
@@ -62,7 +64,7 @@ pub struct ScrollBuilder {
     pub all_reactive_keys: Vec<String>,
     pub children: Vec<Entity>,
     pub root_node: Entity,
-    pub scroll_height: f32,
+    pub scroll_height: RVal,
     pub panel_entity: Option<Entity>
 }
 
@@ -73,7 +75,7 @@ impl ScrollBuilder {
             attributes: WidgetAttributes::default(),
             cloned_attrs: WidgetAttributes::default(),
             children: Vec::new(),
-            scroll_height: 15.0,
+            scroll_height: RVal::FNum(DEFAULT_SCROLL_HEIGHT),
             panel_entity: None,
             root_node
         }
@@ -88,7 +90,10 @@ impl ScrollBuilder {
         let panel_entity = panel.build(r_data, commands);
         commands
             .entity(panel_entity)
-            .insert((IsFamiqScrollMovePanel, ScrollList::new(self.scroll_height)));
+            .insert((
+                IsFamiqScrollMovePanel,
+                ScrollList::new(self.handle_scroll_height_val(r_data))
+            ));
 
         commands.entity(panel_entity).add_children(&self.children);
         self.panel_entity = Some(panel_entity);
@@ -103,7 +108,7 @@ impl ScrollBuilder {
         panel.rebuild(r_data, self.panel_entity.unwrap(), world);
         world
             .entity_mut(self.panel_entity.unwrap())
-            .insert(ScrollList::new(self.scroll_height));
+            .insert(ScrollList::new(self.handle_scroll_height_val(r_data)));
     }
 
     pub(crate) fn calculate_max_scroll(
@@ -115,6 +120,27 @@ impl ScrollBuilder {
 
         let max_scroll = panel_height - container_height;
         max_scroll.max(0.0)
+    }
+
+    pub(crate) fn handle_scroll_height_val(&mut self, r_data: &HashMap<String, RVal>) -> f32 {
+        match self.scroll_height.to_owned() {
+            RVal::FNum(v) => return v,
+            RVal::Str(v) => {
+                let reactive_keys = get_reactive_key(&v);
+                self.all_reactive_keys.extend_from_slice(&reactive_keys);
+
+                for key in reactive_keys.iter() {
+                    if let Some(r_v) = r_data.get(key) {
+                        match r_v {
+                            RVal::FNum(size) =>  return *size,
+                            _ => {}
+                        }
+                    }
+                }
+                return DEFAULT_SCROLL_HEIGHT;
+            }
+            _ => return DEFAULT_SCROLL_HEIGHT
+        }
     }
 }
 
@@ -190,6 +216,7 @@ impl SetupWidget for ScrollBuilder {
     }
 }
 
+/// Macro for creating a scrollable container.
 #[macro_export]
 macro_rules! scroll {
     ( $( $key:ident : $value:tt ),* $(,)? ) => {{
@@ -220,7 +247,10 @@ macro_rules! scroll_attributes {
     ($s_builder:ident, children: $children_vec:tt) => {{}};
 
     ($s_builder:ident, scroll_height: $scroll_height:expr) => {{
-        $s_builder.scroll_height = $scroll_height;
+        match to_rval($scroll_height) {
+            Ok(v) => $s_builder.scroll_height = v,
+            Err(_) => panic!("\nscroll_height attribute accepts only f32 and reactive string\n")
+        }
     }};
     ($s_builder:ident, $key:ident : $value:expr) => {{
         $crate::common_attributes!($s_builder, $key : $value);

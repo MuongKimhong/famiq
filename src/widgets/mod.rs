@@ -18,7 +18,6 @@ pub mod checkbox;
 pub mod tests;
 pub mod base_components;
 
-pub(crate) use style_parse::parse_display;
 pub(crate) use scroll::ScrollMovePanelEntity;
 pub use base_components::*;
 
@@ -52,6 +51,7 @@ pub trait SetupWidget {
     );
 }
 
+/// Built-in color variants. These colors can be set via class.
 #[derive(Clone, Default, PartialEq, Debug)]
 pub enum WidgetColor {
     #[default]
@@ -73,6 +73,7 @@ pub enum WidgetColor {
     CustomSrgba((f32, f32, f32, f32))
 }
 
+/// Built-in size variants. These sizes can be set via class.
 #[derive(Clone, Copy, Default, PartialEq, Debug)]
 pub enum WidgetSize {
     #[default]
@@ -89,14 +90,15 @@ pub struct WidgetAttributes {
     pub node: Node,
     pub color: WidgetColor,
     pub size: WidgetSize,
+    pub width: Option<String>,
+    pub height: Option<String>,
+    pub display: Option<String>,
     pub font_handle: Option<Handle<Font>>,
     pub image_handle: Option<Handle<Image>>,
     pub has_tooltip: bool,
     pub tooltip_text: String,
     pub bind_keys: Vec<String>,
     pub model_key: Option<String>,
-    pub(crate) default_display_changed: bool,
-    pub(crate) default_display: Display,
     pub(crate) default_visibility: Visibility,
     pub(crate) default_z_index: ZIndex,
     pub(crate) overrided_background_color: Option<Color>,
@@ -138,18 +140,21 @@ pub trait SetWidgetAttributes: Sized {
         self.attributes().size = WidgetSize::Custom(size);
     }
 
+    fn set_width(&mut self, width: &str) {
+        self.attributes().width = Some(width.to_string());
+    }
+
+    fn set_height(&mut self, height: &str) {
+        self.attributes().height = Some(height.to_string());
+    }
+
+    fn set_display(&mut self, display: &str) {
+        self.attributes().display = Some(display.to_string());
+    }
+
     fn set_tooltip(&mut self, text: &str) {
         self.attributes().has_tooltip = true;
         self.attributes().tooltip_text = text.to_string();
-    }
-
-    fn display(mut self, display: &str) -> Self {
-        if let Some(parsed_display) = parse_display(display) {
-            self.attributes().node.display = parsed_display;
-            self.attributes().default_display_changed = true;
-            self.attributes().default_display = parsed_display;
-        }
-        self
     }
 
     fn _process_built_in_color_class(&mut self) {
@@ -219,6 +224,7 @@ pub enum WidgetType {
     BackgroudImage
 }
 
+/// Root builder, allows access to AssetServer, root_node, FamiqResource and RData.
 pub struct FamiqBuilder<'a> {
     pub asset_server: &'a Res<'a, AssetServer>,
     pub ui_root_node: EntityCommands<'a>,
@@ -228,6 +234,7 @@ pub struct FamiqBuilder<'a> {
 }
 
 impl<'a> FamiqBuilder<'a> {
+    /// Create new root builder.
     pub fn new(fa_query: &'a mut FaQuery, famiq_resource: &'a mut ResMut<FamiqResource>) -> Self {
         Self {
             asset_server: &fa_query.asset_server,
@@ -238,6 +245,7 @@ impl<'a> FamiqBuilder<'a> {
         }
     }
 
+    /// Inject root builder for global access.
     pub fn inject(self) {
         let boxed = Box::new(self);
         let raw = Box::into_raw(boxed); // *mut FamiqBuilder<'a>
@@ -397,7 +405,7 @@ pub enum WidgetSelector<'a> {
     ENTITY(Entity)
 }
 
-/// Widget query
+/// Widget style query
 #[derive(QueryData)]
 #[query_data(mutable)]
 pub struct StyleQuery {
@@ -413,7 +421,7 @@ pub struct StyleQuery {
     pub default_style: &'static DefaultWidgetConfig
 }
 
-/// Text query
+/// Text style query
 #[derive(QueryData)]
 #[query_data(mutable)]
 pub struct TextStyleQuery {
@@ -425,7 +433,7 @@ pub struct TextStyleQuery {
     pub default_text_span_style: Option<&'static DefaultTextSpanConfig>,
 }
 
-/// Query for getting/updating style and text style.
+/// Query for getting/updating widget's styles and text's styles.
 #[derive(SystemParam)]
 pub struct FaStyleQuery<'w, 's> {
     pub style_query: Query<'w, 's, StyleQuery>,
@@ -466,6 +474,7 @@ impl<'w, 's> FaStyleQuery<'w, 's> {
     }
 }
 
+/// Containable query for `container!`, `modal!` and `scroll!`.
 #[derive(QueryData)]
 #[query_data(mutable)]
 pub struct ContainableQuery {
@@ -474,7 +483,7 @@ pub struct ContainableQuery {
     id: Option<&'static WidgetId>
 }
 
-/// Famiq query
+/// Famiq main query
 #[derive(SystemParam)]
 pub struct FaQuery<'w, 's> {
     pub containable_query: Query<'w, 's, ContainableQuery, With<IsFamiqContainableWidget>>,
@@ -528,7 +537,7 @@ impl<'w, 's> FaQuery<'w, 's> {
         }
     }
 
-    /// Remove (despawn) children
+    /// Remove (despawn) children from containable widget.
     pub fn remove_children(&mut self, children: &[Entity]) {
         for child in children {
             self.commands.entity(*child).despawn();
@@ -565,7 +574,7 @@ impl<'w, 's> FaQuery<'w, 's> {
         self.insert_data(key, RVal::FNum(value));
     }
 
-    /// Insert into reactive data as Rval::List<String>
+    /// Insert into reactive data as `Rval::List<String>`
     pub fn insert_str_list(&mut self, key: &str, value: Vec<String>) {
         self.insert_data(key, RVal::List(value));
     }
@@ -632,6 +641,7 @@ impl<'w, 's> FaQuery<'w, 's> {
     }
 }
 
+/// Macro to extract children's entities from children attributes.
 #[macro_export]
 macro_rules! extract_children {
     // For children: [ item1, item2, item3 ]
@@ -661,6 +671,7 @@ macro_rules! extract_children {
     ($vec:ident,) => {{}};
 }
 
+/// Macro for setting common attributes to a widget.
 #[macro_export]
 macro_rules! common_attributes {
     ( $builder:ident, $key:ident : $value:expr ) => {{
@@ -669,11 +680,15 @@ macro_rules! common_attributes {
             "class" => $builder.set_class($value),
             "color" => $builder.set_color($value),
             "tooltip" => $builder.set_tooltip($value),
+            "width" => $builder.set_width($value),
+            "height" => $builder.set_height($value),
+            "display" => $builder.set_display($value),
             _ => {}
         }
     }};
 }
 
+/// Represent different type of widget's builder.
 #[derive(Clone, Debug)]
 pub enum BuilderType {
     Text(text::TextBuilder),
@@ -698,12 +713,14 @@ thread_local! {
     static GLOBAL_BUILDER: RefCell<Option<*mut ()>> = RefCell::new(None);
 }
 
+/// Inject root builder for global access.
 pub fn inject_builder(ptr: *mut ()) {
     GLOBAL_BUILDER.with(|cell| {
         *cell.borrow_mut() = Some(ptr);
     });
 }
 
+/// Access to mutable reference root builder.
 pub fn builder_mut<'a>() -> &'a mut FamiqBuilder<'a> {
     GLOBAL_BUILDER.with(|cell| {
         let ptr = cell

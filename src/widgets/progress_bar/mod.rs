@@ -191,6 +191,7 @@ impl SetupWidget for ProgressBarBuilder {
     }
 }
 
+/// Macro for creating a progress bar.
 #[macro_export]
 macro_rules! progress_bar {
     ( $( $key:ident : $value:tt ),* $(,)? ) => {{

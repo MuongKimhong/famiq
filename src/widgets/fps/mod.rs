@@ -246,6 +246,7 @@ impl SetupWidget for FpsBuilder {
     }
 }
 
+/// Macro for creating fps count.
 #[macro_export]
 macro_rules! fps {
     ( $( $key:ident : $value:tt ),* $(,)? ) => {{

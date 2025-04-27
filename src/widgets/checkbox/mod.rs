@@ -269,6 +269,7 @@ impl SetupWidget for CheckboxBuilder {
     }
 }
 
+/// Macro for creating a checkbox.
 #[macro_export]
 macro_rules! checkbox {
     ( $( $key:ident : $value:tt ),* $(,)? ) => {{

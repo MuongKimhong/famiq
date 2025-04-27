@@ -150,6 +150,7 @@ impl SetupWidget for CircularBuilder {
     }
 }
 
+/// Macro for creating a spinning circular.
 #[macro_export]
 macro_rules! circular {
     ( $( $key:ident : $value:tt ),* $(,)? ) => {{

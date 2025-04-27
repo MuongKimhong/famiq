@@ -8,7 +8,6 @@ use crate::widgets::container::base_container::*;
 use crate::event_writer::*;
 use crate::utils::*;
 use crate::widgets::*;
-use crate::widgets::style_parse::parse_val;
 
 use systems::*;
 
@@ -20,8 +19,6 @@ pub struct IsFamiqImage;
 #[derive(Clone, Debug)]
 pub struct ImageBuilder {
     pub path: String,
-    pub width: Option<String>,
-    pub height: Option<String>,
     pub all_reactive_keys: Vec<String>
 }
 
@@ -32,21 +29,6 @@ impl ImageBuilder {
             attributes: WidgetAttributes::default(),
             cloned_attrs: WidgetAttributes::default(),
             all_reactive_keys: Vec::new(),
-            width: None,
-            height: None
-        }
-    }
-
-    pub(crate) fn width_height(&mut self) {
-        if let Some(w) = self.width.as_ref() {
-            if let Some(parsed_width) = parse_val(&w) {
-                self.cloned_attrs.node.width = parsed_width;
-            }
-        }
-        if let Some(h) = self.height.as_ref() {
-            if let Some(parsed_height) = parse_val(&h) {
-                self.cloned_attrs.node.height = parsed_height;
-            }
         }
     }
 
@@ -54,7 +36,6 @@ impl ImageBuilder {
         self.cloned_attrs = self.attributes.clone();
         self.cloned_attrs.overrided_border_color = Some(Color::NONE);
         self.cloned_attrs.overrided_background_color = Some(Color::NONE);
-        self.width_height();
         replace_reactive_keys_common_attrs(&mut self.cloned_attrs, r_data, &mut self.all_reactive_keys);
 
         let reactive_keys = get_reactive_key(&self.path);
@@ -127,6 +108,7 @@ impl SetupWidget for ImageBuilder {
     }
 }
 
+/// Macro for creating an image.
 #[macro_export]
 macro_rules! image {
     ( path: $path:expr $(, $key:ident : $value:tt )* $(,)? ) => {{
@@ -144,12 +126,6 @@ macro_rules! image {
 
 #[macro_export]
 macro_rules! image_attributes {
-    ($i_builder:ident, width: $width:expr) => {{
-        $i_builder.width = Some($width.to_string());
-    }};
-    ($i_builder:ident, height: $height:expr) => {{
-        $i_builder.height = Some($height.to_string());
-    }};
     ($i_builder:ident, $key:ident : $value:expr) => {{
         $crate::common_attributes!($i_builder, $key : $value);
     }};

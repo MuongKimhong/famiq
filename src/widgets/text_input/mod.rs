@@ -149,6 +149,8 @@ impl SetupWidget for TextInputBuilder {
     ) {}
 }
 
+/// Macro for creating a single line text input.
+/// Clipboard is not supported yet on WASM.
 #[macro_export]
 macro_rules! text_input {
     ( placeholder: $placeholder:expr $(, $key:ident : $value:tt )* $(,)? ) => {{

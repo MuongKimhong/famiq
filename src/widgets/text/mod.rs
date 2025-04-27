@@ -141,6 +141,7 @@ impl SetupWidget for TextBuilder {
     }
 }
 
+/// Macro for creating a text.
 #[macro_export]
 macro_rules! text {
     ( text: $text:expr $(, $key:ident : $value:tt )* $(,)? ) => {{

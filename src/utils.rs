@@ -588,6 +588,36 @@ pub fn replace_reactive_keys_common_attrs(
         all_reactive_keys.extend(id_r_keys);
     }
 
+    if let Some(width) = attr.width.as_mut() {
+        let width_r_keys = get_reactive_key(width);
+        *width = replace_reactive_keys(width, &width_r_keys, reactive_data);
+        all_reactive_keys.extend(width_r_keys);
+
+        if let Some(parsed_width) = parse_val(&width) {
+            attr.node.width = parsed_width;
+        }
+    }
+
+    if let Some(height) = attr.height.as_mut() {
+        let height_r_keys = get_reactive_key(height);
+        *height = replace_reactive_keys(height, &height_r_keys, reactive_data);
+        all_reactive_keys.extend(height_r_keys);
+
+        if let Some(parsed_height) = parse_val(&height) {
+            attr.node.height = parsed_height;
+        }
+    }
+
+    if let Some(display) = attr.display.as_mut() {
+        let display_r_keys = get_reactive_key(display);
+        *display = replace_reactive_keys(display, &display_r_keys, reactive_data);
+        all_reactive_keys.extend(display_r_keys);
+
+        if let Some(parsed_display) = parse_display(&display) {
+            attr.node.display = parsed_display;
+        }
+    }
+
     if let WidgetColor::Custom(ref mut c) = attr.color {
         let color_r_keys = get_reactive_key(c);
         *c = replace_reactive_keys(c, &color_r_keys, reactive_data);

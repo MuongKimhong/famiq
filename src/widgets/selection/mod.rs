@@ -247,6 +247,7 @@ impl SetupWidget for SelectionBuilder {
     }
 }
 
+/// Macro for creating a single choice selector.
 #[macro_export]
 macro_rules! selection {
     ( placeholder: $placeholder:expr $(, $key:ident : $value:tt )* $(,)? ) => {{
