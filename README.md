@@ -11,8 +11,35 @@
 </p>
 
 <p align="center">
-    <img width="810" src="carbon.png">
+    <img width="600" src="record.gif">
 </p>
+
+```rust
+fn setup_ui( mut fa_query: FaQuery, mut famiq_res: ResMut<FamiqResource>) {
+    fa_query.insert_num("count", 0);
+    fa_query.insert_str("name", "");
+
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
+
+    container!(
+        id: "#container",
+        children: [
+            text!(text: "$[name]", class: "my-2"),
+            text_input!(placeholder: "Enter name", model: "name", class: "my-1"),
+            button!(text: "Press me $[count]", id: "#btn")
+        ]
+    );
+}
+
+fn on_btn_press(mut events: EventReader<FaMouseEvent>, mut fa_query: FaQuery) {
+    for e in events.read() {
+        if e.is_button_pressed("#btn") {
+            let count = fa_query.get_data_mut("count").unwrap().as_num_mut();
+            *count += 1;
+        }
+    }
+}
+```
 
 > [!WARNING]
 > - **Famiq is new**, many useful features are missing.
