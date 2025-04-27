@@ -6,7 +6,13 @@
 </p>
 
 # Famiq
-Experimental GUI library, based on ECS pattern, powered by Bevy game engine.
+<p align="center">
+    Experimental GUI library, based on ECS pattern, powered by Bevy game engine.
+</p>
+
+<p align="center">
+    <img width="750" height="575" src="carbon.png">
+</p>
 
 > [!WARNING]
 > - **Famiq is new**, many useful features are missing.
