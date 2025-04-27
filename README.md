@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-    <img width="750" height="575" src="carbon.png">
+    <img width="810" src="carbon.png">
 </p>
 
 > [!WARNING]
