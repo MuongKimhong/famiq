@@ -3,7 +3,3 @@ members = [
     "famiq",
     "famiq_macros",
 ]
-
-exclude = [
-    "examples/demo"
-]

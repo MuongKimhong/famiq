@@ -19,7 +19,9 @@
 > - It's not ready yet.... but feel free to try it and share your feedback!
 > - There are plenty of things that need to be improved.
 
-See the [examples](https://github.com/MuongKimhong/famiq/tree/master/examples) directory.
+### Demo
+- [live demo](https://muongkimhong.github.io/famiq_live_demo/)
+- [live demo source code](https://github.com/MuongKimhong/famiq_live_demo).
 
 ## Installation
 Get latest version of `Famiq`
