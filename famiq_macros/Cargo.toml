@@ -2,6 +2,11 @@
 name = "famiq_macros"
 version = "0.1.0"
 edition = "2024"
+authors = ["Kim Muong <muongkimhong086@gmail.com>"]
+description = "pro-macro for famiq"
+license = "MIT"
+repository = "https://github.com/MuongKimhong/famiq/famiq_macros"
+homepage = "https://github.com/MuongKimhong/famiq/famiq_macros"
 
 [lib]
 name = "famiq_macros"
