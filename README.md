@@ -8,10 +8,6 @@
 
 # Famiq
 <p align="center">
-    Experimental GUI library, based on ECS pattern, powered by Bevy game engine.
-</p>
-
-<p align="center">
     <img width="600" src="record.gif">
 </p>
 
@@ -44,10 +40,17 @@ fn on_btn_press(mut events: EventReader<FaMouseEvent>, mut fa_query: FaQuery) {
 
 > [!WARNING]
 > - **Famiq is new**, many useful features are missing.
-> - It's not ready yet.... but feel free to try it and share your feedback!
-> - There are plenty of things that need to be improved.
+> - It's not there yet.... but feel free to try it and share your feedback!
 
-### Demo
+## Features
+- 
+- Built-in useful widgets including text input, modal, progress bar and more
+- Simple & lightweight, yet useful reactivity system
+- JSON based styling (similar to css), keep your rust code clean!
+- Yes it's fast!
+- use it for GUI apps or directly in your games
+
+## Demo
 - [live demo](https://muongkimhong.github.io/famiq_live_demo/)
 - [live demo source code](https://github.com/MuongKimhong/famiq_live_demo).
 
