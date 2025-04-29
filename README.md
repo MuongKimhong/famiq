@@ -43,7 +43,6 @@ fn on_btn_press(mut events: EventReader<FaMouseEvent>, mut fa_query: FaQuery) {
 > - It's not there yet.... but feel free to try it and share your feedback!
 
 ## Features
-- 
 - Built-in useful widgets including text input, modal, progress bar and more
 - Simple & lightweight, yet useful reactivity system
 - JSON based styling (similar to css), keep your rust code clean!
