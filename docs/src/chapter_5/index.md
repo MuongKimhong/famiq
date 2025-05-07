@@ -108,3 +108,18 @@ if let Some(state) = fa_query.get_data_mut("can_change_color") {
 fa_query.mutate_num("count", 2);
 fa_query.mutate_bool("can_change_color", false);
 ```
+
+### Model
+
+Inspired by Vue.js, `model` is a two-way binding between an input and reactive string.
+
+```rust
+fa_query.insert_str("name", "Foo");
+
+text!(text: "My name is $[name]");
+
+text_input!(placeholder: "Enter your name", model: "name");
+```
+
+Here, `text` widget subscribes to reactive data `name`. When the user types in `text_input`, `text` widget
+rebuild itself.

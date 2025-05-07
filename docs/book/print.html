@@ -967,6 +967,15 @@ if let Some(state) = fa_query.get_data_mut("can_change_color") {
 
 fa_query.mutate_num("count", 2);
 fa_query.mutate_bool("can_change_color", false);</code></pre>
+<h3 id="model"><a class="header" href="#model">Model</a></h3>
+<p>Inspired by Vue.js, <code>model</code> is a two-way binding between an input and reactive string.</p>
+<pre><code class="language-rust">fa_query.insert_str("name", "Foo");
+
+text!(text: "My name is $[name]");
+
+text_input!(placeholder: "Enter your name", model: "name");</code></pre>
+<p>Here, <code>text</code> widget subscribes to reactive data <code>name</code>. When the user types in <code>text_input</code>, <code>text</code> widget
+rebuild itself.</p>
 
                     </main>
 
@@ -985,6 +994,22 @@ fa_query.mutate_bool("can_change_color", false);</code></pre>
 
         </div>
 
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
 
 
 
