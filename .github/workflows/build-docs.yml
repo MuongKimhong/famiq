@@ -25,12 +25,14 @@ jobs:
 
       - name: Remove old docs's contents except src/, book/, and book.toml
         run: |
+          cd docs/
           find docs -mindepth 1 ! -name 'src' ! -name 'book' ! -name 'book.toml' -exec rm -rf {} +
 
       - name: Copy book's files to docs directory
         run: |
-          cp -r docs/book/* docs/
-          rm -rf docs/book/
+          cd docs/
+          cp -r book/* .
+          rm -rf book/
 
       - name: Commit and push docs
         run: |
