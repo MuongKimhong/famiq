@@ -1,0 +1,39 @@
+name: Build docs
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install mdBook
+        run: cargo install mdbook
+
+      - name: Build book
+        run: mdbook build
+
+      - name: Remove old docs's contents except src/, book/, and book.toml
+        run: |
+          find docs -mindepth 1 ! -name 'src' ! -name 'book' ! -name 'book.toml' -exec rm -rf {} +
+
+      - name: Copy book's files to docs directory
+        run: |
+          cp -r book/* docs/
+          rm -rf book/
+
+      - name: Commit and push docs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs
+          git commit -m "Update docs from mdBook build" || echo "No changes to commit"
+          git push
