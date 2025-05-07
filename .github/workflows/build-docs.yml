@@ -25,10 +25,12 @@ jobs:
 
       - name: Remove old docs's contents except src/, book/, and book.toml
         run: |
-          find docs -mindepth 1 ! -name 'src' ! -name 'book' ! -name 'book.toml' -exec rm -rf {} +
+          cd docs/
+          find . -mindepth 1 ! -name 'src' ! -name 'book' ! -name 'book.toml' -exec rm -rf {} +
 
       - name: Copy book's files to docs directory
         run: |
+          cd docs/
           cp -r book/* .
           rm -rf book/
 
