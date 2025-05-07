@@ -1,5 +1,6 @@
 ![Static Badge](https://img.shields.io/badge/Version-0.3.0-blue)
 ![Static Badge](https://img.shields.io/badge/OS-Mac%20Linux%20Window%20Web-orange)
+[![static Badge](https://img.shields.io/badge/crate.io-0.3.0-green)](https://crates.io/crates/famiq)
 
 <p align="center">
   <img width="250" src="logo.png">
@@ -7,19 +8,48 @@
 
 # Famiq
 <p align="center">
-    Experimental GUI library, based on ECS pattern, powered by Bevy game engine.
+    <img width="600" src="record.gif">
 </p>
 
-<p align="center">
-    <img width="810" src="carbon.png">
-</p>
+```rust
+fn setup_ui( mut fa_query: FaQuery, mut famiq_res: ResMut<FamiqResource>) {
+    fa_query.insert_num("count", 0);
+    fa_query.insert_str("name", "");
+
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
+
+    container!(
+        id: "#container",
+        children: [
+            text!(text: "$[name]", class: "my-2"),
+            text_input!(placeholder: "Enter name", model: "name", class: "my-1"),
+            button!(text: "Press me $[count]", id: "#btn")
+        ]
+    );
+}
+
+fn on_btn_press(mut events: EventReader<FaMouseEvent>, mut fa_query: FaQuery) {
+    for e in events.read() {
+        if e.is_button_pressed("#btn") {
+            let count = fa_query.get_data_mut("count").unwrap().as_num_mut();
+            *count += 1;
+        }
+    }
+}
+```
 
 > [!WARNING]
 > - **Famiq is new**, many useful features are missing.
-> - It's not ready yet.... but feel free to try it and share your feedback!
-> - There are plenty of things that need to be improved.
+> - It's not there yet.... but feel free to try it and share your feedback!
 
-### Demo
+## Features
+- Built-in useful widgets including text input, modal, progress bar and more
+- Simple & lightweight, yet useful reactivity system
+- JSON based styling (similar to css), keep your rust code clean!
+- Yes it's fast!
+- use it for GUI apps or directly in your games
+
+## Demo
 - [live demo](https://muongkimhong.github.io/famiq_live_demo/)
 - [live demo source code](https://github.com/MuongKimhong/famiq_live_demo).
 
