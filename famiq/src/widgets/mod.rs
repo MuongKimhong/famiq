@@ -237,6 +237,55 @@ pub trait SetWidgetAttributes: Sized {
         }
     }
 
+    fn _process_built_in_spacing_class(&mut self) {
+        let class_split: Vec<String> = self.cloned_attrs().class_split.clone();
+        let node = &mut self.cloned_attrs().node;
+
+        for class_name in class_split.iter() {
+            if let Some((prefix, value)) = class_name.split_once('-') {
+
+                let spacing_value = if value == "auto" {
+                    Val::Auto
+                } else if let Ok(num) = value.parse::<f32>() {
+                    Val::Px(num * 5.0)
+                } else {
+                    continue;
+                };
+
+                match prefix {
+                    // Margin classes
+                    "mt" => node.margin.top = spacing_value,
+                    "mb" => node.margin.bottom = spacing_value,
+                    "ml" => node.margin.left = spacing_value,
+                    "mr" => node.margin.right = spacing_value,
+                    "my" => {
+                        node.margin.top = spacing_value;
+                        node.margin.bottom = spacing_value;
+                    }
+                    "mx" => {
+                        node.margin.left = spacing_value;
+                        node.margin.right = spacing_value;
+                    }
+
+                    // Padding classes
+                    "pt" => node.padding.top = spacing_value,
+                    "pb" => node.padding.bottom = spacing_value,
+                    "pl" => node.padding.left = spacing_value,
+                    "pr" => node.padding.right = spacing_value,
+                    "py" => {
+                        node.padding.top = spacing_value;
+                        node.padding.bottom = spacing_value;
+                    }
+                    "px" => {
+                        node.padding.left = spacing_value;
+                        node.padding.right = spacing_value;
+                    }
+                    _ => {}
+                }
+            }
+        }
+    }
+
     fn _process_built_in_size_class(&mut self) {
         if self.cloned_attrs().size != WidgetSize::Default {
             return;

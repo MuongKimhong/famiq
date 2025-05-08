@@ -72,7 +72,7 @@ impl SetupWidget for TextBuilder {
     fn components(&mut self) -> impl Bundle {
         let mut style_components = BaseStyleComponents::default();
         style_components.node = default_text_container_node();
-        process_spacing_built_in_class(&mut style_components.node, &self.cloned_attrs.class);
+        self._process_built_in_spacing_class();
         (
             MainWidget,
             IsFamiqText,

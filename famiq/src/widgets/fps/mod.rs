@@ -144,7 +144,7 @@ impl SetupWidget for FpsBuilder {
     fn components(&mut self) -> impl Bundle {
         let mut style_components = BaseStyleComponents::default();
         style_components.node = self.cloned_attrs.node.clone();
-        process_spacing_built_in_class(&mut style_components.node, &self.cloned_attrs.class);
+        self._process_built_in_spacing_class();
         (
             MainWidget,
             IsFPSTextLabel,

@@ -164,6 +164,35 @@ fn setup_test_built_in_alignment_class(mut fa_query: FaQuery, mut famiq_res: Res
     container!(id: "#container-three", class: "js-center as-center");
 }
 
+fn setup_test_built_in_spacing_class(mut fa_query: FaQuery, mut famiq_res: ResMut<FamiqResource>) {
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
+    container!(id: "#container-one", class: "px-5 my-5");
+    container!(id: "#container-two", class: "pl-5 mb-5");
+}
+
+#[test]
+fn test_built_in_spacing_class() {
+    let mut app = create_test_app();
+    app.add_plugins(FamiqPlugin);
+    app.add_systems(Startup, setup_test_built_in_spacing_class);
+    app.update();
+
+    let mut query = app.world_mut().query::<(&WidgetId, &Node)>();
+
+    for (id, node) in query.iter(app.world_mut()) {
+        if id.0 == "#container-one" {
+            assert_eq!(node.margin.top, Val::Px(25.0));
+            assert_eq!(node.margin.bottom, Val::Px(25.0));
+            assert_eq!(node.padding.right, Val::Px(25.0));
+            assert_eq!(node.padding.left, Val::Px(25.0));
+        }
+        else if id.0 == "#container-two" {
+            assert_eq!(node.padding.left, Val::Px(25.0));
+            assert_eq!(node.margin.bottom, Val::Px(25.0));
+        }
+    }
+}
+
 #[test]
 fn test_built_in_alignment_class() {
     let mut app = create_test_app();
