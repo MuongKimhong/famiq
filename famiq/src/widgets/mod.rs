@@ -97,8 +97,8 @@ pub struct WidgetAttributes {
     pub image_handle: Option<Handle<Image>>,
     pub has_tooltip: bool,
     pub tooltip_text: String,
-    pub bind_keys: Vec<String>,
     pub model_key: Option<String>,
+    pub class_split: Vec<String>,
     pub(crate) default_visibility: Visibility,
     pub(crate) default_z_index: ZIndex,
     pub(crate) overrided_background_color: Option<Color>,
@@ -111,15 +111,6 @@ pub trait SetWidgetAttributes: Sized {
 
     fn cloned_attrs(&mut self) -> &mut WidgetAttributes;
 
-    fn bind<I, S>(mut self, values: I) -> Self
-    where
-        I: IntoIterator<Item = S>,
-        S: Into<String>,
-    {
-        self.attributes().bind_keys = values.into_iter().map(Into::into).collect();
-        self
-    }
-
     fn set_model(&mut self, model_key: &str) {
         self.attributes().model_key = Some(model_key.to_string());
     }
@@ -130,6 +121,7 @@ pub trait SetWidgetAttributes: Sized {
 
     fn set_class(&mut self, class: &str) {
         self.attributes().class = Some(class.to_string());
+        self.attributes().class_split = class.split_whitespace().map(|s| s.to_string()).collect();
     }
 
     fn set_color(&mut self, color: &str) {
@@ -162,28 +154,87 @@ pub trait SetWidgetAttributes: Sized {
             return;
         }
         let mut use_color = WidgetColor::Default;
-        if let Some(class) = self.cloned_attrs().class.as_ref() {
-            let class_split: Vec<&str> = class.split_whitespace().collect();
-
-            for class_name in class_split {
-                match class_name {
-                    "dark" => use_color = WidgetColor::Dark,
-                    "primary" => use_color = WidgetColor::Primary,
-                    "primary-dark" => use_color = WidgetColor::PrimaryDark,
-                    "secondary" => use_color = WidgetColor::Secondary,
-                    "danger" => use_color = WidgetColor::Danger,
-                    "danger-dark" => use_color = WidgetColor::DangerDark,
-                    "success" => use_color = WidgetColor::Success,
-                    "success-dark" => use_color= WidgetColor::SuccessDark,
-                    "warning" => use_color = WidgetColor::Warning,
-                    "warning-dark" => use_color = WidgetColor::WarningDark,
-                    "info" => use_color = WidgetColor::Info,
-                    "info-dark" => use_color = WidgetColor::InfoDark,
-                    _ => {}
-                }
+        for class_name in self.cloned_attrs().class_split.iter() {
+            match class_name.as_str() {
+                "dark" => use_color = WidgetColor::Dark,
+                "primary" => use_color = WidgetColor::Primary,
+                "primary-dark" => use_color = WidgetColor::PrimaryDark,
+                "secondary" => use_color = WidgetColor::Secondary,
+                "danger" => use_color = WidgetColor::Danger,
+                "danger-dark" => use_color = WidgetColor::DangerDark,
+                "success" => use_color = WidgetColor::Success,
+                "success-dark" => use_color= WidgetColor::SuccessDark,
+                "warning" => use_color = WidgetColor::Warning,
+                "warning-dark" => use_color = WidgetColor::WarningDark,
+                "info" => use_color = WidgetColor::Info,
+                "info-dark" => use_color = WidgetColor::InfoDark,
+                _ => {}
             }
         }
         self.cloned_attrs().color = use_color;
+    }
+
+    fn _process_built_in_alignment_class(&mut self) {
+        let class_split: Vec<String> = self.cloned_attrs().class_split.clone();
+
+        for class_name in class_split.iter() {
+            match class_name.as_str() {
+                // JustifyContent
+                "jc-start" => self.cloned_attrs().node.justify_content = JustifyContent::Start,
+                "jc-end" => self.cloned_attrs().node.justify_content = JustifyContent::End,
+                "jc-flex-start" => self.cloned_attrs().node.justify_content = JustifyContent::FlexStart,
+                "jc-flex-end" => self.cloned_attrs().node.justify_content = JustifyContent::FlexEnd,
+                "jc-center" => self.cloned_attrs().node.justify_content = JustifyContent::Center,
+                "jc-stretch" => self.cloned_attrs().node.justify_content = JustifyContent::Stretch,
+                "jc-space-between" => self.cloned_attrs().node.justify_content = JustifyContent::SpaceBetween,
+                "jc-space-evenly" => self.cloned_attrs().node.justify_content = JustifyContent::SpaceEvenly,
+                "jc-space-around" => self.cloned_attrs().node.justify_content = JustifyContent::SpaceAround,
+
+                // JustifyItems
+                "ji-start" => self.cloned_attrs().node.justify_items = JustifyItems::Start,
+                "ji-end" => self.cloned_attrs().node.justify_items = JustifyItems::End,
+                "ji-center" => self.cloned_attrs().node.justify_items = JustifyItems::Center,
+                "ji-stretch" => self.cloned_attrs().node.justify_items = JustifyItems::Stretch,
+                "ji-base-line" => self.cloned_attrs().node.justify_items = JustifyItems::Baseline,
+
+                // JustifySelf
+                "js-start" => self.cloned_attrs().node.justify_self = JustifySelf::Start,
+                "js-end" => self.cloned_attrs().node.justify_self = JustifySelf::End,
+                "js-center" => self.cloned_attrs().node.justify_self = JustifySelf::Center,
+                "js-stretch" => self.cloned_attrs().node.justify_self = JustifySelf::Stretch,
+                "js-base-line" => self.cloned_attrs().node.justify_self = JustifySelf::Baseline,
+
+                // AlignContent
+                "ac-start" => self.cloned_attrs().node.align_content = AlignContent::Start,
+                "ac-end" => self.cloned_attrs().node.align_content = AlignContent::End,
+                "ac-flex-start" => self.cloned_attrs().node.align_content = AlignContent::FlexStart,
+                "ac-flex-end" => self.cloned_attrs().node.align_content = AlignContent::FlexEnd,
+                "ac-center" => self.cloned_attrs().node.align_content = AlignContent::Center,
+                "ac-stretch" => self.cloned_attrs().node.align_content = AlignContent::Stretch,
+                "ac-space-between" => self.cloned_attrs().node.align_content = AlignContent::SpaceBetween,
+                "ac-space-evenly" => self.cloned_attrs().node.align_content = AlignContent::SpaceEvenly,
+                "ac-space-around" => self.cloned_attrs().node.align_content = AlignContent::SpaceAround,
+
+                // AlignItems
+                "ai-start" => self.cloned_attrs().node.align_items = AlignItems::Start,
+                "ai-end" => self.cloned_attrs().node.align_items = AlignItems::End,
+                "ai-flex-start" => self.cloned_attrs().node.align_items = AlignItems::FlexStart,
+                "ai-flex-end" => self.cloned_attrs().node.align_items = AlignItems::FlexEnd,
+                "ai-center" => self.cloned_attrs().node.align_items = AlignItems::Center,
+                "ai-stretch" => self.cloned_attrs().node.align_items = AlignItems::Stretch,
+                "ai-base-line" => self.cloned_attrs().node.align_items = AlignItems::Baseline,
+
+                // AlignSelf
+                "as-start" => self.cloned_attrs().node.align_self = AlignSelf::Start,
+                "as-end" => self.cloned_attrs().node.align_self = AlignSelf::End,
+                "as-flex-start" => self.cloned_attrs().node.align_self = AlignSelf::FlexStart,
+                "as-flex-end" => self.cloned_attrs().node.align_self = AlignSelf::FlexEnd,
+                "as-center" => self.cloned_attrs().node.align_self = AlignSelf::Center,
+                "as-stretch" => self.cloned_attrs().node.align_self = AlignSelf::Stretch,
+                "as-base-line" => self.cloned_attrs().node.align_self = AlignSelf::Baseline,
+                _ => {}
+            }
+        }
     }
 
     fn _process_built_in_size_class(&mut self) {
@@ -191,15 +242,11 @@ pub trait SetWidgetAttributes: Sized {
             return;
         }
         let mut use_size = WidgetSize::Default;
-        if let Some(class) = self.cloned_attrs().class.as_ref() {
-            let class_split: Vec<&str> = class.split_whitespace().collect();
-
-            for class_name in class_split {
-                match class_name {
-                    "small" => use_size = WidgetSize::Small,
-                    "large" => use_size = WidgetSize::Large,
-                    _ => {}
-                }
+        for class_name in self.cloned_attrs().class_split.iter() {
+            match class_name.as_str() {
+                "small" => use_size = WidgetSize::Small,
+                "large" => use_size = WidgetSize::Large,
+                _ => {}
             }
         }
         self.cloned_attrs().size = use_size;

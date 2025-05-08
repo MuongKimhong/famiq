@@ -157,6 +157,38 @@ fn run_set_text_color_entity(mut fa_style_q: FaStyleQuery, test_res: Res<TestRes
     }
 }
 
+fn setup_test_built_in_alignment_class(mut fa_query: FaQuery, mut famiq_res: ResMut<FamiqResource>) {
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
+    container!(id: "#container-one", class: "jc-center ac-center");
+    container!(id: "#container-two", class: "ji-center ai-center");
+    container!(id: "#container-three", class: "js-center as-center");
+}
+
+#[test]
+fn test_built_in_alignment_class() {
+    let mut app = create_test_app();
+    app.add_plugins(FamiqPlugin);
+    app.add_systems(Startup, setup_test_built_in_alignment_class);
+    app.update();
+
+    let mut query = app.world_mut().query::<(&WidgetId, &Node)>();
+
+    for (id, node) in query.iter(app.world_mut()) {
+        if id.0 == "#container-one" {
+            assert_eq!(node.justify_content, JustifyContent::Center);
+            assert_eq!(node.align_content, AlignContent::Center);
+        }
+        else if id.0 == "#container-two" {
+            assert_eq!(node.justify_items, JustifyItems::Center);
+            assert_eq!(node.align_items, AlignItems::Center);
+        }
+        else if id.0 == "#container-three" {
+            assert_eq!(node.justify_self, JustifySelf::Center);
+            assert_eq!(node.align_self, AlignSelf::Center);
+        }
+    }
+}
+
 #[test]
 fn test_add_children_for_container() {
     let mut app = create_test_app();
