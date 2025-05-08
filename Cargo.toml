@@ -1,5 +1,6 @@
 [workspace]
 members = [
     "famiq",
-    "famiq_macros",
+    "famiq_macros", "test_ui",
 ]
+exclude = ["test_ui"]

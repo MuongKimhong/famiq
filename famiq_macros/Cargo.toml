@@ -5,8 +5,8 @@ edition = "2024"
 authors = ["Kim Muong <muongkimhong086@gmail.com>"]
 description = "pro-macro for famiq"
 license = "MIT"
-repository = "https://github.com/MuongKimhong/famiq/famiq_macros"
-homepage = "https://github.com/MuongKimhong/famiq/famiq_macros"
+repository = "https://github.com/MuongKimhong/famiq"
+homepage = "https://github.com/MuongKimhong/famiq"
 
 [lib]
 name = "famiq_macros"

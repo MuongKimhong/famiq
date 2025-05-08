@@ -107,11 +107,6 @@ impl SetupWidget for ButtonBuilder {
         let mut button = FaBaseContainer::new_with_attributes(&self.cloned_attrs);
         button.rebuild(r_data, old_entity, world);
 
-        let mut query = world.query::<(&BackgroundColor, &mut ButtonColorBeforePressed)>();
-        if let Ok((bg, mut bf_pressed)) = query.get_mut(world, old_entity) {
-            bf_pressed.0 = Some(bg.0.clone());
-        }
-
         insert_class_id_world(world, self.old_text_entity.unwrap(), &self.cloned_attrs.id, &self.cloned_attrs.class);
         insert_class_id_world(world, old_entity, &self.cloned_attrs.id, &self.cloned_attrs.class);
 

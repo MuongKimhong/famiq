@@ -232,11 +232,13 @@ pub(crate) fn reset_external_style(
         if style.id.is_none() && style.class.is_none() {
             return;
         }
+        let mut need_reset_style = false;
         let mut empty_style = WidgetStyle::default();
 
         if let Some(id) = style.id {
             if let Some(external_style) = style_res.get(&id.0) {
                 empty_style.update_from(external_style);
+                need_reset_style = true;
             }
         }
         if let Some(classes) = style.class {
@@ -249,20 +251,23 @@ pub(crate) fn reset_external_style(
                 formatted.push_str(class_name);
                 if let Some(external_style) = style_res.get(&formatted) {
                     empty_style.merge_external(external_style);
+                    need_reset_style = true;
                 }
             }
         }
-        apply_styles_from_external_json(
-            &mut style.background_color,
-            &mut style.border_color,
-            &mut style.border_radius,
-            &mut style.visibility,
-            &mut style.z_index,
-            &mut style.node,
-            &mut style.box_shadow,
-            &empty_style,
-            &mut style.default_style
-        );
+        if need_reset_style {
+            apply_styles_from_external_json(
+                &mut style.background_color,
+                &mut style.border_color,
+                &mut style.border_radius,
+                &mut style.visibility,
+                &mut style.z_index,
+                &mut style.node,
+                &mut style.box_shadow,
+                &empty_style,
+                &mut style.default_style
+            );
+        }
     });
 }
 
@@ -280,11 +285,13 @@ pub fn reset_external_text_style(
     )>();
 
     text_style_q.par_iter_mut(world).for_each(|(text_font, text_color, id, class, default_text, default_text_span)| {
+        let mut need_reset_style = false;
         let mut empty_style = WidgetStyle::default();
 
         if let Some(id) = id {
             if let Some(external_style) = style_res.get(&id.0) {
                 empty_style.update_from(external_style);
+                need_reset_style = true;
             }
         }
         if let Some(classes) = class {
@@ -297,15 +304,18 @@ pub fn reset_external_text_style(
                 formatted.push_str(class_name);
                 if let Some(external_style) = style_res.get(&formatted) {
                     empty_style.merge_external(external_style);
+                    need_reset_style = true;
                 }
             }
         }
-        apply_text_styles_from_external_json(
-            &empty_style,
-            default_text,
-            default_text_span,
-            text_font,
-            text_color
-        );
+        if need_reset_style {
+            apply_text_styles_from_external_json(
+                &empty_style,
+                default_text,
+                default_text_span,
+                text_font,
+                text_color
+            );
+        }
     });
 }

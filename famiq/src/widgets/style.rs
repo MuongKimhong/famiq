@@ -109,10 +109,13 @@ pub(crate) fn detect_widget_external_styles_change(
 
         let changed_keys = &styles.changed_keys;
 
+        if changed_keys.is_empty() {
+            return;
+        }
         style_q.par_iter_mut().for_each(|mut style| {
             let mut formatted = String::with_capacity(64);
 
-            // quick exit if there's no id or class
+            // quick exit if there's no id and class
             if style.id.is_none() && style.class.is_none() {
                 return;
             }
