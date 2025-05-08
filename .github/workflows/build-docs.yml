@@ -19,15 +19,12 @@ jobs:
         run: cargo install mdbook
 
       - name: Build book
-        run: mdbook build -d docs/book
-
-      - name: Remove old docs's contents except src/, book/, and book.toml
-        run: find docs -mindepth 1 ! -name 'src' ! -name 'book' ! -name 'book.toml' -exec rm -rf {} +
-
-      - name: Copy book's files to docs directory
         run: |
-          cp -r docs/book/* docs/
-          rm -rf docs/book/
+          shopt -s extglob
+          cd docs/
+          rm -rf !(src|book.toml)
+          cp -r book/* .
+          cd ..
 
       - name: Commit and push docs
         run: |
