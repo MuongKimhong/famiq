@@ -23,6 +23,7 @@ jobs:
           shopt -s extglob
           cd docs/
           rm -rf !(src|book.toml)
+          mdbook build
           cp -r book/* .
           cd ..
 
