@@ -38,9 +38,10 @@ impl SetupWidget for FaBaseContainer {
         self._process_built_in_size_class();
         self._process_built_in_alignment_class();
         self._process_built_in_spacing_class();
+        self._process_built_in_border_radius_class();
         let mut base_style = BaseStyleComponents::default();
         base_style.node = self.cloned_attrs.node.clone();
-        base_style.border_radius = BorderRadius::all(Val::Px(6.0));
+        base_style.border_radius = self.cloned_attrs.border_radius;
         base_style.visibility = self.cloned_attrs.default_visibility;
         base_style.z_index = self.cloned_attrs.default_z_index;
 

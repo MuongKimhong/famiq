@@ -99,6 +99,7 @@ pub struct WidgetAttributes {
     pub tooltip_text: String,
     pub model_key: Option<String>,
     pub class_split: Vec<String>,
+    pub border_radius: BorderRadius,
     pub(crate) default_visibility: Visibility,
     pub(crate) default_z_index: ZIndex,
     pub(crate) overrided_background_color: Option<Color>,
@@ -282,6 +283,27 @@ pub trait SetWidgetAttributes: Sized {
                     }
                     _ => {}
                 }
+            }
+        }
+    }
+
+    // ref: https://vuetifyjs.com/en/styles/border-radius/#usage
+    fn _process_built_in_border_radius_class(&mut self) {
+        let class_split: Vec<String> = self.cloned_attrs().class_split.clone();
+        let br = &mut self.cloned_attrs().border_radius;
+
+        // default
+        *br = BorderRadius::all(Val::Px(5.0));
+
+        for class_name in class_split.iter() {
+            match class_name.as_str() {
+                "rounded-0" => *br = BorderRadius::all(Val::Px(0.0)),
+                "rounded-sm" => *br = BorderRadius::all(Val::Px(2.0)),
+                "rounded-lg" => *br = BorderRadius::all(Val::Px(8.0)),
+                "rounded-xl" => *br = BorderRadius::all(Val::Px(24.0)),
+                "rounded-pill" => *br = BorderRadius::all(Val::Px(9999.0)),
+                "rounded-circle" => *br = BorderRadius::all(Val::Percent(50.0)),
+                _ => {}
             }
         }
     }

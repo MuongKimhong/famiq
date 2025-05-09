@@ -170,6 +170,35 @@ fn setup_test_built_in_spacing_class(mut fa_query: FaQuery, mut famiq_res: ResMu
     container!(id: "#container-two", class: "pl-5 mb-5");
 }
 
+fn setup_test_built_in_border_radius_class(mut fa_query: FaQuery, mut famiq_res: ResMut<FamiqResource>) {
+    FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
+    container!(id: "#container-one", class: "rounded-0");
+    container!(id: "#container-two", class: "rounded-circle");
+    container!(id: "#container-three", class: "rounded-pill");
+}
+
+#[test]
+fn test_built_in_border_radius_class() {
+    let mut app = create_test_app();
+    app.add_plugins(FamiqPlugin);
+    app.add_systems(Startup, setup_test_built_in_border_radius_class);
+    app.update();
+
+    let mut query = app.world_mut().query::<(&WidgetId, &BorderRadius)>();
+
+    for (id, br) in query.iter(app.world_mut()) {
+        if id.0 == "#container-one" {
+            assert_eq!(*br, BorderRadius::all(Val::Px(0.0)));
+        }
+        else if id.0 == "#container-two" {
+            assert_eq!(*br, BorderRadius::all(Val::Percent(50.0)));
+        }
+        else if id.0 == "#container-three" {
+            assert_eq!(*br, BorderRadius::all(Val::Px(9999.0)));
+        }
+    }
+}
+
 #[test]
 fn test_built_in_spacing_class() {
     let mut app = create_test_app();
