@@ -62,7 +62,7 @@ pub mod prelude {
         circular::CircularBuilder,
         text_input::TextInputBuilder,
         selection::SelectionBuilder,
-        modal::ModalBuilder,
+        dialog::DialogBuilder,
         progress_bar::ProgressBarBuilder,
         scroll::ScrollBuilder,
         fps::FpsBuilder,
@@ -75,7 +75,7 @@ pub mod prelude {
     pub use crate::fps;
     pub use crate::image;
     pub use crate::scroll;
-    pub use crate::modal;
+    pub use crate::dialog;
     pub use crate::progress_bar;
     pub use crate::selection;
     pub use crate::text;

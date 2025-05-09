@@ -5,14 +5,14 @@ use bevy::color::palettes::basic::*;
 use crate::widgets::container::*;
 use crate::plugin::FamiqPlugin;
 use crate::button;
-use crate::modal;
+use crate::dialog;
 use crate::container;
 use bevy::input::InputPlugin;
 use crate::utils::*;
 use crate::widgets::scroll::*;
 use super::button::*;
 use super::text::*;
-use super::modal::*;
+use super::dialog::*;
 use crate::scroll;
 use crate::text;
 use super::*;
@@ -78,7 +78,7 @@ fn setup_test_containable_for_modal(
     mut fa_query: FaQuery
 ) {
     FamiqBuilder::new(&mut fa_query, &mut famiq_res).inject();
-    let modal = modal!(id: "#test-modal");
+    let modal = dialog!(id: "#test-modal");
     fa_query.commands.insert_resource(TestResource(modal));
 }
 
@@ -282,7 +282,7 @@ fn test_add_children_for_modal() {
     app.add_systems(Update, run_add_children_for_modal);
     app.update();
 
-    let query = app.world_mut().query::<(&Children, &IsFamiqModal)>().single(app.world());
+    let query = app.world_mut().query::<(&Children, &IsFamiqDialog)>().single(app.world());
     assert_eq!(query.unwrap().0.iter().count(), 2);
 }
 
@@ -295,7 +295,7 @@ fn test_insert_children_for_modal() {
     app.add_systems(Update, run_insert_children_for_modal);
     app.update();
 
-    let query = app.world_mut().query::<(&Children, &IsFamiqModal)>().single(app.world());
+    let query = app.world_mut().query::<(&Children, &IsFamiqDialog)>().single(app.world());
     assert_eq!(query.unwrap().0.iter().count(), 2);
 }
 

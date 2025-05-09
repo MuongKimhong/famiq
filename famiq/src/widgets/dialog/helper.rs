@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-pub fn default_modal_background_node() -> Node {
+pub fn default_dialog_background_node() -> Node {
     Node {
         width: Val::Percent(100.0),
         height: Val::Percent(100.0),
@@ -16,7 +16,7 @@ pub fn default_modal_background_node() -> Node {
     }
 }
 
-pub fn default_modal_container_node() -> Node {
+pub fn default_dialog_container_node() -> Node {
     Node {
         width: Val::Auto,
         height: Val::Auto,

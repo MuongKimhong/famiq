@@ -11,7 +11,7 @@ pub mod style_parse;
 pub mod text;
 pub mod text_input;
 pub mod circular;
-pub mod modal;
+pub mod dialog;
 pub mod image;
 pub mod progress_bar;
 pub mod checkbox;
@@ -816,7 +816,7 @@ pub enum BuilderType {
     Container(container::ContainerBuilder),
     Fps(fps::FpsBuilder),
     Image(image::ImageBuilder),
-    Modal(modal::ModalBuilder),
+    Dialog(dialog::DialogBuilder),
     ProgressBar(progress_bar::ProgressBarBuilder),
     Selection(selection::SelectionBuilder),
     Scroll(scroll::ScrollBuilder)

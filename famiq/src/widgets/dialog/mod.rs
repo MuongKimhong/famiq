@@ -18,12 +18,12 @@ use helper::*;
 
 /// Use to define show/hide state for modal.
 #[derive(Resource, Default, Debug)]
-pub struct FaModalState {
+pub struct FaDialogState {
     pub entity_states: HashMap<Entity, bool>,
     pub state_changed: bool
 }
 
-impl FaModalState {
+impl FaDialogState {
     fn _update_or_insert_entity(&mut self, entity: Entity, new_state: bool) {
         self.entity_states.entry(entity).or_insert(false);
         self.entity_states.insert(entity, new_state);
@@ -51,14 +51,14 @@ impl FaModalState {
 
 #[set_widget_attributes]
 #[derive(Clone, Debug)]
-pub struct ModalBuilder {
+pub struct DialogBuilder {
     pub all_reactive_keys: Vec<String>,
     pub children: Vec<Entity>,
     pub root_node: Entity,
     pub clear_bg: RVal
 }
 
-impl ModalBuilder {
+impl DialogBuilder {
     pub fn new(root_node: Entity) -> Self {
         Self {
             all_reactive_keys: Vec::new(),
@@ -82,7 +82,7 @@ impl ModalBuilder {
 
     pub(crate) fn prepare_attrs(&mut self, r_data: &HashMap<String, RVal>) {
         self.cloned_attrs = self.attributes.clone();
-        self.cloned_attrs.node = default_modal_background_node();
+        self.cloned_attrs.node = default_dialog_background_node();
         self.cloned_attrs.default_visibility = Visibility::Visible;
 
         match self.clear_bg.to_owned() {
@@ -106,10 +106,10 @@ impl ModalBuilder {
     }
 }
 
-impl SetupWidget for ModalBuilder {
+impl SetupWidget for DialogBuilder {
     fn components(&mut self) -> impl Bundle {
         (
-            IsFamiqModal, MainWidget, IsFamiqContainableWidget,
+            IsFamiqDialog, MainWidget, IsFamiqContainableWidget,
             FocusPolicy::Block, GlobalZIndex(5), ReactiveWidget,
             AnimationProgress(0.0)
         )
@@ -138,7 +138,7 @@ impl SetupWidget for ModalBuilder {
                 ar_keys,
                 modal_bg_entity,
                 WidgetBuilder {
-                    builder: BuilderType::Modal(cloned_builder)
+                    builder: BuilderType::Dialog(cloned_builder)
                 }
             ));
         });
@@ -158,7 +158,7 @@ impl SetupWidget for ModalBuilder {
             ar_keys,
             old_entity,
             WidgetBuilder {
-                builder: BuilderType::Modal(cloned_builder)
+                builder: BuilderType::Dialog(cloned_builder)
             }
         ));
         self.all_reactive_keys.clear();
@@ -167,7 +167,7 @@ impl SetupWidget for ModalBuilder {
 
 /// Macro for creating a modal.
 #[macro_export]
-macro_rules! modal {
+macro_rules! dialog {
     ( $( $key:ident : $value:tt ),* $(,)? ) => {{
         let famiq_builder = builder_mut();
 
@@ -178,10 +178,10 @@ macro_rules! modal {
         )*
 
         let root_entity = famiq_builder.resource.root_node_entity.unwrap();
-        let m_builder = &mut ModalBuilder::new(root_entity);
+        let m_builder = &mut DialogBuilder::new(root_entity);
 
         $(
-            $crate::modal_attributes!(m_builder, $key : $value);
+            $crate::dialog_attributes!(m_builder, $key : $value);
         )*
         m_builder.children = children_vec.clone();
         let bg_entity = m_builder.build(
@@ -194,7 +194,7 @@ macro_rules! modal {
 }
 
 #[macro_export]
-macro_rules! modal_attributes {
+macro_rules! dialog_attributes {
     // skip children
     ($m_builder:ident, children: $children_vec:tt) => {{}};
 
@@ -215,6 +215,6 @@ macro_rules! modal_attributes {
 /// Determines if modal internal system(s) can run.
 ///
 /// True only if there is a modal widget created.
-pub fn can_run_modal_systems(modal_q: Query<&IsFamiqModal>) -> bool {
-    !modal_q.is_empty()
+pub fn can_run_dialog_systems(dialog_q: Query<&IsFamiqDialog>) -> bool {
+    !dialog_q.is_empty()
 }

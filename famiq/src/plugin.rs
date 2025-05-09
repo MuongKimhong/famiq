@@ -9,7 +9,7 @@ use crate::widgets::{
     scroll::*,
     fps::*,
     circular::*,
-    modal::*,
+    dialog::*,
     progress_bar::*,
     *
 };
@@ -176,10 +176,10 @@ impl Plugin for FamiqPlugin {
         app.add_systems(
             Update,
             (
-                hide_or_display_modal_system,
-                detect_modal_reactive_model_change
+                hide_or_display_dialog_system,
+                detect_dialog_reactive_model_change
             )
-            .run_if(can_run_modal_systems)
+            .run_if(can_run_dialog_systems)
 
         );
         app.add_systems(PostUpdate, on_update_subscriber_event);
@@ -201,7 +201,7 @@ impl Plugin for FamiqPlugin {
         app.insert_resource(CosmicSwashCache(SwashCache::new()));
         app.insert_resource(RSubscriber::default());
         app.insert_resource(CanBeScrolled { entity: None });
-        app.insert_resource(FaModalState::default());
+        app.insert_resource(FaDialogState::default());
         app.insert_resource(CursorIcons::default());
 
         app.init_resource::<JsonStyleAssetState>();

@@ -212,7 +212,7 @@ pub(crate) fn detect_reactive_data_change(
                     BuilderType::Scroll(mut builder) => builder.rebuild(&r_data, entity, world),
                     BuilderType::Selection(mut builder) => builder.rebuild(&r_data, entity, world),
                     BuilderType::Container(mut builder) => builder.rebuild(&r_data, entity, world),
-                    BuilderType::Modal(mut builder) => builder.rebuild(&r_data, entity, world),
+                    BuilderType::Dialog(mut builder) => builder.rebuild(&r_data, entity, world),
                 }
             });
             reset_external_style(world, &style_res);
