@@ -37,6 +37,14 @@ use std::sync::Arc;
 #[cfg(not(target_arch = "wasm32"))]
 use arboard::Clipboard;
 
+#[cfg(target_arch = "wasm32")]
+use bevy::tasks::AsyncComputeTaskPool;
+#[cfg(target_arch = "wasm32")]
+use js_sys::Promise;
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen_futures::JsFuture;
 
 // TODO:
 // 1. make text input reactive

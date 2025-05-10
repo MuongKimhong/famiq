@@ -291,7 +291,7 @@ impl FaTextEdit {
         false
     }
 
-    /// Copy text in `fa_text_input`.
+    /// Copy text in `text_input`.
     /// - return None if text is empty.
     pub fn copy_text(&mut self) -> Option<String> {
         #[cfg(not(target_arch = "wasm32"))]

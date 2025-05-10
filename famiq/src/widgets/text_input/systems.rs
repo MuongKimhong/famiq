@@ -1,6 +1,34 @@
 use bevy::prelude::*;
 use super::*;
 
+#[cfg(target_arch = "wasm32")]
+pub struct WasmPaste {
+    text: String,
+    entity: Entity,
+}
+
+/// Async channel for receiving from the clipboard in Wasm
+#[cfg(target_arch = "wasm32")]
+#[derive(Resource, Clone)]
+pub struct WasmPasteAsyncChannel {
+    pub tx: crossbeam_channel::Sender<WasmPaste>,
+    pub rx: crossbeam_channel::Receiver<WasmPaste>,
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub fn write_clipboard_wasm(text: &str) {
+    let clipboard = web_sys::window().unwrap().navigator().clipboard();
+    let _result = clipboard.write_text(text);
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub fn read_clipboard_wasm() -> Promise {
+    let clipboard = web_sys::window().unwrap().navigator().clipboard();
+    clipboard.read_text()
+}
+
 pub(crate) fn on_mouse_over(
     mut trigger: Trigger<Pointer<Over>>,
     mut input_q: Query<
@@ -502,7 +530,10 @@ pub(crate) fn handle_buffer_texture_on_selecting(
     }
 }
 
-pub(crate) fn handle_text_input_on_typing(mut param: TypingParam) {
+pub(crate) fn handle_text_input_on_typing(
+    mut param: TypingParam,
+    #[cfg(target_arch = "wasm32")] wasm_channel: Option<Res<WasmPasteAsyncChannel>>,
+) {
     for e in param.evr_kbd.read() {
         if e.state == ButtonState::Released { // it's key up? nevermind
             continue;
@@ -586,6 +617,30 @@ pub(crate) fn handle_text_input_on_typing(mut param: TypingParam) {
                     }
                 }
 
+                #[cfg(target_arch = "wasm32")]
+                {
+                    if text_edit.is_ctrl_c_pressed(&param.keys, e.key_code) {
+                        if !text_edit.selected_text.trim().is_empty() {
+                            write_clipboard_wasm(&text_edit.selected_text);
+                            continue;
+                        }
+                    }
+                    else if text_edit.is_ctrl_v_pressed(&param.keys, e.key_code) {
+                        let tx = wasm_channel.as_ref().unwrap().tx.clone();
+                        let _task = AsyncComputeTaskPool::get().spawn(async move {
+                            let promise = read_clipboard_wasm();
+
+                            let result = JsFuture::from(promise).await;
+
+                            if let Ok(js_text) = result {
+                                if let Some(text) = js_text.as_string() {
+                                    let _ = tx.try_send(WasmPaste { text, entity });
+                                }
+                            }
+                        });
+                    }
+                }
+
                 if !skip_typing {
                     match &e.logical_key {
                         Key::Character(key_input) => text_edit.insert_char(&mut editor, font_system, key_input, *attrs),
@@ -634,6 +689,87 @@ pub(crate) fn handle_text_input_on_typing(mut param: TypingParam) {
                 blink_timer.can_blink = false;
             }
         }
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+pub fn on_wasm_paste(
+    channel: Res<WasmPasteAsyncChannel>,
+    mut input_q: Query<
+        (
+            Entity,
+            &ComputedNode,
+            &FaTextInputBufferTextureEntity,
+            &mut CursorBlinkTimer,
+            &mut CosmicData,
+            &mut FaTextEdit,
+            &ReactiveModelKey
+        ),
+        With<IsFamiqTextInput>
+    >,
+    mut texture_q: Query<&mut Node, (With<IsFamiqTextInputBufferTexture>, Without<MainWidget>)>,
+    mut famiq_res: ResMut<FamiqResource>,
+    mut font_system: ResMut<CosmicFontSystem>,
+    mut request_redraw: EventWriter<RequestRedrawBuffer>,
+    mut fa_query: FaQuery,
+) {
+    let inlet = channel.rx.try_recv();
+    match inlet {
+        Ok(inlet) => {
+            if inlet.text.is_empty() {
+                return;
+            }
+
+            if let Ok((
+                entity,
+                computed,
+                texture_entity,
+                mut blink_timer,
+                mut cosmic_data,
+                mut text_edit,
+                model_key
+            )) = input_q.get_mut(inlet.entity) {
+                let Some(focused) = famiq_res.get_widget_focus_state(&entity) else { return };
+
+                if !focused {
+                    return;
+                }
+                let mut texture_node = texture_q.get_mut(texture_entity.0).unwrap();
+
+                let CosmicData { buffer_dim, attrs, editor, .. } = &mut *cosmic_data;
+
+                if let Some(mut editor) = editor.as_mut() {
+                    let font_system = &mut font_system.0;
+                    helper::clear_buffer_before_insert(&mut editor, &mut text_edit, font_system, attrs.unwrap());
+                    let index = text_edit.cursor_index;
+                    text_edit.value.insert_str(index, &inlet.text);
+                    text_edit.cursor_index += inlet.text.len();
+
+                    editor.with_buffer_mut(|buffer| {
+                        buffer.set_size(font_system, None, None); // reset
+                        buffer.set_text(font_system, &text_edit.value, attrs.unwrap(), Shaping::Advanced);
+                        helper::update_buffer_text_layout(
+                            font_system,
+                            &mut text_edit,
+                            buffer_dim,
+                            buffer,
+                            &texture_node
+                        );
+                    });
+                    editor.set_cursor(Cursor::new(0, text_edit.cursor_index));
+
+                    if let Some(value) = fa_query.get_data_mut(&model_key.0) {
+                        match value {
+                            RVal::Str(v) =>  *v = text_edit.value.to_owned(),
+                            _ => {}
+                        }
+                    }
+                    request_redraw.write(RequestRedrawBuffer::new(entity));
+                    blink_timer.can_blink = false;
+                }
+            }
+        }
+        Err(_) => {}
     }
 }
 

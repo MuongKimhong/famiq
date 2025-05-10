@@ -111,9 +111,11 @@ fn fa_text_input_systems(app: &mut App) {
             handle_text_input_on_focused,
             handle_cursor_blink_system,
             detect_new_text_input_widget_system,
+
+            #[cfg(target_arch = "wasm32")]
+            on_wasm_paste,
         )
         .run_if(cosmic_font_system_exists.and(can_run_text_input_systems))
-        // .run_if( can_run_text_input_systems)
     );
     app.add_systems(
         PostUpdate,
@@ -198,6 +200,13 @@ impl Plugin for FamiqPlugin {
         {
             app.insert_resource(CosmicFontSystem(FontSystem::new_with_fonts([])));
         }
+
+        #[cfg(target_arch = "wasm32")]
+        {
+            let (tx, rx) = crossbeam_channel::bounded::<WasmPaste>(1);
+            app.insert_resource(WasmPasteAsyncChannel { tx, rx });
+        }
+
         app.insert_resource(CosmicSwashCache(SwashCache::new()));
         app.insert_resource(RSubscriber::default());
         app.insert_resource(CanBeScrolled { entity: None });
