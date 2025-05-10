@@ -336,8 +336,7 @@ pub enum WidgetType {
     Selection,
     Circular,
     ProgressBar,
-    ToolTip, // globalzindex 4
-    Modal, // globalzindex 5
+    Dialog, // globalzindex 5
     Image,
     BackgroudImage
 }

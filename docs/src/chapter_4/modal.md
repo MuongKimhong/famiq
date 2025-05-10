@@ -1,17 +1,19 @@
-# Modal
+# Dialog
 
 ### Usage
 ```rust
-modal!();
+dialog!();
 ```
 
 ### Example
 ```rust
-modal!(
-    model: "show_modal",
+fa_query.insert_bool("show_dialog", false);
+
+dialog!(
+    model: "show_dialog",
     children: [
         container!(children: [
-            text!(text: "Hello from modal"),
+            text!(text: "Hello from dialog"),
             button!(text: "Close")
         ])
     ]
@@ -19,7 +21,7 @@ modal!(
 ```
 
 ### Required attribute
-- **model**
+- **model**: type bool.
 
 ### Available attributes
 - **id**

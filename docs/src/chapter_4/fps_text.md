@@ -13,11 +13,17 @@ return `Entity`.
 ### Example
 ```rust
 fps!(right_side: true, change_color: false);
+
+// or with reactive data
+fa_query.insert_bool("right", true);
+fa_query.insert_bool("can_change_color", false);
+
+fps!(right_side: "$[right]", change_color: "$[can_change_color]");
 ```
 
 ### Available attributes
 - **id**
 - **class**
 - **color**
-- **right_side**: show the fps at top-right corner
-- **change_color**: change_color based on its value
+- **right_side**: show the fps at top-right corner.
+- **change_color**: change color based on its value.

@@ -38,4 +38,3 @@ fn handle_button_press(mut events: EventReader<FaMouseEvent>) {
 - **id**
 - **class**
 - **color**
-- **tooltip**

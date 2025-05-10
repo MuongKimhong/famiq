@@ -15,7 +15,7 @@
     - [TextInput](./chapter_4/text_input.md)
     - [Selection](./chapter_4/selection.md)
     - [Circular](./chapter_4/circular.md)
-    - [Modal](./chapter_4/modal.md)
+    - [Dialog](./chapter_4/modal.md)
     - [Scroll](./chapter_4/scroll.md)
     - [Image](./chapter_4/image.md)
     - [Progress Bar](./chapter_4/progress_bar.md)

@@ -14,6 +14,9 @@ Return `Entity` which must be used inside a containable widget.
 
 ### Example
 ```rust
+fa_query.insert_str("plan", "");
+fa_query.insert_str("subscription", "");
+
 let plans = selection!(
     placeholder: "Select plan",
     model: "plan",
@@ -29,11 +32,10 @@ container!(children: [plans, subscriptions]);
 
 ### Required attributes
 - **placeholder**
-- **model**
+- **model**: type string.
 
 ### Available attributes
 - **id**
 - **class**
 - **color**
-- **tooltip**
 - **choices**

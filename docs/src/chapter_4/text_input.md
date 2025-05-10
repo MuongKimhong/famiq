@@ -15,6 +15,8 @@ Return `Entity` which must be used inside a containable widget.
 
 ### Example
 ```rust
+fa_query.insert_str("name", "");
+
 container!(
     children: [
         text!(text: "$[name]"),
@@ -25,10 +27,9 @@ container!(
 
 ### Required attribute
 - **placeholder**
-- **model**
+- **model**: type string.
 
 ### Available attributes
 - **id**
 - **class**
 - **color**
-- **tooltip**

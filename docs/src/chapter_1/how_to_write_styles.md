@@ -1,5 +1,18 @@
 # How to write bevy styles in JSON file?
 
+### Example
+```rust
+button!(text: "Press me", id: "#btn");
+```
+```json
+{
+  "#btn": {
+    "background_color": "blue"
+  }
+}
+```
+
+### Styles
 **Famiq** supports almost all UI styles provided by Bevy engine.
 
 - `color`: text color, supports only `srgba`, `linear_rgba`, `hsla` and basic colors.

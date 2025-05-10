@@ -9,7 +9,7 @@ These are default widgets that are likely required to build GUI application.
   - [TextInput](./text_input.md)
   - [Selection](./selection.md)
   - [Circular](./circular.md)
-  - [Modal](./modal.md)
+  - [Dialog](./modal.md)
   - [Scroll](./scroll.md)
   - [Image](./image.md)
   - [Progress Bar](./progress_bar.md)

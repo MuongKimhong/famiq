@@ -36,5 +36,4 @@ container!(
 - **id**
 - **class**
 - **color**
-- **tooltip**
 - **size**

@@ -19,6 +19,10 @@ You can write a bevy system that runs in `Update` schedule to handle the events.
 Example,
 
 ```rust
+// register system
+app.add_systems(Update, on_mouse_over_text);
+
+// system
 fn on_mouse_over_text(mut events: EventReader<FaMouseEvent>) {
     for e in events.read() {
         // not mouse over text, early return
@@ -39,3 +43,6 @@ fn on_mouse_over_text(mut events: EventReader<FaMouseEvent>) {
     }
 }
 ```
+see
+- [WidgetType](https://docs.rs/famiq/latest/famiq/widgets/enum.WidgetType.html).
+- [FaMouseEvent](https://docs.rs/famiq/latest/famiq/event_writer/struct.FaMouseEvent.html).

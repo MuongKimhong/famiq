@@ -7,9 +7,6 @@ An empty and stylyable widget. Think of it as a **div** inside HTML.
 - `container!` has its default height set to `auto`, meaning its height
 depends on its children.
 
-- If you use `container!` to create a custom widget without `children`, you
-must set the height to a specific value.
-
 ### usage
 ```rust
 container!(id: "#my-container");

@@ -26,3 +26,9 @@ container!(children: [
     warning_bar
 ]);
 ```
+
+#### Available attributes
+- **id**
+- **class**
+- **color**
+- **model**: if `model` is not provided it will be rendered as `indeterminate`. Type f32.

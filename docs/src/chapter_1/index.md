@@ -3,14 +3,17 @@
 
 Each widget can have an **id** or **classes**, which are used to apply styles from the JSON file.
 
+### Example
+in your `setup ui system`:
 ```rust
-// by id
+// with id
 let button = button!(text: "Press me", id: "#button");
 
-// by class or classes
+// with class or classes
 let text_1 = text!(text: "Hello world", class: "text important");
 let text_2 = text!(text: "Hello Mom", class: "text");
 ```
+in `styles.json`:
 ```json
 {
   "#button": {
