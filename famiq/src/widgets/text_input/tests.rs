@@ -1,6 +1,6 @@
 #![cfg(test)]
 
-use crate::plugin::FamiqPlugin;
+use crate::FamiqPlugin;
 use crate::widgets::color::PRIMARY_COLOR;
 use crate::widgets::WidgetClasses;
 use crate::utils;
@@ -27,8 +27,8 @@ fn setup_test_input_with_built_in_class(
 #[test]
 fn test_create_default_input() {
     let mut app = utils::create_test_app();
+    app.add_plugins(FamiqPlugin::new());
     app.add_plugins(InputPlugin::default());
-    app.add_plugins(FamiqPlugin);
     app.add_systems(Startup, setup_test_default_input);
     app.update();
 
@@ -43,8 +43,8 @@ fn test_create_default_input() {
 #[test]
 fn test_create_input_with_built_in_class() {
     let mut app = utils::create_test_app();
+    app.add_plugins(FamiqPlugin::new());
     app.add_plugins(InputPlugin::default());
-    app.add_plugins(FamiqPlugin);
     app.add_systems(Startup, setup_test_input_with_built_in_class);
     app.update();
 

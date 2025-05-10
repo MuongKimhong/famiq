@@ -1,6 +1,6 @@
 #![cfg(test)]
 
-use crate::plugin::FamiqPlugin;
+use crate::FamiqPlugin;
 use crate::widgets::color::PRIMARY_COLOR;
 use crate::widgets::FamiqResource;
 use crate::selection;
@@ -36,7 +36,7 @@ fn setup_test_selection_with_choices(
 #[test]
 fn test_create_default_selection() {
     let mut app = create_test_app();
-    app.add_plugins(FamiqPlugin);
+    app.add_plugins(FamiqPlugin::new());
     app.add_systems(Startup, setup_test_default_selection);
     app.update();
 
@@ -53,7 +53,7 @@ fn test_create_default_selection() {
 #[test]
 fn test_create_selection_with_built_in_class_color() {
     let mut app = create_test_app();
-    app.add_plugins(FamiqPlugin);
+    app.add_plugins(FamiqPlugin::new());
     app.add_systems(Startup, setup_test_selection_with_built_in_class_color);
     app.update();
 
@@ -71,7 +71,7 @@ fn test_create_selection_with_built_in_class_color() {
 #[test]
 fn test_create_selection_with_choices() {
     let mut app = create_test_app();
-    app.add_plugins(FamiqPlugin);
+    app.add_plugins(FamiqPlugin::new());
     app.add_systems(Startup, setup_test_selection_with_choices);
     app.update();
 

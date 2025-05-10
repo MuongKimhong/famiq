@@ -1,6 +1,6 @@
 #![cfg(test)]
 
-use crate::plugin::FamiqPlugin;
+use crate::FamiqPlugin;
 use crate::widgets::*;
 use crate::circular;
 use crate::utils::create_test_app;
@@ -33,7 +33,7 @@ fn set_up_circular_with_custom_size(
 #[test]
 fn test_create_default_circular() {
     let mut app = create_test_app();
-    app.add_plugins(FamiqPlugin);
+    app.add_plugins(FamiqPlugin::new());
     app.add_systems(Startup, setup_test_default_circular);
     app.update();
 
@@ -63,7 +63,7 @@ fn test_create_default_circular() {
 #[test]
 fn test_create_circular_with_built_in_class() {
     let mut app = create_test_app();
-    app.add_plugins(FamiqPlugin);
+    app.add_plugins(FamiqPlugin::new());
     app.add_systems(Startup, setup_test_circular_with_built_in_class);
     app.update();
 
@@ -92,7 +92,7 @@ fn test_create_circular_with_built_in_class() {
 #[test]
 fn test_create_circular_with_custom_size() {
     let mut app = create_test_app();
-    app.add_plugins(FamiqPlugin);
+    app.add_plugins(FamiqPlugin::new());
     app.add_systems(Startup, set_up_circular_with_custom_size);
     app.update();
 

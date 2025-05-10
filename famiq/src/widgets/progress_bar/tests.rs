@@ -1,7 +1,7 @@
 #![cfg(test)]
 
+use crate::FamiqPlugin;
 use crate::utils::create_test_app;
-use crate::plugin::FamiqPlugin;
 use crate::widgets::{WidgetId, WidgetClasses, FamiqResource};
 use crate::progress_bar;
 use super::*;
@@ -25,7 +25,7 @@ fn setup_test_bar_with_built_in_class(
 #[test]
 fn test_create_default_bar() {
     let mut app = create_test_app();
-    app.add_plugins(FamiqPlugin);
+    app.add_plugins(FamiqPlugin::new());
     app.add_systems(Startup, setup_test_default_bar);
     app.update();
 
@@ -40,7 +40,7 @@ fn test_create_default_bar() {
 #[test]
 fn test_create_bar_with_built_in_class() {
     let mut app = create_test_app();
-    app.add_plugins(FamiqPlugin);
+    app.add_plugins(FamiqPlugin::new());
     app.add_systems(Startup, setup_test_bar_with_built_in_class);
     app.update();
 

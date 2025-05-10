@@ -1,7 +1,7 @@
 #![cfg(test)]
 
-use crate::plugin::FamiqPlugin;
 use crate::button;
+use crate::FamiqPlugin;
 use crate::widgets::button::*;
 use crate::widgets::FamiqResource;
 use bevy::input::InputPlugin;
@@ -31,8 +31,8 @@ fn setup_test_scroll_with_children(
 #[test]
 fn test_create_default_scroll() {
     let mut app = create_test_app();
+    app.add_plugins(FamiqPlugin::new());
     app.add_plugins(InputPlugin::default());
-    app.add_plugins(FamiqPlugin);
     app.add_systems(Startup, setup_test_default_scroll);
 
     app.update();
@@ -54,8 +54,8 @@ fn test_create_default_scroll() {
 #[test]
 fn test_create_scroll_with_children() {
     let mut app = create_test_app();
+    app.add_plugins(FamiqPlugin::new());
     app.add_plugins(InputPlugin::default());
-    app.add_plugins(FamiqPlugin);
     app.add_systems(Startup, setup_test_scroll_with_children);
     app.update();
 

@@ -3,10 +3,10 @@
 use bevy::prelude::*;
 use bevy::color::palettes::basic::*;
 use crate::widgets::container::*;
-use crate::plugin::FamiqPlugin;
 use crate::button;
 use crate::dialog;
 use crate::container;
+use crate::FamiqPlugin;
 use bevy::input::InputPlugin;
 use crate::utils::*;
 use crate::widgets::scroll::*;
@@ -180,7 +180,7 @@ fn setup_test_built_in_border_radius_class(mut fa_query: FaQuery, mut famiq_res:
 #[test]
 fn test_built_in_border_radius_class() {
     let mut app = create_test_app();
-    app.add_plugins(FamiqPlugin);
+    app.add_plugins(FamiqPlugin::new());
     app.add_systems(Startup, setup_test_built_in_border_radius_class);
     app.update();
 
@@ -202,7 +202,7 @@ fn test_built_in_border_radius_class() {
 #[test]
 fn test_built_in_spacing_class() {
     let mut app = create_test_app();
-    app.add_plugins(FamiqPlugin);
+    app.add_plugins(FamiqPlugin::new());
     app.add_systems(Startup, setup_test_built_in_spacing_class);
     app.update();
 
@@ -225,7 +225,7 @@ fn test_built_in_spacing_class() {
 #[test]
 fn test_built_in_alignment_class() {
     let mut app = create_test_app();
-    app.add_plugins(FamiqPlugin);
+    app.add_plugins(FamiqPlugin::new());
     app.add_systems(Startup, setup_test_built_in_alignment_class);
     app.update();
 
@@ -250,7 +250,7 @@ fn test_built_in_alignment_class() {
 #[test]
 fn test_add_children_for_container() {
     let mut app = create_test_app();
-    app.add_plugins(FamiqPlugin);
+    app.add_plugins(FamiqPlugin::new());
     app.add_systems(Startup, setup_test_containable_for_container);
     app.update();
     app.add_systems(Update, run_add_children_for_container);
@@ -263,7 +263,7 @@ fn test_add_children_for_container() {
 #[test]
 fn test_insert_children_for_container() {
     let mut app = create_test_app();
-    app.add_plugins(FamiqPlugin);
+    app.add_plugins(FamiqPlugin::new());
     app.add_systems(Startup, setup_test_containable_for_container);
     app.update();
     app.add_systems(Update, run_insert_children_for_container);
@@ -276,7 +276,7 @@ fn test_insert_children_for_container() {
 #[test]
 fn test_add_children_for_modal() {
     let mut app = create_test_app();
-    app.add_plugins(FamiqPlugin);
+    app.add_plugins(FamiqPlugin::new());
     app.add_systems(Startup, setup_test_containable_for_modal);
     app.update();
     app.add_systems(Update, run_add_children_for_modal);
@@ -289,7 +289,7 @@ fn test_add_children_for_modal() {
 #[test]
 fn test_insert_children_for_modal() {
     let mut app = create_test_app();
-    app.add_plugins(FamiqPlugin);
+    app.add_plugins(FamiqPlugin::new());
     app.add_systems(Startup, setup_test_containable_for_modal);
     app.update();
     app.add_systems(Update, run_insert_children_for_modal);
@@ -302,7 +302,7 @@ fn test_insert_children_for_modal() {
 #[test]
 fn test_add_children_for_listview() {
     let mut app = create_test_app();
-    app.add_plugins(FamiqPlugin);
+    app.add_plugins(FamiqPlugin::new());
     app.add_plugins(InputPlugin::default());
     app.add_systems(Startup, setup_test_containable_for_listview);
     app.update();
@@ -316,7 +316,7 @@ fn test_add_children_for_listview() {
 #[test]
 fn test_insert_children_for_listview() {
     let mut app = create_test_app();
-    app.add_plugins(FamiqPlugin);
+    app.add_plugins(FamiqPlugin::new());
     app.add_plugins(InputPlugin::default());
     app.add_systems(Startup, setup_test_containable_for_listview);
     app.update();
@@ -330,7 +330,7 @@ fn test_insert_children_for_listview() {
 #[test]
 fn test_set_text_color_entity() {
     let mut app = create_test_app();
-    app.add_plugins(FamiqPlugin);
+    app.add_plugins(FamiqPlugin::new());
     app.add_systems(Startup, setup_test_fa_query_for_text);
     app.update();
     app.add_systems(Update, run_set_text_color_entity);
@@ -342,7 +342,7 @@ fn test_set_text_color_entity() {
 #[test]
 fn test_set_background_color_id() {
     let mut app = create_test_app();
-    app.add_plugins(FamiqPlugin);
+    app.add_plugins(FamiqPlugin::new());
     app.add_systems(Startup, setup_test_fa_query);
     app.update();
     app.add_systems(Update, run_update_by_id_for_get_style_mut);
@@ -354,7 +354,7 @@ fn test_set_background_color_id() {
 #[test]
 fn test_set_background_color_entity() {
     let mut app = create_test_app();
-    app.add_plugins(FamiqPlugin);
+    app.add_plugins(FamiqPlugin::new());
     app.add_systems(Startup, setup_test_fa_query);
     app.update();
     app.add_systems(Update, run_update_by_entity_for_get_style_mut);

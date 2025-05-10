@@ -170,7 +170,7 @@ pub fn can_run_text_systems(text_q: Query<&IsFamiqText>) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use crate::plugin::FamiqPlugin;
+    use crate::FamiqPlugin;
     use crate::utils::create_test_app;
     use crate::widgets::FamiqResource;
     use super::*;
@@ -186,7 +186,7 @@ mod tests {
     #[test]
     fn test_create_default_text() {
         let mut app = create_test_app();
-        app.add_plugins(FamiqPlugin);
+        app.add_plugins(FamiqPlugin::new());
         app.add_systems(Startup, setup_test_default_text);
         app.update();
 

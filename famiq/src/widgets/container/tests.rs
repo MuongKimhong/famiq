@@ -1,8 +1,8 @@
 #![cfg(test)]
 
 use crate::utils;
+use crate::FamiqPlugin;
 use crate::widgets::button::*;
-use crate::plugin::FamiqPlugin;
 use crate::widgets::{FamiqResource, WidgetId, WidgetClasses, builder_mut};
 use super::*;
 
@@ -42,7 +42,7 @@ fn setup_test_container_with_children(
 #[test]
 fn test_create_default_container() {
     let mut app = utils::create_test_app();
-    app.add_plugins(FamiqPlugin);
+    app.add_plugins(FamiqPlugin::new());
     app.add_systems(Startup, setup_test_default_container);
     app.update();
 
@@ -56,7 +56,7 @@ fn test_create_default_container() {
 #[test]
 fn test_create_container_with_class() {
     let mut app = utils::create_test_app();
-    app.add_plugins(FamiqPlugin);
+    app.add_plugins(FamiqPlugin::new());
     app.add_systems(Startup, setup_test_container_with_class);
     app.update();
 
@@ -70,7 +70,7 @@ fn test_create_container_with_class() {
 #[test]
 fn test_create_container_with_children() {
     let mut app = utils::create_test_app();
-    app.add_plugins(FamiqPlugin);
+    app.add_plugins(FamiqPlugin::new());
     app.add_systems(Startup, setup_test_container_with_children);
     app.update();
 

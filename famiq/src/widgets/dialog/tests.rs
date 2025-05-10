@@ -1,6 +1,6 @@
 #![cfg(test)]
 
-use crate::plugin::FamiqPlugin;
+use crate::FamiqPlugin;
 use crate::widgets::FamiqResource;
 use crate::widgets::text::*;
 use crate::dialog;
@@ -29,7 +29,7 @@ fn setup_test_dialog_with_children(
 #[test]
 fn test_create_default_dialog() {
     let mut app = create_test_app();
-    app.add_plugins(FamiqPlugin);
+    app.add_plugins(FamiqPlugin::new());
     app.add_systems(Startup, setup_test_default_dialog);
     app.update();
 
@@ -43,7 +43,7 @@ fn test_create_default_dialog() {
 #[test]
 fn test_create_dialog_with_children() {
     let mut app = create_test_app();
-    app.add_plugins(FamiqPlugin);
+    app.add_plugins(FamiqPlugin::new());
     app.add_systems(Startup, setup_test_dialog_with_children);
     app.update();
 

@@ -1,6 +1,6 @@
 #![cfg(test)]
 
-use crate::plugin::FamiqPlugin;
+use crate::FamiqPlugin;
 use crate::widgets::{FamiqResource, WidgetId, WidgetClasses, builder_mut};
 use crate::utils::{get_embedded_asset_path, create_test_app};
 use crate::image;
@@ -36,7 +36,7 @@ fn setup_test_image_with_custom_size(
 #[test]
 fn test_create_default_image() {
     let mut app = create_test_app();
-    app.add_plugins(FamiqPlugin);
+    app.add_plugins(FamiqPlugin::new());
     app.add_systems(Startup, setup_test_default_image);
     app.update();
 
@@ -50,7 +50,7 @@ fn test_create_default_image() {
 #[test]
 fn test_create_image_with_class() {
     let mut app = create_test_app();
-    app.add_plugins(FamiqPlugin);
+    app.add_plugins(FamiqPlugin::new());
     app.add_systems(Startup, setup_test_image_with_class);
     app.update();
 
@@ -62,7 +62,7 @@ fn test_create_image_with_class() {
 #[test]
 fn test_create_image_with_custom_size() {
     let mut app = create_test_app();
-    app.add_plugins(FamiqPlugin);
+    app.add_plugins(FamiqPlugin::new());
     app.add_systems(Startup, setup_test_image_with_custom_size);
     app.update();
 

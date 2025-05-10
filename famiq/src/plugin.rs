@@ -161,7 +161,24 @@ fn fa_progress_bar_systems(app: &mut App) {
     );
 }
 
-pub struct FamiqPlugin;
+pub struct FamiqPlugin {
+    /// Setup Camera2d by default
+    pub default_camera: bool
+}
+
+impl FamiqPlugin {
+    pub fn new() -> Self {
+        Self {
+            default_camera: true
+        }
+    }
+
+    pub fn new_no_camera() -> Self {
+        Self {
+            default_camera: false
+        }
+    }
+}
 
 impl Plugin for FamiqPlugin {
     fn build(&self, app: &mut App) {
@@ -171,7 +188,11 @@ impl Plugin for FamiqPlugin {
         embedded_asset!(app, "embedded_assets/shaders/circular.wgsl");
         embedded_asset!(app, "embedded_assets/shaders/text_input.wgsl");
 
-        app.add_systems(PreStartup, _spawn_root_node);
+        if self.default_camera {
+            app.add_systems(PreStartup, _spawn_root_node_camera);
+        } else {
+            app.add_systems(PreStartup, _spawn_root_node_no_camera);
+        }
         app.add_systems(PostStartup, adjust_position_system);
         app.add_systems(Update, detect_new_widget_with_id);
         // app.add_systems(Update, handle_window_resized_system);
@@ -245,9 +266,26 @@ fn detect_new_widget_with_id(widget_q: Query<&WidgetId, Added<MainWidget>>) {
     }
 }
 
-fn _spawn_root_node(mut commands: Commands, mut res: ResMut<FamiqResource>) {
+fn _spawn_root_node_camera(mut commands: Commands, mut res: ResMut<FamiqResource>) {
     commands.spawn(Camera2d::default());
 
+    let entity = commands.spawn((
+        Node {
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            flex_direction: FlexDirection::Column,
+            justify_content: JustifyContent::FlexStart,
+            align_items: AlignItems::Stretch,
+            ..default()
+        },
+        IsFaWidgetRoot,
+        GlobalZIndex(1)
+    )).id();
+
+    res.root_node_entity = Some(entity);
+}
+
+fn _spawn_root_node_no_camera(mut commands: Commands, mut res: ResMut<FamiqResource>) {
     let entity = commands.spawn((
         Node {
             width: Val::Percent(100.0),

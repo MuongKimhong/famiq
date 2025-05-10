@@ -1,6 +1,6 @@
 #![cfg(test)]
 
-use crate::plugin::FamiqPlugin;
+use crate::FamiqPlugin;
 use crate::utils::create_test_app;
 use crate::widgets::{FamiqResource, WidgetId, WidgetClasses, builder_mut};
 use crate::fps;
@@ -33,7 +33,7 @@ fn setup_test_fps_with_right_side(
 #[test]
 fn test_create_default_fps() {
     let mut app = create_test_app();
-    app.add_plugins(FamiqPlugin);
+    app.add_plugins(FamiqPlugin::new());
     app.add_systems(Startup, setup_test_default_fps);
     app.update();
 
@@ -51,7 +51,7 @@ fn test_create_default_fps() {
 #[test]
 fn test_create_fps_with_change_color() {
     let mut app = create_test_app();
-    app.add_plugins(FamiqPlugin);
+    app.add_plugins(FamiqPlugin::new());
     app.add_systems(Startup, setup_test_fps_with_change_color);
     app.update();
 
@@ -64,7 +64,7 @@ fn test_create_fps_with_change_color() {
 #[test]
 fn test_create_fps_with_right_side() {
     let mut app = create_test_app();
-    app.add_plugins(FamiqPlugin);
+    app.add_plugins(FamiqPlugin::new());
     app.add_systems(Startup, setup_test_fps_with_right_side);
     app.update();
 

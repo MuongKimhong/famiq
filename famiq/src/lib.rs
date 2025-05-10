@@ -10,7 +10,7 @@
 //! fn main() {
 //!     App::new()
 //!        .add_plugins(DefaultPlugins)
-//!        .add_plugins(FamiqPlugin) // add plugin
+//!        .add_plugins(FamiqPlugin::new()) // add plugin
 //!        .add_systems(Startup, setup_ui)
 //!        .run();
 //! }
