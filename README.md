@@ -7,6 +7,10 @@
 </p>
 
 <p align="center">
+  Leverage game engine power to build GUI applications.
+</p>
+
+<p align="center">
     <img width="600" src="record.gif">
 </p>
 
