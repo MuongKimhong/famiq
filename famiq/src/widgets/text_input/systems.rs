@@ -3,8 +3,15 @@ use super::*;
 
 #[cfg(target_arch = "wasm32")]
 pub struct WasmPaste {
-    text: String,
-    entity: Entity,
+    pub text: String,
+    pub entity: Entity,
+}
+
+#[cfg(target_arch = "wasm32")]
+pub(crate) enum WasmCopyPasteResult {
+    CopyOk,
+    PasteOk,
+    NoCopyAndPaste
 }
 
 /// Async channel for receiving from the clipboard in Wasm
@@ -619,25 +626,13 @@ pub(crate) fn handle_text_input_on_typing(
 
                 #[cfg(target_arch = "wasm32")]
                 {
-                    if text_edit.is_ctrl_c_pressed(&param.keys, e.key_code) {
-                        if !text_edit.selected_text.trim().is_empty() {
-                            write_clipboard_wasm(&text_edit.selected_text);
-                            continue;
+                    match helper::handle_copy_paste_wasm(&param.keys, e.key_code, &text_edit, &wasm_channel, entity) {
+                        Ok(result) => match result {
+                            WasmCopyPasteResult::CopyOk => continue,
+                            WasmCopyPasteResult::PasteOk => skip_typing = true,
+                            _ => {}
                         }
-                    }
-                    else if text_edit.is_ctrl_v_pressed(&param.keys, e.key_code) {
-                        let tx = wasm_channel.as_ref().unwrap().tx.clone();
-                        let _task = AsyncComputeTaskPool::get().spawn(async move {
-                            let promise = read_clipboard_wasm();
-
-                            let result = JsFuture::from(promise).await;
-
-                            if let Ok(js_text) = result {
-                                if let Some(text) = js_text.as_string() {
-                                    let _ = tx.try_send(WasmPaste { text, entity });
-                                }
-                            }
-                        });
+                        Err(_) => {}
                     }
                 }
 

@@ -263,3 +263,37 @@ pub(crate) fn create_buffer_texture(
     texture.sampler = ImageSampler::linear();
     image_assets.add(texture)
 }
+
+#[cfg(target_arch = "wasm32")]
+pub(crate) fn handle_copy_paste_wasm(
+    keys: &Res<ButtonInput<KeyCode>>,
+    keycode: KeyCode,
+    text_edit: &FaTextEdit,
+    wasm_channel: &Option<Res<WasmPasteAsyncChannel>>,
+    input_entity: Entity
+) -> Result<WasmCopyPasteResult, ()>
+{
+    if text_edit.is_ctrl_c_pressed(keys, keycode) {
+        if !text_edit.selected_text.trim().is_empty() {
+            write_clipboard_wasm(&text_edit.selected_text);
+            return Ok(WasmCopyPasteResult::CopyOk);
+        }
+    }
+    else if text_edit.is_ctrl_v_pressed(keys, keycode) {
+        let tx = wasm_channel.as_ref().unwrap().tx.clone();
+        let _task = AsyncComputeTaskPool::get().spawn(async move {
+            let promise = read_clipboard_wasm();
+
+            let result = JsFuture::from(promise).await;
+
+            if let Ok(js_text) = result {
+                if let Some(text) = js_text.as_string() {
+                    let _ = tx.try_send(WasmPaste { text, entity: input_entity });
+                }
+            }
+        });
+        return Ok(WasmCopyPasteResult::PasteOk);
+    }
+
+    Ok(WasmCopyPasteResult::NoCopyAndPaste)
+}
