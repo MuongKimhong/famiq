@@ -312,15 +312,36 @@ impl FaTextEdit {
     }
 
     pub fn is_ctrl_a_pressed(&self, keys: &Res<ButtonInput<KeyCode>>, keycode: KeyCode) -> bool {
-        keys.pressed(KeyCode::ControlLeft) && matches!(keycode, KeyCode::KeyA)
+        #[cfg(target_os = "macos")]
+        {
+            keys.pressed(KeyCode::SuperLeft) && matches!(keycode, KeyCode::KeyA)
+        }
+        #[cfg(not(target_os = "macos"))]
+        {
+            keys.pressed(KeyCode::ControlLeft) && matches!(keycode, KeyCode::KeyA)
+        }
     }
 
     pub fn is_ctrl_c_pressed(&self, keys: &Res<ButtonInput<KeyCode>>, keycode: KeyCode) -> bool {
-        keys.pressed(KeyCode::ControlLeft) && matches!(keycode, KeyCode::KeyC)
+        #[cfg(target_os = "macos")]
+        {
+            keys.pressed(KeyCode::SuperLeft) && matches!(keycode, KeyCode::KeyC)
+        }
+        #[cfg(not(target_os = "macos"))]
+        {
+            keys.pressed(KeyCode::ControlLeft) && matches!(keycode, KeyCode::KeyC)
+        }
     }
 
     pub fn is_ctrl_v_pressed(&self, keys: &Res<ButtonInput<KeyCode>>, keycode: KeyCode) -> bool {
-        keys.pressed(KeyCode::ControlLeft) && matches!(keycode, KeyCode::KeyV)
+        #[cfg(target_os = "macos")]
+        {
+            keys.pressed(KeyCode::SuperLeft) && matches!(keycode, KeyCode::KeyV)
+        }
+        #[cfg(not(target_os = "macos"))]
+        {
+            keys.pressed(KeyCode::ControlLeft) && matches!(keycode, KeyCode::KeyV)
+        }
     }
 
     pub fn insert_char(
