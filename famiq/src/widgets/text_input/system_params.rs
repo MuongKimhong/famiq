@@ -33,7 +33,8 @@ pub(crate) struct RequestRedrawBufferParam<'w, 's> {
     pub input_q: Query<'w, 's,
         (
             &'static mut CosmicData,
-            &'static CosmicDataColor,
+            &'static mut CosmicDataColor,
+            &'static FaTextEdit,
             &'static FaTextInputBufferTextureEntity
         )
     >,

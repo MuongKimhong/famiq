@@ -48,8 +48,8 @@ use wasm_bindgen_futures::JsFuture;
 
 // TODO:
 // 1. make text input reactive
-// 2. clipboard support on wasm
-// 3. on macos, use commands + c or v, instead of ctrls
+
+pub const PLACEHOLDER_LESS_ALPHA_PERCENT: f32 = 28.0;
 
 #[derive(Event, Debug)]
 pub struct RequestRedrawBuffer {
