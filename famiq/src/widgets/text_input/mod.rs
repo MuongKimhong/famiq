@@ -49,7 +49,7 @@ use wasm_bindgen_futures::JsFuture;
 // TODO:
 // 1. make text input reactive
 
-pub const PLACEHOLDER_LESS_ALPHA_PERCENT: f32 = 28.0;
+pub const PLACEHOLDER_LESS_ALPHA_PERCENT: f32 = 25.0;
 
 #[derive(Event, Debug)]
 pub struct RequestRedrawBuffer {
@@ -99,6 +99,7 @@ impl TextInputBuilder {
 impl SetupWidget for TextInputBuilder {
     fn components(&mut self) -> impl Bundle {
         self._process_built_in_size_class();
+        self._process_built_in_color_class();
         let placeholder_color = get_text_color(&self.cloned_attrs.color);
         let text_data = CosmicTextData {
             handle: self.cloned_attrs.font_handle.clone().unwrap(),
