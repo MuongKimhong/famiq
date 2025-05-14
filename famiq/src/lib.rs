@@ -80,7 +80,7 @@ pub mod prelude {
     pub use crate::selection;
     pub use crate::text;
     pub use crate::text_input;
-    pub use crate::event_writer::FaMouseEvent;
+    pub use crate::event_writer::*;
     pub use crate::errors::*;
     pub use bevy::platform::collections::HashMap;
     pub use serde_json;

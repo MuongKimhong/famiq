@@ -426,6 +426,9 @@ pub(crate) fn get_text_color(variant: &WidgetColor) -> Color {
         WidgetColor::WarningDark => WARNING_COLOR,
         WidgetColor::InfoDark => INFO_COLOR,
         WidgetColor::Dark => WHITE_COLOR,
+        WidgetColor::CustomSrgba(srgba) => {
+            Color::srgba(srgba.0, srgba.1, srgba.2, srgba.3)
+        },
         _ => BLACK_COLOR,
     }
 }

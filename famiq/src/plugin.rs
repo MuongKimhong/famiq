@@ -135,7 +135,6 @@ fn fa_scroll_systems(app: &mut App) {
         )
         .run_if(can_run_scroll_systems)
     );
-    // app.add_systems(Update, detect_new_scroll_system.run_if(can_run_scroll_systems));
 }
 
 fn fa_fps_text_systems(app: &mut App) {
@@ -245,6 +244,7 @@ impl Plugin for FamiqPlugin {
         app.init_asset_loader::<JsonStyleAssetLoader>();
 
         app.add_event::<event_writer::FaMouseEvent>();
+        app.add_event::<event_writer::FaModelChangeEvent>();
         app.add_event::<RequestRedrawBuffer>();
         app.add_event::<UpdateReactiveSubscriberEvent>();
 

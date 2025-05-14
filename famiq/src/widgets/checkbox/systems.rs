@@ -1,4 +1,6 @@
 use bevy::prelude::*;
+use crate::event_writer::FaModelChangeEvent;
+
 use super::*;
 
 pub(crate) fn on_mouse_over(
@@ -27,11 +29,14 @@ pub(crate) fn on_mouse_down(
     mut item_box_q: Query<(&mut CheckBoxChoiceTicked, &mut BackgroundColor)>,
     item_wrapper_q: Query<(&CheckBoxItemBoxEntity, &CheckBoxItemText, &CheckBoxMainContainerEntity)>,
     mut fa_query: FaQuery,
+    mut model_change: EventWriter<FaModelChangeEvent>
 ) {
     if let Ok((box_entity, item_text, main_entity)) = item_wrapper_q.get(trigger.target()) {
         if let Ok(model_key) = checkbox_q.get(main_entity.0) {
             if let Some(key) = model_key {
                 if let Some(value) = fa_query.get_data_mut(&key.0) {
+                    let old_value = value.to_owned();
+
                     match value {
                         RVal::List(v) => {
                             if let Ok((mut box_ticked, mut bg_color)) = item_box_q.get_mut(box_entity.0) {
@@ -46,6 +51,10 @@ pub(crate) fn on_mouse_down(
                             }
                         }
                         _ => {}
+                    }
+
+                    if *value != old_value {
+                        model_change.write(FaModelChangeEvent::new(&key.0, old_value, value.clone()));
                     }
                 }
             }

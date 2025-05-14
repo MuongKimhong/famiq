@@ -23,10 +23,9 @@ pub const INFO_COLOR: Color = Color::srgba(0.0, 1.0, 1.0, 1.0);
 pub const INFO_DARK_COLOR: Color = Color::srgba(0.0, 0.541, 0.541, 1.0);
 pub const BLACK_COLOR: Color = Color::srgba(0.0, 0.0, 0.0, 1.0);
 pub const WHITE_COLOR: Color = Color::srgba(1.0, 1.0, 1.0, 1.0);
-pub const PLACEHOLDER_COLOR_FOR_WHITE_BG: Color = Color::srgba(0.871, 0.871, 0.871, 0.988);
-pub const PLACEHOLDER_COLOR_FOR_BLACK_BG: Color = Color::srgba(0.529, 0.529, 0.529, 0.988);
 pub const DEFAULT_COLOR: Color = Color::srgba(0.95, 0.95, 0.95, 1.0);
 pub const TRANSPARENT_COLOR: Color = Color::NONE;
+pub const PLACEHOLDER_COLOR: (f32, f32, f32, f32) = (0.55, 0.55, 0.55, 0.8);
 
 /// Convert Hex color to bevy srgba
 pub fn hex_color_parser(hex: &str) -> Option<Color> {

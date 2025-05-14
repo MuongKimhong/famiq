@@ -1,4 +1,5 @@
 use crate::widgets::*;
+use crate::reactivity::RVal;
 
 use bevy::ecs::event::EventWriter;
 use bevy::prelude::*;
@@ -98,5 +99,22 @@ impl FaMouseEvent {
             entity,
             id: id.map(|_id| _id.0.clone())
         });
+    }
+}
+
+#[derive(Event, Debug)]
+pub struct FaModelChangeEvent {
+    pub name: String,
+    pub old_val: RVal,
+    pub new_val: RVal
+}
+
+impl FaModelChangeEvent {
+    pub fn new(name: &str, old_val: RVal, new_val: RVal) -> Self {
+        Self {
+            name: name.to_owned(),
+            old_val,
+            new_val
+        }
     }
 }

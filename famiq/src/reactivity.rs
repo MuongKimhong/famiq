@@ -14,7 +14,7 @@ pub struct RSubscriber {
 }
 
 /// Reactive data type
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub enum RVal {
     #[default]
     None,
