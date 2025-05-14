@@ -16,11 +16,13 @@ use famiq_macros::set_widget_attributes;
 // TODO: make scroll widget reactive
 
 pub const DEFAULT_SCROLL_HEIGHT: f32 = 15.0;
+pub const SMOOTH_SCROLL_FACTOR: f32 = 0.2;
 
 /// only entity inside this resource can be scrolled
 #[derive(Resource)]
 pub struct CanBeScrolled {
-    pub entity: Option<Entity>
+    pub entity: Option<Entity>,
+    pub is_scrolling: bool
 }
 
 pub fn default_move_panel_node() -> Node {

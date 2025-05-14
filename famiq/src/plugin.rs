@@ -127,9 +127,15 @@ fn fa_text_input_systems(app: &mut App) {
 fn fa_scroll_systems(app: &mut App) {
     app.add_systems(
         Update,
-        (on_hover_system, on_scroll_system).chain().run_if(can_run_scroll_systems)
+        (
+            on_hover_system,
+            on_scroll_system,
+            on_update_scroll_position,
+            detect_new_scroll_system
+        )
+        .run_if(can_run_scroll_systems)
     );
-    app.add_systems(Update, detect_new_scroll_system.run_if(can_run_scroll_systems));
+    // app.add_systems(Update, detect_new_scroll_system.run_if(can_run_scroll_systems));
 }
 
 fn fa_fps_text_systems(app: &mut App) {
@@ -230,7 +236,7 @@ impl Plugin for FamiqPlugin {
 
         app.insert_resource(CosmicSwashCache(SwashCache::new()));
         app.insert_resource(RSubscriber::default());
-        app.insert_resource(CanBeScrolled { entity: None });
+        app.insert_resource(CanBeScrolled { entity: None, is_scrolling: false });
         app.insert_resource(FaDialogState::default());
         app.insert_resource(CursorIcons::default());
 
