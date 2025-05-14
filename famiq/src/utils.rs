@@ -86,6 +86,32 @@ pub fn adjust_color(percentage: f32, color: &Color, darken: bool) -> Option<Colo
     }
 }
 
+pub fn reduce_color_alpha(percent: f32, color: &mut Color) {
+    let factor = percent / 100.0;
+
+    let new_color: Option<Color> = match color {
+        Color::Srgba(value) => {
+            let mut value = *value;
+            value.alpha = (value.alpha - factor).max(0.0);
+            Some(Color::Srgba(value.into()))
+        }
+        Color::LinearRgba(value) => {
+            let mut value = *value;
+            value.alpha = (value.alpha - factor).max(0.0);
+            Some(Color::LinearRgba(value.into()))
+        }
+        Color::Hsla(value) => {
+            let mut value = *value;
+            value.alpha = (value.alpha - factor).max(0.0);
+            Some(Color::Hsla(value.into()))
+        }
+        _ => None
+    };
+
+    if let Some(new_color) = new_color {
+        *color = new_color;
+    }
+}
 
 pub fn darken_color(percentage: f32, color: &Color) -> Option<Color> {
     adjust_color(percentage, color, true)

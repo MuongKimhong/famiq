@@ -49,8 +49,6 @@ use wasm_bindgen_futures::JsFuture;
 // TODO:
 // 1. make text input reactive
 
-pub const PLACEHOLDER_LESS_ALPHA_PERCENT: f32 = 25.0;
-
 #[derive(Event, Debug)]
 pub struct RequestRedrawBuffer {
     pub input_entity: Entity

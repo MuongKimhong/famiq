@@ -59,8 +59,6 @@ impl Default for CosmicData {
 #[derive(Component, Debug)]
 pub struct CosmicDataColor {
     pub text_color: CosmicColor,
-    pub original_text_color: CosmicColor,
-    pub less_alpha_text_color: CosmicColor,
     pub cursor_color: CosmicColor,
     pub selection_color: CosmicColor,
     pub selected_text_color: CosmicColor,
@@ -72,8 +70,6 @@ impl Default for CosmicDataColor {
             cursor_color: CURSOR_INVISIBLE,
             selection_color: DEFAULT_SELECTION_COLOR,
             text_color: DEFAULT_TEXT_COLOR,
-            original_text_color: DEFAULT_TEXT_COLOR,
-            less_alpha_text_color: DEFAULT_TEXT_COLOR,
             selected_text_color: DEFAULT_SELECTED_TEXT_COLOR
         }
     }
@@ -85,14 +81,7 @@ impl CosmicDataColor {
 
         if let Some(converted_color) = bevy_color_to_cosmic_rgba(text_color) {
             cosmic_data_color.text_color = converted_color;
-            cosmic_data_color.original_text_color = converted_color;
             cosmic_data_color.selected_text_color = converted_color;
-        }
-
-        if let Some(less_alpha) = lighten_color(PLACEHOLDER_LESS_ALPHA_PERCENT, &text_color) {
-            if let Some(converted_color) = bevy_color_to_cosmic_rgba(less_alpha) {
-                cosmic_data_color.less_alpha_text_color = converted_color;
-            }
         }
         cosmic_data_color
     }

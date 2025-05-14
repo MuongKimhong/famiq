@@ -33,8 +33,7 @@ pub(crate) struct RequestRedrawBufferParam<'w, 's> {
     pub input_q: Query<'w, 's,
         (
             &'static mut CosmicData,
-            &'static mut CosmicDataColor,
-            &'static FaTextEdit,
+            &'static CosmicDataColor,
             &'static FaTextInputBufferTextureEntity
         )
     >,
@@ -63,7 +62,7 @@ pub(crate) struct DetectTextStyleChangeParam<'w, 's> {
             &'static mut FaTextEdit,
             &'static CosmicTextData,
         ),
-        Changed<CosmicTextData>,
+        (With<IsFamiqTextInput>, Changed<CosmicTextData>),
     >,
     pub request_redraw: EventWriter<'w, RequestRedrawBuffer>,
     pub font_system: ResMut<'w, CosmicFontSystem>,

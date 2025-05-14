@@ -180,24 +180,16 @@ pub(crate) fn on_request_redraw_editor_buffer(
     mut param: RequestRedrawBufferParam
 ) {
     for event in request.read() {
-        if let Ok((mut cosmic_data, mut cosmic_color, text_edit, texture_entity)) = param.input_q.get_mut(event.input_entity) {
+        if let Ok((mut cosmic_data, cosmic_color, texture_entity)) = param.input_q.get_mut(event.input_entity) {
             let CosmicData {editor, buffer_dim, .. } = &mut *cosmic_data;
 
             if let Some(editor) = editor.as_mut() {
-
-                if text_edit.value.is_empty() {
-                    cosmic_color.text_color = cosmic_color.less_alpha_text_color;
-                } else {
-                    cosmic_color.text_color = cosmic_color.original_text_color;
-                    cosmic_color.selected_text_color = cosmic_color.original_text_color;
-                }
-
                 let pixels = helper::draw_editor_buffer(
                     buffer_dim,
                     &mut param.font_system.0,
                     &mut param.swash_cache.0,
                     editor,
-                    &cosmic_color
+                    cosmic_color
                 );
 
                 let (material_handle, image_node)= param.texture_q.get(texture_entity.0).unwrap();
@@ -245,14 +237,7 @@ pub(crate) fn detect_text_input_text_style_change(mut param: DetectTextStyleChan
         mut text_edit,
         cosmic_text_data
     )| {
-        if let Some(less_alpha) = lighten_color(PLACEHOLDER_LESS_ALPHA_PERCENT, &cosmic_text_data.color) {
-            if let Some(converted) = bevy_color_to_cosmic_rgba(less_alpha) {
-                cosmic_color.less_alpha_text_color = converted;
-            }
-        }
         if let Some(_cosmic_color) = bevy_color_to_cosmic_rgba(cosmic_text_data.color) {
-            cosmic_color.original_text_color = _cosmic_color;
-
             if let Some(is_focused) = param.famiq_res.get_widget_focus_state(&entity) {
                 if is_focused {
                     cosmic_color.cursor_color = _cosmic_color;
@@ -378,7 +363,7 @@ pub(crate) fn detect_new_text_input_widget_system(
                 &mut font_system.0,
                 &mut swash_cache.0,
                 &mut editor,
-                cosmic_color
+                &cosmic_color
             );
 
             // need empty pixels at buffer size for ImageNode. see 'on_request_redraw_editor_buffer' system
